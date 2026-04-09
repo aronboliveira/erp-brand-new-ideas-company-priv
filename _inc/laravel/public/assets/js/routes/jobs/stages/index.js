@@ -1,137 +1,194 @@
 /**
- * @file Job Stages Index Route Guard
- * @description Guards job stages routes, handles drag-drop reordering, and initializes tooltips using ERPGuard singleton
+ * @fileoverview TypeScript version of public/assets/js/routes/jobs/stages/index.js
+ * @generated from original JavaScript - manual review recommended
+ * @module index
  */
-
 (() => {
-  const guard = window.ERPGuard;
-  if (!guard) return;
-
-  const Q = sel => document.querySelector(sel);
-  const QA = sel => Array.from(document.querySelectorAll(sel));
-  const DEFAULT_ORDER_ERR = "Failed to save the new order of job stages.";
-
-  const initTooltips = () => {
-    try {
-      QA('[data-bs-toggle="tooltip"]').forEach(el => {
-        try {
-          window.bootstrap?.Tooltip.getOrCreateInstance(el);
-        } catch {}
-      });
-    } catch {}
-  };
-
-  const getCsrf = () => {
-    const meta = document.querySelector('meta[name="csrf-token"]');
-    if (meta && meta.content) return meta.content;
-    const input = document.querySelector('input[name="_token"]');
-    return input ? input.value : "";
-  };
-
-  const enableDragSort = list => {
-    if (!list) return;
-    const items = Array.from(list.children);
-    items.forEach(li => {
-      li.setAttribute("draggable", "true");
-      li.addEventListener("dragstart", e => {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", li.getAttribute("data-id") || "");
-        li.classList.add("dragging");
-      });
-      li.addEventListener("dragend", () => li.classList.remove("dragging"));
-    });
-
-    list.addEventListener("dragover", e => {
-      e.preventDefault();
-      const dragging = list.querySelector(".dragging");
-      if (!dragging) return;
-      const after = getDragAfterElement(list, e.clientY);
-      if (after == null) {
-        list.appendChild(dragging);
-      } else {
-        list.insertBefore(dragging, after);
-      }
-    });
-
-    list.addEventListener("drop", () => persistOrder(list));
-  };
-
-  const getDragAfterElement = (container, y) => {
-    const els = [...container.querySelectorAll("li:not(.dragging)")];
-    return (
-      els.reduce(
-        (closest, child) => {
-          const box = child.getBoundingClientRect();
-          const offset = y - (box.top + box.height / 2);
-          if (offset < 0 && offset > closest.offset) {
-            return { offset, element: child };
-          } else {
-            return closest;
-          }
-        },
-        { offset: Number.NEGATIVE_INFINITY },
-      ).element || null
-    );
-  };
-
-  const persistOrder = list => {
-    const url = (list.getAttribute("data-order-url") || "#").trim();
-    if (url === "#") {
-      guard.showToast(
-        list.getAttribute("data-guard-msg") || "Route unavailable",
-      );
-      return;
-    }
-    const ids = QA("#job-stages-sortable > li")
-      .map(li => li.getAttribute("data-id"))
-      .filter(Boolean);
-    if (!ids.length) return;
-
-    const payload = { order: ids };
-    const csrf = getCsrf();
-
-    const doFetch = () =>
-      fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-TOKEN": csrf,
-        },
-        body: JSON.stringify(payload),
-      }).then(r => (r.ok ? r.json() : Promise.reject()));
-
-    const doAjax = () => {
-      if (typeof $ === "undefined") return Promise.reject();
-      return $.ajax({
-        url,
-        method: "POST",
-        headers: csrf ? { "X-CSRF-TOKEN": csrf } : {},
-        data: payload,
-      });
+    const Q = (sel) => document.querySelector(sel), QA = (sel) => Array.from(document.querySelectorAll(sel)), DEFAULT_ROUTE_MSG = "Requested route is unavailable. Please contact technical support or your domain administrator.", DEFAULT_ORDER_ERR = "Failed to save the new order of job stages.";
+    const toast = (message) => {
+        const text = message || DEFAULT_ROUTE_MSG, hasBs = !!(document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&
+            window.bootstrap);
+        let box = document.getElementById("toast-container");
+        if (!box) {
+            box = document.createElement("div");
+            box.id = "toast-container";
+            document.body.appendChild(box);
+        }
+        if (hasBs) {
+            const t = document.createElement("div");
+            t.className = "toast";
+            for (const [k, v] of Object.entries({
+                role: "alert",
+                "aria-live": "assertive",
+                "aria-atomic": "true",
+            }))
+                t.setAttribute(k, v);
+            const b = document.createElement("div");
+            b.className = "toast-body";
+            b.textContent = text;
+            t.appendChild(b);
+            box.appendChild(t);
+            bootstrap.Toast.getOrCreateInstance(t).show();
+        }
+        else {
+            alert(text);
+        }
     };
-
-    (typeof fetch === "function"
-      ? doFetch().catch(doAjax)
-      : doAjax().catch(doFetch)
-    )
-      .then(() => {})
-      .catch(() => guard.showToast(DEFAULT_ORDER_ERR, "error"));
-  };
-
-  document.addEventListener("DOMContentLoaded", () => {
-    guard.bindClickGuard("a[data-guard-msg], a[data-url]", {
-      msgKey: "action_unavailable",
-      fallbackMsg:
-        "Requested route is unavailable. Please contact technical support or your domain administrator.",
+    const bindLinkGuard = (el) => {
+        if (!el || el.getAttribute("data-listener-active") === "true")
+            return;
+        el.setAttribute("data-listener-active", "true");
+        if (!el.getAttribute("data-listener-bound-click")) {
+            el.setAttribute("data-listener-bound-click", "1");
+            el.addEventListener("click", (e) => {
+                const href = (el.getAttribute("href") ?? "#").trim(), url = (el.getAttribute("data-url") ?? href ?? "#").trim();
+                if (url !== "#" && href !== "#")
+                    return;
+                e.preventDefault();
+                toast(el.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
+                el.setAttribute("data-failed-route", "true");
+            });
+        }
+    };
+    const bindFormGuard = (fm) => {
+        if (!fm || fm.getAttribute("data-submit-guarded") === "true")
+            return;
+        fm.setAttribute("data-submit-guarded", "true");
+        if (!fm.getAttribute("data-listener-bound-submit")) {
+            fm.setAttribute("data-listener-bound-submit", "1");
+            fm.addEventListener("submit", (e) => {
+                const action = (fm.getAttribute("action") ?? "#").trim(), url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
+                if (url !== "#" && action !== "#")
+                    return;
+                e.preventDefault();
+                toast(fm.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
+                fm.setAttribute("data-failed-route", "true");
+            });
+        }
+    };
+    const getCsrf = () => {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta?.content)
+            return meta.content;
+        // fallback: try hidden input in any form
+        const input = document.querySelector('input[name="_token"]');
+        return input ? input.value : "";
+    };
+    // Lightweight HTML5 drag & drop for <li> reordering
+    const enableDragSort = (list) => {
+        if (!list)
+            return;
+        const items = Array.from(list.children);
+        items.forEach((li) => {
+            li.setAttribute("draggable", "true");
+            li.addEventListener("dragstart", (e) => {
+                if (e.dataTransfer) {
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", li.getAttribute("data-id") ?? "");
+                }
+                li.classList.add("dragging");
+            });
+            li.addEventListener("dragend", () => li.classList.remove("dragging"));
+        });
+        if (!list.getAttribute("data-listener-bound-dragover")) {
+            list.setAttribute("data-listener-bound-dragover", "1");
+            list.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                const dragging = list.querySelector(".dragging");
+                if (!dragging)
+                    return;
+                const after = getDragAfterElement(list, e.clientY);
+                if (after == null) {
+                    list.appendChild(dragging);
+                }
+                else {
+                    list.insertBefore(dragging, after);
+                }
+            });
+        }
+        if (!list.getAttribute("data-listener-bound-drop")) {
+            list.setAttribute("data-listener-bound-drop", "1");
+            list.addEventListener("drop", () => {
+                // on drop, attempt to persist order
+                persistOrder(list);
+            });
+        }
+    };
+    const getDragAfterElement = (container, y) => {
+        const els = [
+            ...container.querySelectorAll("li:not(.dragging)"),
+        ];
+        return (els.reduce((closest, child) => {
+            const box = child.getBoundingClientRect(), offset = y - (box.top + box.height / 2);
+            if (offset < 0 && offset > closest.offset) {
+                return { offset, element: child };
+            }
+            else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY, element: null }).element || null);
+    };
+    const persistOrder = (list) => {
+        const url = (list.getAttribute("data-order-url") ?? "#").trim();
+        if (url === "#") {
+            toast(list.getAttribute("data-guard-msg") || DEFAULT_ROUTE_MSG);
+            return;
+        }
+        const ids = QA("#job-stages-sortable > li")
+            .map((li) => li.getAttribute("data-id"))
+            .filter(Boolean);
+        if (ids.length === 0)
+            return;
+        const payload = { order: ids }, csrf = getCsrf();
+        // Prefer fetch; fallback to jQuery if present
+        const doFetch = () => fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": csrf,
+            },
+            body: JSON.stringify(payload),
+        }).then(r => (r.ok ? r.json().catch(console.error) : Promise.reject()));
+        const $ = window.jQuery;
+        const doAjax = () => {
+            if (typeof $ === "undefined")
+                return Promise.reject();
+            return Promise.resolve($.ajax({
+                url,
+                method: "POST",
+                headers: csrf ? { "X-CSRF-TOKEN": csrf } : {},
+                data: payload,
+            }));
+        };
+        (typeof fetch === "function"
+            ? doFetch().catch(doAjax)
+            : doAjax().catch(doFetch))
+            .then(() => {
+            /* ok */
+        })
+            .catch(() => {
+            toast(DEFAULT_ORDER_ERR);
+        });
+    };
+    document.addEventListener("DOMContentLoaded", () => {
+        // guards & tooltips
+        QA("a[data-guard-msg], a[data-url]").forEach(bindLinkGuard);
+        QA("form[data-guard-msg], form[data-url]").forEach(fm => bindFormGuard(fm));
+        try {
+            QA('[data-bs-toggle="tooltip"]').forEach((el) => {
+                try {
+                    bootstrap.Tooltip.getOrCreateInstance(el);
+                }
+                catch (_) {
+                    console.error(`[index] Error:`, _);
+                }
+            });
+        }
+        catch (_) {
+            console.error(`[index] Error:`, _);
+        }
+        // drag & drop
+        enableDragSort(Q("#job-stages-sortable"));
     });
-
-    guard.bindSubmitGuard("form[data-guard-msg], form[data-url]", {
-      msgKey: "action_unavailable",
-      fallbackMsg:
-        "Requested route is unavailable. Please contact technical support or your domain administrator.",
-    });
-
-    initTooltips();
-    enableDragSort(Q("#job-stages-sortable"));
-  });
 })();
+//# sourceMappingURL=index.js.map

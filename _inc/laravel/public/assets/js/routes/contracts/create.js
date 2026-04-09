@@ -1,11 +1,6 @@
-(() => {
-  const { scheduleError } = window.ERPGuard ?? {};
-  const { getMsg } = window.ERPUtils ?? {};
-
-  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
-    
-    return;
-  }
-
-  // No implementation - placeholder for route guard
-})();
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/contracts/create.js
+ * @generated from original JavaScript - manual review recommended
+ * @module create
+ */
+//# sourceMappingURL=create.js.map

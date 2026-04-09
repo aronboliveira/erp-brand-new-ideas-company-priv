@@ -1,13 +1,72 @@
 /**
- * Leave Create Route Guards
- * Handles leave creation link validation
- * @module routes/leaves/create
+ * @fileoverview TypeScript version of public/assets/js/routes/leaves/create.js
+ * @generated from original JavaScript - manual review recommended
+ * @module create
  */
+// assets/js/routes/leaves/create.js
 (() => {
-  const guard = window.ERPGuard;
-  if (!guard) return;
-  guard.bindClickGuard("#leave-create-link", {
-    fallbackMsg:
-      "Create leave route is unavailable. Please contact technical support or your domain administrator.",
-  });
+    try {
+        const l = document.getElementById("leave-create-link");
+        if (!l)
+            return;
+        if (l.getAttribute("data-listener-active") === "true")
+            return;
+        l.setAttribute("data-listener-active", "true");
+        l.addEventListener("click", function (e) {
+            try {
+                const href = l.getAttribute("href") ?? "#", url = l.getAttribute("data-url") ?? "#";
+                if (href !== "#" || url !== "#")
+                    return;
+                e.preventDefault();
+                const msg = l.getAttribute("data-guard-msg") ??
+                    "Create leave route is unavailable. Please contact technical support or your domain administrator.", linkEl = document.querySelector('link[href*="bootstrap"]'), hasBs = linkEl !== null && window.bootstrap.Toast;
+                let container = document.getElementById("toast-container");
+                if (!container) {
+                    container = document.createElement("div");
+                    container.id = "toast-container";
+                    container.className =
+                        "toast-container position-fixed top-0 end-0 p-3";
+                    container.style.zIndex = "1080";
+                    container.className = "position-fixed top-0 end-0 p-3";
+                    document.body.appendChild(container);
+                }
+                if (hasBs) {
+                    const t = document.createElement("div");
+                    t.className = "toast";
+                    for (const [k, v] of Object.entries({
+                        role: "alert",
+                        "aria-live": "assertive",
+                        "aria-atomic": "true",
+                    }))
+                        t.setAttribute(k, v);
+                    const b = document.createElement("div");
+                    b.className = "toast-body";
+                    b.textContent = msg;
+                    t.appendChild(b);
+                    container.appendChild(t);
+                    const inst = window.bootstrap.Toast.getOrCreateInstance(t);
+                    t.addEventListener("hidden.bs.toast", function () {
+                        try {
+                            t.remove();
+                        }
+                        catch (_) {
+                            console.error(`[create] Error:`, _);
+                        }
+                    });
+                    inst.show();
+                }
+                else {
+                    alert(msg);
+                }
+                l.setAttribute("data-failed-route", "true");
+            }
+            catch (_) {
+                console.error(`[create] Error:`, _);
+            }
+        }, { passive: false });
+    }
+    catch (_) {
+        console.error(`[create] Error:`, _);
+    }
 })();
+//# sourceMappingURL=create.js.map

@@ -1,19 +1,67 @@
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/otherPayments/storeSalary.js
+ * @generated from original JavaScript - manual review recommended
+ * @module storeSalary
+ */
 (() => {
-  const guard = window.ERPGuard;
-  if (!guard) return;
-  guard.bindSubmitGuard("#other-payment-store-form", {
-    msgKey: "action_unavailable",
-    fallbackMsg:
-      "Store other payment route is unavailable. Please contact technical support or your domain administrator.",
-  });
-  guard.bindClickGuard('[id^="other-payment-edit-"]', {
-    msgKey: "action_unavailable",
-    fallbackMsg:
-      "Edit other payment route is unavailable. Please contact technical support or your domain administrator.",
-  });
-  guard.bindClickGuard('[id^="other-payment-delete-"]', {
-    msgKey: "action_unavailable",
-    fallbackMsg:
-      "Delete other payment route is unavailable. Please contact technical support or your domain administrator.",
-  });
+    const attachGuard = (el, eventType) => {
+        if (!el || el.getAttribute("data-listener-active") === "true")
+            return;
+        el.setAttribute("data-listener-active", "true");
+        el.addEventListener(eventType, event => {
+            try {
+                const href = el.tagName === "A" ? el.getAttribute("href") : null, action = el.tagName === "FORM" ? el.getAttribute("action") : null, url = el.getAttribute("data-url");
+                if ((href && href !== "#") ||
+                    (action && action !== "#") ||
+                    (url && url !== "#"))
+                    return;
+                event.preventDefault();
+                const msg = el.getAttribute("data-guard-msg") ?? "# ERROR", bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                let container = document.getElementById("toast-container");
+                if (!container) {
+                    container = document.createElement("div");
+                    container.id = "toast-container";
+                    container.className =
+                        "toast-container position-fixed top-0 end-0 p-3";
+                    container.style.zIndex = "1080";
+                    document.body.appendChild(container);
+                }
+                if (bootstrapLink && window.bootstrap) {
+                    const toastEl = document.createElement("div");
+                    toastEl.className = "toast";
+                    for (const [k, v] of Object.entries({
+                        role: "alert",
+                        "aria-live": "assertive",
+                        "aria-atomic": "true",
+                    }))
+                        toastEl.setAttribute(k, v);
+                    const body = document.createElement("div");
+                    body.className = "toast-body";
+                    body.textContent = msg;
+                    toastEl.appendChild(body);
+                    container.appendChild(toastEl);
+                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                }
+                else {
+                    alert(msg);
+                }
+                el.setAttribute("data-failed-route", "true");
+            }
+            catch (e) {
+                console.error(`[storeSalary] Error:`, e);
+            }
+        });
+    };
+    attachGuard(document.getElementById("other-payment-store-form"), "submit");
+    document
+        .querySelectorAll('[id^="other-payment-edit-"]')
+        .forEach((el) => {
+        attachGuard(el, "click");
+    });
+    document
+        .querySelectorAll('[id^="other-payment-delete-"]')
+        .forEach((el) => {
+        attachGuard(el, "click");
+    });
 })();
+//# sourceMappingURL=storeSalary.js.map

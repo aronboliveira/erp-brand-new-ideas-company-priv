@@ -1,15 +1,53 @@
 /**
- * @fileoverview Permission update route guard
- * @description Protects permission update form from submission when route is unavailable
+ * @fileoverview TypeScript version of public/assets/js/routes/permissions/update.js
+ * @generated from original JavaScript - manual review recommended
+ * @module update
  */
-
 (() => {
-  try {
-    const guard = window.ERPGuard;
-    if (!guard) return;
-    guard.bindSubmitGuard(
-      "#permission-update-form",
-      "VXBkYXRlIFBlcm1pc3Npb24gcm91dGUgaXMgdW5hdmFpbGFibGUuIFBsZWFzZSBjb250YWN0IHRlY2huaWNhbCBzdXBwb3J0IG9yIHlvdXIgZG9tYWluIGFkbWluaXN0cmF0b3Iu",
-    );
-  } catch {}
+    const form = document.getElementById("permission-update-form");
+    if (!form)
+        return;
+    const showToast = (msg) => {
+        try {
+            if (window.bootstrap.Toast) {
+                const container = document.getElementById("toast-container") ??
+                    (() => {
+                        const t = document.createElement("div");
+                        t.id = "toast-container";
+                        document.body.appendChild(t);
+                        return t;
+                    })();
+                const el = document.createElement("div");
+                el.className = "toast";
+                for (const [k, v] of Object.entries({
+                    role: "alert",
+                    "aria-live": "assertive",
+                    "aria-atomic": "true",
+                }))
+                    el.setAttribute(k, v);
+                const body = document.createElement("div");
+                body.className = "toast-body";
+                body.textContent = msg;
+                el.appendChild(body);
+                container.appendChild(el);
+                window.bootstrap.Toast.getOrCreateInstance(el).show();
+            }
+            else {
+                alert(msg);
+            }
+        }
+        catch {
+            alert(msg);
+        }
+    };
+    form.addEventListener("submit", (e) => {
+        const url = form.getAttribute("action") ?? form.getAttribute("data-url") ?? "#";
+        if (!url || url === "#") {
+            e.preventDefault();
+            const msg = form.getAttribute("data-guard-msg") ??
+                "Update Permission route is unavailable. Please contact technical support or your domain administrator.";
+            showToast(msg);
+        }
+    }, { passive: false });
 })();
+//# sourceMappingURL=update.js.map

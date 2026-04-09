@@ -1,106 +1,322 @@
 /**
- * @file Leads Update Route Guard
- * @description Guards the leads update form and AI generate button
- * @requires ERPGuard
- * @requires ERPUtils
- * @requires jQuery
+ * @fileoverview TypeScript version of public/assets/js/routes/leads/update.js
+ * @generated from original JavaScript - manual review recommended
+ * @module update
  */
-(() => {
-  const guard = window.ERPGuard;
-  const utils = window.ERPUtils;
-  const $ = window.jQuery;
-
-  if (!guard || !$) {
-    
-    return;
-  }
-
-  const L = "data-guard-listener";
-  const FORM_ID = "lead-update-form";
-  const AI_ID = "lead-ai-generate";
-  const FORM_MSG_KEY = "lead_update_route_unavailable";
-  const AI_MSG_KEY = "ai_generate_unavailable";
-  const FORM_FALLBACK = "Update lead route is unavailable. Please contact technical support or your domain administrator.";
-  const AI_FALLBACK = "AI generate feature is unavailable. Please contact technical support.";
-
-  /**
-   * Binds the form submit guard
-   */
-  const bindFormGuard = () => {
-    try {
-      const form = document.getElementById(FORM_ID);
-      if (!form || form.getAttribute(L) === "true") return;
-      form.setAttribute(L, "true");
-
-      guard.bindSubmitGuard(`#${FORM_ID}`, {
-        fallbackMsg: FORM_FALLBACK,
-        handler(event, formElement) {
-          event.preventDefault();
-          const url = formElement.getAttribute("data-url") || "";
-          const action = formElement.getAttribute("action") || "";
-
-          if (!guard.isInvalidUrl(url) || !guard.isInvalidUrl(action)) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    /* assets/js/routes/leads/update.js */
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    (function () {
+        const L = "data-guard-listener", DCL = "data-client-localized", DGM = "data-guard-msg";
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const DSL = "data-sv-localized", ERR = "# ERROR";
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        function hasBootstrapCss() {
             try {
-              formElement.submit();
-            } catch (_) {}
-            return;
-          }
-
-          const msg = utils?.getTranslation?.(FORM_MSG_KEY) ||
-            formElement.getAttribute("data-guard-msg") ||
-            FORM_FALLBACK;
-          guard.showToast(msg, "error");
-          formElement.setAttribute("data-failed-route", "true");
+                return !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
+            }
+            catch (_) {
+                return false;
+            }
         }
-      });
-    } catch (_) {}
-  };
-
-  /**
-   * Binds the AI generate button guard
-   */
-  const bindAiGuard = () => {
-    try {
-      const el = document.getElementById(AI_ID);
-      if (!el || el.getAttribute(L) === "true") return;
-      el.setAttribute(L, "true");
-
-      $(el).off("click.aiGuard").on("click.aiGuard", e => {
+        function toast(msg) {
+            try {
+                if (hasBootstrapCss() && window.bootstrap.Toast) {
+                    let c = document.getElementById("toast-container");
+                    if (!c) {
+                        c = document.createElement("div");
+                        c.id = "toast-container";
+                        document.body.appendChild(c);
+                    }
+                    const t = document.createElement("div");
+                    t.className = "toast";
+                    for (const [k, v] of Object.entries({
+                        role: "alert",
+                        "aria-live": "assertive",
+                        "aria-atomic": "true",
+                    }))
+                        t.setAttribute(k, v);
+                    const b = document.createElement("div");
+                    b.className = "toast-body";
+                    b.textContent = msg;
+                    t.appendChild(b);
+                    c.appendChild(t);
+                    window.bootstrap.Toast.getOrCreateInstance(t).show();
+                }
+                else {
+                    alert(msg);
+                }
+            }
+            catch (_) {
+                // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+                alert(msg);
+            }
+        }
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        function getMsg(el, key) {
+            try {
+                let msg = ERR;
+                if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true")
+                    msg = el.getAttribute(DGM) || ERR;
+                else {
+                    let lang = (window.sessionStorage.getItem("erp-np-lang") ??
+                        document.documentElement.lang ??
+                        "en")
+                        .toLowerCase()
+                        .replace(/_/g, "-");
+                    lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+                    msg =
+                        window.translations?.[lang]?.[key] ||
+                            el.getAttribute(DGM) ||
+                            window.translations?.en?.[key] ||
+                            ERR;
+                    if (msg !== ERR) {
+                        el.setAttribute(DGM, msg);
+                        el.setAttribute(DCL, "true");
+                    }
+                }
+                return msg || ERR;
+            }
+            catch (_) {
+                return ERR;
+            }
+        }
+        function bindSubmitGuard() {
+            try {
+                const $ = window.jQuery;
+                if (!$) {
+                    try {
+                        if (window.location.hostname === "localhost" ||
+                            window.location.hostname === "127.0.0.1")
+                            console.error("jQuery not found for leads/update");
+                    }
+                    catch (_) {
+                        console.error(`[update] Error:`, _);
+                    }
+                    return;
+                }
+                const form = document.getElementById("lead-update-form"), btn = document.getElementById("lead-update-submit");
+                if (!form || !btn)
+                    return;
+                if (form.getAttribute(L) === "true")
+                    return;
+                form.setAttribute(L, "true");
+                $(btn)
+                    .off("click.leadsUpdateGuard")
+                    .on("click.leadsUpdateGuard", function (e) {
+                    try {
+                        const url = form.getAttribute("data-url"), href = form.action;
+                        if ((!url || url === "#") && (!href || href === "#")) {
+                            e.preventDefault();
+                            toast(getMsg(form, "action_unavailable"));
+                        }
+                    }
+                    catch (_) {
+                        e.preventDefault();
+                        toast(getMsg(form, "action_unavailable"));
+                    }
+                });
+                const obs = new MutationObserver(function () {
+                    if (!document.body.contains(form) || !document.body.contains(btn)) {
+                        try {
+                            $(btn).off("click.leadsUpdateGuard");
+                        }
+                        catch (_) {
+                            console.error(`[update] Error:`, _);
+                        }
+                        obs.disconnect();
+                    }
+                });
+                obs.observe(document.body, { childList: true, subtree: true });
+            }
+            catch (_) {
+                console.error(`[update] Error:`, _);
+            }
+        }
         try {
-          const url = el.getAttribute("data-url");
-          const href = el.href;
-
-          if (guard.isInvalidUrl(url) && guard.isInvalidUrl(href)) {
-            e.preventDefault();
-            const msg = utils?.getTranslation?.(AI_MSG_KEY) ||
-              el.getAttribute("data-guard-msg") ||
-              AI_FALLBACK;
-            guard.showToast(msg, "error");
-          }
-        } catch (_) {
-          e.preventDefault();
-          guard.showToast(AI_FALLBACK, "error");
+            const $ = window.jQuery;
+            if (!$) {
+                try {
+                    if (window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1")
+                        console.error("Failed to initialize leads/update");
+                }
+                catch (_) {
+                    console.error(`[update] Error:`, _);
+                }
+                return;
+            }
+            $(function () {
+                bindSubmitGuard();
+            });
         }
-      });
-
-      const obs = new MutationObserver(() => {
-        if (!document.body.contains(el)) {
-          $(el).off("click.aiGuard");
-          obs.disconnect();
+        catch (_) {
+            try {
+                if (window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1")
+                    if (window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1")
+                        console.error("Failed to run leads/update");
+            }
+            catch (__) {
+                console.error(`[update] Error:`, __);
+            }
         }
-      });
-      obs.observe(document.body, { childList: true, subtree: true });
-    } catch (_) {}
-  };
-
-  const ready = () => {
-    bindFormGuard();
-    bindAiGuard();
-  };
-
-  if (document.readyState === "loading") {
-    $(ready);
-  } else {
-    ready();
-  }
+    })();
+    const L = "data-guard-listener";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const DCL = "data-client-localized", DGM = "data-guard-msg", DSL = "data-sv-localized", ERR = "# ERROR";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    function hasBootstrapCss() {
+        try {
+            return !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
+        }
+        catch (_) {
+            return false;
+        }
+    }
+    function toast(msg) {
+        try {
+            if (hasBootstrapCss() && window.bootstrap.Toast) {
+                let c = document.getElementById("toast-container");
+                if (!c) {
+                    c = document.createElement("div");
+                    c.id = "toast-container";
+                    document.body.appendChild(c);
+                }
+                const t = document.createElement("div");
+                t.className = "toast";
+                for (const [k, v] of Object.entries({
+                    role: "alert",
+                    "aria-live": "assertive",
+                    "aria-atomic": "true",
+                }))
+                    t.setAttribute(k, v);
+                const b = document.createElement("div");
+                b.className = "toast-body";
+                b.textContent = msg;
+                t.appendChild(b);
+                c.appendChild(t);
+                window.bootstrap.Toast.getOrCreateInstance(t).show();
+            }
+            else {
+                alert(msg);
+                // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+            }
+        }
+        catch (_) {
+            alert(msg);
+        }
+    }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    function getMsg(el, key) {
+        try {
+            let msg = ERR;
+            if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true")
+                msg = el.getAttribute(DGM) || ERR;
+            else {
+                let lang = (window.sessionStorage.getItem("erp-np-lang") ??
+                    document.documentElement.lang ??
+                    "en")
+                    .toLowerCase()
+                    .replace(/_/g, "-");
+                lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+                msg =
+                    window.translations?.[lang]?.[key] ||
+                        el.getAttribute(DGM) ||
+                        window.translations?.en?.[key] ||
+                        ERR;
+                if (msg !== ERR) {
+                    el.setAttribute(DGM, msg);
+                    el.setAttribute(DCL, "true");
+                }
+            }
+            return msg || ERR;
+        }
+        catch (_) {
+            return ERR;
+        }
+    }
+    function bindAiGuard() {
+        try {
+            const $ = window.jQuery;
+            if (!$) {
+                try {
+                    if (window.location.hostname === "localhost" ||
+                        window.location.hostname === "127.0.0.1")
+                        console.error("jQuery not found for aiGenerateGuard");
+                }
+                catch (_) {
+                    console.error(`[update] Error:`, _);
+                }
+                return;
+            }
+            const a = document.getElementById("lead-ai-generate");
+            if (!a || a.getAttribute(L) === "true")
+                return;
+            a.setAttribute(L, "true");
+            $(a)
+                .off("click.aiGuard")
+                .on("click.aiGuard", function (e) {
+                try {
+                    const url = a.getAttribute("data-url"), href = a.href;
+                    if ((!url || url === "#") && (!href || href === "#")) {
+                        e.preventDefault();
+                        toast(getMsg(a, "ai_generate_unavailable"));
+                    }
+                }
+                catch (_) {
+                    e.preventDefault();
+                    toast(getMsg(a, "ai_generate_unavailable"));
+                }
+            });
+            const obs2 = new MutationObserver(function () {
+                if (!document.body.contains(a)) {
+                    try {
+                        $(a).off("click.aiGuard");
+                    }
+                    catch (_) {
+                        console.error(`[update] Error:`, _);
+                    }
+                    obs2.disconnect();
+                }
+            });
+            obs2.observe(document.body, { childList: true, subtree: true });
+        }
+        catch (_) {
+            console.error(`[update] Error:`, _);
+        }
+    }
+    try {
+        const $ = window.jQuery;
+        if (!$) {
+            try {
+                if (window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1")
+                    console.error("Failed to initialize aiGenerateGuard");
+            }
+            catch (_) {
+                console.error(`[update] Error:`, _);
+            }
+            return;
+        }
+        $(function () {
+            bindAiGuard();
+        });
+    }
+    catch (_) {
+        try {
+            if (window.location.hostname === "localhost" ||
+                window.location.hostname === "127.0.0.1")
+                console.error("Failed to run aiGenerateGuard");
+        }
+        catch (__) {
+            console.error(`[update] Error:`, __);
+        }
+    }
 })();
+//# sourceMappingURL=update.js.map

@@ -1,24 +1,33 @@
 /**
- * @requires ERPUtils (native file handling)
+ * @fileoverview TypeScript version of public/assets/js/routes/jobs/applications/filename.js
+ * @generated from original JavaScript - manual review recommended
+ * @module filename
  */
 (() => {
-  try {
-    const inputs = Array.from(
-      document.querySelectorAll('input[type="file"][data-filename]'),
-    );
-    if (!inputs.length) return;
-    inputs.forEach(inp => {
-      if (inp.getAttribute("data-filename-guarded") === "true") return;
-      inp.setAttribute("data-filename-guarded", "true");
-      inp.addEventListener("change", () => {
-        try {
-          const sel = inp.getAttribute("data-filename") || "";
-          const out = sel ? document.querySelector("." + sel) : null;
-          if (!out) return;
-          const file = inp.files && inp.files[0] ? inp.files[0] : null;
-          out.textContent = file ? file.name : "";
-        } catch {}
-      });
-    });
-  } catch {}
+    try {
+        const inputs = Array.from(document.querySelectorAll('input[type="file"][data-filename]'));
+        if (inputs.length === 0)
+            return;
+        inputs.forEach(inp => {
+            if (inp.getAttribute("data-filename-guarded") === "true")
+                return;
+            inp.setAttribute("data-filename-guarded", "true");
+            inp.addEventListener("change", () => {
+                try {
+                    const sel = inp.getAttribute("data-filename") ?? "", out = sel ? document.querySelector("." + sel) : null;
+                    if (!out)
+                        return;
+                    const inputEl = inp, file = inputEl.files?.[0] ? inputEl.files[0] : null;
+                    out.textContent = file ? file.name : "";
+                }
+                catch (__err) {
+                    console.error(`[filename] Error:`, __err);
+                }
+            });
+        });
+    }
+    catch (__err) {
+        console.error(`[filename] Error:`, __err);
+    }
 })();
+//# sourceMappingURL=filename.js.map

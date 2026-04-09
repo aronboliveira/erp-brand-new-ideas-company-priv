@@ -1,12 +1,57 @@
 /**
- * @fileoverview Settings Google calendar route guard
- * @description Protects Google calendar settings form from submission when route is unavailable
+ * @fileoverview TypeScript version of public/assets/js/routes/settings/companies/calendar.js
+ * @generated from original JavaScript - manual review recommended
+ * @module calendar
  */
-
 (() => {
-  try {
-    const guard = window.ERPGuard;
-    if (!guard) return;
-    guard.bindSubmitGuard("#settings-google-calendar-form", "IyBFUlJPUg==");
-  } catch {}
+    const form = document.getElementById("settings-google-calendar-form");
+    if (!form || form.getAttribute("data-listener-active") === "true")
+        return;
+    form.setAttribute("data-listener-active", "true");
+    if (!form.getAttribute("data-listener-bound-submit")) {
+        form.setAttribute("data-listener-bound-submit", "1");
+        form.addEventListener("submit", (e) => {
+            try {
+                const dataUrl = form.getAttribute("data-url") ?? "#", action = form.getAttribute("action") ?? "#";
+                if (dataUrl !== "#" || action !== "#")
+                    return;
+                e.preventDefault();
+                const msg = form.getAttribute("data-guard-msg") ?? "# ERROR", hasBootstrap = document.querySelector('link[href*="bootstrap"]') &&
+                    window.bootstrap;
+                let container = document.getElementById("toast-container");
+                if (!container) {
+                    container = document.createElement("div");
+                    container.id = "toast-container";
+                    container.className =
+                        "toast-container position-fixed top-0 end-0 p-3";
+                    container.style.zIndex = "1080";
+                    document.body.appendChild(container);
+                }
+                if (hasBootstrap) {
+                    const toast = document.createElement("div");
+                    toast.className = "toast";
+                    for (const [k, v] of Object.entries({
+                        role: "alert",
+                        "aria-live": "assertive",
+                        "aria-atomic": "true",
+                    }))
+                        toast.setAttribute(k, v);
+                    const body = document.createElement("div");
+                    body.className = "toast-body";
+                    body.textContent = msg;
+                    toast.appendChild(body);
+                    container.appendChild(toast);
+                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                }
+                else {
+                    alert(msg);
+                }
+                form.setAttribute("data-failed-route", "true");
+            }
+            catch (err) {
+                console.error(`[calendar] Error:`, err);
+            }
+        });
+    }
 })();
+//# sourceMappingURL=calendar.js.map

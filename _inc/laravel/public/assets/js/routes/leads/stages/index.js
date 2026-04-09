@@ -1,11 +1,6 @@
-(() => {
-  const { scheduleError } = window.ERPGuard ?? {};
-  const { getMsg } = window.ERPUtils ?? {};
-
-  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
-    void 0;
-    return;
-  }
-
-  // No implementation - placeholder for route guard
-})();
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/leads/stages/index.js
+ * @generated from original JavaScript - manual review recommended
+ * @module index
+ */
+//# sourceMappingURL=index.js.map

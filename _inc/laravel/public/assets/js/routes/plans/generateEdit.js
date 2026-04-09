@@ -1,15 +1,53 @@
 /**
- * @fileoverview Plan generate edit route guard
- * @description Protects plan generate button from action when route is unavailable
+ * @fileoverview TypeScript version of public/assets/js/routes/plans/generateEdit.js
+ * @generated from original JavaScript - manual review recommended
+ * @module generateEdit
  */
-
 (() => {
-  try {
-    const guard = window.ERPGuard;
-    if (!guard) return;
-    guard.bindClickGuard(
-      "#generate-plan-btn",
-      "R2VuZXJhdGUgY29udGVudCByb3V0ZSBmb3IgUGxhbiBpcyB1bmF2YWlsYWJsZS4gUGxlYXNlIGNvbnRhY3QgdGVjaG5pY2FsIHN1cHBvcnQgb3IgeW91ciBkb21haW4gYWRtaW5pc3RyYXRvci4=",
-    );
-  } catch {}
+    const btn = document.getElementById("generate-plan-btn");
+    if (!btn)
+        return;
+    const show = (msg) => {
+        try {
+            if (window.bootstrap.Toast) {
+                const c = document.getElementById("toast-container") ??
+                    (() => {
+                        const t = document.createElement("div");
+                        t.id = "toast-container";
+                        document.body.appendChild(t);
+                        return t;
+                    })();
+                const el = document.createElement("div");
+                el.className = "toast";
+                for (const [k, v] of Object.entries({
+                    role: "alert",
+                    "aria-live": "assertive",
+                    "aria-atomic": "true",
+                }))
+                    el.setAttribute(k, v);
+                const body = document.createElement("div");
+                body.className = "toast-body";
+                body.textContent = msg;
+                el.appendChild(body);
+                c.appendChild(el);
+                window.bootstrap.Toast.getOrCreateInstance(el).show();
+            }
+            else {
+                alert(msg);
+            }
+        }
+        catch {
+            alert(msg);
+        }
+    };
+    btn.addEventListener("click", (e) => {
+        const url = btn.getAttribute("data-url") ?? "#";
+        if (!url || url === "#") {
+            e.preventDefault();
+            const msg = btn.getAttribute("data-guard-msg") ??
+                "Generate content route for Plan is unavailable. Please contact technical support or your domain administrator.";
+            show(msg);
+        }
+    }, { passive: false });
 })();
+//# sourceMappingURL=generateEdit.js.map

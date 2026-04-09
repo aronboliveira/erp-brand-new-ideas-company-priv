@@ -1,63 +1,105 @@
 /**
- * @file Project Tasks Store Guard
- * @description Guards project task creation form using ERPGuard singleton
- * @requires ERPGuard
+ * @fileoverview TypeScript version of public/assets/js/routes/projects/tasks/store.js
+ * @generated from original JavaScript - manual review recommended
+ * @module store
  */
 (() => {
-  const guard = window.ERPGuard;
-  const utils = window.ERPUtils;
-
-  if (!guard) {
-    
-    return;
-  }
-
-  const FORM_MSG_KEY = "project_task_store_unavailable";
-  const AI_MSG_KEY = "ai_generate_unavailable";
-  const FORM_FALLBACK = "Create project task route is unavailable. Please contact technical support or your domain administrator.";
-  const AI_FALLBACK = "Generate project task content route is unavailable. Please contact technical support or your domain administrator.";
-
-  try {
-    // Guard form submission
-    const form = document.getElementById("store_task");
-    if (form && form.getAttribute("data-submit-listener") !== "true") {
-      form.setAttribute("data-submit-listener", "true");
-
-      form.addEventListener("submit", e => {
-        try {
-          const action = form.getAttribute("action") || "#";
-          if (!guard.isInvalidUrl(action)) return;
-
-          e.preventDefault();
-          const msg = utils?.getTranslation?.(FORM_MSG_KEY) ||
-            form.getAttribute("data-guard-msg") ||
-            FORM_FALLBACK;
-          guard.showToast(msg, "error");
-          form.setAttribute("data-failed-route", "true");
-        } catch (_) {}
-      }, { passive: false });
+    try {
+        const guardToast = (msg) => {
+            try {
+                const hasBootstrap = document.querySelector('link[href*="bootstrap"]') &&
+                    window.bootstrap.Toast;
+                let container = document.getElementById("toast-container");
+                if (!container) {
+                    container = document.createElement("div");
+                    container.id = "toast-container";
+                    container.className =
+                        "toast-container position-fixed top-0 end-0 p-3";
+                    container.style.zIndex = "1080";
+                    container.className = "position-fixed top-0 end-0 p-3";
+                    document.body.appendChild(container);
+                }
+                if (hasBootstrap) {
+                    const toast = document.createElement("div");
+                    toast.className = "toast";
+                    for (const [k, v] of Object.entries({
+                        role: "alert",
+                        "aria-live": "assertive",
+                        "aria-atomic": "true",
+                    }))
+                        toast.setAttribute(k, v);
+                    const body = document.createElement("div");
+                    body.className = "toast-body";
+                    body.textContent =
+                        msg ??
+                            "Requested route is unavailable. Please contact technical support or your domain administrator.";
+                    toast.appendChild(body);
+                    container.appendChild(toast);
+                    const inst = window.bootstrap.Toast.getOrCreateInstance(toast);
+                    toast.addEventListener("hidden.bs.toast", function () {
+                        try {
+                            toast.remove();
+                        }
+                        catch (_) {
+                            console.error(`[store] Error:`, _);
+                        }
+                    });
+                    inst.show();
+                }
+                else {
+                    alert(msg ??
+                        "Requested route is unavailable. Please contact technical support or your domain administrator.");
+                }
+            }
+            catch (_) {
+                console.error(`[store] Error:`, _);
+            }
+        };
+        const f = document.getElementById("store_task");
+        if (f &&
+            !(f.hasAttribute("data-submit-listener") &&
+                f.getAttribute("data-submit-listener") === "true")) {
+            f.setAttribute("data-submit-listener", "true");
+            f.addEventListener("submit", function (e) {
+                try {
+                    const action = f.getAttribute("action") ?? "#";
+                    if (action !== "#")
+                        return;
+                    e.preventDefault();
+                    const msg = f.getAttribute("data-guard-msg") ??
+                        "Create project task route is unavailable. Please contact technical support or your domain administrator.";
+                    guardToast(msg);
+                    f.setAttribute("data-failed-route", "true");
+                }
+                catch (_) {
+                    console.error(`[store] Error:`, _);
+                }
+            }, { passive: false });
+        }
+        const ai = document.getElementById("project-task-ai-generate-link");
+        if (ai &&
+            !(ai.hasAttribute("data-ai-listener") &&
+                ai.getAttribute("data-ai-listener") === "true")) {
+            ai.setAttribute("data-ai-listener", "true");
+            ai.addEventListener("click", function (e) {
+                try {
+                    const href = ai.getAttribute("href") ?? "#", url = ai.getAttribute("data-url") ?? "#";
+                    if (href !== "#" || url !== "#")
+                        return;
+                    e.preventDefault();
+                    const msg = ai.getAttribute("data-guard-msg") ??
+                        "Generate project task content route is unavailable. Please contact technical support or your domain administrator.";
+                    guardToast(msg);
+                    ai.setAttribute("data-failed-route", "true");
+                }
+                catch (_) {
+                    console.error(`[store] Error:`, _);
+                }
+            }, { passive: false });
+        }
     }
-
-    // Guard AI generate link
-    const ai = document.getElementById("project-task-ai-generate-link");
-    if (ai && ai.getAttribute("data-ai-listener") !== "true") {
-      ai.setAttribute("data-ai-listener", "true");
-
-      ai.addEventListener("click", e => {
-        try {
-          const href = ai.getAttribute("href") || "#";
-          const url = ai.getAttribute("data-url") || href;
-
-          if (!guard.isInvalidUrl(href) || !guard.isInvalidUrl(url)) return;
-
-          e.preventDefault();
-          const msg = utils?.getTranslation?.(AI_MSG_KEY) ||
-            ai.getAttribute("data-guard-msg") ||
-            AI_FALLBACK;
-          guard.showToast(msg, "error");
-          ai.setAttribute("data-failed-route", "true");
-        } catch (_) {}
-      }, { passive: false });
+    catch (_) {
+        console.error(`[store] Error:`, _);
     }
-  } catch (_) {}
 })();
+//# sourceMappingURL=store.js.map

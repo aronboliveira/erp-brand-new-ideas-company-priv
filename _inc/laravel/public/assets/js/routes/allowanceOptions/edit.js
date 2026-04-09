@@ -1,15 +1,61 @@
 /**
- * @file Allowance Option Edit Route Guard
- * @description Guards the allowance option update form using ERPGuard singleton
+ * @fileoverview TypeScript version of public/assets/js/routes/allowanceOptions/edit.js
+ * @generated from original JavaScript - manual review recommended
+ * @module edit
  */
-
 (() => {
-  const guard = window.ERPGuard;
-  if (!guard) return;
-
-  guard.bindSubmitGuard("#allowance-option-update-form", {
-    msgKey: "update_allowance_option_unavailable",
-    fallbackMsg:
-      "Update allowance option route is unavailable. Please contact technical support or your domain administrator.",
-  });
+    const form = document.getElementById("allowance-option-update-form");
+    if (!form || form.getAttribute("data-listener-active") === "true")
+        return;
+    form.setAttribute("data-listener-active", "true");
+    if (!form.getAttribute("data-listener-bound-submit")) {
+        form.setAttribute("data-listener-bound-submit", "1");
+        form.addEventListener("submit", event => {
+            try {
+                const action = form.getAttribute("action"), url = form.getAttribute("data-url");
+                if ((!action || action === "#") && (!url || url === "#")) {
+                    event.preventDefault();
+                    const msg = form.getAttribute("data-guard-msg") ?? "# ERROR", bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                    let container = document.getElementById("toast-container");
+                    if (!container) {
+                        container = document.createElement("div");
+                        container.id = "toast-container";
+                        container.className =
+                            "toast-container position-fixed top-0 end-0 p-3";
+                        container.style.zIndex = "1080";
+                        document.body.appendChild(container);
+                    }
+                    if (bootstrapLink && window.bootstrap) {
+                        const toastEl = document.createElement("div");
+                        toastEl.className = "toast";
+                        for (const [k, v] of Object.entries({
+                            role: "alert",
+                            "aria-live": "assertive",
+                            "aria-atomic": "true",
+                        }))
+                            toastEl.setAttribute(k, v);
+                        const body = document.createElement("div");
+                        body.className = "toast-body";
+                        body.textContent = msg;
+                        toastEl.appendChild(body);
+                        container.appendChild(toastEl);
+                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                    }
+                    else {
+                        alert(msg);
+                    }
+                    form.setAttribute("data-failed-route", "true");
+                }
+            }
+            catch (__err) {
+                console.error(`[edit] Error:`, __err);
+            }
+        });
+    }
+    const observer = new MutationObserver(() => {
+        if (!document.getElementById("allowance-option-update-form"))
+            observer.disconnect();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 })();
+//# sourceMappingURL=edit.js.map

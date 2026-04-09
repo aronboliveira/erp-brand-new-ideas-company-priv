@@ -1,37 +1,62 @@
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/features/highlight/store.js
+ * @generated from original JavaScript - manual review recommended
+ * @module store
+ */
 (() => {
-  const { scheduleError } = window.ERPGuard ?? {};
-  const { getMsg } = window.ERPUtils ?? {};
-
-  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
-    
-    return;
-  }
-
-  const form = document.getElementById("highlight-feature-store-form");
-  if (form) {
-    form.addEventListener(
-      "submit",
-      e => {
-        const url =
-          form.getAttribute("action") || form.getAttribute("data-url") || "#";
-        if (!url || url === "#") {
-          e.preventDefault();
-          const msg =
-            form.getAttribute("data-guard-msg") ||
-            getMsg("store_highlight_unavailable");
-          scheduleError(msg, "submit");
+    const form = document.getElementById("highlight-feature-store-form");
+    if (form) {
+        form.addEventListener("submit", (e) => {
+            const url = form.getAttribute("action") ?? form.getAttribute("data-url") ?? "#";
+            if (!url || url === "#") {
+                e.preventDefault();
+                const msg = form.getAttribute("data-guard-msg") ??
+                    "Store Highlight Feature route is unavailable. Please contact technical support or your domain administrator.";
+                try {
+                    if (window.bootstrap.Toast) {
+                        const c = document.getElementById("toast-container") ??
+                            (() => {
+                                const t = document.createElement("div");
+                                t.id = "toast-container";
+                                document.body.appendChild(t);
+                                return t;
+                            })();
+                        const el = document.createElement("div");
+                        el.className = "toast";
+                        for (const [k, v] of Object.entries({
+                            role: "alert",
+                            "aria-live": "assertive",
+                            "aria-atomic": "true",
+                        }))
+                            el.setAttribute(k, v);
+                        const body = document.createElement("div");
+                        body.className = "toast-body";
+                        body.textContent = msg;
+                        el.appendChild(body);
+                        c.appendChild(el);
+                        window.bootstrap.Toast.getOrCreateInstance(el).show();
+                    }
+                    else {
+                        alert(msg);
+                    }
+                }
+                catch {
+                    alert(msg);
+                }
+            }
+        }, { passive: false });
+    }
+    const input = document.getElementById("highlight_feature_image"), img = document.getElementById("image1");
+    if (input && img) {
+        if (!input.getAttribute("data-listener-bound-change")) {
+            input.setAttribute("data-listener-bound-change", "1");
+            input.addEventListener("change", () => {
+                const f = input.files?.[0];
+                if (!f)
+                    return;
+                img.src = URL.createObjectURL(f);
+            });
         }
-      },
-      { passive: false },
-    );
-  }
-  const input = document.getElementById("highlight_feature_image");
-  const img = document.getElementById("image1");
-  if (input && img) {
-    input.addEventListener("change", () => {
-      const f = input.files && input.files[0];
-      if (!f) return;
-      img.src = URL.createObjectURL(f);
-    });
-  }
+    }
 })();
+//# sourceMappingURL=store.js.map

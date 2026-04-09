@@ -1,15 +1,62 @@
 /**
- * @fileoverview Chatify settings update route guard
- * @description Protects chatify avatar update form from submission when route is unavailable
+ * @fileoverview TypeScript version of public/assets/js/routes/vendors/chatify/settings/update.js
+ * @generated from original JavaScript - manual review recommended
+ * @module update
  */
-
 (() => {
-  try {
-    const guard = window.ERPGuard;
-    if (!guard) return;
-    guard.bindSubmitGuard(
-      "#update-settings",
-      "VXBkYXRlIGF2YXRhciByb3V0ZSBpcyB1bmF2YWlsYWJsZS4gUGxlYXNlIGNvbnRhY3QgdGVjaG5pY2FsIHN1cHBvcnQgb3IgeW91ciBkb21haW4gYWRtaW5pc3RyYXRvci4=",
-    );
-  } catch {}
+    try {
+        const fm = document.getElementById("update-settings");
+        if (!fm)
+            return;
+        if (fm.getAttribute("data-listener-active") === "true")
+            return;
+        fm.setAttribute("data-listener-active", "true");
+        if (!fm.getAttribute("data-listener-bound-submit")) {
+            fm.setAttribute("data-listener-bound-submit", "1");
+            fm.addEventListener("submit", (e) => {
+                try {
+                    const action = fm.getAttribute("action") ?? "#", url = fm.getAttribute("data-url") ?? "#";
+                    if (url !== "#" && action !== "#")
+                        return;
+                    e.preventDefault();
+                    const msg = fm.getAttribute("data-guard-msg") ??
+                        "Update avatar route is unavailable. Please contact technical support or your domain administrator.", hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') &&
+                        window.bootstrap);
+                    let container = document.getElementById("toast-container");
+                    if (!container) {
+                        container = document.createElement("div");
+                        container.id = "toast-container";
+                        document.body.appendChild(container);
+                    }
+                    if (hasBootstrap) {
+                        const toast = document.createElement("div");
+                        toast.className = "toast";
+                        for (const [k, v] of Object.entries({
+                            role: "alert",
+                            "aria-live": "assertive",
+                            "aria-atomic": "true",
+                        }))
+                            toast.setAttribute(k, v);
+                        const body = document.createElement("div");
+                        body.className = "toast-body";
+                        body.textContent = msg;
+                        toast.appendChild(body);
+                        container.appendChild(toast);
+                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                    }
+                    else {
+                        alert(msg);
+                    }
+                    fm.setAttribute("data-failed-route", "true");
+                }
+                catch (err) {
+                    console.error(`[update] Error:`, err);
+                }
+            });
+        }
+    }
+    catch (err) {
+        console.error(`[update] Error:`, err);
+    }
 })();
+//# sourceMappingURL=update.js.map

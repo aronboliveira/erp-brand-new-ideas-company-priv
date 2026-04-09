@@ -1,105 +1,167 @@
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/auth/login/store.js
+ * @generated from original JavaScript - manual review recommended
+ * @module store
+ */
 (() => {
-  const guard = window.ERPGuard;
-  const utils = window.ERPUtils;
-
-  const scheduleError =
-    guard?.scheduleError?.bind(guard) ??
-    (msg => {
-      try {
-        const c =
-          document.getElementById("erp-toast-container") ||
-          (() => {
-            const d = document.createElement("div");
-            d.id = "erp-toast-container";
-            d.className = "toast-container position-fixed top-0 end-0 p-3";
-            d.style.zIndex = "1100";
-            document.body.appendChild(d);
-            return d;
-          })();
-        if (window.bootstrap?.Toast) {
-          const t = document.createElement("div");
-          t.className = "toast fade";
-          t.setAttribute("role", "alert");
-          t.innerHTML = `<div class="toast-header bg-danger text-white"><strong class="me-auto">Notice</strong><button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button></div><div class="toast-body">${msg}</div>`;
-          c.appendChild(t);
-          new window.bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
-          t.addEventListener("hidden.bs.toast", () => t.remove());
-        } else {
-          alert(msg);
-        }
-      } catch (_) {
-        alert(msg);
-      }
-    });
-
-  const getMsg = utils?.getMsg?.bind(utils) ?? (key => null);
-
-  try {
-    const fm = document.getElementById("loginForm");
-    if (!fm) {
-      return;
-    }
-    if (fm.getAttribute("data-listener-active") === "true") {
-      return;
-    }
-    fm.setAttribute("data-listener-active", "true");
-    fm.addEventListener("submit", e => {
-      try {
-        const action = fm.getAttribute("action") ?? "#";
-        const url = fm.getAttribute("data-url") ?? action ?? "#";
-        // Only block if BOTH action and data-url are invalid (# or empty)
-        if (action && action !== "#") {
-          return; // valid action — let submit proceed
-        }
-        if (url && url !== "#") {
-          return; // valid data-url — let submit proceed
-        }
-        e.preventDefault();
-        const msg =
-          fm.getAttribute("data-guard-msg") ||
-          getMsg("login_submit_unavailable") ||
-          "Login submit route is unavailable.";
-        scheduleError(msg, "submit");
-        fm.setAttribute("data-failed-route", "true");
-      } catch (err) {}
-    });
-    const pwd = document.getElementById("password-request-link");
-    if (pwd && pwd.getAttribute("data-listener-active") !== "true") {
-      pwd.setAttribute("data-listener-active", "true");
-      pwd.addEventListener("click", e => {
-        try {
-          const href = pwd.getAttribute("href") ?? "#";
-          const url = pwd.getAttribute("data-url") ?? href ?? "#";
-          if (url !== "#" && href !== "#") {
+    try {
+        const fm = document.getElementById("loginForm");
+        if (!fm)
             return;
-          }
-          e.preventDefault();
-          const msg =
-            pwd.getAttribute("data-guard-msg") ||
-            getMsg("password_request_unavailable");
-          scheduleError(msg, "click");
-          pwd.setAttribute("data-failed-route", "true");
-        } catch (err) {}
-      });
-    }
-    const reg = document.getElementById("register-link");
-    if (reg && reg.getAttribute("data-listener-active") !== "true") {
-      reg.setAttribute("data-listener-active", "true");
-      reg.addEventListener("click", e => {
-        try {
-          const href = reg.getAttribute("href") ?? "#";
-          const url = reg.getAttribute("data-url") ?? href ?? "#";
-          if (url !== "#" && href !== "#") {
+        if (fm.getAttribute("data-listener-active") === "true")
             return;
-          }
-          e.preventDefault();
-          const msg =
-            reg.getAttribute("data-guard-msg") ||
-            getMsg("register_link_unavailable");
-          scheduleError(msg, "click");
-          reg.setAttribute("data-failed-route", "true");
-        } catch (err) {}
-      });
+        fm.setAttribute("data-listener-active", "true");
+        if (!fm.getAttribute("data-listener-bound-submit")) {
+            fm.setAttribute("data-listener-bound-submit", "1");
+            fm.addEventListener("submit", (e) => {
+                try {
+                    const action = fm.getAttribute("action") ?? "#", url = fm.getAttribute("data-url") ?? "#";
+                    if (url !== "#" && action !== "#")
+                        return;
+                    e.preventDefault();
+                    const msg = fm.getAttribute("data-guard-msg") ??
+                        "Login submit route is unavailable. Please contact technical support or your domain administrator.", hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') &&
+                        window.bootstrap);
+                    let container = document.getElementById("toast-container");
+                    if (!container) {
+                        container = document.createElement("div");
+                        container.id = "toast-container";
+                        container.className =
+                            "toast-container position-fixed top-0 end-0 p-3";
+                        container.style.zIndex = "1080";
+                        document.body.appendChild(container);
+                    }
+                    if (hasBootstrap) {
+                        const toast = document.createElement("div");
+                        toast.className = "toast";
+                        for (const [k, v] of Object.entries({
+                            role: "alert",
+                            "aria-live": "assertive",
+                            "aria-atomic": "true",
+                        }))
+                            toast.setAttribute(k, v);
+                        const body = document.createElement("div");
+                        body.className = "toast-body";
+                        body.textContent = msg;
+                        toast.appendChild(body);
+                        container.appendChild(toast);
+                        bootstrap.Toast.getOrCreateInstance(toast).show();
+                    }
+                    else {
+                        alert(msg);
+                    }
+                    fm.setAttribute("data-failed-route", "true");
+                }
+                catch (err) {
+                    console.error(`[store] Error:`, err);
+                }
+            });
+        }
+        const pwd = document.getElementById("password-request-link");
+        if (pwd && pwd.getAttribute("data-listener-active") !== "true") {
+            pwd.setAttribute("data-listener-active", "true");
+            if (!pwd.getAttribute("data-listener-bound-click")) {
+                pwd.setAttribute("data-listener-bound-click", "1");
+                pwd.addEventListener("click", (e) => {
+                    try {
+                        const href = pwd.getAttribute("href") ?? "#", url = pwd.getAttribute("data-url") ?? "#";
+                        if (url !== "#" && href !== "#")
+                            return;
+                        e.preventDefault();
+                        const msg = pwd.getAttribute("data-guard-msg") ??
+                            "Password request route is unavailable. Please contact technical support or your domain administrator.";
+                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') &&
+                            window.bootstrap);
+                        let container = document.getElementById("toast-container");
+                        if (!container) {
+                            container = document.createElement("div");
+                            container.id = "toast-container";
+                            container.className =
+                                "toast-container position-fixed top-0 end-0 p-3";
+                            container.style.zIndex = "1080";
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement("div");
+                            toast.className = "toast";
+                            for (const [k, v] of Object.entries({
+                                role: "alert",
+                                "aria-live": "assertive",
+                                "aria-atomic": "true",
+                            }))
+                                toast.setAttribute(k, v);
+                            const body = document.createElement("div");
+                            body.className = "toast-body";
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        }
+                        else {
+                            alert(msg);
+                        }
+                        pwd.setAttribute("data-failed-route", "true");
+                    }
+                    catch (err) {
+                        console.error(`[store] Error:`, err);
+                    }
+                });
+            }
+        }
+        const reg = document.getElementById("register-link");
+        if (reg && reg.getAttribute("data-listener-active") !== "true") {
+            reg.setAttribute("data-listener-active", "true");
+            if (!reg.getAttribute("data-listener-bound-click")) {
+                reg.setAttribute("data-listener-bound-click", "1");
+                reg.addEventListener("click", (e) => {
+                    try {
+                        const href = reg.getAttribute("href") ?? "#", url = reg.getAttribute("data-url") ?? "#";
+                        if (url !== "#" && href !== "#")
+                            return;
+                        e.preventDefault();
+                        const msg = reg.getAttribute("data-guard-msg") ??
+                            "Register route is unavailable. Please contact technical support or your domain administrator.";
+                        const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') &&
+                            window.bootstrap);
+                        let container = document.getElementById("toast-container");
+                        if (!container) {
+                            container = document.createElement("div");
+                            container.id = "toast-container";
+                            container.className =
+                                "toast-container position-fixed top-0 end-0 p-3";
+                            container.style.zIndex = "1080";
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement("div");
+                            toast.className = "toast";
+                            for (const [k, v] of Object.entries({
+                                role: "alert",
+                                "aria-live": "assertive",
+                                "aria-atomic": "true",
+                            }))
+                                toast.setAttribute(k, v);
+                            const body = document.createElement("div");
+                            body.className = "toast-body";
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        }
+                        else {
+                            alert(msg);
+                        }
+                        reg.setAttribute("data-failed-route", "true");
+                    }
+                    catch (err) {
+                        console.error(`[store] Error:`, err);
+                    }
+                });
+            }
+        }
     }
-  } catch (err) {}
+    catch (err) {
+        console.error(`[store] Error:`, err);
+    }
 })();
+//# sourceMappingURL=store.js.map

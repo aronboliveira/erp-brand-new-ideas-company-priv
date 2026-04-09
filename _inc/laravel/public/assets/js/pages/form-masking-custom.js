@@ -1,98 +1,29 @@
 /**
- * @file form-masking-custom.js
- * @description Input masking configuration with IMask
- * @version 2.0.0
+ * @fileoverview TypeScript version of public/assets/js/pages/form-masking-custom.js
+ * @generated from original JavaScript - manual review recommended
+ * @module form-masking-custom
  */
-
-(() => {
-  "use strict";
-
-  /**
-   * Input masking controller using IMask
-   * @class MaskingController
-   */
-  class MaskingController {
-    /** @type {string} */
-    static #DATA_INIT = "data-masking-init";
-    /** @type {string} */
-    static #SELECTOR_IP = ".ip-mask";
-    /** @type {string} */
-    static #SELECTOR_DATE = ".date-mask";
-    /** @type {IMask.InputMask[]} */
-    #masks = [];
-
-    /**
-     * Initialize input masks
-     */
-    init() {
-      if (document.body?.hasAttribute(MaskingController.#DATA_INIT)) return;
-      if (typeof IMask === "undefined") return console.warn("[MaskingController] IMask not loaded");
-
-      document.body?.setAttribute(MaskingController.#DATA_INIT, "true");
-      this.#setupMasks();
-    }
-
-    /**
-     * Setup input masks for IP and date fields
-     * @private
-     */
-    #setupMasks() {
-      try {
-        this.#setupIPMasks();
-        this.#setupDateMasks();
-      } catch (err) {
-        console.error("[MaskingController] Error setting up masks:", err);
-      }
-    }
-
-    /**
-     * Setup IP address masks
-     * @private
-     */
-    #setupIPMasks() {
-      const ipElements = document.querySelectorAll(MaskingController.#SELECTOR_IP);
-      ipElements.forEach((el) => {
-        if (el.hasAttribute("data-mask-applied")) return;
-        el.setAttribute("data-mask-applied", "true");
-        this.#masks.push(IMask(el, { mask: "000.000.000.000" }));
-      });
-    }
-
-    /**
-     * Setup date masks
-     * @private
-     */
-    #setupDateMasks() {
-      const dateElements = document.querySelectorAll(MaskingController.#SELECTOR_DATE);
-      dateElements.forEach((el) => {
-        if (el.hasAttribute("data-mask-applied")) return;
-        el.setAttribute("data-mask-applied", "true");
-        this.#masks.push(IMask(el, { mask: "00-00-0000" }));
-      });
-    }
-
-    /**
-     * Destroy all masks
-     */
-    destroy() {
-      this.#masks.forEach((m) => m?.destroy?.());
-      this.#masks = [];
-      document.body?.removeAttribute(MaskingController.#DATA_INIT);
-    }
-  }
-
-  /**
-   * Initialize masking when DOM ready
-   */
-  const initMasking = () => {
-    try {
-      new MaskingController().init();
-    } catch (err) {
-      console.error("[MaskingController] Initialization error:", err);
-    }
-  };
-
-  document.readyState === "loading"
-    ? document.addEventListener("DOMContentLoaded", initMasking)
-    : initMasking();
-})();
+"use strict";
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unused-vars, no-var */
+var regExpMask = IMask(document.querySelector(".date"), {
+    mask: "00/00/0000",
+}), regExpMask = IMask(document.querySelector(".date2"), {
+    mask: "00-00-0000",
+}), regExpMask = IMask(document.querySelector(".hour"), {
+    mask: "00:00:00",
+}), regExpMask = IMask(document.querySelector(".dateHour"), {
+    mask: "00/00/0000 00:00:00",
+}), regExpMask = IMask(document.querySelector(".mob_no"), {
+    mask: "0000-000-000",
+}), regExpMask = IMask(document.querySelector(".phone"), {
+    mask: "0000-0000",
+}), regExpMask = IMask(document.querySelector(".telphone_with_code"), { mask: "(00) 0000-0000" }), regExpMask = IMask(document.querySelector(".us_telephone"), {
+    mask: "(000) 000-0000",
+}), regExpMask = IMask(document.querySelector(".ip"), {
+    mask: "000.000.000.000",
+}), regExpMask = IMask(document.querySelector(".ipv4"), {
+    mask: "000.000.000.0000",
+}), regExpMask = IMask(document.querySelector(".ipv6"), {
+    mask: "0000:0000:0000:0:000:0000:0000:0000",
+});
+//# sourceMappingURL=form-masking-custom.js.map

@@ -1,12 +1,57 @@
 /**
- * @fileoverview Settings Twilio route guard
- * @description Protects Twilio settings form from submission when route is unavailable
+ * @fileoverview TypeScript version of public/assets/js/routes/settings/companies/twilio.js
+ * @generated from original JavaScript - manual review recommended
+ * @module twilio
  */
-
 (() => {
-  try {
-    const guard = window.ERPGuard;
-    if (!guard) return;
-    guard.bindSubmitGuard("#twilio-setting-form", "IyBFUlJPUg==");
-  } catch {}
+    const form = document.getElementById("twilio-setting-form");
+    if (!form || form.getAttribute("data-listener-active") === "true")
+        return;
+    form.setAttribute("data-listener-active", "true");
+    if (!form.getAttribute("data-listener-bound-submit")) {
+        form.setAttribute("data-listener-bound-submit", "1");
+        form.addEventListener("submit", (e) => {
+            try {
+                const url = form.getAttribute("data-url") ?? "#", action = form.getAttribute("action") ?? "#";
+                if (url !== "#" || action !== "#")
+                    return;
+                e.preventDefault();
+                const msg = form.getAttribute("data-guard-msg") ?? "# ERROR", hasBootstrap = document.querySelector('link[href*="bootstrap"]') &&
+                    window.bootstrap;
+                let container = document.getElementById("toast-container");
+                if (!container) {
+                    container = document.createElement("div");
+                    container.id = "toast-container";
+                    container.className =
+                        "toast-container position-fixed top-0 end-0 p-3";
+                    container.style.zIndex = "1080";
+                    document.body.appendChild(container);
+                }
+                if (hasBootstrap) {
+                    const toast = document.createElement("div");
+                    toast.className = "toast";
+                    for (const [k, v] of Object.entries({
+                        role: "alert",
+                        "aria-live": "assertive",
+                        "aria-atomic": "true",
+                    }))
+                        toast.setAttribute(k, v);
+                    const body = document.createElement("div");
+                    body.className = "toast-body";
+                    body.textContent = msg;
+                    toast.appendChild(body);
+                    container.appendChild(toast);
+                    bootstrap.Toast.getOrCreateInstance(toast).show();
+                }
+                else {
+                    alert(msg);
+                }
+                form.setAttribute("data-failed-route", "true");
+            }
+            catch (err) {
+                console.error(`[twilio] Error:`, err);
+            }
+        });
+    }
 })();
+//# sourceMappingURL=twilio.js.map

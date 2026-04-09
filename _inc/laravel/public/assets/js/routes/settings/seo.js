@@ -1,34 +1,260 @@
 /**
- * Settings SEO Route Guards
- * Handles SEO, cookies, and ChatGPT settings forms with AI generation links
- * @module routes/settings/seo
+ * @fileoverview TypeScript version of public/assets/js/routes/settings/seo.js
+ * @generated from original JavaScript - manual review recommended
+ * @module seo
  */
 (() => {
-  const guard = window.ERPGuard;
-  if (!guard) return;
-
-  guard.bindClickGuard("#generate-ai-seo-link", {
-    fallbackMsg:
-      "SEO generation route is unavailable. Please contact technical support or your domain administrator.",
-  });
-
-  guard.bindClickGuard("#generate-ai-cookie-link", {
-    fallbackMsg:
-      "Cookie generation route is unavailable. Please contact technical support or your domain administrator.",
-  });
-
-  guard.bindSubmitGuard("#settings-seo-store-form", {
-    fallbackMsg:
-      "SEO settings store route is unavailable. Please contact technical support or your domain administrator.",
-  });
-
-  guard.bindSubmitGuard("#{{ $settingsCookiesStoreFormId }}", {
-    fallbackMsg:
-      "Cookie settings store route is unavailable. Please contact technical support or your domain administrator.",
-  });
-
-  guard.bindSubmitGuard("#settings-chatgpt-settings-form", {
-    fallbackMsg:
-      "ChatGPT settings store route is unavailable. Please contact technical support or your domain administrator.",
-  });
+    try {
+        const seoGen = document.getElementById("generate-ai-seo-link");
+        if (seoGen && seoGen.getAttribute("data-listener-active") !== "true") {
+            seoGen.setAttribute("data-listener-active", "true");
+            if (!seoGen.getAttribute("data-listener-bound-click")) {
+                seoGen.setAttribute("data-listener-bound-click", "1");
+                seoGen.addEventListener("click", (e) => {
+                    try {
+                        const url = seoGen.getAttribute("data-url") ?? "#";
+                        if (url !== "#")
+                            return;
+                        e.preventDefault();
+                        const msg = seoGen.getAttribute("data-guard-msg") ?? "# ERROR", hasBootstrap = document.querySelector('link[href*="bootstrap"]') &&
+                            window.bootstrap;
+                        let container = document.getElementById("toast-container");
+                        if (!container) {
+                            container = document.createElement("div");
+                            container.id = "toast-container";
+                            container.className =
+                                "toast-container position-fixed top-0 end-0 p-3";
+                            container.style.zIndex = "1080";
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement("div");
+                            toast.className = "toast";
+                            for (const [k, v] of Object.entries({
+                                role: "alert",
+                                "aria-live": "assertive",
+                                "aria-atomic": "true",
+                            }))
+                                toast.setAttribute(k, v);
+                            const body = document.createElement("div");
+                            body.className = "toast-body";
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        }
+                        else {
+                            alert(msg);
+                        }
+                        seoGen.setAttribute("data-failed-route", "true");
+                    }
+                    catch (err) {
+                        console.error(`[seo] Error:`, err);
+                    }
+                });
+            }
+        }
+        const cookieGen = document.getElementById("generate-ai-cookie-link");
+        if (cookieGen &&
+            cookieGen.getAttribute("data-listener-active") !== "true") {
+            cookieGen.setAttribute("data-listener-active", "true");
+            if (!cookieGen.getAttribute("data-listener-bound-click")) {
+                cookieGen.setAttribute("data-listener-bound-click", "1");
+                cookieGen.addEventListener("click", (e) => {
+                    try {
+                        const url = cookieGen.getAttribute("data-url") ?? "#";
+                        if (url !== "#")
+                            return;
+                        e.preventDefault();
+                        const msg = cookieGen.getAttribute("data-guard-msg") ?? "# ERROR", hasBootstrap = document.querySelector('link[href*="bootstrap"]') &&
+                            window.bootstrap;
+                        let container = document.getElementById("toast-container");
+                        if (!container) {
+                            container = document.createElement("div");
+                            container.id = "toast-container";
+                            container.className =
+                                "toast-container position-fixed top-0 end-0 p-3";
+                            container.style.zIndex = "1080";
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement("div");
+                            toast.className = "toast";
+                            for (const [k, v] of Object.entries({
+                                role: "alert",
+                                "aria-live": "assertive",
+                                "aria-atomic": "true",
+                            }))
+                                toast.setAttribute(k, v);
+                            const body = document.createElement("div");
+                            body.className = "toast-body";
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        }
+                        else {
+                            alert(msg);
+                        }
+                        cookieGen.setAttribute("data-failed-route", "true");
+                    }
+                    catch (err) {
+                        console.error(`[seo] Error:`, err);
+                    }
+                });
+            }
+        }
+        const seoForm = document.getElementById("settings-seo-store-form");
+        if (seoForm && seoForm.getAttribute("data-listener-active") !== "true") {
+            seoForm.setAttribute("data-listener-active", "true");
+            if (!seoForm.getAttribute("data-listener-bound-submit")) {
+                seoForm.setAttribute("data-listener-bound-submit", "1");
+                seoForm.addEventListener("submit", (e) => {
+                    try {
+                        const url = seoForm.getAttribute("data-url") ?? "#", action = seoForm.getAttribute("action") ?? "#";
+                        if (url !== "#" || action !== "#")
+                            return;
+                        e.preventDefault();
+                        const msg = seoForm.getAttribute("data-guard-msg") ?? "# ERROR", hasBootstrap = document.querySelector('link[href*="bootstrap"]') &&
+                            window.bootstrap;
+                        let container = document.getElementById("toast-container");
+                        if (!container) {
+                            container = document.createElement("div");
+                            container.id = "toast-container";
+                            container.className =
+                                "toast-container position-fixed top-0 end-0 p-3";
+                            container.style.zIndex = "1080";
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement("div");
+                            toast.className = "toast";
+                            for (const [k, v] of Object.entries({
+                                role: "alert",
+                                "aria-live": "assertive",
+                                "aria-atomic": "true",
+                            }))
+                                toast.setAttribute(k, v);
+                            const body = document.createElement("div");
+                            body.className = "toast-body";
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        }
+                        else {
+                            alert(msg);
+                        }
+                        seoForm.setAttribute("data-failed-route", "true");
+                    }
+                    catch (err) {
+                        console.error(`[seo] Error:`, err);
+                    }
+                });
+            }
+        }
+        const cookiesForm = document.getElementById("{{ $settingsCookiesStoreFormId }}");
+        if (cookiesForm &&
+            cookiesForm.getAttribute("data-listener-active") !== "true") {
+            cookiesForm.setAttribute("data-listener-active", "true");
+            if (!cookiesForm.getAttribute("data-listener-bound-submit")) {
+                cookiesForm.setAttribute("data-listener-bound-submit", "1");
+                cookiesForm.addEventListener("submit", (e) => {
+                    try {
+                        const url = cookiesForm.getAttribute("data-url") ?? "#", action = cookiesForm.getAttribute("action") ?? "#";
+                        if (url !== "#" || action !== "#")
+                            return;
+                        e.preventDefault();
+                        const msg = cookiesForm.getAttribute("data-guard-msg") ?? "# ERROR", hasBootstrap = document.querySelector('link[href*="bootstrap"]') &&
+                            window.bootstrap;
+                        let container = document.getElementById("toast-container");
+                        if (!container) {
+                            container = document.createElement("div");
+                            container.id = "toast-container";
+                            container.className =
+                                "toast-container position-fixed top-0 end-0 p-3";
+                            container.style.zIndex = "1080";
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement("div");
+                            toast.className = "toast";
+                            for (const [k, v] of Object.entries({
+                                role: "alert",
+                                "aria-live": "assertive",
+                                "aria-atomic": "true",
+                            }))
+                                toast.setAttribute(k, v);
+                            const body = document.createElement("div");
+                            body.className = "toast-body";
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        }
+                        else {
+                            alert(msg);
+                        }
+                        cookiesForm.setAttribute("data-failed-route", "true");
+                    }
+                    catch (err) {
+                        console.error(`[seo] Error:`, err);
+                    }
+                });
+            }
+        }
+        const chatForm = document.getElementById("settings-chatgpt-settings-form");
+        if (chatForm && chatForm.getAttribute("data-listener-active") !== "true") {
+            chatForm.setAttribute("data-listener-active", "true");
+            if (!chatForm.getAttribute("data-listener-bound-submit")) {
+                chatForm.setAttribute("data-listener-bound-submit", "1");
+                chatForm.addEventListener("submit", (e) => {
+                    try {
+                        const url = chatForm.getAttribute("data-url") ?? "#", action = chatForm.getAttribute("action") ?? "#";
+                        if (url !== "#" || action !== "#")
+                            return;
+                        e.preventDefault();
+                        const msg = chatForm.getAttribute("data-guard-msg") ?? "# ERROR", hasBootstrap = document.querySelector('link[href*="bootstrap"]') &&
+                            window.bootstrap;
+                        let container = document.getElementById("toast-container");
+                        if (!container) {
+                            container = document.createElement("div");
+                            container.id = "toast-container";
+                            container.className =
+                                "toast-container position-fixed top-0 end-0 p-3";
+                            container.style.zIndex = "1080";
+                            document.body.appendChild(container);
+                        }
+                        if (hasBootstrap) {
+                            const toast = document.createElement("div");
+                            toast.className = "toast";
+                            for (const [k, v] of Object.entries({
+                                role: "alert",
+                                "aria-live": "assertive",
+                                "aria-atomic": "true",
+                            }))
+                                toast.setAttribute(k, v);
+                            const body = document.createElement("div");
+                            body.className = "toast-body";
+                            body.textContent = msg;
+                            toast.appendChild(body);
+                            container.appendChild(toast);
+                            bootstrap.Toast.getOrCreateInstance(toast).show();
+                        }
+                        else {
+                            alert(msg);
+                        }
+                        chatForm.setAttribute("data-failed-route", "true");
+                    }
+                    catch (err) {
+                        console.error(`[seo] Error:`, err);
+                    }
+                });
+            }
+        }
+    }
+    catch (err) {
+        console.error(`[seo] Error:`, err);
+    }
 })();
+//# sourceMappingURL=seo.js.map

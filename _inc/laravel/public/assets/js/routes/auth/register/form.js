@@ -1,15 +1,15 @@
 /**
  * @file Register Form Route Guard
- * @description Guards the registration form and register link using ERPGuard singleton
+ * @description Guards the registration form using ERPGuard singleton
+ * Mirror of public/assets/js/routes/auth/register/form.js
  */
-
 (() => {
-  const guard = window.ERPGuard;
-  if (!guard) return;
-
-  guard.bindSubmitGuard("#register-form", {
-    msgKey: "register_route_unavailable",
-    fallbackMsg:
-      "Registration is unavailable. Please contact technical support or your domain administrator.",
-  });
+    const guard = window.ERPGuard;
+    if (!guard)
+        return;
+    guard.bindSubmitGuard("#register-form", {
+        msgKey: "register_route_unavailable",
+        fallbackMsg: "Registration is unavailable. Please contact technical support or your domain administrator.",
+    });
 })();
+//# sourceMappingURL=form.js.map

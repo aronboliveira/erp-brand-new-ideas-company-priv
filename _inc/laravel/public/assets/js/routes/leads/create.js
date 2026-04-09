@@ -1,78 +1,181 @@
-(() => {
-  const guard = typeof window !== "undefined" ? window.ERPGuard : null;
-  const utils = typeof window !== "undefined" ? window.ERPUtils : null;
-  const $ = window.jQuery;
-  if (!guard || !utils || !$) return;
-
-  const getMsg = key => utils.getTranslation(key) || "# ERROR";
-  const showError = msg => guard.showToast(msg);
-
-  const listenerAttr = "data-ld-listener";
-  $(() => {
-    const bindClick = el => {
-      if (!el || el.getAttribute(listenerAttr) === "true") return;
-      el.setAttribute(listenerAttr, "true");
-      const $el = $(el);
-      const handler = e => {
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/leads/create.js
+ * @generated from original JavaScript - manual review recommended
+ * @module create
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+(function () {
+    const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataGuardListener = "data-guard-listener";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const msgKey = "ld_unavailable";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const getMsg = (el) => {
+        let msg = errFb;
         try {
-          const url = el.getAttribute("data-url");
-          const href = el.getAttribute("href");
-          if ((!url || url === "#") && (!href || href === "#")) {
-            e.preventDefault();
-            showError(getMsg("ld_unavailable"));
-          }
-        } catch {
-          e.preventDefault();
-          showError(getMsg("ld_unavailable"));
+            if (!el)
+                return msg;
+            if (el.getAttribute("data-sv-localized") === "true" ||
+                el.getAttribute(dataClientLocalized) === "true") {
+                msg = el.getAttribute(dataGuardMsg) || errFb;
+            }
+            else {
+                let lang = (window.sessionStorage.getItem("erp-np-lang") ??
+                    document.documentElement.lang ??
+                    "en")
+                    .toLowerCase()
+                    .replace(/_/g, "-");
+                lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+                msg =
+                    window.translations?.[lang]?.[msgKey] ||
+                        el.getAttribute(dataGuardMsg) ||
+                        window.translations?.en?.[msgKey] ||
+                        errFb;
+                if (msg !== errFb) {
+                    el.setAttribute(dataGuardMsg, msg);
+                    el.setAttribute(dataClientLocalized, "true");
+                }
+            }
+            return msg;
         }
-      };
-      $el.on("click.ldGuard", handler);
-      const obs = new MutationObserver(() => {
-        if (!document.body.contains(el)) {
-          try {
-            $el.off("click.ldGuard", handler);
-          } catch {}
-          obs.disconnect();
+        catch {
+            return errFb;
         }
-      });
-      obs.observe(document.body, { childList: true, subtree: true });
     };
-    const bindPointerUp = el => {
-      if (!el || el.getAttribute(listenerAttr) === "true") return;
-      el.setAttribute(listenerAttr, "true");
-      const $el = $(el);
-      const handler = e => {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const hasBootstrapCss = () => !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
+    const showError = (el) => {
         try {
-          const url = el.getAttribute("data-url");
-          const href = el.form
-            ? el.form.getAttribute("action")
-            : el.getAttribute("action");
-          if ((!url || url === "#") && (!href || href === "#")) {
-            e.preventDefault();
-            showError(getMsg("ld_unavailable"));
-          }
-        } catch {
-          e.preventDefault();
-          showError(getMsg("ld_unavailable"));
+            const message = getMsg(el);
+            if (hasBootstrapCss() && window.bootstrap.Toast) {
+                let wrap = document.getElementById("toast-container");
+                if (!wrap) {
+                    wrap = document.createElement("div");
+                    wrap.id = "toast-container";
+                    document.body.appendChild(wrap);
+                }
+                const t = document.createElement("div");
+                t.className = "toast";
+                for (const [k, v] of Object.entries({
+                    role: "alert",
+                    "aria-live": "assertive",
+                    "aria-atomic": "true",
+                }))
+                    t.setAttribute(k, v);
+                const b = document.createElement("div");
+                b.className = "toast-body";
+                b.textContent = message;
+                t.appendChild(b);
+                wrap.appendChild(t);
+                window.bootstrap.Toast.getOrCreateInstance(t, {
+                    autohide: true,
+                    delay: 4000,
+                }).show();
+            }
+            else {
+                alert(message);
+            }
         }
-      };
-      $el.on("pointerup.ldSubmitGuard", handler);
-      const obs = new MutationObserver(() => {
-        if (!document.body.contains(el)) {
-          try {
-            $el.off("pointerup.ldSubmitGuard", handler);
-          } catch {}
-          obs.disconnect();
+        catch {
+            alert(errFb);
         }
-      });
-      obs.observe(document.body, { childList: true, subtree: true });
     };
     try {
-      document.querySelectorAll(".ld-route-guard").forEach(bindClick);
-    } catch {
-      $(".ld-route-guard").toArray().forEach(bindClick);
+        const jq = window.jQuery ?? (window.$?.fn ? window.$ : null);
+        if (!jq) {
+            if (window.location.hostname === "localhost" ||
+                window.location.hostname === "127.0.0.1")
+                console.error("jQuery not found for LD scripts");
+            return;
+        }
+        jq(() => {
+            const bindClick = (el) => {
+                if (!el || el.getAttribute(dataGuardListener) === "true")
+                    return;
+                el.setAttribute(dataGuardListener, "true");
+                const $el = jq(el);
+                const handler = (e) => {
+                    try {
+                        const url = el.getAttribute("data-url"), href = el.getAttribute("href");
+                        if ((!url || url === "#") && (!href || href === "#")) {
+                            e.preventDefault();
+                            showError(el);
+                        }
+                    }
+                    catch {
+                        e.preventDefault();
+                        showError(el);
+                    }
+                };
+                $el.on("click.ldGuard", handler);
+                const obs = new MutationObserver(() => {
+                    if (!document.body.contains(el)) {
+                        try {
+                            $el.off("click.ldGuard", handler);
+                        }
+                        catch (__err) {
+                            console.error(`[create] Error:`, __err);
+                        }
+                        obs.disconnect();
+                    }
+                });
+                obs.observe(document.body, { childList: true, subtree: true });
+            };
+            const bindPointerUp = (el) => {
+                if (!el || el.getAttribute(dataGuardListener) === "true")
+                    return;
+                el.setAttribute(dataGuardListener, "true");
+                const $el = jq(el);
+                const handler = (e) => {
+                    try {
+                        const url = el.getAttribute("data-url"), href = el.form
+                            ? el.form.getAttribute("action")
+                            : el.getAttribute("action");
+                        if ((!url || url === "#") && (!href || href === "#")) {
+                            e.preventDefault();
+                            showError(el);
+                        }
+                    }
+                    catch {
+                        e.preventDefault();
+                        showError(el);
+                    }
+                };
+                $el.on("pointerup.ldSubmitGuard", handler);
+                const obs = new MutationObserver(() => {
+                    if (!document.body.contains(el)) {
+                        try {
+                            $el.off("pointerup.ldSubmitGuard", handler);
+                        }
+                        catch (__err) {
+                            console.error(`[create] Error:`, __err);
+                        }
+                        obs.disconnect();
+                    }
+                });
+                obs.observe(document.body, { childList: true, subtree: true });
+            };
+            try {
+                document
+                    .querySelectorAll(".ld-route-guard")
+                    .forEach(el => bindClick(el));
+            }
+            catch {
+                jq(".ld-route-guard").toArray().forEach(bindClick);
+            }
+            const submitEl = document.getElementById("lead-submit");
+            if (submitEl)
+                bindPointerUp(submitEl);
+        });
     }
-    const submitEl = document.getElementById("lead-submit");
-    if (submitEl) bindPointerUp(submitEl);
-  });
+    catch {
+        try {
+            alert(errFb);
+        }
+        catch (__err) {
+            console.error(`[create] Error:`, __err);
+        }
+    }
 })();
+//# sourceMappingURL=create.js.map

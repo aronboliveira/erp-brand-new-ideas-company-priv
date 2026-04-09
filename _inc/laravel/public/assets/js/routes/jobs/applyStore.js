@@ -1,13 +1,65 @@
 /**
- * Job Apply Store Route Guards
- * Handles job apply store form validation
- * @module routes/jobs/applyStore
+ * @fileoverview TypeScript version of public/assets/js/routes/jobs/applyStore.js
+ * @generated from original JavaScript - manual review recommended
+ * @module applyStore
  */
 (() => {
-  const guard = window.ERPGuard;
-  if (!guard) return;
-  guard.bindSubmitGuard('form[id^="job-apply-store-form-"]', {
-    fallbackMsg:
-      "Apply data route is unavailable. Please contact technical support or your domain administrator.",
-  });
+    try {
+        const fm = document.querySelector('form[id^="job-apply-store-form-"]');
+        if (!fm)
+            return;
+        if (fm.getAttribute("data-submit-guarded") === "true")
+            return;
+        fm.setAttribute("data-submit-guarded", "true");
+        if (!fm.getAttribute("data-listener-bound-submit")) {
+            fm.setAttribute("data-listener-bound-submit", "1");
+            fm.addEventListener("submit", (e) => {
+                try {
+                    const action = (fm.getAttribute("action") ?? "#").trim(), url = (fm.getAttribute("data-url") ?? "#").trim();
+                    if (url !== "#" && action !== "#")
+                        return;
+                    e.preventDefault();
+                    const msg = fm.getAttribute("data-guard-msg") ??
+                        "Apply data route is unavailable. Please contact technical support or your domain administrator.", hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') &&
+                        window.bootstrap);
+                    let container = document.getElementById("toast-container");
+                    if (!container) {
+                        container = document.createElement("div");
+                        container.id = "toast-container";
+                        container.className =
+                            "toast-container position-fixed top-0 end-0 p-3";
+                        container.style.zIndex = "1080";
+                        document.body.appendChild(container);
+                    }
+                    if (hasBootstrap) {
+                        const t = document.createElement("div");
+                        t.className = "toast";
+                        for (const [k, v] of Object.entries({
+                            role: "alert",
+                            "aria-live": "assertive",
+                            "aria-atomic": "true",
+                        }))
+                            t.setAttribute(k, v);
+                        const b = document.createElement("div");
+                        b.className = "toast-body";
+                        b.textContent = msg;
+                        t.appendChild(b);
+                        container.appendChild(t);
+                        bootstrap.Toast.getOrCreateInstance(t).show();
+                    }
+                    else {
+                        alert(msg);
+                    }
+                    fm.setAttribute("data-failed-route", "true");
+                }
+                catch (err) {
+                    console.error(`[applyStore] Error:`, err);
+                }
+            });
+        }
+    }
+    catch (err) {
+        console.error(`[applyStore] Error:`, err);
+    }
 })();
+//# sourceMappingURL=applyStore.js.map

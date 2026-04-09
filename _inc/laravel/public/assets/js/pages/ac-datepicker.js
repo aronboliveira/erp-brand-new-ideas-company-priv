@@ -1,109 +1,57 @@
 /**
- * @file ac-datepicker.js
- * @description Datepicker configuration with multiple variants
- * @version 2.0.0
+ * @fileoverview TypeScript version of public/assets/js/pages/ac-datepicker.js
+ * @generated from original JavaScript - manual review recommended
+ * @module ac-datepicker
  */
-
-(() => {
-  "use strict";
-
-  /**
-   * Datepicker controller using Datepicker library
-   * @class DatepickerController
-   */
-  class DatepickerController {
-    /** @type {string} */
-    static #DATA_INIT = "data-datepicker-init";
-    /** @type {string} */
-    static #SELECTOR_INLINE = "#inline-datepicker";
-    /** @type {string} */
-    static #SELECTOR_RANGE = "#date-range";
-    /** @type {string} */
-    static #SELECTOR_MULTI = "#multi-date";
-    /** @type {Object[]} */
-    #pickers = [];
-
-    /**
-     * Initialize datepickers
-     */
-    init() {
-      if (document.body?.hasAttribute(DatepickerController.#DATA_INIT)) return;
-      if (typeof Datepicker === "undefined") return console.warn("[DatepickerController] Datepicker not loaded");
-
-      document.body?.setAttribute(DatepickerController.#DATA_INIT, "true");
-      this.#setupPickers();
-    }
-
-    /**
-     * Setup all datepicker variants
-     * @private
-     */
-    #setupPickers() {
-      try {
-        this.#setupInlinePicker();
-        this.#setupRangePicker();
-        this.#setupMultiPicker();
-      } catch (err) {
-        console.error("[DatepickerController] Error setting up pickers:", err);
-      }
-    }
-
-    /**
-     * Setup inline datepicker
-     * @private
-     */
-    #setupInlinePicker() {
-      const el = document.querySelector(DatepickerController.#SELECTOR_INLINE);
-      if (!el || el.hasAttribute("data-picker-applied")) return;
-      el.setAttribute("data-picker-applied", "true");
-      this.#pickers.push(new Datepicker(el, { autohide: true }));
-    }
-
-    /**
-     * Setup date range picker
-     * @private
-     */
-    #setupRangePicker() {
-      const el = document.querySelector(DatepickerController.#SELECTOR_RANGE);
-      if (!el || el.hasAttribute("data-picker-applied")) return;
-      el.setAttribute("data-picker-applied", "true");
-      const range = new DateRangePicker(el, { autohide: true });
-      this.#pickers.push(range);
-    }
-
-    /**
-     * Setup multi-date picker
-     * @private
-     */
-    #setupMultiPicker() {
-      const el = document.querySelector(DatepickerController.#SELECTOR_MULTI);
-      if (!el || el.hasAttribute("data-picker-applied")) return;
-      el.setAttribute("data-picker-applied", "true");
-      this.#pickers.push(new Datepicker(el, { autohide: true, maxNumberOfDates: 4 }));
-    }
-
-    /**
-     * Destroy all pickers
-     */
-    destroy() {
-      this.#pickers.forEach((p) => p?.destroy?.());
-      this.#pickers = [];
-      document.body?.removeAttribute(DatepickerController.#DATA_INIT);
-    }
-  }
-
-  /**
-   * Initialize datepickers when DOM ready
-   */
-  const initDatepicker = () => {
-    try {
-      new DatepickerController().init();
-    } catch (err) {
-      console.error("[DatepickerController] Initialization error:", err);
-    }
-  };
-
-  document.readyState === "loading"
-    ? document.addEventListener("DOMContentLoaded", initDatepicker)
-    : initDatepicker();
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unused-vars */
+/* global $, jQuery */
+"use strict";
+(function () {
+    const _d_week = new Datepicker(document.querySelector("#d_week"), {
+        buttonClass: "btn",
+    });
 })();
+(function () {
+    const _d_highlight = new Datepicker(document.querySelector("#d_highlight"), {
+        buttonClass: "btn",
+        daysOfWeekHighlighted: [1],
+    });
+})();
+(function () {
+    const _d_auto = new Datepicker(document.querySelector("#d_auto"), {
+        buttonClass: "btn",
+        autohide: true,
+    });
+})();
+(function () {
+    const _d_disable = new Datepicker(document.querySelector("#d_disable"), {
+        buttonClass: "btn",
+        datesDisabled: ["02/18/2022", "02/22/2022"],
+    });
+})();
+// $('#d_toggle').datepicker({
+//     keyboardNavigation: false,
+//     forceParse: false,
+//     toggleActive: true
+// });
+(function () {
+    const _d_today = new Datepicker(document.querySelector("#d_today"), {
+        buttonClass: "btn",
+        todayHighlight: true,
+    });
+})();
+(function () {
+    const _disp_week = new Datepicker(document.querySelector("#disp_week"), {
+        buttonClass: "btn",
+        calendarWeeks: true,
+    });
+})();
+(function () {
+    const el = document.querySelector("#datepicker_range");
+    const _datepicker_range = el
+        ? new DateRangePicker(el, {
+            buttonClass: "btn",
+        })
+        : null;
+})();
+//# sourceMappingURL=ac-datepicker.js.map

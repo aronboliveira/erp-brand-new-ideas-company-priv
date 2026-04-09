@@ -1,15 +1,63 @@
 /**
- * @file partials/admin/menu/posPrintSetting.js
- * @description POS print setting menu link guard using ERPGuard singleton
+ * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/menu/posPrintSetting.js
+ * @generated from original JavaScript - manual review recommended
+ * @module posPrintSetting
  */
 (() => {
-  try {
-    if (!window.ERPGuard) {
-      
-      return;
+    const listenerAttr = "data-pos-print-setting-listener-active", el = document.getElementById("pos-print-setting-link");
+    if (!el || el.getAttribute(listenerAttr) === "true")
+        return;
+    el.setAttribute(listenerAttr, "true");
+    if (!el.getAttribute("data-listener-bound-click")) {
+        el.setAttribute("data-listener-bound-click", "1");
+        el.addEventListener("click", event => {
+            try {
+                const url = el.getAttribute("data-url"), href = el.href
+                    .replace(window.location.origin, "")
+                    .replace(window.location.pathname, "");
+                if ((!url || url === "#") && (!href || href === "#")) {
+                    event.preventDefault();
+                    const msg = el.getAttribute("data-guard-msg") ?? "# ERROR", bootstrapLink = document.querySelector('link[href*="bootstrap"]');
+                    let container = document.getElementById("toast-container");
+                    if (!container) {
+                        container = document.createElement("div");
+                        container.id = "toast-container";
+                        container.className =
+                            "toast-container position-fixed top-0 end-0 p-3";
+                        container.style.zIndex = "1080";
+                        document.body.appendChild(container);
+                    }
+                    if (bootstrapLink && window.bootstrap) {
+                        const toastEl = document.createElement("div");
+                        toastEl.className = "toast";
+                        for (const [k, v] of Object.entries({
+                            role: "alert",
+                            "aria-live": "assertive",
+                            "aria-atomic": "true",
+                        }))
+                            toastEl.setAttribute(k, v);
+                        const body = document.createElement("div");
+                        body.className = "toast-body";
+                        body.textContent = msg;
+                        toastEl.appendChild(body);
+                        container.appendChild(toastEl);
+                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                    }
+                    else {
+                        alert(msg);
+                    }
+                    el.setAttribute("data-failed-route", "true");
+                }
+            }
+            catch (error) {
+                console.error(`[posPrintSetting] Error:`, error);
+            }
+        });
     }
-    window.ERPGuard.bindClickGuard("#pos-print-setting-link");
-  } catch (err) {
-    console.error("Error initializing POS print setting menu guard:", err);
-  }
+    const observer = new MutationObserver(() => {
+        if (!document.getElementById("pos-print-setting-link"))
+            observer.disconnect();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 })();
+//# sourceMappingURL=posPrintSetting.js.map

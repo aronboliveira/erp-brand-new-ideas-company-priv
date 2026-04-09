@@ -1,11 +1,6 @@
-(() => {
-  const { scheduleError } = window.ERPGuard ?? {};
-  const { getMsg } = window.ERPUtils ?? {};
-
-  if (typeof scheduleError !== "function" || typeof getMsg !== "function") {
-    
-    return;
-  }
-
-  // No implementation - placeholder for route guard
-})();
+/**
+ * @fileoverview TypeScript version of public/assets/js/routes/events/store.js
+ * @generated from original JavaScript - manual review recommended
+ * @module store
+ */
+//# sourceMappingURL=store.js.map

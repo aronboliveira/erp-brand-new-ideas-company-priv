@@ -1,16 +1,69 @@
 /**
- * @file Attendance Delete Route Guard
- * @description Guards attendance delete links using ERPGuard singleton
+ * @fileoverview TypeScript version of public/assets/js/routes/attendances/delete.js
+ * @generated from original JavaScript - manual review recommended
+ * @module delete
  */
 (() => {
-  try {
-    const guard = window.ERPGuard;
-    if (!guard) return;
-
-    guard.bindClickGuard('[id^="delete-attendance-link-"]', {
-      fallbackMsg:
-        "Delete attendance route is unavailable. Please contact technical support or your domain administrator.",
-      validateUrl: true,
-    });
-  } catch (_) {}
+    try {
+        document
+            .querySelectorAll('[id^="delete-attendance-link-"]')
+            .forEach((el) => {
+            try {
+                const alias = "data-listening-deleteattendanceclick";
+                if (!el.hasAttribute(alias)) {
+                    el.setAttribute(alias, "true");
+                    el.addEventListener("click", event => {
+                        try {
+                            const url = el.getAttribute("data-url"), href = el.getAttribute("href") ?? "";
+                            if ((url && url !== "#") ?? (href && href !== "#"))
+                                return;
+                            event.preventDefault();
+                            const msg = el.getAttribute("data-guard-msg") ??
+                                "Delete attendance route is unavailable. Please contact technical support or your domain administrator.";
+                            const hasBS = window.bootstrap && typeof bootstrap.Toast === "function";
+                            if (hasBS) {
+                                const container = document.getElementById("toast-container") ??
+                                    (() => {
+                                        const d = document.createElement("div");
+                                        d.id = "toast-container";
+                                        d.className =
+                                            "toast-container position-fixed bottom-0 end-0 p-3";
+                                        document.body.appendChild(d);
+                                        return d;
+                                    })();
+                                const toastEl = document.createElement("div");
+                                toastEl.className =
+                                    "toast align-items-center text-bg-danger border-0";
+                                for (const [k, v] of Object.entries({
+                                    role: "alert",
+                                    "aria-live": "assertive",
+                                    "aria-atomic": "true",
+                                }))
+                                    toastEl.setAttribute(k, v);
+                                toastEl.innerHTML =
+                                    '<div class="d-flex"><div class="toast-body">' +
+                                        msg +
+                                        '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+                                container.appendChild(toastEl);
+                                new bootstrap.Toast(toastEl, { delay: 5000 }).show();
+                            }
+                            else {
+                                alert(msg);
+                            }
+                        }
+                        catch (__err) {
+                            console.error(`[delete] Error:`, __err);
+                        }
+                    });
+                }
+            }
+            catch (__err) {
+                console.error(`[delete] Error:`, __err);
+            }
+        });
+    }
+    catch (__err) {
+        console.error(`[delete] Error:`, __err);
+    }
 })();
+//# sourceMappingURL=delete.js.map

@@ -1,15 +1,53 @@
 /**
- * @fileoverview Overtime update route guard
- * @description Protects overtime update form from submission when route is unavailable
+ * @fileoverview TypeScript version of public/assets/js/routes/overtimes/update.js
+ * @generated from original JavaScript - manual review recommended
+ * @module update
  */
-
 (() => {
-  try {
-    const guard = window.ERPGuard;
-    if (!guard) return;
-    guard.bindSubmitGuard(
-      "#overtime-update-form",
-      "VXBkYXRlIHJvdXRlIGlzIHVuYXZhaWxhYmxlLiBQbGVhc2UgY29udGFjdCB0ZWNobmljYWwgc3VwcG9ydCBvciB5b3VyIGRvbWFpbiBhZG1pbmlzdHJhdG9yLg==",
-    );
-  } catch {}
+    const form = document.getElementById("overtime-update-form");
+    if (!form)
+        return;
+    const showMsg = (msg) => {
+        try {
+            if (window.bootstrap.Toast) {
+                const c = document.getElementById("toast-container") ??
+                    (() => {
+                        const d = document.createElement("div");
+                        d.id = "toast-container";
+                        document.body.appendChild(d);
+                        return d;
+                    })();
+                const el = document.createElement("div");
+                el.className = "toast";
+                for (const [k, v] of Object.entries({
+                    role: "alert",
+                    "aria-live": "assertive",
+                    "aria-atomic": "true",
+                }))
+                    el.setAttribute(k, v);
+                const body = document.createElement("div");
+                body.className = "toast-body";
+                body.textContent = msg;
+                el.appendChild(body);
+                c.appendChild(el);
+                window.bootstrap.Toast.getOrCreateInstance(el).show();
+            }
+            else {
+                alert(msg);
+            }
+        }
+        catch {
+            alert(msg);
+        }
+    };
+    form.addEventListener("submit", (e) => {
+        const url = form.getAttribute("action") ?? form.getAttribute("data-url") ?? "#";
+        if (!url || url === "#") {
+            e.preventDefault();
+            const msg = form.getAttribute("data-guard-msg") ??
+                "Update route is unavailable. Please contact technical support or your domain administrator.";
+            showMsg(msg);
+        }
+    }, { passive: false });
 })();
+//# sourceMappingURL=update.js.map

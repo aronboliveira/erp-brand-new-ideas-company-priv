@@ -1,30 +1,17 @@
 /**
- * @file Invoice Clipboard Utility
- * @description Clipboard copy functionality using ERPUtils singleton
- */
-
-/**
- * Copy element ID to clipboard
- * @param {HTMLElement} element - Element containing ID to copy
- * @returns {void}
+ * @fileoverview TypeScript version of public/assets/js/routes/invoices/clipboard.js
+ * @generated from original JavaScript — automated migration
+ * @module clipboard
  */
 function copyToClipboard(element) {
-  const { copyToClipboard: copy } = window.ERPUtils ?? {};
-  const { scheduleError } = window.ERPGuard ?? {};
-
-  if (!copy || !scheduleError) {
-    if (scheduleError) scheduleError("Utility system not loaded", "click");
-    return;
-  }
-
-  const copyText = element.id;
-  copy(copyText, true);
+    const copyText = element.id;
+    navigator.clipboard.writeText(copyText);
+    // document.addEventListener('copy', function (e) {
+    //     e.clipboardData.setData('text/plain', copyText);
+    //     e.preventDefault();
+    // }, true);
+    //
+    // document.execCommand('copy');
+    show_toastr("success", "Url copied to clipboard", "success");
 }
-
-/* Delegated listener for [data-clipboard-copy] — CSP-safe replacement for inline onclick */
-document.addEventListener("click", e => {
-  const trigger = e.target.closest("[data-clipboard-copy]");
-  if (!trigger) return;
-  e.preventDefault();
-  copyToClipboard(trigger);
-});
+//# sourceMappingURL=clipboard.js.map
