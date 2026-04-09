@@ -110,12 +110,13 @@ describe("route-guard.js — proxy mode (ERPGuard loaded first)", () => {
     expect(() => window.RouteGuard.init()).not.toThrow();
   });
 
-  test("RouteGuard.animations are no-op functions", () => {
-    expect(window.RouteGuard.animations.fadeIn()).toBeUndefined();
-    expect(window.RouteGuard.animations.fadeOut()).toBeUndefined();
-    expect(window.RouteGuard.animations.slideDown()).toBeUndefined();
-    expect(window.RouteGuard.animations.slideUp()).toBeUndefined();
-    expect(window.RouteGuard.animations.addAnimation()).toBeUndefined();
+  test("RouteGuard.animations are no-op functions (return Promise for null el)", async () => {
+    // Animations return Promise.resolve() when called without valid element
+    await expect(window.RouteGuard.animations.fadeIn()).resolves.toBeUndefined();
+    await expect(window.RouteGuard.animations.fadeOut()).resolves.toBeUndefined();
+    await expect(window.RouteGuard.animations.slideDown()).resolves.toBeUndefined();
+    await expect(window.RouteGuard.animations.slideUp()).resolves.toBeUndefined();
+    expect(() => window.RouteGuard.animations.addAnimation()).not.toThrow();
   });
 
   test("RouteGuard exposes expected constants", () => {

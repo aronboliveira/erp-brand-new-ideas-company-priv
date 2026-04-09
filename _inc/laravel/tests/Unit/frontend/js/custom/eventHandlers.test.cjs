@@ -1,10 +1,10 @@
 /**
- * Tests for jQuery event handlers registered in custom.js:
+ * Tests for event handlers registered in custom.js (vanilla JS rewrite):
  *
- *   - data-ajax-popup="true"  click handler (modal opening)
+ *   - data-ajax-popup="true"  click handler (modal opening via fetch)
  *   - .bs-pass-para           click handler (SweetAlert confirm)
  *   - .bs-pass-para-pos       click handler (POS delete confirm)
- *   - data-ajax-popup-over    click handler (overlay modal)
+ *   - data-ajax-popup-over    click handler (overlay modal via fetch)
  *   - input[type=file] change handler (file name display)
  */
 
@@ -14,7 +14,8 @@ const {
   buildDomSkeleton,
 } = require("../helpers/setup.cjs");
 
-let ajaxSpy;
+let fetchSpy;
+const flush = () => new Promise(r => setTimeout(r, 0));
 
 beforeEach(() => {
   document.body.innerHTML = "";
@@ -22,22 +23,24 @@ beforeEach(() => {
   buildJQueryEnv();
   buildDomSkeleton();
 
-  // Capture $.ajax calls
-  ajaxSpy = jest.fn(opts => {
-    if (opts.success) opts.success("<p>loaded</p>");
-  });
+  // Mock fetch — returns HTML text
+  fetchSpy = jest.fn(() =>
+    Promise.resolve({
+      headers: { get: () => "text/html" },
+      json: () => Promise.resolve({}),
+      text: () => Promise.resolve("<p>loaded</p>"),
+    }),
+  );
+  global.fetch = fetchSpy;
 
   loadCustomJs();
-
-  // Attach spy AFTER loadCustomJs (which may reset $.ajax)
-  global.$.ajax = ajaxSpy;
 });
 
 /* ================================================================== */
 /*  data-ajax-popup                                                    */
 /* ================================================================== */
 describe('data-ajax-popup="true" click handler', () => {
-  test("triggers $.ajax to the data-url", () => {
+  test("triggers fetch to the data-url", async () => {
     document.body.insertAdjacentHTML(
       "beforeend",
       `<a href="#"
@@ -49,13 +52,14 @@ describe('data-ajax-popup="true" click handler', () => {
     );
 
     const link = document.querySelector(".popup-trigger");
-    global.$(link).trigger("click");
+    link.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await flush();
 
-    expect(ajaxSpy).toHaveBeenCalled();
-    expect(ajaxSpy.mock.calls[0][0].url).toBe("/test/modal");
+    expect(fetchSpy).toHaveBeenCalled();
+    expect(fetchSpy.mock.calls[0][0]).toContain("/test/modal");
   });
 
-  test("sets modal title from data-title", () => {
+  test("sets modal title from data-title", async () => {
     document.body.insertAdjacentHTML(
       "beforeend",
       `<a href="#"
@@ -65,9 +69,11 @@ describe('data-ajax-popup="true" click handler', () => {
           data-size="md">Go</a>`,
     );
 
-    global.$(document.querySelector("a[data-ajax-popup]")).trigger("click");
+    document.querySelector("a[data-ajax-popup]")
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await flush();
     const title = document.querySelector("#commonModal .modal-title");
-    expect(title.innerHTML).toBe("My Title");
+    expect(title.textContent).toBe("My Title");
   });
 
   test("adds modal-lg class for size=lg", () => {
@@ -75,7 +81,8 @@ describe('data-ajax-popup="true" click handler', () => {
       "beforeend",
       `<button data-ajax-popup="true" data-url="/x" data-title="T" data-size="lg">Go</button>`,
     );
-    global.$(document.querySelector("[data-ajax-popup]")).trigger("click");
+    document.querySelector("[data-ajax-popup]")
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const dialog = document.querySelector("#commonModal .modal-dialog");
     expect(dialog.classList.contains("modal-lg")).toBe(true);
   });
@@ -102,7 +109,8 @@ describe(".bs-pass-para click handler", () => {
        </form>`,
     );
 
-    global.$(document.querySelector(".bs-pass-para")).trigger("click");
+    document.querySelector(".bs-pass-para")
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(fireSpy).toHaveBeenCalled();
   });
 });
@@ -131,7 +139,7 @@ describe("input[type=file] change handler", () => {
 /*  data-ajax-popup-over handler                                       */
 /* ================================================================== */
 describe('data-ajax-popup-over="true" click handler', () => {
-  test("triggers $.ajax to the data-url", () => {
+  test("triggers fetch to the data-url", async () => {
     document.body.insertAdjacentHTML(
       "beforeend",
       `<a href="#"
@@ -141,9 +149,11 @@ describe('data-ajax-popup-over="true" click handler', () => {
           data-size="lg">AI</a>`,
     );
 
-    global.$(document.querySelector("[data-ajax-popup-over]")).trigger("click");
-    expect(ajaxSpy).toHaveBeenCalled();
-    expect(ajaxSpy.mock.calls[0][0].url).toContain("/ai/generate");
+    document.querySelector("[data-ajax-popup-over]")
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await flush();
+    expect(fetchSpy).toHaveBeenCalled();
+    expect(fetchSpy.mock.calls[0][0]).toContain("/ai/generate");
   });
 
   test("sets overlay modal title", () => {
@@ -154,8 +164,9 @@ describe('data-ajax-popup-over="true" click handler', () => {
             data-title="Overlay Title"
             data-size="md">Click</div>`,
     );
-    global.$(document.querySelector("[data-ajax-popup-over]")).trigger("click");
+    document.querySelector("[data-ajax-popup-over]")
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const title = document.querySelector("#commonModalOver .modal-title");
-    expect(title.innerHTML).toBe("Overlay Title");
+    expect(title.textContent).toBe("Overlay Title");
   });
 });

@@ -58,7 +58,8 @@ describe("show_toastr", () => {
   test("writes message into .toast-body", () => {
     global.show_toastr("success", "<b>Hello</b>");
     const body = document.querySelector("#liveToast .toast-body");
-    expect(body.innerHTML).toBe("<b>Hello</b>");
+    // textContent — deliberado: mais seguro contra XSS
+    expect(body.textContent).toBe("<b>Hello</b>");
   });
 
   test("works with an empty message", () => {
@@ -70,16 +71,16 @@ describe("show_toastr", () => {
   test("works with HTML-escaped content", () => {
     global.show_toastr("error", "&lt;script&gt;");
     const body = document.querySelector("#liveToast .toast-body");
-    expect(body.innerHTML).toBe("&lt;script&gt;");
+    // textContent preserva a string literal sem interpretar HTML
+    expect(body.textContent).toBe("&lt;script&gt;");
   });
 
-  test("each call accumulates colour classes (no reset)", () => {
-    // This documents current behaviour – the toast element does NOT remove
-    // old colour classes when called again with a different type.
+  test("each call resets colour classes (new behaviour)", () => {
+    // Vanilla rewrite properly clears old colour before applying new one
     global.show_toastr("success", "first");
     global.show_toastr("error", "second");
     const toast = document.getElementById("liveToast");
-    expect(toast.classList.contains("bg-primary")).toBe(true);
+    expect(toast.classList.contains("bg-primary")).toBe(false);
     expect(toast.classList.contains("bg-danger")).toBe(true);
   });
 });
