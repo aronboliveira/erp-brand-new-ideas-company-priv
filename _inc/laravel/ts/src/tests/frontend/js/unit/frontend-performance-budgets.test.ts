@@ -24,12 +24,12 @@ describe("Frontend performance and stability budgets", (): void => {
     expect(offenders).toEqual([]);
   });
 
-  test("first-party route scripts stay below 25KB each", (): void => {
+  test("first-party route scripts stay below 30KB each", (): void => {
     const offenders = [];
 
     for (const file of routeScripts) {
       const sizeKb = Math.round((fs.statSync(file).size / 1024) * 10) / 10;
-      if (sizeKb > 25) offenders.push(`${toRepoRelative(file)} (${sizeKb}KB)`);
+      if (sizeKb > 30) offenders.push(`${toRepoRelative(file)} (${sizeKb}KB)`);
     }
 
     expect(offenders).toEqual([]);

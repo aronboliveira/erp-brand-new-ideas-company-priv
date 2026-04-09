@@ -201,10 +201,11 @@ describe("String.prototype.getDecimals", () => {
 });
 
 /* ================================================================== */
-/*  session_key global                                                 */
+/*  session_key — const-scoped (não vaza para globalThis)              */
 /* ================================================================== */
 describe("session_key", () => {
-  test("is defined as a string", () => {
-    expect(typeof (globalThis as any).session_key).toBe("string");
+  test("is not leaked as a global (const-scoped)", () => {
+    // Após migração TS: const session_key não polui globalThis
+    expect((globalThis as any).session_key).toBeUndefined();
   });
 });
