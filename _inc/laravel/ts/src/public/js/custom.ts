@@ -1,120 +1,255 @@
 /**
- * @fileoverview TypeScript version of public/js/custom.js
- * @generated from original JavaScript - manual review recommended
+ * @fileoverview custom.js — ERP application helpers (jQuery-lean rewrite).
+ *
+ * Migração jQuery → vanilla JS. Chamadas a plugins que exigem jQuery
+ * (Summernote, TagsInput, NiceScroll, SearchBox, Bootstrap 4 tooltip/modal/dropdown)
+ * continuam usando $ mas são guardadas com `typeof $ !== 'undefined'`.
+ *
  * @module custom
  */
 // @ts-nocheck
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-base-to-string, @typescript-eslint/no-floating-promises, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/restrict-plus-operands, no-var, prefer-const */
-/* global bootstrap, flatpickr, Swal, $, jQuery */
-/**
- *
- * You can write your JS code here, DO NOT touch the default style file
- * because it will make it harder for you to update.
- *
- */
+/* global bootstrap, flatpickr, Swal, $, jQuery, simpleDatatables, Choices, jscolor, site_currency_symbol, site_currency_symbol_position */
+
+// PULL REQUEST START — Alteração customizada: remoção parcial de jQuery
 
 "use strict";
-// for pos system
-const session_key = $(location).attr("href").split("/").pop();
-//
 
-$(function () {
-  if ($(".custom-scroll").length) {
-    $(".custom-scroll").niceScroll();
-    $(".custom-scroll-horizontal").niceScroll();
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                           */
+/* ------------------------------------------------------------------ */
+
+const qs  = (sel, root = document) => root.querySelector(sel);
+const qsa = (sel, root = document) => root.querySelectorAll(sel);
+const byId = (id) => document.getElementById(id);
+
+function csrfToken() {
+  const meta = qs('meta[name="csrf-token"]');
+  return meta ? meta.getAttribute("content") : "";
+}
+
+/** Delegated event helper (replaces $(document).on) */
+function onDelegate(event, selector, handler) {
+  document.addEventListener(event, function (e) {
+    const target = e.target.closest(selector);
+    if (target) handler.call(target, e);
+  });
+}
+
+/** Simplified fetch wrapper (replaces $.ajax GET) */
+async function ajaxGet(url, params) {
+  const query = params ? "?" + new URLSearchParams(params).toString() : "";
+  const resp = await fetch(url + query, {
+    headers: { "X-Requested-With": "XMLHttpRequest" },
+  });
+  const ct = resp.headers.get("content-type") || "";
+  return ct.includes("application/json") ? resp.json() : resp.text();
+}
+
+/** Simplified fetch wrapper (replaces $.ajax POST/DELETE) */
+async function ajaxPost(url, body, method = "POST") {
+  const token = csrfToken();
+  const isFormData = body instanceof FormData;
+  const headers = { "X-Requested-With": "XMLHttpRequest" };
+  if (!isFormData) headers["Content-Type"] = "application/x-www-form-urlencoded";
+
+  let payload;
+  if (isFormData) {
+    body.append("_token", token);
+    payload = body;
+  } else {
+    const data = { _token: token, ...body };
+    payload = new URLSearchParams(data).toString();
+  }
+  const resp = await fetch(url, { method, headers, body: payload });
+  const ct = resp.headers.get("content-type") || "";
+  return ct.includes("application/json") ? resp.json() : resp.text();
+}
+
+/* ------------------------------------------------------------------ */
+/*  Session key (POS system)                                          */
+/* ------------------------------------------------------------------ */
+var session_key = window.location.href.split("/").pop();
+
+/* ------------------------------------------------------------------ */
+/*  DOM Ready                                                         */
+/* ------------------------------------------------------------------ */
+document.addEventListener("DOMContentLoaded", function () {
+  // NiceScroll (jQuery plugin — manter $)
+  if (typeof $ !== "undefined") {
+    if (qs(".custom-scroll")) {
+      $(".custom-scroll").niceScroll();
+      $(".custom-scroll-horizontal").niceScroll();
+    }
   }
 
-  // loadConfirm();
-});
-
-$(document).ready(function () {
-  if ($(".datatable").length > 0)
-    const dataTable = new simpleDatatables.DataTable(".datatable");
+  // DataTable init
+  if (qs(".datatable") && typeof simpleDatatables !== "undefined") {
+    new simpleDatatables.DataTable(".datatable");
+  }
 
   select2();
   summernote();
   daterange();
-  // loadConfirm();
+  JsSearchBox();
 });
 
+/* ------------------------------------------------------------------ */
+/*  Daterange (Flatpickr — vanilla-compatible)                        */
+/* ------------------------------------------------------------------ */
 function daterange() {
-  if ($("#pc-daterangepicker-1").length > 0)
-    document.querySelector<HTMLElement>("#pc-daterangepicker-1").flatpickr({
-      mode: "range",
-    });
+  const el = qs("#pc-daterangepicker-1");
+  if (el && typeof flatpickr !== "undefined") {
+    el.flatpickr({ mode: "range" });
+  }
 }
 
+/* ------------------------------------------------------------------ */
+/*  Select2 / Choices.js replacement                                  */
+/* ------------------------------------------------------------------ */
 function select2() {
-  if ($(".select2").length > 0) {
-    $($(".select2")).each(function (index, element) {
-      const id = $(element).attr("id"),
-        multipleCancelButton = new Choices("#" + id, {
-          removeItemButton: true,
-        });
-    });
-  }
-}
-
-function show_toastr(type, message) {
-  const f = document.getElementById("liveToast"),
-    a = new bootstrap.Toast(f).show();
-  if (type == "success") {
-    $("#liveToast").addClass("bg-primary");
-  } else {
-    $("#liveToast").addClass("bg-danger");
-  }
-  $("#liveToast .toast-body").html(message);
-}
-
-$(document).on(
-  "click",
-  'a[data-ajax-popup="true"], button[data-ajax-popup="true"], div[data-ajax-popup="true"]',
-  function () {
-    const data = {},
-      title1 = $(this).data("title"),
-      title2 = $(this).data("bs-original-title"),
-      title3 = $(this).data("original-title");
-    var title = title1 != undefined ? title1 : title2,
-      title = title != undefined ? title : title3;
-    $(".modal-dialog").removeClass("modal-xl");
-    const size = $(this).data("size") == "" ? "md" : $(this).data("size"),
-      url = $(this).data("url");
-    $("#commonModal .modal-title").html(title);
-    $("#commonModal .modal-dialog").addClass("modal-" + size);
-
-    if ($("#vc_name_hidden").length > 0)
-      data.vc_name = $("#vc_name_hidden").val();
-    if ($("#warehouse_name_hidden").length > 0)
-      data.warehouse_name = $("#warehouse_name_hidden").val();
-    if ($("#discount_hidden").length > 0)
-      data.discount = $("#discount_hidden").val();
-    $.ajax({
-      url: url,
-      data: data,
-      success: function (data) {
-        $("#commonModal .body").html(data);
-        $("#commonModal").modal("show");
-        // daterange_set();
-        taskCheckbox();
-        common_bind("#commonModal");
-        commonLoader();
-      },
-      error: function (data) {
-        data = data.responseJSON;
-        show_toastr("Error", data.error, "error");
-      },
-    });
-  },
-);
-
-function arrayToJson(form) {
-  const data = $(form).serializeArray(),
-    indexed_array = {};
-  $.map(data, function (n, i) {
-    indexed_array[n.name] = n.value;
+  qsa(".select2").forEach(function (element) {
+    const id = element.getAttribute("id");
+    if (id && typeof Choices !== "undefined") {
+      new Choices("#" + id, { removeItemButton: true });
+    }
   });
+}
 
+/* ------------------------------------------------------------------ */
+/*  Toast notification                                                */
+/* ------------------------------------------------------------------ */
+function show_toastr(type, message) {
+  const toast = byId("liveToast");
+  if (!toast) return;
+  new bootstrap.Toast(toast).show();
+  toast.classList.remove("bg-primary", "bg-danger");
+  toast.classList.add(type === "success" ? "bg-primary" : "bg-danger");
+  const body = qs(".toast-body", toast);
+  if (body) body.textContent = message;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Ajax popup modals                                                 */
+/* ------------------------------------------------------------------ */
+onDelegate("click", '[data-ajax-popup="true"]', function (e) {
+  e.preventDefault();
+  const el = this;
+  const data = {};
+  const title = el.dataset.title || el.dataset.bsOriginalTitle || el.dataset.originalTitle || "";
+  const size = el.dataset.size || "md";
+  const url = el.dataset.url;
+
+  qsa(".modal-dialog").forEach(function (d) { d.classList.remove("modal-xl"); });
+
+  const modal = byId("commonModal");
+  if (!modal) return;
+  const titleEl = qs(".modal-title", modal);
+  const dialogEl = qs(".modal-dialog", modal);
+  if (titleEl) titleEl.textContent = title;
+  if (dialogEl) dialogEl.classList.add("modal-" + size);
+
+  const vcHidden = byId("vc_name_hidden");
+  if (vcHidden) data.vc_name = vcHidden.value;
+  const whHidden = byId("warehouse_name_hidden");
+  if (whHidden) data.warehouse_name = whHidden.value;
+  const discHidden = byId("discount_hidden");
+  if (discHidden) data.discount = discHidden.value;
+
+  ajaxGet(url, Object.keys(data).length ? data : undefined)
+    .then(function (html) {
+      const body = qs(".body", modal);
+      if (body) body.innerHTML = html;
+      if (typeof $ !== "undefined") $(modal).modal("show");
+      else new bootstrap.Modal(modal).show();
+      taskCheckbox();
+      common_bind();
+      commonLoader();
+    })
+    .catch(function (err) {
+      show_toastr("Error", err.message || "Request failed");
+    });
+});
+
+/* ------------------------------------------------------------------ */
+/*  AI module overlay modal                                           */
+/* ------------------------------------------------------------------ */
+onDelegate("click", '[data-ajax-popup-over="true"]', function (e) {
+  e.preventDefault();
+  const el = this;
+  const validateSel = el.getAttribute("data-validate");
+  let id = "";
+  if (validateSel) {
+    const valEl = qs(validateSel);
+    if (valEl) id = valEl.value;
+  }
+  const title = el.dataset.title || "";
+  const size = el.dataset.size || "md";
+  const url = el.dataset.url;
+
+  const modal = byId("commonModalOver");
+  if (!modal) return;
+  const dialogEl = qs(".modal-dialog", modal);
+  if (dialogEl) {
+    dialogEl.classList.remove("modal-lg");
+    dialogEl.classList.add("modal-" + size);
+  }
+  const titleEl = qs(".modal-title", modal);
+  if (titleEl) titleEl.textContent = title;
+
+  ajaxGet(url, id ? { id: id } : undefined)
+    .then(function (html) {
+      const body = qs(".modal-body", modal);
+      if (body) body.innerHTML = html;
+      if (typeof $ !== "undefined") $(modal).modal("show");
+      else new bootstrap.Modal(modal).show();
+      taskCheckbox();
+    })
+    .catch(function (err) {
+      show_toastr("Error", err.message || "Request failed");
+    });
+});
+
+/* ------------------------------------------------------------------ */
+/*  Google Calendar event click                                       */
+/* ------------------------------------------------------------------ */
+onDelegate("click", ".local_calendar .fc-daygrid-event, .fc-timegrid-event", function (e) {
+  e.preventDefault();
+  const el = this;
+  const titleEl = qs(".fc-event-title");
+  const title = (titleEl ? titleEl.textContent : "") || el.dataset.bsOriginalTitle || "";
+  const url = el.getAttribute("href");
+
+  const modal = byId("commonModal");
+  if (!modal || !url) return;
+  const modalTitle = qs(".modal-title", modal);
+  const dialogEl = qs(".modal-dialog", modal);
+  if (modalTitle) modalTitle.textContent = title;
+  if (dialogEl) dialogEl.classList.add("modal-md");
+
+  ajaxGet(url)
+    .then(function (html) {
+      const body = qs(".body", modal);
+      if (body) body.innerHTML = html;
+      if (typeof $ !== "undefined") $(modal).modal("show");
+      else new bootstrap.Modal(modal).show();
+      common_bind();
+    })
+    .catch(function (err) {
+      show_toastr("Error", err.message || "Request failed");
+    });
+});
+
+/* ------------------------------------------------------------------ */
+/*  Form helpers                                                      */
+/* ------------------------------------------------------------------ */
+function arrayToJson(form) {
+  const el = typeof form === "string" ? qs(form) : form;
+  if (!el) return {};
+  const formData = new FormData(el);
+  const indexed_array = {};
+  formData.forEach(function (value, key) { indexed_array[key] = value; });
   return indexed_array;
 }
 
@@ -122,421 +257,247 @@ function common_bind() {
   select2();
 }
 
+/* ------------------------------------------------------------------ */
+/*  Task checkbox progress bar                                        */
+/* ------------------------------------------------------------------ */
 function taskCheckbox() {
-  let checked = 0,
-    count = 0,
-    percentage = 0;
+  const checkList = byId("check-list");
+  if (!checkList) return;
 
-  count = $("#check-list input[type=checkbox]").length;
-  checked = $("#check-list input[type=checkbox]:checked").length;
-  percentage = parseInt((checked / count) * 100, 10);
+  const boxes = checkList.querySelectorAll('input[type="checkbox"]');
+  const checked = checkList.querySelectorAll('input[type="checkbox"]:checked');
+  const count = boxes.length;
+  let percentage = count > 0 ? parseInt(String((checked.length / count) * 100), 10) : 0;
   if (isNaN(percentage)) percentage = 0;
-  $(".custom-label").text(percentage + "%");
-  $("#taskProgress").css("width", percentage + "%");
 
-  $("#taskProgress").removeClass("bg-warning");
-  $("#taskProgress").removeClass("bg-primary");
-  $("#taskProgress").removeClass("bg-success");
-  $("#taskProgress").removeClass("bg-danger");
+  qsa(".custom-label").forEach(function (el) { el.textContent = percentage + "%"; });
 
-  if (percentage <= 15) {
-    $("#taskProgress").addClass("bg-danger");
-  } else if (percentage > 15 && percentage <= 33) {
-    $("#taskProgress").addClass("bg-warning");
-  } else if (percentage > 33 && percentage <= 70) {
-    $("#taskProgress").addClass("bg-primary");
-  } else {
-    $("#taskProgress").addClass("bg-success");
-  }
+  const prog = byId("taskProgress");
+  if (!prog) return;
+  prog.style.width = percentage + "%";
+  prog.classList.remove("bg-warning", "bg-primary", "bg-success", "bg-danger");
+
+  if (percentage <= 15) prog.classList.add("bg-danger");
+  else if (percentage <= 33) prog.classList.add("bg-warning");
+  else if (percentage <= 70) prog.classList.add("bg-primary");
+  else prog.classList.add("bg-success");
 }
 
+/* ------------------------------------------------------------------ */
+/*  commonLoader — inits que rodam após conteúdo dinâmico              */
+/* ------------------------------------------------------------------ */
 function commonLoader() {
-  $('[data-toggle="tooltip"]').tooltip();
-  if ($('[data-toggle="tags"]').length > 0)
-    $('[data-toggle="tags"]').tagsinput({ tagClass: "badge badge-primary" });
+  // Tooltip, TagsInput — jQuery plugins
+  if (typeof $ !== "undefined") {
+    $('[data-toggle="tooltip"]').tooltip();
+    if (qs('[data-toggle="tags"]'))
+      $('[data-toggle="tags"]').tagsinput({ tagClass: "badge badge-primary" });
 
-  // $(function(){
-  //
-  //     var dtToday = new Date();
-  //
-  //     var month = dtToday.getMonth() + 1;
-  //     var day = dtToday.getDate();
-  //     var year = dtToday.getFullYear();
-  //     if(month < 10)
-  //         month = '0' + month.toString();
-  //     if(day < 10)
-  //         day = '0' + day.toString();
-  //
-  //     var maxDate = year + '-' + month + '-' + day;
-  //
-  //     $("input[type='date']").attr('max', maxDate);
-  // });
+    // Scrollbar plugin
+    const scrollbar = $(".scrollbar-inner");
+    if (scrollbar.length) scrollbar.scrollbar().scrollLock();
+  }
 
-  const e = $(".scrollbar-inner");
-  e.length && e.scrollbar().scrollLock();
-
-  const e1 = $(".custom-input-file");
-  e1.length &&
-    e1.each(function () {
-      const e1 = $(this);
-      (e1.on("change", function (t) {
-        !(function (e, t, a) {
-          let n,
-            o = e.next("label"),
-            i = o.html();
-          (t && t.files.length > 1
-            ? (n = (t.getAttribute("data-multiple-caption") || "").replace(
-                "{count}",
-                t.files.length,
-              ))
-            : a.target.value && (n = a.target.value.split("\\").pop()),
-            n ? o.find("span").html(n) : o.html(i));
-        })(e1, this, t);
-      }),
-        e1
-          .on("focus", function () {
-            !(function (e) {
-              e.addClass("has-focus");
-            })(e1);
-          })
-          .on("blur", function () {
-            !(function (e) {
-              e.removeClass("has-focus");
-            })(e1);
-          }));
+  // Custom file input
+  qsa(".custom-input-file").forEach(function (input) {
+    input.addEventListener("change", function (e) {
+      const label = input.nextElementSibling;
+      if (!label || label.tagName !== "LABEL") return;
+      let name;
+      if (input.files && input.files.length > 1) {
+        name = (input.getAttribute("data-multiple-caption") || "").replace("{count}", String(input.files.length));
+      } else if (e.target.value) {
+        name = e.target.value.split("\\").pop();
+      }
+      const span = label.querySelector("span");
+      if (name) {
+        if (span) span.textContent = name;
+        else label.textContent = name;
+      }
     });
-
-  // var e2 = $('[data-toggle="autosize"]');
-  // e2.length && autosize(e2);
-
-  if ($(".jscolor").length) jscolor.installByClassName("jscolor");
-  summernote();
-  // for Choose file
-  $(document).on("change", "input[type=file]", function () {
-    const fileclass = $(this).attr("data-filename"),
-      finalname = $(this).val().split("\\").pop();
-    $("." + fileclass).html(finalname);
+    input.addEventListener("focus", function () { input.classList.add("has-focus"); });
+    input.addEventListener("blur", function () { input.classList.remove("has-focus"); });
   });
+
+  if (qs(".jscolor") && typeof jscolor !== "undefined")
+    jscolor.installByClassName("jscolor");
+
+  summernote();
 }
 
+// Generic file-name display
+onDelegate("change", "input[type=file]", function () {
+  const fileclass = this.getAttribute("data-filename");
+  const finalname = this.value.split("\\").pop();
+  if (fileclass) {
+    qsa("." + fileclass).forEach(function (el) { el.textContent = finalname; });
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/*  Summernote (jQuery plugin — manter $)                             */
+/* ------------------------------------------------------------------ */
 function summernote() {
-  if ($(".summernote-simple").length) {
-    $(".summernote-simple").summernote({
-      dialogsInBody: !0,
-      minHeight: 200,
-      maxHeight: 300,
-      toolbar: [
-        ["style", ["style"]],
-        ["font", ["bold", "italic", "underline", "clear", "strikethrough"]],
-        ["fontname", ["fontname"]],
-        ["color", ["color"]],
-        ["para", ["ul", "ol", "paragraph"]],
-      ],
-    });
+  if (typeof $ === "undefined") return;
+
+  const opts = {
+    dialogsInBody: true,
+    minHeight: 200,
+    maxHeight: 300,
+    toolbar: [
+      ["style", ["style"]],
+      ["font", ["bold", "italic", "underline", "clear", "strikethrough"]],
+      ["fontname", ["fontname"]],
+      ["color", ["color"]],
+      ["para", ["ul", "ol", "paragraph"]],
+    ],
+  };
+
+  if (qs(".summernote-simple")) {
+    $(".summernote-simple").summernote(opts);
     $(".dropdown-toggle").dropdown();
   }
-
-  if ($(".summernote-simple-2").length)
-    $(".summernote-simple-2").summernote({
-      dialogsInBody: !0,
-      minHeight: 200,
-      maxHeight: 300,
-      toolbar: [
-        ["style", ["style"]],
-        ["font", ["bold", "italic", "underline", "clear", "strikethrough"]],
-        ["fontname", ["fontname"]],
-        ["color", ["color"]],
-        ["para", ["ul", "ol", "paragraph"]],
-      ],
-    });
+  if (qs(".summernote-simple-2"))
+    $(".summernote-simple-2").summernote(opts);
 }
 
-$(document).on("click", ".bs-pass-para", function () {
-  const form = $(this).closest("form"),
-    swalWithBootstrapButtons = Swal.mixin({
-      customClass: {
-        confirmButton: "btn btn-success",
-        cancelButton: "btn btn-danger",
-      },
-      buttonsStyling: false,
-    });
-  swalWithBootstrapButtons
-    .fire({
-      title: "Are you sure?",
-      text: "This action can not be undone. Do you want to continue?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      cancelButtonText: "No",
-      reverseButtons: true,
-    })
-    .then(result => {
-      if (result.isConfirmed) {
-        form.submit();
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-      }
-    });
-});
-
-//only pos system delete button
-$(document).on("click", ".bs-pass-para-pos", function () {
-  const swalWithBootstrapButtons = Swal.mixin({
-    customClass: {
-      confirmButton: "btn btn-success",
-      cancelButton: "btn btn-danger",
-    },
+/* ------------------------------------------------------------------ */
+/*  SweetAlert confirm dialogs                                        */
+/* ------------------------------------------------------------------ */
+onDelegate("click", ".bs-pass-para", function (e) {
+  e.preventDefault();
+  const form = this.closest("form");
+  if (!form) return;
+  Swal.mixin({
+    customClass: { confirmButton: "btn btn-success", cancelButton: "btn btn-danger" },
     buttonsStyling: false,
+  }).fire({
+    title: "Are you sure?",
+    text: "This action can not be undone. Do you want to continue?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "No",
+    reverseButtons: true,
+  }).then(function (result) {
+    if (result.isConfirmed) form.submit();
   });
-  swalWithBootstrapButtons
-    .fire({
-      title: "Are you sure?",
-      text: "This action can not be undone. Do you want to continue?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      cancelButtonText: "No",
-      reverseButtons: true,
-    })
-    .then(result => {
-      if (result.isConfirmed) {
-        document.getElementById($(this).data("confirm-yes")).submit();
-      } else if (result.dismiss === Swal.DismissReason.cancel) {
-      }
-    });
 });
 
-function postAjax(url, data, cb) {
-  const token = $('meta[name="csrf-token"]').attr("content"),
-    jdata = { _token: token };
-  for (const k in data) {
-    jdata[k] = data[k];
-  }
+// POS system delete button
+onDelegate("click", ".bs-pass-para-pos", function (e) {
+  e.preventDefault();
+  const confirmId = this.dataset.confirmYes;
+  Swal.mixin({
+    customClass: { confirmButton: "btn btn-success", cancelButton: "btn btn-danger" },
+    buttonsStyling: false,
+  }).fire({
+    title: "Are you sure?",
+    text: "This action can not be undone. Do you want to continue?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes",
+    cancelButtonText: "No",
+    reverseButtons: true,
+  }).then(function (result) {
+    if (result.isConfirmed && confirmId) {
+      const form = byId(confirmId);
+      if (form) form.submit();
+    }
+  });
+});
 
-  $.ajax({
-    type: "POST",
-    url: url,
-    data: jdata,
-    success: function (data) {
-      if (typeof data === "object") {
-        cb(data);
-      } else {
-        cb(data);
-      }
-    },
+/* ------------------------------------------------------------------ */
+/*  AJAX helpers (global — usados por Blade inline scripts)           */
+/* ------------------------------------------------------------------ */
+function postAjax(url, data, cb) {
+  ajaxPost(url, data, "POST").then(cb).catch(function (err) {
+    console.error("[postAjax]", err);
   });
 }
-
-//end only pos system delete button
 
 function deleteAjax(url, data, cb) {
-  const jdata = { _token: $('meta[name="csrf-token"]').attr("content") };
-
-  for (const k in data) {
-    jdata[k] = data[k];
-  }
-
-  $.ajax({
-    type: "DELETE",
-    url: url,
-    data: jdata,
-    success: function (data) {
-      if (typeof data === "object") {
-        cb(data);
-      } else {
-        cb(data);
-      }
-    },
+  ajaxPost(url, data, "DELETE").then(cb).catch(function (err) {
+    console.error("[deleteAjax]", err);
   });
 }
 
-// Google calendar
-$(document).on(
-  "click",
-  ".local_calendar .fc-daygrid-event, .fc-timegrid-event",
-  function (e) {
-    // if (!$(this).hasClass('project')) {
-    e.preventDefault();
-    const event = $(this),
-      title1 = $(".fc-event-title").html(),
-      title2 = $(this).data("bs-original-title"),
-      title = title1 != undefined ? title1 : title2;
-    // var size = ($(this).data('size') == '') ? 'md' : $(this).data('size');
-    const size = "md",
-      url = $(this).attr("href");
-    $("#commonModal .modal-title").html(title);
-    $("#commonModal .modal-dialog").addClass("modal-" + size);
-    $.ajax({
-      url: url,
-      success: function (data) {
-        $("#commonModal .body").html(data);
-        $("#commonModal").modal("show");
-        common_bind();
-      },
-      error: function (data) {
-        data = data.responseJSON;
-        toastrs("Error", data.error, "error");
-      },
-    });
-    // }
-  },
-);
-
-//date value 4
-
-// $(function(){
-//
-//     var dtToday = new Date();
-//
-//     var month = dtToday.getMonth() + 1;
-//     var day = dtToday.getDate();
-//     var year = dtToday.getFullYear();
-//     if(month < 10)
-//         month = '0' + month.toString();
-//     if(day < 10)
-//         day = '0' + day.toString();
-//
-//     var maxDate = year + '-' + month + '-' + day;
-//
-//     $("input[type='date']").attr('max', maxDate);
-// });
-
+/* ------------------------------------------------------------------ */
+/*  Currency formatting                                               */
+/* ------------------------------------------------------------------ */
 function addCommas(num) {
-  const number = parseFloat(num)
-    .toFixed(2)
-    .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
-  return (
-    (site_currency_symbol_position == "pre" ? site_currency_symbol : "") +
-    number +
-    (site_currency_symbol_position == "post" ? site_currency_symbol : "")
-  );
+  const number = parseFloat(num).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+  const pre = typeof site_currency_symbol_position !== "undefined" && site_currency_symbol_position === "pre" ? site_currency_symbol : "";
+  const post = typeof site_currency_symbol_position !== "undefined" && site_currency_symbol_position === "post" ? site_currency_symbol : "";
+  return pre + number + post;
 }
 
-// PLUS MINUS QUANTITY JS
+/* ------------------------------------------------------------------ */
+/*  Quantity plus/minus (POS)                                         */
+/* ------------------------------------------------------------------ */
+if (!String.prototype.getDecimals) {
+  String.prototype.getDecimals = function () {
+    const b = ("" + this).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+    return b ? Math.max(0, (b[1] ? b[1].length : 0) - (b[2] ? +b[2] : 0)) : 0;
+  };
+}
+
 function wcqib_refresh_quantity_increments() {
-  jQuery(
-    "div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)",
-  ).each(function (a, b) {
-    const c = jQuery(b);
-    (c.addClass("buttons_added"),
-      c
-        .children()
-        .first()
-        .before('<input type="button" value="-" class="minus" />'),
-      c
-        .children()
-        .last()
-        .after('<input type="button" value="+" class="plus" />'));
+  qsa("div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)").forEach(function (el) {
+    el.classList.add("buttons_added");
+    const minus = document.createElement("input");
+    minus.type = "button"; minus.value = "-"; minus.className = "minus";
+    const plus = document.createElement("input");
+    plus.type = "button"; plus.value = "+"; plus.className = "plus";
+    el.insertBefore(minus, el.firstChild);
+    el.appendChild(plus);
   });
 }
 
-(String.prototype.getDecimals ||
-  (String.prototype.getDecimals = function () {
-    const a = this,
-      b = ("" + a).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-    return b ? Math.max(0, (b[1] ? b[1].length : 0) - (b[2] ? +b[2] : 0)) : 0;
-  }),
-  jQuery(document).ready(function () {
-    wcqib_refresh_quantity_increments();
-  }),
-  jQuery(document).on("updated_wc_div", function () {
-    wcqib_refresh_quantity_increments();
-  }),
-  jQuery(document).on("click", ".plus, .minus", function () {
-    let a = jQuery(this)
-        .closest(".quantity")
-        .find('input[name="quantity"], input[name="quantity[]"]'),
-      b = parseFloat(a.val()),
-      c = parseFloat(a.attr("max")),
-      d = parseFloat(a.attr("min")),
-      e = a.attr("step");
-    ((b && "" !== b && "NaN" !== b) || (b = 0),
-      ("" !== c && "NaN" !== c) || (c = ""),
-      ("" !== d && "NaN" !== d) || (d = 0),
-      ("any" !== e && "" !== e && void 0 !== e && "NaN" !== parseFloat(e)) ||
-        (e = 1),
-      jQuery(this).is(".plus")
-        ? c && b >= c
-          ? a.val(c)
-          : a.val((b + parseFloat(e)).toFixed(e.getDecimals()))
-        : d && b <= d
-          ? a.val(d)
-          : b > 0 && a.val((b - parseFloat(e)).toFixed(e.getDecimals())),
-      a.trigger("change"));
-  }));
+document.addEventListener("DOMContentLoaded", wcqib_refresh_quantity_increments);
 
-$(document).on(
-  "click",
-  'input[name="quantity"], input[name="quantity[]"]',
-  function (e) {
-    // Allow: backspace, delete, tab, escape, enter and .
-    if (
-      $.inArray(e.keyCode, [46, 8, 9, 27, 13, 190]) !== -1 ||
-      // Allow: Ctrl+A
-      (e.keyCode == 65 && e.ctrlKey === true) ||
-      // Allow: home, end, left, right
-      (e.keyCode >= 35 && e.keyCode <= 39)
-    )
-      // let it happen, don't do anything
-      return;
-    // Ensure that it is a number and stop the keypress
-    if (
-      (e.shiftKey || e.keyCode < 48 || e.keyCode > 57) &&
-      (e.keyCode < 96 || e.keyCode > 105)
-    )
-      e.preventDefault();
-  },
-);
+onDelegate("click", ".plus, .minus", function () {
+  const container = this.closest(".quantity");
+  if (!container) return;
+  const input = container.querySelector('input[name="quantity"], input[name="quantity[]"]');
+  if (!input) return;
 
-//for ai module
-$(document).on(
-  "click",
-  'a[data-ajax-popup-over="true"], button[data-ajax-popup-over="true"], div[data-ajax-popup-over="true"]',
-  function () {
-    const validate = $(this).attr("data-validate");
-    let id = "";
-    if (validate) id = $(validate).val();
-    const title_over = $(this).data("title");
-    $("#commonModalOver .modal-dialog").removeClass("modal-lg");
-    const size_over = $(this).data("size") == "" ? "md" : $(this).data("size"),
-      url = $(this).data("url");
-    $("#commonModalOver .modal-title").html(title_over);
-    $("#commonModalOver .modal-dialog").addClass("modal-" + size_over);
-    $.ajax({
-      url: url + "?id=" + id,
-      success: function (data) {
-        $("#commonModalOver .modal-body").html(data);
-        $("#commonModalOver").modal("show");
-        taskCheckbox();
-      },
-      error: function (data) {
-        data = data.responseJSON;
-        show_toastr("Error", data.error, "error");
-      },
-    });
-  },
-);
+  let val = parseFloat(input.value) || 0;
+  const max = parseFloat(input.getAttribute("max"));
+  const min = parseFloat(input.getAttribute("min")) || 0;
+  let step = input.getAttribute("step");
+  if (!step || step === "any" || isNaN(parseFloat(step))) step = "1";
+  const stepVal = parseFloat(step);
 
-//start input serach box
-function JsSearchBox() {
-  if ($(".js-searchBox").length) {
-    $(".js-searchBox").each(function (index) {
-      if ($(this).parent().find(".formTextbox").length == 0)
-        $(this).searchBox({ elementWidth: "250" });
-    });
+  if (this.classList.contains("plus")) {
+    if (!isNaN(max) && val >= max) input.value = String(max);
+    else input.value = (val + stepVal).toFixed(step.getDecimals());
+  } else {
+    if (!isNaN(min) && val <= min) input.value = String(min);
+    else if (val > 0) input.value = (val - stepVal).toFixed(step.getDecimals());
   }
-}
-
-$(document).ready(function () {
-  JsSearchBox();
-
-  function JsSearchBox() {
-    if ($(".js-searchBox").length) {
-      $(".js-searchBox").each(function (index) {
-        if ($(this).parent().find(".formTextbox").length === 0)
-          $(this).searchBox({ elementWidth: "250" });
-      });
-    }
-  }
+  input.dispatchEvent(new Event("change", { bubbles: true }));
 });
 
-//end input serach box
+// Quantity input — allow only numbers
+onDelegate("keydown", 'input[name="quantity"], input[name="quantity[]"]', function (e) {
+  const allow = [46, 8, 9, 27, 13, 190];
+  if (allow.includes(e.keyCode)) return;
+  if (e.keyCode === 65 && e.ctrlKey) return;
+  if (e.keyCode >= 35 && e.keyCode <= 39) return;
+  if ((e.shiftKey || e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105))
+    e.preventDefault();
+});
+
+/* ------------------------------------------------------------------ */
+/*  SearchBox (jQuery plugin — manter $)                              */
+/* ------------------------------------------------------------------ */
+function JsSearchBox() {
+  if (typeof $ === "undefined" || !qs(".js-searchBox")) return;
+  $(".js-searchBox").each(function () {
+    if ($(this).parent().find(".formTextbox").length === 0)
+      $(this).searchBox({ elementWidth: "250" });
+  });
+}
+
+// PULL REQUEST END — Alteração customizada: remoção parcial de jQuery
