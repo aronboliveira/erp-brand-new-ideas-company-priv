@@ -1,92 +1,74 @@
 /**
+ * @fileoverview TypeScript version of public/js/cookie.notice.js
+ * @generated from original JavaScript - manual review recommended
+ * @module cookie.notice
+ */
+// @ts-nocheck
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, no-prototype-builtins, prefer-rest-params */
+/**
  * Cookie Notice JS
  * @author Alessandro Benoit
  */
-;
 (function () {
-
     "use strict";
-
     /**
      * Store current instance
      */
-    var instance;
-
+    let instance;
     /**
      * Defaults values
      * @type object
      */
-    
-
     /**
      * Initialize cookie notice on DOMContentLoaded
      * if not already initialized with alt params
      */
-    document.addEventListener('DOMContentLoaded', function () {
-        if (!instance) {
+    document.addEventListener("DOMContentLoaded", function () {
+        if (!instance)
             new cookieNoticeJS();
-        }
     });
-
     /**
      * Constructor
      */
     window.cookieNoticeJS = function () {
-
         // If an instance is already set stop here
-        if (instance !== undefined) {
+        if (instance !== undefined)
             return;
-        }
-
         // Set current instance
         instance = this;
-
         // If cookies are not supported or notice cookie is already set
-        if (!testCookie() || getNoticeCookie()) {
+        if (!testCookie() || getNoticeCookie())
             return;
-        }
-
         // Extend default params
-        var params = extendDefaults(defaults, arguments[0] || {});
-
+        const params = extendDefaults(defaults, arguments[0] || {});
         // Get current locale for notice text
-        var noticeText = getStringForCurrentLocale(params.messageLocales);
-
+        const noticeText = getStringForCurrentLocale(params.messageLocales);
         // Create notice
-        var notice = createNotice(noticeText, params.noticeBgColor, params.noticeTextColor, params.cookieNoticePosition);
-
-        var learnMoreLink;
-
+        const notice = createNotice(noticeText, params.noticeBgColor, params.noticeTextColor, params.cookieNoticePosition);
+        let learnMoreLink;
         if (params.learnMoreLinkEnabled) {
-            var learnMoreLinkText = getStringForCurrentLocale(params.learnMoreLinkText);
-
+            const learnMoreLinkText = getStringForCurrentLocale(params.learnMoreLinkText);
             learnMoreLink = createLearnMoreLink(learnMoreLinkText, params.learnMoreLinkHref, params.linkColor);
         }
-
         // Get current locale for button text
-        var buttonText = getStringForCurrentLocale(params.buttonLocales);
-
+        const buttonText = getStringForCurrentLocale(params.buttonLocales);
         // Create dismiss button
-        var dismissButton = createDismissButton(buttonText, params.buttonBgColor, params.buttonTextColor);
-
+        const dismissButton = createDismissButton(buttonText, params.buttonBgColor, params.buttonTextColor);
         // Dismiss button click event
-        dismissButton.addEventListener('click', function (e) {
-            e.preventDefault();
-            setDismissNoticeCookie(parseInt(params.expiresIn + "", 10) * 60 * 1000 * 60 * 24);
-            fadeElementOut(notice);
-        });
-
-        // Append notice to the DOM
-        var noticeDomElement = document.body.appendChild(notice);
-
-        if (!!learnMoreLink) {
-            noticeDomElement.appendChild(learnMoreLink);
+        if (!dismissButton.getAttribute("data-listener-bound-click")) {
+            dismissButton.setAttribute("data-listener-bound-click", "1");
+            dismissButton.addEventListener("click", function (e) {
+                e.preventDefault();
+                setDismissNoticeCookie(parseInt(params.expiresIn + "", 10) * 60 * 1000 * 60 * 24);
+                fadeElementOut(notice);
+            });
         }
-
+        // Append notice to the DOM
+        const noticeDomElement = document.body.appendChild(notice);
+        if (learnMoreLink)
+            noticeDomElement.appendChild(learnMoreLink);
         noticeDomElement.appendChild(dismissButton);
-
     };
-
     /**
      * Get the string for the current locale
      * and fallback to "en" if none provided
@@ -94,32 +76,26 @@
      * @returns {*}
      */
     function getStringForCurrentLocale(locales) {
-        var locale = (
-            document.documentElement.lang ||
-            navigator.language||
-            navigator.userLanguage
-        ).substr(0, 2);
-
-        return (locales[locale]) ? locales[locale] : locales['en'];
+        const locale = (document.documentElement.lang ||
+            navigator.language ||
+            navigator.userLanguage).substr(0, 2);
+        return locales[locale] ? locales[locale] : locales.en;
     }
-
     /**
      * Test if cookies are enabled
      * @returns {boolean}
      */
     function testCookie() {
-        document.cookie = 'testCookie=1';
-        return document.cookie.indexOf('testCookie') != -1;
+        document.cookie = "testCookie=1";
+        return document.cookie.includes("testCookie");
     }
-
     /**
      * Test if notice cookie is there
      * @returns {boolean}
      */
     function getNoticeCookie() {
-        return document.cookie.indexOf('cookie_notice') != -1;
+        return document.cookie.includes("cookie_notice");
     }
-
     /**
      * Create notice
      * @param message
@@ -129,35 +105,31 @@
      * @returns {HTMLElement}
      */
     function createNotice(message, bgColor, textColor, position) {
-
-        var notice = document.createElement('div'),
-            noticeStyle = notice.style;
-
-        notice.innerHTML = message + '&nbsp;';
-        notice.setAttribute('id', 'cookieNotice');
-
-        noticeStyle.position = 'fixed';
-
-        if (position === 'top') {
-            noticeStyle.top = '0';
-        } else {
-            noticeStyle.bottom = '0';
+        const notice = document.createElement("div"), noticeStyle = notice.style;
+        notice.innerHTML = message + "&nbsp;";
+        notice.setAttribute("id", "cookieNotice");
+        noticeStyle.position = "fixed";
+        if (position === "top") {
+            noticeStyle.top = "0";
         }
-
-        noticeStyle.left = '0';
-        noticeStyle.right = '0';
-        noticeStyle.background = bgColor;
-        noticeStyle.color = textColor;
-        noticeStyle["z-index"] = '999';
-        noticeStyle.padding = '10px 5px';
-        noticeStyle["text-align"] = 'center';
+        else {
+            noticeStyle.bottom = "0";
+        }
+        for (const [k, v] of Object.entries({
+            left: "0",
+            right: "0",
+            background: bgColor,
+            color: textColor,
+        }))
+            noticeStyle[k] = v;
+        noticeStyle["z-index"] = "999";
+        noticeStyle.padding = "10px 5px";
+        noticeStyle["text-align"] = "center";
         noticeStyle["font-size"] = "12px";
         noticeStyle["line-height"] = "28px";
-        noticeStyle.fontFamily = 'Helvetica neue, Helvetica, sans-serif';
-
+        noticeStyle.fontFamily = "Helvetica neue, Helvetica, sans-serif";
         return notice;
     }
-
     /**
      * Create dismiss button
      * @param message
@@ -166,28 +138,23 @@
      * @returns {HTMLElement}
      */
     function createDismissButton(message, buttonColor, buttonTextColor) {
-
-        var dismissButton = document.createElement('a'),
-            dismissButtonStyle = dismissButton.style;
-
+        const dismissButton = document.createElement("a"), dismissButtonStyle = dismissButton.style;
         // Dismiss button
-        dismissButton.href = '#';
+        dismissButton.href = "#";
         dismissButton.innerHTML = message;
-
-        dismissButton.className = 'confirm';
-
+        dismissButton.className = "confirm";
         // Dismiss button style
         dismissButtonStyle.background = buttonColor;
         dismissButtonStyle.color = buttonTextColor;
-        dismissButtonStyle['text-decoration'] = 'none';
-        dismissButtonStyle.display = 'inline-block';
-        dismissButtonStyle.padding = '0 15px';
-        dismissButtonStyle.margin = '0 0 0 10px';
-
+        dismissButtonStyle["text-decoration"] = "none";
+        for (const [k, v] of Object.entries({
+            display: "inline-block",
+            padding: "0 15px",
+            margin: "0 0 0 10px",
+        }))
+            dismissButtonStyle[k] = v;
         return dismissButton;
-
     }
-
     /**
      * Create dismiss button
      * @param learnMoreLinkText
@@ -196,37 +163,31 @@
      * @returns {HTMLElement}
      */
     function createLearnMoreLink(learnMoreLinkText, learnMoreLinkHref, linkColor) {
-
-        var learnMoreLink = document.createElement('a'),
-            learnMoreLinkStyle = learnMoreLink.style;
-
+        const learnMoreLink = document.createElement("a"), learnMoreLinkStyle = learnMoreLink.style;
         // Dismiss button
-        learnMoreLink.href = learnMoreLinkHref;
-        learnMoreLink.textContent = learnMoreLinkText;
-        learnMoreLink.target = '_blank';
-        learnMoreLink.className = 'learn-more';
-
+        for (const [k, v] of Object.entries({
+            href: learnMoreLinkHref,
+            textContent: learnMoreLinkText,
+            target: "_blank",
+            className: "learn-more",
+        }))
+            learnMoreLink[k] = v;
         // Dismiss button style
         learnMoreLinkStyle.color = linkColor;
-        learnMoreLinkStyle['text-decoration'] = 'none';
-        learnMoreLinkStyle.display = 'inline';
-
+        learnMoreLinkStyle["text-decoration"] = "none";
+        learnMoreLinkStyle.display = "inline";
         return learnMoreLink;
-
     }
-
     /**
      * Set sismiss notice cookie
      * @param expireIn
      */
     function setDismissNoticeCookie(expireIn) {
-        var now = new Date(),
-            cookieExpire = new Date();
-
+        const now = new Date(), cookieExpire = new Date();
         cookieExpire.setTime(now.getTime() + expireIn);
-        document.cookie = "cookie_notice=1; expires=" + cookieExpire.toUTCString() + "; path=/;";
+        document.cookie =
+            "cookie_notice=1; expires=" + cookieExpire.toUTCString() + "; path=/;";
     }
-
     /**
      * Fade a given element out
      * @param element
@@ -234,10 +195,11 @@
     function fadeElementOut(element) {
         element.style.opacity = 1;
         (function fade() {
-            (element.style.opacity -= .1) < 0.01 ? element.parentNode.removeChild(element) : setTimeout(fade, 40)
+            (element.style.opacity -= 0.1) < 0.01
+                ? element.parentNode.removeChild(element)
+                : setTimeout(fade, 40);
         })();
     }
-
     /**
      * Utility method to extend defaults with user options
      * @param source
@@ -245,24 +207,24 @@
      * @returns {*}
      */
     function extendDefaults(source, properties) {
-        var property;
+        let property;
         for (property in properties) {
             if (properties.hasOwnProperty(property)) {
-                if (typeof source[property] === 'object') {
+                if (typeof source[property] === "object") {
                     source[property] = extendDefaults(source[property], properties[property]);
-                } else {
+                }
+                else {
                     source[property] = properties[property];
                 }
             }
         }
         return source;
     }
-
     /* test-code */
     cookieNoticeJS.extendDefaults = extendDefaults;
     cookieNoticeJS.clearInstance = function () {
         instance = undefined;
     };
     /* end-test-code */
-
-}());
+})();
+//# sourceMappingURL=cookie.notice.js.map
