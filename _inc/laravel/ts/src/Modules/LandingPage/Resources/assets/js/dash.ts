@@ -433,7 +433,8 @@ function scrolltargetmenu(value) {
       var off = elm.getBoundingClientRect();
       var t = off.top;
       if (t > 300) {
-        document.querySelector(".navbar-content")?.scrollTop = t - 300;
+        const navContent = document.querySelector(".navbar-content");
+        if (navContent) navContent.scrollTop = t - 300;
       }
     }
   });
