@@ -1,0 +1,11 @@
+###############################################################################
+# ERP Nova Prestech — Namespace Kubernetes
+# Namespace dedicado para isolar todos os recursos do ERP no cluster local.
+###############################################################################
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: erp-prestech
+  labels:
+    app.kubernetes.io/part-of: erp-prestech
+    environment: local

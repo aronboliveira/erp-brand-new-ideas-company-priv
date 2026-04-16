@@ -1,7 +1,9 @@
 ###############################################################################
 # ERP Nova Prestech — PHP-FPM application image
 # Build:  docker compose build app
+#         eval $(minikube docker-env) && docker build -t erp-prestech-app .
 # Run:    docker compose up -d
+#         kubectl apply -f k8s/
 ###############################################################################
 
 # ── Stage 1: frontend assets ────────────────────────────────────────────────
@@ -10,10 +12,10 @@ FROM node:20-alpine AS frontend
 WORKDIR /build
 COPY package.json package-lock.json* ./
 RUN npm ci --ignore-scripts
-COPY webpack.mix.js tailwind.config.js ./
+COPY webpack.mix.cjs tailwind.config.js ./
 COPY resources/ resources/
 COPY public/ public/
-RUN npm run production || true
+RUN npx mix --production || npm run production || true
 
 # ── Stage 2: PHP application ────────────────────────────────────────────────
 FROM php:8.3-fpm

@@ -147,7 +147,8 @@
       "app/Models/Helpers/fields.php",
       "app/Http/Controllers/Helpers/http.php",
       "app/Http/Controllers/Helpers/ErrorHandlers.php",
-      "app/Http/Controllers/Helpers/security.php"
+      "app/Http/Controllers/Helpers/security.php",
+      "app/Http/Controllers/Helpers/security_global.php"
     ]
   },
   "autoload-dev": {
@@ -328,6 +329,32 @@
     "artisan-artclrs--ps": "@serve-ps--soft",
     "artisan-artclrs--sh": "@serve-sh--soft",
     "artisan-artclrs": "@serve-ps--soft",
+    "__ KUBERNETES LOCAL (minikube + kubectl) __": "--- section marker ---",
+    "serve-k8--hard": [
+      "bash scripts/k8s-deploy.sh --hard"
+    ],
+    "serve-k8--mixed": [
+      "bash scripts/k8s-deploy.sh --mixed"
+    ],
+    "serve-k8--soft": [
+      "bash scripts/k8s-deploy.sh --soft"
+    ],
+    "serve-k8": "@serve-k8--mixed",
+    "serve-k8--status": [
+      "bash scripts/k8s-deploy.sh --status"
+    ],
+    "serve-k8--stop": [
+      "bash scripts/k8s-deploy.sh --stop"
+    ],
+    "serve-k8--destroy": [
+      "bash scripts/k8s-deploy.sh --destroy"
+    ],
+    "k8-hard": "@serve-k8--hard",
+    "k8-mixed": "@serve-k8--mixed",
+    "k8-soft": "@serve-k8--soft",
+    "k8-status": "@serve-k8--status",
+    "k8-stop": "@serve-k8--stop",
+    "k8-destroy": "@serve-k8--destroy",
     "test-php": [
       "@php -d memory_limit=512M vendor/bin/phpunit --no-coverage"
     ],
@@ -475,7 +502,9 @@
   },
   "extra": {
     "laravel": {
-      "dont-discover": []
+      "dont-discover": [
+        "munafio/chatify"
+      ]
     }
   },
   "config": {

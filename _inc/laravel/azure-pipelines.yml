@@ -1,48 +1,57 @@
-trigger:
-    branches:
-        include:
-            - main
-            - develop
+###############################################################################
+# ERP Nova Prestech — Azure DevOps Pipeline (DESATIVADO)
+# CI/CD agora usa GitHub Actions (.github/workflows/ci.yml) + minikube local.
+# Este arquivo é mantido como referência para futura migração para Azure AKS.
+# Para reativar, descomente os triggers e stages abaixo.
+###############################################################################
 
-variables:
-    # Azure Configuration
-    azureServiceConnection: "azure-connection-name"
-    resourceGroup: "erp-rg"
-    clusterName: "erp-aks"
-    acrName: "erpacr"
-    imageNameBackend: "erp-backend"
-    imageNameFrontend: "erp-frontend"
+# ── Triggers desativados — CI/CD migrado para GitHub Actions ────────────
+# trigger:
+#     branches:
+#         include:
+#             - main
+#             - develop
+trigger: none
 
-stages:
-    - stage: Build
-      displayName: Build Stage
-      jobs:
-          - job: BuildAndPush
-            displayName: Build and Push Docker Images
-            pool:
-                vmImage: "ubuntu-latest"
-            steps:
-                - task: Docker@2
-                  displayName: Build and Push Backend
-                  inputs:
-                      containerRegistry: "$(acrName)"
-                      repository: "$(imageNameBackend)"
-                      command: "buildAndPush"
-                      Dockerfile: "_inc/laravel/Dockerfile"
-                      tags: |
-                          $(Build.BuildId)
-                          latest
+# variables:
+#     # Azure Configuration
+#     azureServiceConnection: "azure-connection-name"
+#     resourceGroup: "erp-rg"
+#     clusterName: "erp-aks"
+#     acrName: "erpacr"
+#     imageNameBackend: "erp-backend"
+#     imageNameFrontend: "erp-frontend"
 
-                - task: Docker@2
-                  displayName: Build and Push Frontend
-                  inputs:
-                      containerRegistry: "$(acrName)"
-                      repository: "$(imageNameFrontend)"
-                      command: "buildAndPush"
-                      Dockerfile: "_inc/laravel/frontend/Dockerfile"
-                      tags: |
-                          $(Build.BuildId)
-                          latest
+# stages:
+#     - stage: Build
+#       displayName: Build Stage
+#       jobs:
+#           - job: BuildAndPush
+#             displayName: Build and Push Docker Images
+#             pool:
+#                 vmImage: "ubuntu-latest"
+#             steps:
+#                 - task: Docker@2
+#                   displayName: Build and Push Backend
+#                   inputs:
+#                       containerRegistry: "$(acrName)"
+#                       repository: "$(imageNameBackend)"
+#                       command: "buildAndPush"
+#                       Dockerfile: "_inc/laravel/Dockerfile"
+#                       tags: |
+#                           $(Build.BuildId)
+#                           latest
+#
+#                 - task: Docker@2
+#                   displayName: Build and Push Frontend
+#                   inputs:
+#                       containerRegistry: "$(acrName)"
+#                       repository: "$(imageNameFrontend)"
+#                       command: "buildAndPush"
+#                       Dockerfile: "_inc/laravel/frontend/Dockerfile"
+#                       tags: |
+#                           $(Build.BuildId)
+#                           latest
 
 # Deploy Stage - Commented out to prevent accidental deployment
 # - stage: Deploy

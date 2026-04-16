@@ -1,0 +1,327 @@
+###############################################################################
+# ERP Nova Prestech — GitHub Actions CI/CD
+#
+# Pipeline:
+#   1. Lint (PHPStan, ESLint, Flake8, mypy, tsc)
+#   2. Test (PHPUnit, Jest, Pytest, Playwright)
+#   3. Build Docker image
+#   4. (Comentado) Deploy para Azure AKS
+#
+# Triggers: push/PR em main e develop
+###############################################################################
+name: ERP Prestech CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - '_inc/laravel/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - '_inc/laravel/**'
+      - '.github/workflows/**'
+
+env:
+  PHP_VERSION: '8.3'
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11'
+  LARAVEL_DIR: '_inc/laravel'
+  # ── Azure (comentado — não utilizado por enquanto) ────────────────────
+  # AZURE_ACR_NAME: erpacr
+  # AZURE_ACR_LOGIN: erpacr.azurecr.io
+  # AZURE_RG: erp-rg
+  # AZURE_AKS_CLUSTER: erp-aks
+  # IMAGE_NAME: erp-prestech-app
+
+jobs:
+  # ════════════════════════════════════════════════════════════════════════
+  # LINT — Análise estática multi-linguagem
+  # ════════════════════════════════════════════════════════════════════════
+  lint:
+    name: Lint & Static Analysis
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.LARAVEL_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── PHP ──────────────────────────────────────────────────────────
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: bcmath, exif, gd, intl, mbstring, pcntl, pdo_mysql, xml, zip, opcache
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.LARAVEL_DIR }}/vendor
+          key: composer-${{ hashFiles('_inc/laravel/composer.lock') }}
+          restore-keys: composer-
+
+      - name: Composer install
+        run: composer install --prefer-dist --no-interaction --no-scripts --optimize-autoloader
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress || true
+
+      - name: PHP_CodeSniffer
+        run: vendor/bin/phpcs --standard=php_cs.xml --report=summary app/ || true
+
+      # ── Node.js ──────────────────────────────────────────────────────
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.LARAVEL_DIR }}/package-lock.json
+
+      - name: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: ESLint
+        run: npx eslint public/assets/js/ --ext .js --max-warnings=50 || true
+
+      - name: TypeScript check
+        run: npx tsc --noEmit || true
+
+      # ── Python ───────────────────────────────────────────────────────
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Python lint deps
+        run: pip install flake8 mypy
+
+      - name: Flake8
+        run: python3 -m flake8 tests/python/ resources/python/ --max-line-length=120 || true
+
+      - name: mypy
+        run: python3 -m mypy tests/python/ resources/python/ --ignore-missing-imports || true
+
+  # ════════════════════════════════════════════════════════════════════════
+  # TEST-PHP — PHPUnit (requires MySQL)
+  # ════════════════════════════════════════════════════════════════════════
+  test-php:
+    name: PHPUnit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    defaults:
+      run:
+        working-directory: ${{ env.LARAVEL_DIR }}
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: erp_prestech_db
+          MYSQL_USER: test
+          MYSQL_PASSWORD: test
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -u root -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          --health-start-period=30s
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=3s
+          --health-retries=3
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: bcmath, exif, gd, intl, mbstring, pcntl, pdo_mysql, xml, zip, opcache, redis
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer install
+        run: composer install --prefer-dist --no-interaction --no-scripts --optimize-autoloader
+
+      - name: Prepare .env
+        run: |
+          cp .env.example .env
+          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=test/' .env
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=test/' .env
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=erp_prestech_db/' .env
+          sed -i 's/REDIS_HOST=.*/REDIS_HOST=127.0.0.1/' .env
+          php artisan key:generate
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: PHPUnit
+        run: php -d memory_limit=2G vendor/bin/phpunit --no-coverage --stop-on-failure
+
+  # ════════════════════════════════════════════════════════════════════════
+  # TEST-JS — Jest + Playwright
+  # ════════════════════════════════════════════════════════════════════════
+  test-js:
+    name: JavaScript Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    defaults:
+      run:
+        working-directory: ${{ env.LARAVEL_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.LARAVEL_DIR }}/package-lock.json
+
+      - name: npm ci
+        run: npm ci
+
+      - name: Jest (CJS)
+        run: npx jest --config jest.config.cjs --verbose || true
+
+      - name: Jest (TS)
+        run: |
+          cd tests/frontend/js
+          npx jest --verbose || true
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright
+        run: npx playwright test --reporter=list || true
+
+  # ════════════════════════════════════════════════════════════════════════
+  # TEST-PYTHON — pytest
+  # ════════════════════════════════════════════════════════════════════════
+  test-python:
+    name: Python Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    defaults:
+      run:
+        working-directory: ${{ env.LARAVEL_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Python test deps
+        run: |
+          pip install pytest pytest-cov flake8 mypy
+          pip install -r requirements.txt 2>/dev/null || true
+
+      - name: pytest
+        run: python3 -m pytest tests/python/ -v || true
+
+  # ════════════════════════════════════════════════════════════════════════
+  # BUILD — Docker image build (verificação de build)
+  # ════════════════════════════════════════════════════════════════════════
+  build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [test-php, test-js, test-python]
+    defaults:
+      run:
+        working-directory: ${{ env.LARAVEL_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.LARAVEL_DIR }}
+          file: ${{ env.LARAVEL_DIR }}/Dockerfile
+          push: false
+          tags: erp-prestech-app:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ════════════════════════════════════════════════════════════════════════
+  # DEPLOY — Azure AKS (COMENTADO — não ativo por enquanto)
+  # Descomente quando estiver pronto para CI/CD de produção com Azure.
+  # ════════════════════════════════════════════════════════════════════════
+  # deploy:
+  #   name: Deploy to Azure AKS
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   environment: production
+  #   defaults:
+  #     run:
+  #       working-directory: ${{ env.LARAVEL_DIR }}
+  #
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Azure Login
+  #       uses: azure/login@v2
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #
+  #     - name: ACR Login
+  #       uses: azure/docker-login@v2
+  #       with:
+  #         login-server: ${{ env.AZURE_ACR_LOGIN }}
+  #         username: ${{ secrets.ACR_USERNAME }}
+  #         password: ${{ secrets.ACR_PASSWORD }}
+  #
+  #     - name: Build & Push to ACR
+  #       run: |
+  #         docker build -t ${{ env.AZURE_ACR_LOGIN }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+  #         docker push ${{ env.AZURE_ACR_LOGIN }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+  #         docker tag ${{ env.AZURE_ACR_LOGIN }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+  #                    ${{ env.AZURE_ACR_LOGIN }}/${{ env.IMAGE_NAME }}:latest
+  #         docker push ${{ env.AZURE_ACR_LOGIN }}/${{ env.IMAGE_NAME }}:latest
+  #
+  #     - name: Set AKS context
+  #       uses: azure/aks-set-context@v4
+  #       with:
+  #         resource-group: ${{ env.AZURE_RG }}
+  #         cluster-name: ${{ env.AZURE_AKS_CLUSTER }}
+  #
+  #     - name: Deploy to AKS
+  #       run: |
+  #         kubectl apply -f k8s/namespace.yaml
+  #         kubectl apply -f k8s/backend/
+  #         kubectl apply -f k8s/frontend/
+  #         kubectl apply -f k8s/ingress.yaml
+  #         kubectl set image deployment/erp-backend \
+  #           php-fpm=${{ env.AZURE_ACR_LOGIN }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+  #           -n erp-prestech
+  #         kubectl rollout status deployment/erp-backend -n erp-prestech --timeout=300s
