@@ -15,7 +15,7 @@ class ChMessageFactory extends Factory
         return [
             'from_id' => User::factory(),
             'to_id'   => User::factory(),
-            'body'    => $this->faker->sentence(),
+            'message' => $this->faker->sentence(),
             'seen'    => 0,
         ];
     }
