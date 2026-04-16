@@ -46,7 +46,7 @@ $lang                   = Utility::fetchUserLang();
                     {{ Form::label('is_required', __('Is Required'), ['class' => VC::FM_LB]) }}
                     {{ Form::select(
                         'is_required',
-                        $is_required,
+                        $isRequired ?? [],
                         null,
                         [
                             'class'    => VC::FM_CT_SL,

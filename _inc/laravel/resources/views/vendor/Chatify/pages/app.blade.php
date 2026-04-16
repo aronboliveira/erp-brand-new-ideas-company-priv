@@ -78,7 +78,7 @@ $user = Auth::user();
                                         <div class="messenger-favorites app-scroll-thin"></div>
                                     </div>
 
-                                    {!! view('Chatify::layouts.listItem', ['get' => 'saved','id' => $id])->render() !!}
+                                    {!! view('Chatify::layouts.list_item', ['get' => 'saved','id' => $id])->render() !!}
 
                                     <div class="listOfContacts" style="width: 100%;height: calc(100% - 200px);position: relative;"></div>
                                 </div>

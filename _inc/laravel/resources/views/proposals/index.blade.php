@@ -182,7 +182,7 @@
                             $proposalIndexFormId       = 'frm_submit';
                         @endphp
                         {!! Form::open([
-                            'route'          => $proposalIndexRouteArray,
+                            $proposalIndexResolvedName ? 'route' : 'url' => $proposalIndexResolvedName ? $proposalIndexRouteArray : '#',
                             'method'         => 'get',
                             'accept-charset' => 'UTF-8',
                             'id'             => $proposalIndexFormId,
@@ -456,7 +456,7 @@
                                                                 $proposalConvertConfirmMsg   = __('Do you want to confirm converting to invoice? Press Yes to continue or Cancel to go back');
                                                             @endphp
                                                             {!! Form::open([
-                                                                'route'          => $proposalConvertRouteArray,
+                                                                $proposalConvertResolvedName ? 'route' : 'url' => $proposalConvertResolvedName ? $proposalConvertRouteArray : '#',
                                                                 'method'         => 'get',
                                                                 'accept-charset' => 'UTF-8',
                                                                 'id'             => $proposalConvertFormId,
@@ -621,7 +621,7 @@
                                                                 $proposalDuplicateConfirm      = __('Do you want to confirm duplicating this proposal ? Press Yes to continue or Cancel to go back');
                                                             @endphp
                                                             {!! Form::open([
-                                                                'route'          => $proposalDuplicateRouteArray,
+                                                                $proposalDuplicateResolvedName ? 'route' : 'url' => $proposalDuplicateResolvedName ? $proposalDuplicateRouteArray : '#',
                                                                 'method'         => 'get',
                                                                 'accept-charset' => 'UTF-8',
                                                                 'id'             => $proposalDuplicateFormId,
@@ -859,7 +859,7 @@
                                                                 $confirmCombined             = $confirmTitle.'|'.$confirmBody;
                                                             @endphp
                                                             {!! Form::open([
-                                                                'route'          => $proposalDestroyRouteArray,
+                                                                $proposalDestroyResolvedName ? 'route' : 'url' => $proposalDestroyResolvedName ? $proposalDestroyRouteArray : '#',
                                                                 'method'         => 'delete',
                                                                 'accept-charset' => 'UTF-8',
                                                                 'id'             => $proposalDestroyFormId,

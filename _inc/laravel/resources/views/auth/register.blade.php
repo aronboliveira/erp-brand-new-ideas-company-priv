@@ -15,6 +15,7 @@ $filePath??='';
 		$commonSettings=Utility::prepareCommonViewData()?:[];
 		$setting=Utility::settings()?:[];
 		$colorSettings=$commonSettings[SC::CLR_STG]??($setting[SC::CLR_STG]??[]);
+        $colorSettings[SC::CST_DRK] = $colorSettings[SC::CST_DRK] ?? 'off';
 		$logo=Utility::getFile()?:'';
 		$languages=Utility::languages()?:[DC::DEFAULT_LANG];
         $lang=$data[SC::LCL]??DC::DEFAULT_LANG;

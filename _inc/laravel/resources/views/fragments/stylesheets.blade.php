@@ -1,7 +1,6 @@
 @php
 @endphp
-@if (!empty($colorSettings[SettingsConstants::CST_DRK])
-	&& $colorSettings[SettingsConstants::CST_DRK] === 'on'
+@if (($colorSettings[SettingsConstants::CST_DRK] ?? null) === 'on'
 	&& is_file(asset('assets/css/style-dark.css')))
 	<link rel="stylesheet" href="{{ asset('assets/css/style-dark.css') }}" id="main-style-link">
 @else
@@ -19,6 +18,6 @@
 <link
   href="https://cdn.jsdelivr.net/npm/bootstrap@5.x/dist/css/bootstrap.min.css"
   rel="stylesheet">
-@if ($colorSettings[SettingsConstants::CST_DRK] == 'on' && is_file(asset('css/custom-dark.css')))
+@if (($colorSettings[SettingsConstants::CST_DRK] ?? null) === 'on' && is_file(asset('css/custom-dark.css')))
 	<link rel="stylesheet" href="{{ asset('css/custom-dark.css') }}" id="custom-dark-style-link">
 @endif

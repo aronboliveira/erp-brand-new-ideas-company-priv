@@ -15,6 +15,7 @@
 		$data=Utility::prepareCommonViewData()?:[];
 		$logo=Utility::getFile('uploads/logo/')?:'';
 		$colorSettings=$data[SC::CLR_STG]??[];
+        $colorSettings[SC::CST_DRK] = $colorSettings[SC::CST_DRK] ?? 'off';
 		$company_logo=$data[SC::CPN_LG_DK]??'';
 		$company_logos=$data[SC::CPN_LG_LT]??'';
 		$company_small_logo=$data['company_small_logo']??'';
@@ -56,7 +57,10 @@
 		);
 	}
     $data = Utility::fallbackSettings($data);
-    if ($userPlan instanceof Plan) {
+    $colorSettings = is_array($colorSettings) ? $colorSettings : [];
+    $colorSettings[SC::CST_DRK] = $colorSettings[SC::CST_DRK] ?? 'off';
+    $userPlan = $userPlan instanceof \App\Models\Plan ? $userPlan : null;
+    if ($userPlan instanceof \App\Models\Plan) {
         // plan loaded
     } else Log::notice('No plan found!');
     $isSa = !empty($user->{UsersConstants::COL_TP}) && $user->{UsersConstants::COL_TP} === PMC::SA;
@@ -70,7 +74,7 @@
         <div class="m-header main-logo">
             <a href="#" class="b-brand">
                 {{--                <img src="{{ asset(Storage::url('uploads/logo/'.$logo)) }}" alt="{{ env('APP_NAME') }}" class="{{ VC::LOGO_LG }}" /> --}}
-                @if ($colorSettings[SC::CST_DRK] && $colorSettings[SC::CST_DRK] == 'on')
+                @if (($colorSettings[SC::CST_DRK] ?? null) === 'on')
                     <img src="{{ (isset($company_logos) && !empty($company_logos) ? asset($company_logos) : asset(SC::CPN_LG_DK_DEF)) }}"
                         alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO_LG }}">
                 @else
@@ -111,12 +115,14 @@
                                         'reports_pos_vs_purchase'
                                     ];
                                     $kebabSegments = array_map(function($segment) {
+                            	$userPlan = $userPlan instanceof Plan ? $userPlan : null;
                                         if ($segment === null) return null;
                                         return str_replace('_', '-', strtolower(preg_replace('/([A-Z])/', '-$1', $segment)));
                                     }, $segments);
                                     $allSegments = array_merge($segments, $kebabSegments);
                                     $isIncomeMatch = in_array(RF::segment(1), $allSegments);
                                 } catch (\Throwable $e) {
+                                    $isIncomeMatch = false;
                                     \Log::error('partials/admin/menu — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                 }
 @endphp

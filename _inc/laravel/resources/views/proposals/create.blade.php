@@ -405,7 +405,7 @@ Object.keys(t).forEach(
                                     <div class="form-group">
                                         {{ Form::label('proposal_number', __('Proposal Number'),['class'=>'form-label']) }}
                                         <div class="form-icon-user">
-                                            <input type="text" class="form-control" value="{{$proposal_number}}" readonly>
+                                            <input type="text" class="form-control" value="{{$proposalNumber ?? $proposal_number ?? ''}}" readonly>
                                         </div>
                                     </div>
                                 </div>

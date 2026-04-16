@@ -73,6 +73,7 @@ $uri??='';
 		$setting=$data[SC::ENTITY]??
 			SC::DFT_SETTINGS;
 		$colorSettings=$data[SC::CLR_STG]??[];
+        $colorSettings[SC::CST_DRK] = $colorSettings[SC::CST_DRK] ?? 'off';
 		$company_logo_dk=$setting[SC::CPN_LG_DK]??
 			$setting[SC::CPN_LG_LT]??'';
 		$company_logo_lt=$setting[SC::CPN_LG_LT]??

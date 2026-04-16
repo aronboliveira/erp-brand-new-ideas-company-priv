@@ -40,10 +40,10 @@ $user ??= null;
 	}
 @endphp
 {{ Form::open([
-    'route'          => [$storeRoute],
+    ($storeRoute !== '#' && Route::has($storeRoute)) ? 'route' : 'url' => ($storeRoute !== '#' && Route::has($storeRoute)) ? [$storeRoute] : '#',
     'method'         => 'post',
     'id'             => $formId,
-    'data-url'       => $storeRoute,
+    'data-url'       => ($storeRoute !== '#' && Route::has($storeRoute)) ? route($storeRoute) : '#',
     'data-guard-msg' => $guardMsg,
 ]) }}
     <div class="{{ VC::RW }} modal-body">

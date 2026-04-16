@@ -386,7 +386,7 @@
                 'name'  => 'purchase_number',
                 'label' => __('Purchase Number'),
                 'type'  => 'text',
-                'value' => $purchase_number,
+                'value' => $purchaseNumber ?? $purchase_number ?? '',
                 'attrs' => ['class'=>'form-control','readonly'=>true],
             ],
         ];
