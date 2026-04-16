@@ -6,7 +6,7 @@ use App\Config\Constants\DatabaseConstants;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use App\Models\NotificationTemplateLangs;
+use App\Models\NotificationTemplateLang;
 use App\Models\NotificationTemplates;
 use App\Models\User;
 use Spatie\Permission\Models\Permission;
@@ -22,7 +22,7 @@ class NotificationTemplatesControllerTest extends TestCase
 	 **/
 	public function index_redirects_guests_to_login()
 	{
-		$response = $this->get(route('notification-templates.index', [1, 'en']));
+		$response = $this->get(route('notification_templates.index', [1, 'en']));
 		$response->assertRedirect(route('login'));
 	}
 
@@ -35,7 +35,7 @@ class NotificationTemplatesControllerTest extends TestCase
 	{
 		$user = User::factory()->create();
 		$response = $this->actingAs($user)
-			->get(route('notification-templates.index', [1, 'en']));
+			->get(route('notification_templates.index', [1, 'en']));
 		$response->assertStatus(302);
 		$response->assertSessionHas('error');
 	}
@@ -47,7 +47,7 @@ class NotificationTemplatesControllerTest extends TestCase
 	 **/
 	public function update_redirects_back_on_validation_failure()
 	{
-		Permission::create(['name' => 'edit notification template']);
+		Permission::firstOrCreate(['name' => 'edit notification template']);
 		$user = User::factory()->create();
 		$user?->givePermissionTo('edit notification template');
 
@@ -58,13 +58,13 @@ class NotificationTemplatesControllerTest extends TestCase
 		]);
 
 		$response = $this->actingAs($user)
-			->from(route('notification-templates.index', [1, 'en']))
-			->put(route('notification-templates.update', 1), [
+			->from(route('notification_templates.index', [1, 'en']))
+			->put(route('notification_templates.update', 1), [
 				// missing 'content'
 				'lang' => 'pt',
 			]);
 
-		$response->assertRedirect(route('notification-templates.index', [1, 'en']));
+		$response->assertRedirect(route('notification_templates.index', [1, 'en']));
 		$response->assertSessionHas('error');
 	}
 
@@ -75,13 +75,15 @@ class NotificationTemplatesControllerTest extends TestCase
 	 **/
 	public function update_creates_translation_and_redirects_on_success()
 	{
-		Permission::create(['name' => 'edit notification template']);
+		Permission::firstOrCreate(['name' => 'edit notification template']);
 		$user = User::factory()->create();
 		$user?->givePermissionTo('edit notification template');
 
 		// Insert a dummy template
+		$templateId = (string) \Illuminate\Support\Str::uuid();
 		DB::table('notification_templates')->insert([
-			'id'         => 2,
+			'id'         => $templateId,
+			'name'       => 'Test Template',
 			'created_by' => $user?->creatorId(),
 		]);
 
@@ -91,11 +93,11 @@ class NotificationTemplatesControllerTest extends TestCase
 		];
 
 		$response = $this->actingAs($user)
-			->put(route('notification-templates.update', 2), $payload);
+			->put(route('notification_templates.update', $templateId), $payload);
 
-		$response->assertRedirect(route('notification-templates.index', [2, 'es']));
-		$this->assertDatabaseHas(DatabaseConstants::TABLE_NOTIFICATION_TEMPLATES, [
-			'parent_id'  => 2,
+		$response->assertRedirect(route('notification_templates.index', [$templateId, 'es']));
+		$this->assertDatabaseHas('notification_template_langs', [
+			'parent_id'  => $templateId,
 			'lang'       => 'es',
 			'content'    => 'Contenido en español',
 			'created_by' => $user?->creatorId(),
@@ -109,26 +111,28 @@ class NotificationTemplatesControllerTest extends TestCase
 	 **/
 	public function update_modifies_existing_translation()
 	{
-		Permission::create(['name' => 'edit notification template']);
+		Permission::firstOrCreate(['name' => 'edit notification template']);
 		$user = User::factory()->create();
 		$user?->givePermissionTo('edit notification template');
 
 		// Insert a dummy template
+		$templateId = (string) \Illuminate\Support\Str::uuid();
 		DB::table('notification_templates')->insert([
-			'id'         => 3,
+			'id'         => $templateId,
+			'name'       => 'Test Template 2',
 			'created_by' => $user?->creatorId(),
 		]);
 
 		// Pre-insert a translation
-		NotificationTemplateLangs::unguard();
-		NotificationTemplateLangs::create([
-			'parent_id'  => 3,
+		NotificationTemplateLang::unguard();
+		NotificationTemplateLang::create([
+			'parent_id'  => $templateId,
 			'lang'       => 'de',
 			'variables'  => '[]',
 			'content'    => 'Alter Inhalt',
 			'created_by' => $user?->creatorId(),
 		]);
-		NotificationTemplateLangs::reguard();
+		NotificationTemplateLang::reguard();
 
 		$payload = [
 			'lang'    => 'de',
@@ -136,11 +140,11 @@ class NotificationTemplatesControllerTest extends TestCase
 		];
 
 		$response = $this->actingAs($user)
-			->put(route('notification-templates.update', 3), $payload);
+			->put(route('notification_templates.update', $templateId), $payload);
 
-		$response->assertRedirect(route('notification-templates.index', [3, 'de']));
+		$response->assertRedirect(route('notification_templates.index', [$templateId, 'de']));
 		$this->assertDatabaseHas('notification_template_langs', [
-			'parent_id' => 3,
+			'parent_id' => $templateId,
 			'lang'      => 'de',
 			'content'   => 'Neuer Inhalt',
 		]);

@@ -5,11 +5,7 @@
  * applies a colour class, and writes the message into .toast-body.
  */
 
-const {
-  loadCustomJs,
-  buildJQueryEnv,
-  buildDomSkeleton,
-} = require("../helpers/setup.cjs");
+const { loadCustomJs, buildJQueryEnv, buildDomSkeleton } = require("../helpers/setup.cjs");
 
 let toastShowSpy;
 

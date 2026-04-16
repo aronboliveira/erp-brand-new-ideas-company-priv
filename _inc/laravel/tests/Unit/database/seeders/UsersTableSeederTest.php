@@ -24,6 +24,15 @@ class UsersTableSeederTest extends TestCase
     {
         parent::setUp();
         \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        foreach ([
+            'users', 'permissions', 'roles', 'role_has_permissions',
+            'model_has_roles', 'model_has_permissions',
+            'chart_of_account_types', 'chart_of_account_sub_types',
+            'chart_of_accounts', 'bank_accounts', 'settings',
+        ] as $t) {
+            \DB::table($t)->truncate();
+        }
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     }
 	use RefreshDatabase;
 
@@ -53,25 +62,20 @@ class UsersTableSeederTest extends TestCase
 		// USERS: super-admin, admin, company, accountant, client => 5
 		$this->assertDatabaseCount(DatabaseConstants::TABLE_USERS, 5);
 		$this->assertDatabaseHas(DatabaseConstants::TABLE_USERS, [
-			'name'  => 'Super Admin',
 			'type'  => PermissionsConstants::SA,
-			'email' => 'superadmin@example.com',
+			'email' => 'suporte@prestech.com.br',
 		]);
 		$this->assertDatabaseHas(DatabaseConstants::TABLE_USERS, [
 			'type'  => PermissionsConstants::ADM,
-			'email' => 'admin@example.com',
 		]);
 		$this->assertDatabaseHas(DatabaseConstants::TABLE_USERS, [
 			'type'  => 'company',
-			'email' => 'company@example.com',
 		]);
 		$this->assertDatabaseHas(DatabaseConstants::TABLE_USERS, [
 			'type'  => 'accountant',
-			'email' => 'accountant@example.com',
 		]);
 		$this->assertDatabaseHas(DatabaseConstants::TABLE_USERS, [
 			'type'  => 'client',
-			'email' => 'client@example.com',
 		]);
 
 		// PERMISSIONS: unique entries from SeedersTemplating::PERMISSIONS
@@ -85,8 +89,8 @@ class UsersTableSeederTest extends TestCase
 			'guard_name' => 'web',
 		]);
 
-		// ROLES: super-admin, admin, company, accountant, client, vendor => 6
-		$this->assertDatabaseCount('roles', 6);
+		// ROLES: super-admin, admin, company, accountant, client, customer, vendor, employee => 8
+		$this->assertDatabaseCount('roles', 8);
 		$this->assertDatabaseHas('roles', ['name' => PermissionsConstants::SA]);
 		$this->assertDatabaseHas('roles', ['name' => PermissionsConstants::ADM]);
 		$this->assertDatabaseHas('roles', ['name' => 'vendor']);

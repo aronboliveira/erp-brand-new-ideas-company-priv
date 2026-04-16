@@ -14,6 +14,7 @@ class AiTemplateSeederTest extends TestCase
     {
         parent::setUp();
         \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::table('templates')->truncate();
     }
 	use RefreshDatabase;
 

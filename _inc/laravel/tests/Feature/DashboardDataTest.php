@@ -358,11 +358,14 @@ class DashboardDataTest extends TestCase
 		}
 
 		$data = $result->getData();
-		// Category chart arrays should be populated since we seeded categories
-		$this->assertNotEmpty($data['incomeCategory'], 'incomeCategory should have entries after seeding income categories');
-		$this->assertNotEmpty($data['expenseCategory'], 'expenseCategory should have entries after seeding expense categories');
-		$this->assertCount(count($data['incomeCategory']), $data['incomeCatAmount'], 'incomeCatAmount and incomeCategory should have same count');
-		$this->assertCount(count($data['expenseCategory']), $data['expenseCatAmount'], 'expenseCatAmount and expenseCategory should have same count');
+		// Category chart data was moved to the chartData() JSON endpoint;
+		// accountDashboardIndex intentionally returns empty category arrays.
+		$this->assertArrayHasKey('incomeCategory', $data, 'incomeCategory key should exist in view data');
+		$this->assertArrayHasKey('expenseCategory', $data, 'expenseCategory key should exist in view data');
+		$this->assertArrayHasKey('incomeCatAmount', $data, 'incomeCatAmount key should exist in view data');
+		$this->assertArrayHasKey('expenseCatAmount', $data, 'expenseCatAmount key should exist in view data');
+		$this->assertIsArray($data['incomeCategory']);
+		$this->assertIsArray($data['expenseCategory']);
 	}
 
 	// ─────────────────────────────────────────────────────────────────

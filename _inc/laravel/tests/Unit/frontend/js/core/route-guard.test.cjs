@@ -16,15 +16,9 @@ const path = require("path");
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-const GUARD_SRC_PATH = path.resolve(
-  __dirname,
-  "../../../../../public/assets/js/core/erp-guard.js",
-);
+const GUARD_SRC_PATH = path.resolve(__dirname, "../../../../../public/assets/js/core/erp-guard.js");
 
-const ROUTE_SRC_PATH = path.resolve(
-  __dirname,
-  "../../../../../public/assets/js/core/route-guard.js",
-);
+const ROUTE_SRC_PATH = path.resolve(__dirname, "../../../../../public/assets/js/core/route-guard.js");
 
 function stubBootstrap() {
   global.bootstrap = {
@@ -56,9 +50,7 @@ describe("route-guard.js — proxy mode (ERPGuard loaded first)", () => {
     document.documentElement.lang = "en";
 
     const store = {};
-    jest
-      .spyOn(Storage.prototype, "getItem")
-      .mockImplementation(k => store[k] ?? null);
+    jest.spyOn(Storage.prototype, "getItem").mockImplementation(k => store[k] ?? null);
     jest.spyOn(Storage.prototype, "setItem").mockImplementation((k, v) => {
       store[k] = String(v);
     });
@@ -140,9 +132,7 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
     document.documentElement.lang = "en";
 
     const store = {};
-    jest
-      .spyOn(Storage.prototype, "getItem")
-      .mockImplementation(k => store[k] ?? null);
+    jest.spyOn(Storage.prototype, "getItem").mockImplementation(k => store[k] ?? null);
     jest.spyOn(Storage.prototype, "setItem").mockImplementation((k, v) => {
       store[k] = String(v);
     });
@@ -190,8 +180,7 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
 
   test("showToast creates a toast element when bootstrap available", () => {
     // Standalone hasBootstrap() checks for a bootstrap CSS link tag
-    document.head.innerHTML =
-      '<link rel="stylesheet" href="/css/bootstrap.min.css">';
+    document.head.innerHTML = '<link rel="stylesheet" href="/css/bootstrap.min.css">';
     window.RouteGuard.showToast("Alert!", "error");
     const container = document.getElementById("np-toast-container");
     expect(container).not.toBeNull();
@@ -229,10 +218,7 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
   /* ---- guardById ---- */
 
   test("guardById attaches listener to element", () => {
-    document.body.insertAdjacentHTML(
-      "beforeend",
-      '<a id="test-link" href="#">Link</a>',
-    );
+    document.body.insertAdjacentHTML("beforeend", '<a id="test-link" href="#">Link</a>');
     window.RouteGuard.guardById("test-link");
     const el = document.getElementById("test-link");
     expect(el.getAttribute("data-listener-active")).toBe("true");
@@ -245,17 +231,10 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
   /* ---- guardMultiple ---- */
 
   test("guardMultiple guards multiple elements", () => {
-    document.body.insertAdjacentHTML(
-      "beforeend",
-      '<a id="lnk1" href="#">L1</a><a id="lnk2" href="#">L2</a>',
-    );
+    document.body.insertAdjacentHTML("beforeend", '<a id="lnk1" href="#">L1</a><a id="lnk2" href="#">L2</a>');
     window.RouteGuard.guardMultiple("lnk1", "lnk2");
-    expect(
-      document.getElementById("lnk1").getAttribute("data-listener-active"),
-    ).toBe("true");
-    expect(
-      document.getElementById("lnk2").getAttribute("data-listener-active"),
-    ).toBe("true");
+    expect(document.getElementById("lnk1").getAttribute("data-listener-active")).toBe("true");
+    expect(document.getElementById("lnk2").getAttribute("data-listener-active")).toBe("true");
   });
 
   /* ---- getMsg standalone ---- */
@@ -278,10 +257,7 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
 
   test("logError logs to console.error", () => {
     window.RouteGuard.logError("test-context", new Error("test err"));
-    expect(console.error).toHaveBeenCalledWith(
-      "[RouteGuard:test-context]",
-      "test err",
-    );
+    expect(console.error).toHaveBeenCalledWith("[RouteGuard:test-context]", "test err");
   });
 
   /* ---- animations ---- */
@@ -307,12 +283,8 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
     test("slideDown and slideUp return promises", () => {
       const el = document.createElement("div");
       document.body.appendChild(el);
-      expect(window.RouteGuard.animations.slideDown(el, 10)).toBeInstanceOf(
-        Promise,
-      );
-      expect(window.RouteGuard.animations.slideUp(el, 10)).toBeInstanceOf(
-        Promise,
-      );
+      expect(window.RouteGuard.animations.slideDown(el, 10)).toBeInstanceOf(Promise);
+      expect(window.RouteGuard.animations.slideUp(el, 10)).toBeInstanceOf(Promise);
     });
   });
 

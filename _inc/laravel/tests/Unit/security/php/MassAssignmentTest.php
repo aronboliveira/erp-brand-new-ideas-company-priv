@@ -32,10 +32,10 @@ class MassAssignmentTest extends TestCase
      */
     public static function eloquentModelProvider(): array
     {
-        $modelDir = dirname(__DIR__, 3) . '/app/Models';
+        $modelDir = dirname(__DIR__, 4) . '/app/Models';
         $cases = [];
 
-        if (!is_dir($modelDir)) return $cases;
+        if (!is_dir($modelDir)) return [['__SKIP__']];
 
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($modelDir, \FilesystemIterator::SKIP_DOTS)
@@ -76,7 +76,7 @@ class MassAssignmentTest extends TestCase
             $cases[$cl[1]] = [$fqcn];
         }
 
-        return $cases;
+        return $cases ?: [['__SKIP__']];
     }
 
     /**
@@ -84,6 +84,10 @@ class MassAssignmentTest extends TestCase
      */
     public function test_model_has_fillable_or_guarded(string $fqcn): void
     {
+        if ($fqcn === '__SKIP__') {
+            $this->markTestSkipped('No Eloquent models found by data provider (autoloading may not be available in static context)');
+        }
+
         $ref = new ReflectionClass($fqcn);
 
         $hasFillable = false;

@@ -140,19 +140,6 @@ class GeneratedOfferLetterTest extends TestCase
 	 **/
 	public function default_offer_letter_creates_expected_number_of_records(): void
 	{
-		$defaultTemplate = (new \ReflectionClass(GeneratedOfferLetter::class))
-			->getMethod('defaultOfferLetter')
-			->getClosure()
-			->bindTo(new GeneratedOfferLetter(), GeneratedOfferLetter::class);
-
-		// Count how many entries exist in the hardcoded defaultOfferLetter array
-		// We can invoke the method as a closure and intercept create() calls
-		$templateProperty = (new \ReflectionClass(GeneratedOfferLetter::class))
-			->getMethod('defaultOfferLetter')
-			->getClosure();
-		// Instead of introspecting, simply mock create() for however many languages appear:
-		// The user code defines exactly 16 keys in defaultTemplate.
-
 		// Spy on GeneratedOfferLetter::create()
 		$createMock = $this->aliasMock(GeneratedOfferLetter::class)
 			->shouldAllowMockingProtectedMethods()
@@ -165,8 +152,8 @@ class GeneratedOfferLetterTest extends TestCase
 				return new GeneratedOfferLetter($attrs);
 			});
 
-		// Call the static method
-		GeneratedOfferLetter::defaultOfferLetter();
+		// Call the static method with required createdBy argument
+		GeneratedOfferLetter::defaultOfferLetter('test-user-id');
 	}
 
 	/**

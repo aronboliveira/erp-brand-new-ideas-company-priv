@@ -20,6 +20,9 @@ class NotificationSeederTest extends TestCase
     {
         parent::setUp();
         \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::table('notification_templates')->truncate();
+        \DB::table('notification_template_langs')->truncate();
+        \DB::table('users')->truncate();
     }
 	use RefreshDatabase;
 
@@ -61,7 +64,7 @@ class NotificationSeederTest extends TestCase
 
 		foreach ($templates as $tpl) {
 			$this->assertTrue(Str::isUuid($tpl->id), "Invalid UUID: {$tpl->id}");
-			$this->assertEquals($creatorId, $tpl->creator);
+			$this->assertEquals($creatorId, $tpl->created_by);
 			$this->assertEquals($now->toDateTimeString(), $tpl->created_at);
 			$this->assertEquals($now->toDateTimeString(), $tpl->updated_at);
 		}
@@ -80,7 +83,7 @@ class NotificationSeederTest extends TestCase
 
 		foreach ($langs as $lang) {
 			$this->assertTrue(Str::isUuid($lang->id), "Invalid UUID: {$lang->id}");
-			$this->assertEquals($creatorId, $lang->creator);
+			$this->assertEquals($creatorId, $lang->created_by);
 			$this->assertEquals($now->toDateTimeString(), $lang->created_at);
 			$this->assertEquals($now->toDateTimeString(), $lang->updated_at);
 		}
@@ -120,12 +123,12 @@ class NotificationSeederTest extends TestCase
 		// All templates must reference the existing user
 		DB::table(DatabaseConstants::TABLE_NOTIFICATION_TEMPLATES)
 			->get()
-			->each(fn ($row) => $this->assertEquals($customId, $row->creator));
+			->each(fn ($row) => $this->assertEquals($customId, $row->created_by));
 
 		// All language rows must reference the existing user
 		DB::table(DatabaseConstants::TABLE_NOTIFICATION_TEMPLATE_LANGS)
 			->get()
-			->each(fn ($row) => $this->assertEquals($customId, $row->creator));
+			->each(fn ($row) => $this->assertEquals($customId, $row->created_by));
 	}
 
 	/**

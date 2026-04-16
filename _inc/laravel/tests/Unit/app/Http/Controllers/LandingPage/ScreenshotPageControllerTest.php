@@ -16,6 +16,7 @@ class ScreenshotPageControllerTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+		$this->withoutMiddleware(\App\Http\Middleware\CheckMount::class);
 		// Reset the static settings cache so each test gets a fresh fetch
 		$ref  = new \ReflectionClass(LandingPageSetting::class);
 		$prop = $ref->getProperty('settings');

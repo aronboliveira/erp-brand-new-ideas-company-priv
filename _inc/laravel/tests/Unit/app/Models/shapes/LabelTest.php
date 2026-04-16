@@ -35,6 +35,7 @@ class LabelTest extends TestCase
 			'name',
 			'color',
 			'pipeline_id',
+			'created_by',
 		];
 		$this->assertSame($expected, (new Label)->getFillable());
 	}

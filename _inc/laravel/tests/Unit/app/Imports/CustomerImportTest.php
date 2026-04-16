@@ -20,8 +20,8 @@ class CustomerImportTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** When no user is authenticated, `model()` must return a
-	 ** `RedirectResponse` so that the import process is halted.
+	 ** When no user is authenticated, `model()` must return null
+	 ** so that the import process is halted.
 	 **/
 	public function model_returns_redirect_response_if_unauthenticated(): void
 	{
@@ -30,10 +30,9 @@ class CustomerImportTest extends TestCase
 
 		$result = $importer->model($row);
 
-		$this->assertInstanceOf(
-			RedirectResponse::class,
+		$this->assertNull(
 			$result,
-			'model() should return RedirectResponse when unauthenticated.'
+			'model() should return null when unauthenticated.'
 		);
 	}
 

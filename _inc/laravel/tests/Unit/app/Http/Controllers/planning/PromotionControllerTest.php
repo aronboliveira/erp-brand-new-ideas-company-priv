@@ -2,9 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\{Designation, Employee, Promotion, User};
+use App\Models\{Designation, Employee, Permission, Promotion, User};
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
 
 class PromotionControllerTest extends TestCase
@@ -31,11 +30,19 @@ class PromotionControllerTest extends TestCase
 			}
 		);
 
-		// default: allow all permission checks
-		Gate::before(fn () => true);
-
 		$this->company = User::factory()->create(['type' => 'company']);
 		$this->employee = User::factory()->create(['type' => 'Employee']);
+
+		foreach (['manage promotion', 'create promotion', 'edit promotion', 'delete promotion'] as $permission) {
+			Permission::firstOrCreate(['name' => $permission]);
+		}
+
+		$this->company->givePermissionTo([
+			'manage promotion',
+			'create promotion',
+			'edit promotion',
+			'delete promotion',
+		]);
 	}
 
 	/**
@@ -47,11 +54,11 @@ class PromotionControllerTest extends TestCase
 	 **/
 	public function index_denies_without_permission()
 	{
-		Gate::before(fn () => false);
+		$user = User::factory()->create(['type' => 'company']);
 
-		$this->actingAs($this->company)
-			->get(route('promotion.index'))
-			->assertStatus(403);
+		$this->actingAs($user)
+			->get(route('promotions.index'))
+			->assertRedirect();
 	}
 
 	/**
@@ -63,15 +70,26 @@ class PromotionControllerTest extends TestCase
 	 **/
 	public function index_lists_promotions_for_company()
 	{
-		Promotion::factory()->count(2)->create(['created_by' => $this->company->creatorId()]);
-		Promotion::factory()->create(['created_by' => $this->employee->creatorId()]);
+		Promotion::factory()->create([
+			'created_by' => $this->company->creatorId(),
+			'promotion_title' => 'Owned Promotion A',
+		]);
+		Promotion::factory()->create([
+			'created_by' => $this->company->creatorId(),
+			'promotion_title' => 'Owned Promotion B',
+		]);
+		Promotion::factory()->create([
+			'created_by' => $this->employee->creatorId(),
+			'promotion_title' => 'Foreign Promotion',
+		]);
 
 		$response = $this->actingAs($this->company)
-			->get(route('promotion.index'));
+			->get(route('promotions.index'));
 
 		$response->assertOk()
-			->assertViewIs('promotion.index')
-			->assertViewHas('promotions', fn ($list) => $list->count() === 2);
+			->assertSee('Owned Promotion A')
+			->assertSee('Owned Promotion B')
+			->assertDontSee('Foreign Promotion');
 	}
 
 	/**
@@ -83,11 +101,11 @@ class PromotionControllerTest extends TestCase
 	 **/
 	public function create_denies_without_permission()
 	{
-		Gate::before(fn () => false);
+		$user = User::factory()->create(['type' => 'company']);
 
-		$this->actingAs($this->company)
-			->get(route('promotion.create'))
-			->assertStatus(403);
+		$this->actingAs($user)
+			->get(route('promotions.create'))
+			->assertRedirect();
 	}
 
 	/**
@@ -99,15 +117,22 @@ class PromotionControllerTest extends TestCase
 	 **/
 	public function create_displays_form()
 	{
-		Designation::factory()->count(2)->create(['created_by' => $this->company->creatorId()]);
-		Employee::factory()->count(3)->create(['created_by' => $this->company->creatorId()]);
+		$designation = Designation::factory()->create([
+			'created_by' => $this->company->creatorId(),
+			'name' => 'Senior Engineer',
+		]);
+		$employee = Employee::factory()->create([
+			'created_by' => $this->company->creatorId(),
+			'name' => 'Alice Employee',
+		]);
 
 		$response = $this->actingAs($this->company)
-			->get(route('promotion.create'));
+			->get(route('promotions.create'));
 
 		$response->assertOk()
-			->assertViewIs('promotion.create')
-			->assertViewHasAll(['designations', 'employees']);
+			->assertSee('Promotion')
+			->assertSee($designation->name)
+			->assertSee($employee->name);
 	}
 
 	/**
@@ -121,7 +146,7 @@ class PromotionControllerTest extends TestCase
 	{
 		// validation failure
 		$this->actingAs($this->company)
-			->post(route('promotion.store'), [])
+			->post(route('promotions.store'), [])
 			->assertRedirect()
 			->assertSessionHas('error');
 
@@ -138,8 +163,8 @@ class PromotionControllerTest extends TestCase
 		];
 
 		$this->actingAs($this->company)
-			->post(route('promotion.store'), $payload)
-			->assertRedirect(route('promotion.index'))
+			->post(route('promotions.store'), $payload)
+			->assertRedirect(route('promotions.index'))
 			->assertSessionHas('success');
 
 		$this->assertDatabaseHas('promotions', [
@@ -162,8 +187,8 @@ class PromotionControllerTest extends TestCase
 		$promo = Promotion::factory()->create(['created_by' => $this->company->creatorId()]);
 
 		$this->actingAs($this->company)
-			->get(route('promotion.show', $promo))
-			->assertRedirect(route('promotion.index'));
+			->get(route('promotions.show', $promo))
+			->assertRedirect(route('promotions.index'));
 	}
 
 	/**
@@ -178,16 +203,16 @@ class PromotionControllerTest extends TestCase
 		$promo = Promotion::factory()->create(['created_by' => $this->company->creatorId()]);
 
 		// no permission
-		Gate::before(fn () => false);
-		$this->actingAs($this->company)
-			->get(route('promotion.edit', $promo))
-			->assertStatus(403);
+		$user = User::factory()->create(['type' => 'company']);
+		$this->actingAs($user)
+			->get(route('promotions.edit', $promo))
+			->assertRedirect();
 
 		// restore permission, wrong owner => JSON 401
-		Gate::before(fn () => true);
 		$other = User::factory()->create(['type' => 'company']);
+		$other->givePermissionTo('edit promotion');
 		$this->actingAs($other)
-			->get(route('promotion.edit', $promo))
+			->get(route('promotions.edit', $promo))
 			->assertStatus(401);
 	}
 
@@ -201,19 +226,23 @@ class PromotionControllerTest extends TestCase
 	public function edit_displays_form_for_owner()
 	{
 		$desig = Designation::factory()->create(['created_by' => $this->company->creatorId()]);
-		$emp  = Employee::factory()->create(['created_by' => $this->company->creatorId()]);
+		$emp  = Employee::factory()->create([
+			'created_by' => $this->company->creatorId(),
+			'name' => 'Owner Employee',
+		]);
 		$promo = Promotion::factory()->create([
 			'employee_id'    => $emp->id,
 			'designation_id' => $desig->id,
 			'created_by'     => $this->company->creatorId(),
+			'promotion_title' => 'Promotion Edit Title',
 		]);
 
 		$response = $this->actingAs($this->company)
-			->get(route('promotion.edit', $promo));
+			->get(route('promotions.edit', $promo));
 
 		$response->assertOk()
-			->assertViewIs('promotion.edit')
-			->assertViewHasAll(['promotion', 'designations', 'employees']);
+			->assertSee('Promotion Edit Title')
+			->assertSee('Owner Employee');
 	}
 
 	/**
@@ -238,7 +267,7 @@ class PromotionControllerTest extends TestCase
 
 		// validation fail
 		$this->actingAs($this->company)
-			->put(route('promotion.update', $promo), [])
+			->put(route('promotions.update', $promo), [])
 			->assertRedirect()
 			->assertSessionHas('error');
 
@@ -252,8 +281,8 @@ class PromotionControllerTest extends TestCase
 		];
 
 		$this->actingAs($this->company)
-			->put(route('promotion.update', $promo), $payload)
-			->assertRedirect(route('promotion.index'))
+			->put(route('promotions.update', $promo), $payload)
+			->assertRedirect(route('promotions.index'))
 			->assertSessionHas('success');
 
 		$this->assertDatabaseHas('promotions', [
@@ -275,17 +304,17 @@ class PromotionControllerTest extends TestCase
 		$promo = Promotion::factory()->create(['created_by' => $this->company->creatorId()]);
 
 		// no permission
-		Gate::before(fn () => false);
-		$this->actingAs($this->company)
-			->delete(route('promotion.destroy', $promo))
-			->assertStatus(403);
+		$user = User::factory()->create(['type' => 'company']);
+		$this->actingAs($user)
+			->delete(route('promotions.destroy', $promo))
+			->assertRedirect();
 
 		// restore permission, wrong owner => redirect index + error
-		Gate::before(fn () => true);
 		$other = User::factory()->create(['type' => 'company']);
+		$other->givePermissionTo('delete promotion');
 		$this->actingAs($other)
-			->delete(route('promotion.destroy', $promo))
-			->assertRedirect(route('promotion.index'))
+			->delete(route('promotions.destroy', $promo))
+			->assertRedirect('/')
 			->assertSessionHas('error');
 	}
 
@@ -301,8 +330,8 @@ class PromotionControllerTest extends TestCase
 		$promo = Promotion::factory()->create(['created_by' => $this->company->creatorId()]);
 
 		$this->actingAs($this->company)
-			->delete(route('promotion.destroy', $promo))
-			->assertRedirect(route('promotion.index'))
+			->delete(route('promotions.destroy', $promo))
+			->assertRedirect(route('promotions.index'))
 			->assertSessionHas('success');
 
 		$this->assertDatabaseMissing('promotions', ['id' => $promo->id]);

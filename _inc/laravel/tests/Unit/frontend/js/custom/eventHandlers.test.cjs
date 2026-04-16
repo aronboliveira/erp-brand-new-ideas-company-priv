@@ -8,11 +8,7 @@
  *   - input[type=file] change handler (file name display)
  */
 
-const {
-  loadCustomJs,
-  buildJQueryEnv,
-  buildDomSkeleton,
-} = require("../helpers/setup.cjs");
+const { loadCustomJs, buildJQueryEnv, buildDomSkeleton } = require("../helpers/setup.cjs");
 
 let fetchSpy;
 const flush = () => new Promise(r => setTimeout(r, 0));
@@ -69,20 +65,15 @@ describe('data-ajax-popup="true" click handler', () => {
           data-size="md">Go</a>`,
     );
 
-    document.querySelector("a[data-ajax-popup]")
-      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    document.querySelector("a[data-ajax-popup]").dispatchEvent(new MouseEvent("click", { bubbles: true }));
     await flush();
     const title = document.querySelector("#commonModal .modal-title");
     expect(title.textContent).toBe("My Title");
   });
 
   test("adds modal-lg class for size=lg", () => {
-    document.body.insertAdjacentHTML(
-      "beforeend",
-      `<button data-ajax-popup="true" data-url="/x" data-title="T" data-size="lg">Go</button>`,
-    );
-    document.querySelector("[data-ajax-popup]")
-      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    document.body.insertAdjacentHTML("beforeend", `<button data-ajax-popup="true" data-url="/x" data-title="T" data-size="lg">Go</button>`);
+    document.querySelector("[data-ajax-popup]").dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const dialog = document.querySelector("#commonModal .modal-dialog");
     expect(dialog.classList.contains("modal-lg")).toBe(true);
   });
@@ -109,8 +100,7 @@ describe(".bs-pass-para click handler", () => {
        </form>`,
     );
 
-    document.querySelector(".bs-pass-para")
-      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    document.querySelector(".bs-pass-para").dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(fireSpy).toHaveBeenCalled();
   });
 });
@@ -149,8 +139,7 @@ describe('data-ajax-popup-over="true" click handler', () => {
           data-size="lg">AI</a>`,
     );
 
-    document.querySelector("[data-ajax-popup-over]")
-      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    document.querySelector("[data-ajax-popup-over]").dispatchEvent(new MouseEvent("click", { bubbles: true }));
     await flush();
     expect(fetchSpy).toHaveBeenCalled();
     expect(fetchSpy.mock.calls[0][0]).toContain("/ai/generate");
@@ -164,8 +153,7 @@ describe('data-ajax-popup-over="true" click handler', () => {
             data-title="Overlay Title"
             data-size="md">Click</div>`,
     );
-    document.querySelector("[data-ajax-popup-over]")
-      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    document.querySelector("[data-ajax-popup-over]").dispatchEvent(new MouseEvent("click", { bubbles: true }));
     const title = document.querySelector("#commonModalOver .modal-title");
     expect(title.textContent).toBe("Overlay Title");
   });

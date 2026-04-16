@@ -16,6 +16,7 @@ class CustomPageControllerTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+		$this->withoutMiddleware(\App\Http\Middleware\CheckMount::class);
 		// Reset LandingPageSetting static cache
 		$ref = new \ReflectionClass(LandingPageSetting::class);
 		$prop = $ref->getProperty('settings');
@@ -282,10 +283,9 @@ class CustomPageControllerTest extends TestCase
 	 **/
 	public function customPage_returns_view_for_valid_slug()
 	{
-		$pages = [
-			['page_slug' => 'myslug', 'menubarPageName' => 'N', 'menubarPageContent' => 'C', 'templateName' => 't', 'pageUrl' => '', 'header' => 'off', 'footer' => 'off', 'login' => 'off']
-		];
-		LandingPageSetting::create(['name' => 'menubar_page', 'value' => json_encode($pages)]);
+		$pageData = ['page_slug' => 'myslug', 'menubarPageName' => 'N', 'menubarPageContent' => 'C', 'templateName' => 't', 'pageUrl' => '', 'header' => 'off', 'footer' => 'off', 'login' => 'off'];
+		$qk = (string) \Illuminate\Support\Str::uuid();
+		LandingPageSetting::create(['name' => 'menubar_page', 'query_key' => $qk, 'value' => json_encode($pageData)]);
 
 		$response = $this->get(action([CustomPageController::class, 'customPage'], ['slug' => 'myslug']));
 
@@ -302,10 +302,8 @@ class CustomPageControllerTest extends TestCase
 	 **/
 	public function customPage_redirects_for_invalid_slug()
 	{
-		LandingPageSetting::create(['name' => 'menubar_page', 'value' => json_encode([])]);
-
 		$response = $this->get(action([CustomPageController::class, 'customPage'], ['slug' => 'nope']));
 
-		$response->assertStatus(200);
+		$response->assertStatus(404);
 	}
 }

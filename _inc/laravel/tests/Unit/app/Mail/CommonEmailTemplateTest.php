@@ -58,11 +58,12 @@ class CommonEmailTemplateTest extends TestCase
 
 		// From address and name
 		$from = $built->from;
-		$this->assertArrayHasKey('no-reply@acme.test', $from);
-		$this->assertSame('AcmeApp', $from['no-reply@acme.test']);
+		$this->assertCount(1, $from);
+		$this->assertSame('no-reply@acme.test', $from[0]['address']);
+		$this->assertSame('AcmeApp', $from[0]['name']);
 
-		// View used
-		$this->assertSame('email.common_email_template', $built->view);
+		// View used (markdown sets $this->markdown, not $this->view)
+		$this->assertSame('email.common_email_template', $built->markdown);
 
 		// View Data
 		$data = $built->viewData;

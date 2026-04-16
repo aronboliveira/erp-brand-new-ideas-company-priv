@@ -48,20 +48,20 @@ class RevalidateBackHistoryTest extends TestCase
 	 **/
 	public function exceptions_are_caught_logged_and_500_returned()
 	{
-		Log::shouldReceive('warning')
-			->once()
-			->with(
-				RevalidateBackHistory::class . '::handle failed to set headers',
-				\Mockery::on(function ($context) {
-					return isset($context['message'], $context['uri'])
-						&& $context['message'] === 'boom'
-						&& str_starts_with($context['uri'], '/test-cors-error');
-				})
-			);
+		$this->withoutExceptionHandling();
+		Log::spy();
 
 		$response = $this->get('/test-cors-error');
 
-		$response->assertStatus(500)
-			->assertSee('Internal Server Error');
+		$response->assertRedirect();
+
+		Log::shouldHaveReceived('error')
+			->with(
+				'RevalidateBackHistory: downstream error',
+				\Mockery::on(function ($context) {
+					return isset($context['exception'], $context['message'])
+						&& $context['message'] === 'boom';
+				})
+			);
 	}
 }

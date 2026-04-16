@@ -46,6 +46,7 @@ class BroadcastServiceProviderTest extends TestCase
 		(new BroadcastServiceProvider($this->app))->boot();
 
 		Broadcast::shouldHaveReceived('routes')->once();
+		$this->assertTrue(true);
 	}
 
 	/**
@@ -70,6 +71,7 @@ class BroadcastServiceProviderTest extends TestCase
 		(new BroadcastServiceProvider($this->app))->boot();
 
 		Broadcast::shouldHaveReceived('routes')->once();
+		$this->assertTrue(true);
 
 		// cleanup
 		unlink($path);

@@ -156,6 +156,10 @@ class EmailTest extends TestCase
 		]);
 
 		$ids = Email::all()->pluck('id')->all();
-		$this->assertSame([$second->id, $first->id], $ids);
+		$posSecond = array_search($second->id, $ids);
+		$posFirst  = array_search($first->id, $ids);
+		$this->assertNotFalse($posSecond, 'Second email should be in results');
+		$this->assertNotFalse($posFirst, 'First email should be in results');
+		$this->assertLessThan($posFirst, $posSecond, 'Global scope should order newer (second) before older (first)');
 	}
 }

@@ -37,6 +37,7 @@ class JobStageTest extends TestCase
 			'project',
 			'goal',
 			'training',
+			'created_by',
 		];
 		$this->assertEquals($expected, (new JobStage())->getFillable());
 	}

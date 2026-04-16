@@ -39,7 +39,7 @@ class ChMessageTest extends TestCase
 		$msg = ChMessage::create([
 			'from_id' => $sender->id,
 			'to_id'   => $receiver->id,
-			'body' => 'Hello',
+			'message' => 'Hello',
 			'seen'    => false,
 		]);
 
@@ -60,7 +60,7 @@ class ChMessageTest extends TestCase
 		$msg = ChMessage::create([
 			'from_id' => $sender->id,
 			'to_id'   => $receiver->id,
-			'body' => 'Hello again',
+			'message' => 'Hello again',
 			'seen'    => true,
 		]);
 

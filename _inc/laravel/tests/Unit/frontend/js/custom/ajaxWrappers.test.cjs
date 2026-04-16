@@ -8,11 +8,7 @@
  *   4. Invoke the callback with the response data
  */
 
-const {
-  loadCustomJs,
-  buildJQueryEnv,
-  buildDomSkeleton,
-} = require("../helpers/setup.cjs");
+const { loadCustomJs, buildJQueryEnv, buildDomSkeleton } = require("../helpers/setup.cjs");
 
 let fetchSpy;
 

@@ -28,6 +28,7 @@ class DiscoverControllerTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+		$this->withoutMiddleware(\App\Http\Middleware\CheckMount::class);
 
 		// Reset static cache
 		$ref = new \ReflectionClass(LandingPageSetting::class);

@@ -19,6 +19,8 @@ use Tests\TestCase;
 #[Group('record-landing')]
 class RecordLandingTest extends TestCase
 {
+	use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+
 	private RecordLanding $middleware;
 
 	protected function setUp(): void

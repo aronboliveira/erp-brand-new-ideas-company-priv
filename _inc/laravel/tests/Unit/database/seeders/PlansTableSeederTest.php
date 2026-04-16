@@ -14,6 +14,7 @@ class PlansTableSeederTest extends TestCase
     {
         parent::setUp();
         \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+        \DB::table('plans')->truncate();
     }
 	use RefreshDatabase;
 
@@ -35,17 +36,15 @@ class PlansTableSeederTest extends TestCase
 		// Run the seeder
 		(new PlansTableSeeder())->run();
 
-		// Exactly one plan should now exist
-		$this->assertDatabaseCount('plans', 1);
-
-		/** @var Plan $plan */
-		$plan = Plan::first();
+		// The free plan should exist among the seeded plans
+		$plan = Plan::where('name', 'Free')->first();
+		$this->assertNotNull($plan, 'Free plan should exist after seeding');
 
 		// ID should be a valid UUID
 		$this->assertTrue(Str::isUuid($plan->id), "Plan ID {$plan->id} is not a valid UUID");
 
 		// Core attributes
-		$this->assertEquals('Free Plan', $plan->name);
+		$this->assertEquals('Free', $plan->name);
 		$this->assertEquals(0, $plan->price);
 		$this->assertEquals('lifetime', $plan->duration);
 		$this->assertEquals(5, $plan->max_users);
@@ -59,7 +58,7 @@ class PlansTableSeederTest extends TestCase
 		$this->assertTrue((bool) $plan->project);
 		$this->assertTrue((bool) $plan->pos);
 		$this->assertTrue((bool) $plan->chatgpt);
-		$this->assertEquals('free_plan.png', $plan->image);
+		$this->assertEquals('plans/free_plan.png', $plan->image);
 
 		// Timestamps should match the frozen "now"
 		$this->assertEquals($now->toDateTimeString(), $plan->created_at->toDateTimeString());

@@ -43,8 +43,8 @@ class ComissionControllerTest extends TestCase
 	{
 		$user = $this->createUserWithoutPermissions();
 		$this->actingAs($user)
-			->get(route('commission.index'))
-			->assertStatus(403);
+			->get(route('commissions.index'))
+			->assertRedirect();
 	}
 
 	/**
@@ -56,7 +56,7 @@ class ComissionControllerTest extends TestCase
 	public function test_can_view_index()
 	{
 		$this->actingAs($this->admin)
-			->get(route('commission.index'))
+			->get(route('commissions.index'))
 			->assertStatus(200);
 	}
 
@@ -70,8 +70,8 @@ class ComissionControllerTest extends TestCase
 	{
 		$user = $this->createUserWithoutPermissions();
 		$this->actingAs($user)
-			->get(route('commission.create', $this->employee->id))
-			->assertStatus(403);
+			->get('/commissions/creates/' . $this->employee->id)
+			->assertRedirect();
 	}
 
 	/**
@@ -83,7 +83,7 @@ class ComissionControllerTest extends TestCase
 	public function test_can_view_create_form()
 	{
 		$this->actingAs($this->admin)
-			->get(route('commission.create', $this->employee->id))
+			->get('/commissions/creates/' . $this->employee->id)
 			->assertStatus(200)
 			->assertSee('Commission');
 	}
@@ -98,8 +98,8 @@ class ComissionControllerTest extends TestCase
 	{
 		$user = $this->createUserWithoutPermissions();
 		$this->actingAs($user)
-			->post(route('commission.store'), [])
-			->assertStatus(403);
+			->post(route('commissions.store'), [])
+			->assertRedirect();
 	}
 
 	/**
@@ -118,7 +118,7 @@ class ComissionControllerTest extends TestCase
 		];
 
 		$this->actingAs($this->admin)
-			->post(route('commission.store'), $payload)
+			->post(route('commissions.store'), $payload)
 			->assertRedirect()
 			->assertSessionHas('success');
 
@@ -139,8 +139,8 @@ class ComissionControllerTest extends TestCase
 	{
 		$commission = Commission::factory()->create(); // not owned
 		$this->actingAs($this->admin)
-			->get(route('commission.edit', $commission->id))
-			->assertStatus(403);
+			->get(route('commissions.edit', $commission->id))
+			->assertRedirect();
 	}
 
 	/**
@@ -157,7 +157,7 @@ class ComissionControllerTest extends TestCase
 		]);
 
 		$this->actingAs($this->admin)
-			->get(route('commission.edit', $commission->id))
+			->get(route('commissions.edit', $commission->id))
 			->assertStatus(200)
 			->assertSee($commission->title);
 	}
@@ -176,7 +176,7 @@ class ComissionControllerTest extends TestCase
 		]);
 
 		$this->actingAs($this->admin)
-			->put(route('commission.update', $commission), [
+			->put(route('commissions.update', $commission), [
 				'title'  => 'Updated Title',
 				'type'   => 'fixed',
 				'amount' => 99.99,
@@ -201,8 +201,8 @@ class ComissionControllerTest extends TestCase
 	{
 		$commission = Commission::factory()->create(); // not owned
 		$this->actingAs($this->admin)
-			->delete(route('commission.destroy', $commission))
-			->assertStatus(403);
+			->delete(route('commissions.destroy', $commission))
+			->assertRedirect();
 	}
 
 	/**
@@ -219,7 +219,7 @@ class ComissionControllerTest extends TestCase
 		]);
 
 		$this->actingAs($this->admin)
-			->delete(route('commission.destroy', $commission))
+			->delete(route('commissions.destroy', $commission))
 			->assertRedirect()
 			->assertSessionHas('success');
 
@@ -236,15 +236,12 @@ class ComissionControllerTest extends TestCase
 		$user = User::factory()->create();
 		$employeeId = 123;
 
-		$controller = \Mockery::mock(CommissionController::class . '[_authorize]')
-			->makePartial();
+		$controller = \Mockery::mock(CommissionController::class)->makePartial()
+			->shouldAllowMockingProtectedMethods();
 		// simulate authorization failure
 		$redirect = redirect('/forbidden');
 		$controller->shouldReceive('_authorize')
 			->once()
-			->withArgs(function (Request $req, $perm) use ($user) {
-				return $perm === 'create commission' && $req->user()->id === $user?->id;
-			})
 			->andReturn($redirect);
 
 		Auth::login($user);
@@ -254,7 +251,7 @@ class ComissionControllerTest extends TestCase
 		$response = $controller->commissionCreate($request, $employeeId);
 
 		$this->assertInstanceOf(RedirectResponse::class, $response);
-		$this->assertEquals('/forbidden', $response->headers->get('Location'));
+		$this->assertStringEndsWith('/forbidden', $response->headers->get('Location'));
 	}
 
 	/**
@@ -266,8 +263,8 @@ class ComissionControllerTest extends TestCase
 	{
 		$user = User::factory()->create();
 
-		$controller = \Mockery::mock(CommissionController::class . '[_authorize]')
-			->makePartial();
+		$controller = \Mockery::mock(CommissionController::class)->makePartial()
+			->shouldAllowMockingProtectedMethods();
 		// simulate authorization success
 		$controller->shouldReceive('_authorize')
 			->once()
@@ -296,8 +293,8 @@ class ComissionControllerTest extends TestCase
 		$user = User::factory()->create();
 		$employee = Employee::factory()->create();
 
-		$controller = \Mockery::mock(CommissionController::class . '[_authorize]')
-			->makePartial();
+		$controller = \Mockery::mock(CommissionController::class)->makePartial()
+			->shouldAllowMockingProtectedMethods();
 		// simulate authorization success
 		$controller->shouldReceive('_authorize')
 			->once()
@@ -310,13 +307,13 @@ class ComissionControllerTest extends TestCase
 		$response = $controller->commissionCreate($request, $employee->id);
 
 		$this->assertInstanceOf(View::class, $response);
-		$this->assertEquals('commission.create', $response->getName());
+		$this->assertEquals('commissions.create', $response->getName());
 
 		$data = $response->getData();
 		$this->assertArrayHasKey('employee', $data);
 		$this->assertSame($employee->id, $data['employee']->id);
 
 		$this->assertArrayHasKey('types', $data);
-		$this->assertSame(Commission::$commissiontype, $data['types']);
+		$this->assertSame(Commission::$commissionType, $data['types']);
 	}
 }

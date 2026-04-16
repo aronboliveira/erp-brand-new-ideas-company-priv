@@ -19,6 +19,7 @@ class FeaturesControllerTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+		$this->withoutMiddleware(\App\Http\Middleware\CheckMount::class);
 		$ref = new \ReflectionClass(LandingPageSetting::class);
 		$prop = $ref->getProperty('settings');
 		$prop->setAccessible(true);
