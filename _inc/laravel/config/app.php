@@ -86,6 +86,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\BladeImportsServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        App\Providers\ChatifyServiceProvider::class,
         /* Setup Wizard */
         RachidLaasri\LaravelInstaller\Providers\LaravelInstallerServiceProvider::class,
     ],
