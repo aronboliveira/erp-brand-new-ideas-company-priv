@@ -219,7 +219,7 @@ class EmployeeController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'class' => $base]);
     }
 
-    public function update(Request $r, int $id): RedirectResponse|JsonResponse
+    public function update(Request $r, int|string $id): RedirectResponse|JsonResponse
     {
         $action = __FUNCTION__;
         $base = class_basename(static::class);
@@ -252,7 +252,7 @@ class EmployeeController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'class' => $base]);
     }
 
-    public function destroy(Request $r, int $id): RedirectResponse
+    public function destroy(Request $r, int|string $id): RedirectResponse
     {
         $action = __FUNCTION__;
         $base = class_basename(static::class);

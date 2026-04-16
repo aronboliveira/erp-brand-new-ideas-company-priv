@@ -3,13 +3,16 @@
 namespace App\Imports;
 
 use App\Models\ProductService;
+use App\Traits\DelegatesPythonImport;
 use Illuminate\Support\Facades\{Auth, Log};
 use Maatwebsite\Excel\Concerns\{Importable, ToModel};
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 
 final class ProductServiceImport implements ToModel
 {
-    use Importable;
+    use Importable, DelegatesPythonImport;
+
+    private const PYTHON_IMPORTER = 'ProductServiceImport';
 
     private ?int $headerStartIndex = null;
     private ?array $headers       = null;
@@ -82,5 +85,35 @@ final class ProductServiceImport implements ToModel
         $parts = preg_split('/\s+/', $clean);
         $first = strtolower(array_shift($parts));
         return $first . implode('', array_map('ucfirst', $parts));
+    }
+
+    /**
+     * Delegate the import processing to the Python importer.
+     *
+     * @param array $rows  Pre-parsed rows from the spreadsheet
+     * @return array       Validated result from the Python process
+     */
+    public function importViaPython(array $rows): array
+    {
+        $result ??= [];
+        try {
+            $data = [
+                'rows' => $rows,
+                'fields' => (new ProductService())->getFillable(),
+                'created_by' => Auth::id(),
+            ];
+            $result = self::_executePythonImporter(
+                self::PYTHON_IMPORTER,
+                $data
+            );
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
+            $result = ['status' => 'error', 'errors' => [$e->getMessage()], 'rows' => []];
+        }
+        return $result;
     }
 }

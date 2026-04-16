@@ -107,7 +107,9 @@ class RegisteredUserController extends Controller
         Log::info("{$action} – registration complete, redirecting home", ['user_id' => $user->id]);
         return redirect(RouteServiceProvider::HOME);
       } catch (\Throwable $e) {
-        DB::rollBack();
+        if (DB::transactionLevel() > 0) {
+          DB::rollBack();
+        }
         Log::error("{$action} – exception", [
           'exception' => get_class($e),
           'message'   => $e->getMessage(),

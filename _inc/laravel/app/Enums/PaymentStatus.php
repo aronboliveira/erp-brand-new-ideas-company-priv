@@ -11,6 +11,7 @@ enum PaymentStatus: string
 	case Processing        = 'processing';
 	case Authorized        = 'authorized';
 	case Completed         = 'completed';
+	case Success           = 'success';
 	case Failed            = 'failed';
 	case Cancelled         = 'cancelled';
 	case Refunded          = 'refunded';
@@ -94,6 +95,7 @@ enum PaymentStatus: string
 			self::Processing->value,
 			self::Authorized->value,
 			self::Completed->value,
+			self::Success->value,
 			self::Failed->value,
 			self::Cancelled->value,
 			self::Refunded->value,

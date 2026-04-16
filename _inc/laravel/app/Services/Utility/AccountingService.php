@@ -21,12 +21,12 @@ use App\Models\{
     Revenue,
     User,
 };
-use App\Models\Bills\{
+use App\Models\{
     BillAccount,
     BillPayment,
     BillProduct,
 };
-use App\Models\Payments\Payment;
+use App\Models\Payment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\{Auth, DB, Log};
@@ -302,11 +302,11 @@ class AccountingService
             ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
             ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('invoice_payments.created_at', [$start, $end])
+            ->whereBetween('invoice_payments.date', [$start, $end])
             ->groupBy('account_id')
             ->get()->toArray();
 
-        $revenue = Revenue::select(
+        $revenue = Revenue::withoutEagerLoads()->select(
             DC::TABLE_COAS . '.id', DC::TABLE_COAS . '.code', DC::TABLE_COAS . '.name',
             DB::raw('0 as totalDebit'), DB::raw('sum(amount) as totalCredit')
         )
@@ -314,7 +314,7 @@ class AccountingService
             ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
             ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('revenues.created_at', [$start, $end])
+            ->whereBetween('revenues.date', [$start, $end])
             ->groupBy('chart_account_id')
             ->get()->toArray();
 
@@ -349,7 +349,7 @@ class AccountingService
             ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
             ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('bill_payments.created_at', [$start, $end])
+            ->whereBetween('bill_payments.date', [$start, $end])
             ->groupBy('account_id')
             ->get()->toArray();
 
@@ -361,7 +361,7 @@ class AccountingService
             ->join(DC::TABLE_COAS, DC::TABLE_BANK_ACC . '.chart_account_id', DC::TABLE_COAS . '.id')
             ->where(DC::TABLE_COAS . '.type', $accountType)
             ->where(DC::TABLE_COAS . '.' . DC::COL_TABLE_CREATOR, $creatorId)
-            ->whereBetween('payments.created_at', [$start, $end])
+            ->whereBetween('payments.date', [$start, $end])
             ->groupBy('account_id')
             ->get()->toArray();
 

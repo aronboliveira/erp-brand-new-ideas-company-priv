@@ -318,7 +318,7 @@ class EventController extends Controller
   }
 
   public const GET_DPT = 'getDepartment';
-  public function getDepartment(Request $request): JsonResponse
+  public function getDepartment(Request $request): JsonResponse|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;

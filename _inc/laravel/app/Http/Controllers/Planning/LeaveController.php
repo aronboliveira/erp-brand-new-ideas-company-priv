@@ -665,7 +665,7 @@ class LeaveController extends Controller
         });
     }
 
-    public function action(Request $request, int $id): View|string|RedirectResponse
+    public function action(Request $request, int|string $id): View|string|RedirectResponse
     {
         $action = __FUNCTION__;
         $method = __METHOD__;

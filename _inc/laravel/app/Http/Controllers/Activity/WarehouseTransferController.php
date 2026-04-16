@@ -258,6 +258,51 @@ class WarehouseTransferController extends Controller
     }
 
     public const GET_QT = 'getQuantity';
+
+    /**
+     * Exibe o formulário de edição de uma transferência de armazém.
+     */
+    public function edit(Request $request, int|string $id): View|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $class  = static::class;
+        $base   = class_basename($class);
+        $req    = $request;
+        $viewPath = ViewsConstants::WRH_TRF . '.edit';
+        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base, $viewPath) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $redirect;
+            try {
+                $fetchStart = microtime(true);
+                $transfer = WarehouseTransfer::findOrFail($id);
+                $this->logExecutionTime($fetchStart, $action, 'fetchTransfer');
+                if ($transfer[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) {
+                    return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::REDIRECT_INDEX));
+                }
+                Log::info("[{$base}::{$action}] view", ['transfer_id' => $id, 'user_id' => $user?->id, 'method' => $method]);
+                $listsStart = microtime(true);
+                $fromWarehouses = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+                $toWarehouses = Warehouse::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->pluck('name', 'id')->prepend('Select Warehouse', '');
+                $products = WarehouseProduct::join('product_services', 'warehouse_products.product_id', '=', 'product_services.id')->pluck('name', 'product_id')->prepend('Select products', '');
+                $this->logExecutionTime($listsStart, $action, 'loadSelectLists');
+                if (!ViewFacade::exists($viewPath)) {
+                    Log::error("[{$base}::{$action}] missing view", ['view_path' => $viewPath]);
+                    return back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+                }
+                $renderStart = microtime(true);
+                $resp = view($viewPath, compact('transfer', 'fromWarehouses', 'toWarehouses', 'products'));
+                $this->logExecutionTime($renderStart, $action, 'renderEdit');
+                return $resp;
+            } catch (\Throwable $e) {
+                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
+                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
+            }
+        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'transfer_id' => $id]);
+    }
+
     public function getQuantity(Request $request): JsonResponse
     {
         $action = __FUNCTION__;

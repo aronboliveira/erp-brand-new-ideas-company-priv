@@ -305,7 +305,7 @@ class LocalizationService
         if ($mobile) {
             $firstDigit = 9;
             $secondDigit = rand(6, 9);
-            $remaining = str_pad(rand(0, 9999999), 7, '0', STR_PAD_LEFT);
+            $remaining = str_pad((string) rand(0, 9999999), 7, '0', STR_PAD_LEFT);
             $number = $firstDigit . $secondDigit . $remaining;
 
             if ($formatted) {
@@ -327,7 +327,7 @@ class LocalizationService
             }
         } else {
             $firstDigit = rand(2, 5);
-            $remaining = str_pad(rand(0, 9999999), 7, '0', STR_PAD_LEFT);
+            $remaining = str_pad((string) rand(0, 9999999), 7, '0', STR_PAD_LEFT);
             $number = $firstDigit . $remaining;
 
             if ($formatted) {

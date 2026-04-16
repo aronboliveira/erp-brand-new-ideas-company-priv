@@ -14,6 +14,7 @@ enum PaymentMethod: string
 	case CardDebit    = 'card_debit';
 	case CardCredit   = 'card_credit';
 	case Cash         = 'cash';
+	case Benefit      = 'Benefit';
 	case Other        = 'other';
 
 	public static function normalize(?string $value): self

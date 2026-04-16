@@ -85,7 +85,7 @@ final class BenefitPaymentController extends Controller
                         Log::warning("[{$base}::{$action}] invalid coupon", ['code' => $couponCode]);
                         return back()->with('error', __('This coupon code is invalid or expired.'));
                     }
-                    if ($coupon->limit <= $coupon->used_coupon) {
+                    if ($coupon->limit <= $coupon->usedCoupon()) {
                         Log::warning("[{$base}::{$action}] expired coupon", ['code' => $couponCode]);
                         return back()->with('error', __('This coupon code has expired.'));
                     }
@@ -199,7 +199,7 @@ final class BenefitPaymentController extends Controller
                             $ucStart = microtime(true);
                             UserCoupon::create(['user' => $user?->id, 'coupon' => $coupon->id, 'order' => $orderId]);
                             $this->logExecutionTime($ucStart, $action, 'createUserCoupon');
-                            if ($coupon->limit <= $coupon->used_coupon) {
+                            if ($coupon->limit <= $coupon->usedCoupon()) {
                                 $deactStart = microtime(true);
                                 $coupon->update(['is_active' => 0]);
                                 $this->logExecutionTime($deactStart, $action, 'deactivateCoupon');
@@ -320,7 +320,7 @@ final class BenefitPaymentController extends Controller
                 if ($status->gateway->response->code !== '00') {
                     Log::warning("[{$base}::{$action}] transaction failed", ['invoice_id' => $invoiceId]);
                     Log::debug("[{$base}::{$action}] failure context", ['tap_id' => $request->input('tap_id'), 'user_id' => $user?->id, 'secret_set' => !empty($secret)]);
-                    return redirect()->route(ViewsConstants::INV . 'link.copy', $invoiceEncrypted)->with('error', __('Transaction failed!'));
+                    return redirect()->route(ViewsConstants::INV . '.link.copy', $invoiceEncrypted)->with('error', __('Transaction failed!'));
                 }
                 $txnStart = microtime(true);
                 DB::beginTransaction();
@@ -351,7 +351,7 @@ final class BenefitPaymentController extends Controller
                     DB::commit();
                     $this->logExecutionTime($txnStart, $action, 'transactionCommit');
                     Log::info("[{$base}::{$action}] invoice payment recorded", ['invoice_id' => $invoiceId, 'order_id' => $orderId]);
-                    return redirect()->route(ViewsConstants::INV . 'link.copy', $invoiceEncrypted)->with('success', __('Invoice paid successfully!'));
+                    return redirect()->route(ViewsConstants::INV . '.link.copy', $invoiceEncrypted)->with('success', __('Invoice paid successfully!'));
                 } catch (Throwable $e) {
                     DB::rollBack();
                     $this->logExecutionTime($txnStart, $action, 'transactionRollback');
@@ -362,7 +362,7 @@ final class BenefitPaymentController extends Controller
             } catch (Throwable $e) {
                 Log::error("[{$base}::{$action}] failed", ['err' => $e->getMessage()]);
                 Log::debug("[{$base}::{$action}] exception context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'invoice_enc' => $invoiceEncrypted, 'tap_id' => $request->input('tap_id')]);
-                return redirect()->route(ViewsConstants::INV . 'link.copy', $invoiceEncrypted)->with('error', $e->getMessage());
+                return redirect()->route(ViewsConstants::INV . '.link.copy', $invoiceEncrypted)->with('error', $e->getMessage());
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'invoice_enc' => $invoiceEncrypted, 'amount' => $amount]);
     }
@@ -406,7 +406,9 @@ final class BenefitPaymentController extends Controller
 
     private static function client(): Client
     {
-        return new Client(['timeout' => 15]);
+        return app()->bound(Client::class)
+            ? app(Client::class)
+            : new Client(['timeout' => 15]);
     }
 
     private static function txnId(): string

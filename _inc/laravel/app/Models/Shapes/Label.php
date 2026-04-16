@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Config\Constants\{DatabaseConstants, ProjectsConstants as PJC};
+use App\Config\Constants\{DatabaseConstants as DC, ProjectsConstants as PJC};
 use App\Traits\{HasAuditFields, UsesUuids};
 use Illuminate\Database\Eloquent\{Factories\HasFactory, Model};
 /**
@@ -18,7 +18,7 @@ class Label extends Model
         PJC::COL_LB_NM,
         PJC::COL_CL,
         PJC::COL_PPL_ID,
-        DatabaseConstants::COL_TABLE_CREATOR,
+        DC::COL_TABLE_CREATOR,
     ];
     protected $guarded  = [
         'id',

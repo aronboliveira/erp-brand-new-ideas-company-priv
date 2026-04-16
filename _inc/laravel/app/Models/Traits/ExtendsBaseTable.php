@@ -20,6 +20,23 @@ trait ExtendsBaseTable
 	protected array $extendsBaseTableErrors = [];
 	protected static array $extendsBaseTableColumnCache = [];
 	protected static array $extendsBaseTableOverlapCache = [];
+	protected static bool $extendsBaseTableSyncDisabled = false;
+
+	/**
+	 * Disable base table synchronization globally (useful during testing to avoid savepoint conflicts).
+	 */
+	public static function disableBaseTableSync(): void
+	{
+		config(['extends_base_table.sync_disabled' => true]);
+	}
+
+	/**
+	 * Re-enable base table synchronization globally.
+	 */
+	public static function enableBaseTableSync(): void
+	{
+		config(['extends_base_table.sync_disabled' => false]);
+	}
 	protected const BASE_TABLE_EXCLUDED_COLUMNS = [
 		'id',
 		'created_by',
@@ -293,6 +310,9 @@ trait ExtendsBaseTable
 	 */
 	protected function synchronizeExtendsBaseTableColumns(string $baseTable, string $foreignKeyColumn, $foreignKeyValue): bool
 	{
+		if (static::$extendsBaseTableSyncDisabled || config('extends_base_table.sync_disabled', false)) {
+			return true;
+		}
 		if (!$foreignKeyValue) {
 			Log::notice('ExtendsBaseTable::synchronizeExtendsBaseTableColumns - No foreign key value provided', [
 				'trait' => 'ExtendsBaseTable',

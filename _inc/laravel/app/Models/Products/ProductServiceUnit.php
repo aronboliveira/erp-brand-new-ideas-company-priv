@@ -17,8 +17,7 @@ use App\Traits\{
 use Illuminate\Database\Eloquent\{
     Factories\HasFactory,
     Model,
-    Relations\BelongsTo,
-    Relations\HasOne
+    Relations\BelongsTo
 };
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -186,10 +185,9 @@ class ProductServiceUnit extends Model
         );
     }
 
-    public function user(): HasOne
+    public function user(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', DC::COL_TABLE_CREATOR);
-        // * considerar belongsTo(User::class, DC::COL_TABLE_CREATOR, 'id')
+        return $this->belongsTo(User::class, DC::COL_TABLE_CREATOR);
     }
 
     public function productService(): BelongsTo

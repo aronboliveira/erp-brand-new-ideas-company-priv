@@ -2,14 +2,16 @@
 
 namespace App\Imports;
 
-use App\Traits\ChecksLogin;
+use App\Traits\{ChecksLogin, DelegatesPythonImport};
 use App\Models\{Customer};
 use Illuminate\Support\Facades\{Auth, Log};
 use Maatwebsite\Excel\Concerns\{Importable, ToModel};
 
 class CustomerImport implements ToModel
 {
-    use Importable, ChecksLogin;
+    use Importable, ChecksLogin, DelegatesPythonImport;
+
+    private const PYTHON_IMPORTER = 'CustomerImport';
 
     private bool  $headerFound = false;
     private array $headerMap  = [];
@@ -70,5 +72,35 @@ class CustomerImport implements ToModel
         }
 
         return count($map) >= 2 ? $map : null;
+    }
+
+    /**
+     * Delegate the import processing to the Python importer.
+     *
+     * @param array $rows  Pre-parsed rows from the spreadsheet
+     * @return array       Validated result from the Python process
+     */
+    public function importViaPython(array $rows): array
+    {
+        $result ??= [];
+        try {
+            $data = [
+                'rows' => $rows,
+                'fields' => (new Customer())->getFillable(),
+                'created_by' => Auth::id(),
+            ];
+            $result = self::_executePythonImporter(
+                self::PYTHON_IMPORTER,
+                $data
+            );
+        } catch (\Throwable $e) {
+            Log::error(__METHOD__ . ' exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'class' => static::class
+            ]);
+            $result = ['status' => 'error', 'errors' => [$e->getMessage()], 'rows' => []];
+        }
+        return $result;
     }
 }

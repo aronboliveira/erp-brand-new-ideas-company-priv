@@ -95,7 +95,7 @@ class CommissionController extends Controller
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class]);
   }
 
-  public function create(Request $request, int|string $employeeId): View|RedirectResponse
+  public function create(Request $request, int|string|null $employeeId = null): View|RedirectResponse
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -108,6 +108,10 @@ class CommissionController extends Controller
         if ($resp = $this->_authorize($req, 'create commission')) {
           Log::warning("[{$class}::{$action}] unauthorized");
           return $resp;
+        }
+        if (empty($employeeId)) {
+          Log::warning("[{$class}::{$action}] missing employee id");
+          return redirect()->back()->with('error', __('Employee not found.'));
         }
         $employee = Employee::find($employeeId);
         if (!$employee) {
@@ -301,7 +305,7 @@ class CommissionController extends Controller
    *
    * Returns a redirect response when denied, or null when authorized.
    */
-  private function _authorize(Request $request, string $ability): ?RedirectResponse
+  protected function _authorize(Request $request, string $ability): ?RedirectResponse
   {
     $result = self::guard($request, $ability);
     return $result === true ? null : $result;

@@ -14,6 +14,8 @@ class ChFavorite extends Model
     use HasFactory;
     use UsesUuids;
 
+    protected $table = 'chatify_favorites';
+
     private const FILLABLE_FIELDS = ['user_id', 'favorite_id']; // ! CHANGED
 
     protected $fillable = self::FILLABLE_FIELDS;              // ! CHANGED

@@ -28,6 +28,37 @@ class SaturationDeductionController extends Controller
 
     private const REDIRECT_INDEX = ViewsConstants::STR_DD . '.index';
 
+    /**
+     * Lista todas as deduções de saturação do usuário autenticado.
+     */
+    public function index(Request $request): View|RedirectResponse
+    {
+        $cls = __CLASS__;
+        $meth = __METHOD__;
+        $func = __FUNCTION__;
+        $action = $meth;
+
+        return $this->measureProfile($action, function () use ($request, $action, $cls, $func) {
+            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+            $user = $userOrRedirect;
+            if (($redirect = self::guard($request, 'view saturation deduction', self::REDIRECT_INDEX)) !== true) return $redirect;
+
+            Log::debug($action . ' start', [UsersConstants::COL_USER_ID => $user?->id]);
+
+            try {
+                $deductions = SaturationDeduction::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->get();
+
+                $view = ViewsConstants::STR_DD . '.index';
+                if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \Exception('view'), $action, route(self::REDIRECT_INDEX));
+
+                return ViewFacade::make($view, compact('deductions'));
+            } catch (\Throwable $e) {
+                Log::error($action . ' failed', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $cls . '::' . $func, route(self::REDIRECT_INDEX));
+            }
+        }, [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+    }
+
     public const STR_DD_CR = 'saturationDeductionCreate';
     public function saturationDeductionCreate(string|int $employeeId, Request $request): RedirectResponse|View|string
     {

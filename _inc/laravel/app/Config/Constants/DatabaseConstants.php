@@ -19,6 +19,7 @@ class DatabaseConstants
 	public const TABLE_BG_FL = 'bug_files';
 	public const TABLE_EMPLOYEES = 'employees';
 	public const TABLE_DOCS = 'documents';
+	public const TABLE_DOCUMENTS = self::TABLE_DOCS;
 	public const TABLE_EDOCS = 'employee_documents';
 	public const TABLE_EATD = 'employee_attendances';
 	public const TABLE_TERMINATIONS = 'terminations';
@@ -116,6 +117,7 @@ class DatabaseConstants
 	public const TABLE_BL_PRD = 'bill_products';
 	public const TABLE_WRH = 'warehouses';
 	public const TABLE_WHS = self::TABLE_WRH;
+	public const TABLE_WAREHOUSES = self::TABLE_WRH;
 	public const TABLE_PAY = 'payments';
 	public const TABLE_POS_PAY = 'pos_payments';
 	public const TABLE_MET_EMP = 'meeting_employees';
@@ -125,6 +127,7 @@ class DatabaseConstants
 	public const TABLE_INV_PRD = 'invoice_products';
 	public const TABLE_BL_PAY = 'bill_payments';
 	public const TABLE_CR_NOTES = 'credit_notes';
+	public const TABLE_CD_NOTES = self::TABLE_CR_NOTES;
 	public const TABLE_DB_NOTES = 'debit_notes';
 	public const TABLE_EANC = 'employee_announcements';
 	public const TABLE_USR_LD = 'user_leads';

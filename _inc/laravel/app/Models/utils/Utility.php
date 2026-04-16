@@ -1623,6 +1623,7 @@ class Utility extends Model
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('created_at', [$start, $end]))
             ->get();
         $accountIds = BankAccount::where('chart_account_id', $accountId)
+            ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->pluck('id');
         $invoicePayment = InvoicePayment::whereIn('account_id', $accountIds)
             ->when($startDate && $endDate, fn($q) => $q->whereBetween('date', [$start, $end]))

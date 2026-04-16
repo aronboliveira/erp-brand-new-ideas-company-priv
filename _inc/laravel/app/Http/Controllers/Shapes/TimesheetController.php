@@ -163,8 +163,8 @@ class TimesheetController extends Controller
 
             try {
                 DB::transaction(function () use ($validated, $user, $scope) {
-                    $h = str_pad($validated['time_hour'], 2, '0', STR_PAD_LEFT);
-                    $m = str_pad($validated['time_minute'], 2, '0', STR_PAD_LEFT);
+                    $h = str_pad((string) $validated['time_hour'], 2, '0', STR_PAD_LEFT);
+                    $m = str_pad((string) $validated['time_minute'], 2, '0', STR_PAD_LEFT);
 
                     Timesheet::create([
                         'project_id'  => $validated['project_id'],
@@ -264,8 +264,8 @@ class TimesheetController extends Controller
             try {
                 DB::transaction(function () use ($v, $timesheetId, $scope) {
                     $t = Timesheet::findOrFail($timesheetId);
-                    $h = str_pad($v['time_hour'], 2, '0', STR_PAD_LEFT);
-                    $m = str_pad($v['time_minute'], 2, '0', STR_PAD_LEFT);
+                    $h = str_pad((string) $v['time_hour'], 2, '0', STR_PAD_LEFT);
+                    $m = str_pad((string) $v['time_minute'], 2, '0', STR_PAD_LEFT);
 
                     $t->update([
                         'date'        => $v['date'],

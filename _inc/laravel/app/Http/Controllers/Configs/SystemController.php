@@ -40,7 +40,7 @@ class SystemController extends Controller
 
     use ChecksLogin, ChecksPermissions;
 
-    private const REDIRECT_INDEX = VW::SET . '.index';
+    private const REDIRECT_INDEX = VW::SET;
     private const REDIRECT_COMPANY = VW::SET . '.' . PermissionsConstants::CPN;
 
     public function index(Request $request): View|RedirectResponse|null

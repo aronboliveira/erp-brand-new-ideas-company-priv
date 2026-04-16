@@ -739,7 +739,7 @@ final class ReportController extends Controller
                 $startDates = microtime(true);
                 $numDays = date('t', mktime(0, 0, 0, $month, 1, $year));
                 $dates = [];
-                for ($i = 1; $i <= $numDays; $i++) $dates[] = str_pad($i, 2, '0', STR_PAD_LEFT);
+                for ($i = 1; $i <= $numDays; $i++) $dates[] = str_pad((string) $i, 2, '0', STR_PAD_LEFT);
                 $this->logExecutionTime($startDates, "{$action} buildDateRange", 'completed');
                 $startEmp = microtime(true);
                 $employees = Employee::select('id', 'name')->where(DC::COL_TABLE_CREATOR, $user?->creatorId())->when($branch, fn($q) => $q->where(CompaniesConstants::COL_BRC_ID, $branch), fn($q) => $q)->when($department, fn($q) => $q->where(CompaniesConstants::COL_DEP_ID, $department), fn($q) => $q)->get()->pluck('name', 'id')->toArray();
@@ -3446,7 +3446,7 @@ final class ReportController extends Controller
 
         $numDays = date('t', mktime(0, 0, 0, $m, 1, $y));
         $dates  = array_map(
-            fn($d) => str_pad($d, 2, '0', STR_PAD_LEFT),
+            fn($d) => str_pad((string) $d, 2, '0', STR_PAD_LEFT),
             range(1, $numDays)
         );
 
@@ -3887,7 +3887,7 @@ final class ReportController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             $label = date('my', strtotime("$year-$i-01"));
             $arrDuration[] = $label;
-            $data[]       = $grouped[str_pad($i, 2, '0', STR_PAD_LEFT)] ?? 0;
+            $data[]       = $grouped[str_pad((string) $i, 2, '0', STR_PAD_LEFT)] ?? 0;
         }
 
         $filter = [
@@ -3995,7 +3995,7 @@ final class ReportController extends Controller
         for ($i = 1; $i <= 12; $i++) {
             $label = date('my', strtotime("$year-$i-01"));
             $arrDuration[] = $label;
-            $data[]       = $grouped[str_pad($i, 2, '0', STR_PAD_LEFT)] ?? 0;
+            $data[]       = $grouped[str_pad((string) $i, 2, '0', STR_PAD_LEFT)] ?? 0;
         }
 
         $filter = [

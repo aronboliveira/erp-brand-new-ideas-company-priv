@@ -22,6 +22,8 @@ class SettingsConstants
 	public const MT_LOGO = 'meta_logo';
 	public const LOGO = 'logo';
 	public const SC_LOGO = 'secondary_logo';
+	public const SC_HDG_K = 'screenshots_heading';
+	public const SC_HDG_DEF = '';
 	public const FAV_ICN = 'favicon';
 	public const CPN_LG = 'company_logo';
 	public const CPN_LG_LT = 'company_logo_light';

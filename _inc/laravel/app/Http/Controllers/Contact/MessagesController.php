@@ -432,7 +432,7 @@ class MessagesController extends Controller
 
                 $t = microtime(true);
                 $html = $records->reduce(
-                    fn($h, $r) => $h . view('Chatify::layouts.listItem', [
+                    fn($h, $r) => $h . view('Chatify::layouts.list_item', [
                         'get'  => 'search_item',
                         'type' => 'user',
                         'user' => $r,
@@ -469,7 +469,7 @@ class MessagesController extends Controller
                 $shared = Chatify::getSharedPhotos($request->user_id);
                 $html   = collect($shared)->reduce(
                     fn($h, $img) => $h
-                        . view('Chatify::layouts.listItem', [
+                        . view('Chatify::layouts.list_item', [
                             'get'   => 'sharedPhoto',
                             'image' => Utility::getFile("attachments/{$img}")
                         ])->render(),

@@ -740,4 +740,40 @@ final class PayslipController extends Controller
         });
     }
 
+    /**
+     * Redireciona para index — payslips são gerados em lote, não individualmente.
+     */
+    public function create(Request $request): RedirectResponse
+    {
+        $action = __METHOD__;
+        Log::debug($action . ' stub called', [UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+
+        $ur = self::_checkLogin();
+        if ($ur instanceof RedirectResponse) return $ur;
+
+        $c = self::guard($request, PermissionsConstants::MNG_PSL, self::REDIRECT_INDEX);
+        if ($c !== true) return $c;
+
+        return redirect()->route(self::REDIRECT_INDEX)
+            ->with('info', __('Payslips are generated in bulk from the index page.'));
+    }
+
+    /**
+     * Redireciona para index — payslips não possuem edição individual.
+     */
+    public function edit(Request $request, int|string $id): RedirectResponse
+    {
+        $action = __METHOD__;
+        Log::debug($action . ' stub called', ['id' => $id, UsersConstants::COL_USER_ID => $request->user()?->id ?? null]);
+
+        $ur = self::_checkLogin();
+        if ($ur instanceof RedirectResponse) return $ur;
+
+        $c = self::guard($request, PermissionsConstants::MNG_PSL, self::REDIRECT_INDEX);
+        if ($c !== true) return $c;
+
+        return redirect()->route(self::REDIRECT_INDEX)
+            ->with('info', __('Payslips cannot be edited individually.'));
+    }
+
 }

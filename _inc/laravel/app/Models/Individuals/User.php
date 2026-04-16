@@ -252,9 +252,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return Utility::settings()[SC::CR_SB];
     }
 
-    public function dateFormat(string $date): string
+    public function dateFormat(?string $date): string
     {
-        return date(Utility::settings()[SC::DT_FM], strtotime($date));
+        return date(Utility::settings()[SC::DT_FM], strtotime($date ?? 'now'));
     }
 
     public function timeFormat(string $time): string
@@ -262,16 +262,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return date(Utility::settings()[SC::TM_FM], strtotime($time));
     }
 
-    public function purchaseNumberFormat(int $number): string
+    public function purchaseNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::PRC_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
 
-    public function posNumberFormat(int $number): string
+    public function posNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::POS_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
 
     public function invoiceNumberFormat(int|string $number): string
@@ -282,16 +282,16 @@ class User extends Authenticatable implements MustVerifyEmail
             : $prefix . $number;
     }
 
-    public function proposalNumberFormat(int $number): string
+    public function proposalNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::PPS_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
 
-    public function contractNumberFormat(int $number): string
+    public function contractNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::CTC_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
 
     public function billNumberFormat(int|string $number): string
@@ -302,16 +302,16 @@ class User extends Authenticatable implements MustVerifyEmail
             : $prefix . $number;
     }
 
-    public function expenseNumberFormat(int $number): string
+    public function expenseNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::EXP_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
 
-    public function journalNumberFormat(int $number): string
+    public function journalNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::JRN_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
 
     public function getPlan(): HasOne
@@ -360,19 +360,19 @@ class User extends Authenticatable implements MustVerifyEmail
         return ['is_success' => true];
     }
 
-    public function customerNumberFormat(int $number): string
+    public function customerNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::CST_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
 
-    public function vendorNumberFormat(int $number): string
+    public function vendorNumberFormat(int|string $number): string
     {
         return Utility::settings()[SC::VND_PFX]
-            . sprintf('%05d', $number);
+            . sprintf('%05d', (int) $number);
     }
 
-    public function venderNumberFormat(int $number): string // * KEPT FOR COMPATIBILITY, DO NOT USE IN ENDPOINT
+    public function venderNumberFormat(int|string $number): string // * KEPT FOR COMPATIBILITY, DO NOT USE IN ENDPOINT
     {
         return $this->vendorNumberFormat($number);
     }
@@ -782,9 +782,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return ProjectTask::whereRaw("find_in_set(?," . PJC::COL_ASGN . ")", [$this->id])->get();
     }
 
-    public function bugNumberFormat(int $number): string
+    public function bugNumberFormat(int|string $number): string
     {
-        return Utility::settings()[SC::BUG_PFX] . sprintf('%05d', $number);
+        return Utility::settings()[SC::BUG_PFX] . sprintf('%05d', (int) $number);
     }
 
     public function contacts(): HasMany

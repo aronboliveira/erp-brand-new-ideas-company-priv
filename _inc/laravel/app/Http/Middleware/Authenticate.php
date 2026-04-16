@@ -128,7 +128,7 @@ final class Authenticate extends Middleware
             Log::notice(__METHOD__ . ' AuthenticationException', ['message' => $e->getMessage(), 'guards' => $guards, 'uri' => $request->getRequestUri()]);
             $this->logExecutionTime($start, __METHOD__ . '::AuthenticationException');
             session()->flash('error', 'Authentication required.');
-            return redirect()->route(self::REDIRECT_ROUTE)->with('error', __('Authentication error occurred.'));
+            return redirect()->route(self::REDIRECT_ROUTE);
         } catch (AuthorizationException $e) {
             Log::warning(__METHOD__ . ' AuthorizationException', ['message' => $e->getMessage(), 'user_id' => $request->user()?->id]);
             $this->logExecutionTime($start, __METHOD__ . '::AuthorizationException');

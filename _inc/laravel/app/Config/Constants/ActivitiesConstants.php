@@ -19,6 +19,8 @@ class ActivitiesConstants
 	public const COL_TSK_TIME = 'time';
 	public const COL_TSK_DATE = 'date';
 	public const COL_TSK_ID = 'task_id';
+	public const COL_TSK = self::COL_TSK_ID;
+	public const COL_LT = 'log_type';
 	public const COL_TSK_STT = 'status';
 	public const COL_OD = 'order';
 	public const COL_TP = 'type';

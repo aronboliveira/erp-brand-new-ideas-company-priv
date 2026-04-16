@@ -19,7 +19,7 @@ class TerminationTypeController extends Controller
 
     use ChecksLogin, ChecksPermissions;
 
-    private const REDIRECT_INDEX = VW::TMN_TP . '.index';
+    private const REDIRECT_INDEX = 'terminationtype.index';
     public const IDX = 'index';
     public const CRT = 'create';
     public const STR = 'store';

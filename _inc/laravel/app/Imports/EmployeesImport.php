@@ -20,7 +20,7 @@ final class EmployeesImport implements ToModel, WithHeadingRow
     {
         try {
             foreach (self::REQUIRED_FIELDS as $field) {
-                if (empty($row[$field] ?? null)) {
+                if (!array_key_exists($field, $row) || $row[$field] === null) {
                     Log::warning(__METHOD__ . ' missing required field: ' . $field);
                     return null;
                 }

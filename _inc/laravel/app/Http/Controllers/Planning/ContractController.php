@@ -42,6 +42,16 @@ class ContractController extends Controller
     private const ENTITY = 'contracts';
     public const DSCP = 'description';
     public const CTC_DSCP_STR = 'contractDescriptionStore';
+    public const GRD = 'grid';
+    public const F_UPL = 'fileUpload';
+    public const F_DWN = 'fileDownload';
+    public const F_DEL = 'fileDelete';
+    public const CTC_ST_EDT = 'contractStatusEdit';
+    public const PRNT_CTC = 'printContract';
+    public const CPY_CTC = 'copyContract';
+    public const CPY_CTC_STR = 'copyContractStore';
+    public const SND_ML_CTC = 'sendMailContract';
+    public const PDF_FRM_CTC = 'pdfFromContract';
     public function index(Request $request): RedirectResponse|View
     {
         $function = __FUNCTION__;
