@@ -183,3 +183,6 @@ origin/**
 _old/
 _old/**
 .backup/
+
+**/.deprecated/
+**/.deprecated/**

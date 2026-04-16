@@ -56,3 +56,6 @@ pyvenv.cfg
 *.bak
 storage/test_attach/
 tsconfig.tsbuildinfo
+
+.deprecated/
+.deprecated/**
