@@ -48,7 +48,6 @@
 
     // === Path aliases ===
     "ignoreDeprecations": "5.0",
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@public/*": ["./src/public/*"],

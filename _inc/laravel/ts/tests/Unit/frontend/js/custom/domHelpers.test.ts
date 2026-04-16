@@ -9,11 +9,7 @@
  *   - wcqib_refresh_quantity_increments() → +/- buttons for quantity inputs
  */
 
-import {
-  loadCustomJs,
-  buildJQueryEnv,
-  buildDomSkeleton,
-} from "../helpers/setup";
+import { loadCustomJs, buildJQueryEnv, buildDomSkeleton } from "../helpers/setup";
 
 beforeEach(() => {
   document.body.innerHTML = "";
@@ -57,10 +53,7 @@ describe("select2", () => {
     const choicesSpy = jest.fn();
     (globalThis as any).Choices = choicesSpy;
 
-    document.body.insertAdjacentHTML(
-      "beforeend",
-      '<select class="select2" id="mySelect"><option>A</option></select>',
-    );
+    document.body.insertAdjacentHTML("beforeend", '<select class="select2" id="mySelect"><option>A</option></select>');
     (globalThis as any).select2();
     expect(choicesSpy).toHaveBeenCalled();
     const arg = choicesSpy.mock.calls[0][0];
@@ -84,10 +77,7 @@ describe("summernote", () => {
     const spy = jest.fn().mockReturnThis();
     global.$.fn.summernote = spy;
 
-    document.body.insertAdjacentHTML(
-      "beforeend",
-      '<div class="summernote-simple"></div>',
-    );
+    document.body.insertAdjacentHTML("beforeend", '<div class="summernote-simple"></div>');
     (globalThis as any).summernote();
     expect(spy).toHaveBeenCalled();
   });
@@ -109,10 +99,7 @@ describe("commonLoader", () => {
     const tooltipSpy = jest.fn().mockReturnThis();
     global.$.fn.tooltip = tooltipSpy;
 
-    document.body.insertAdjacentHTML(
-      "beforeend",
-      '<span data-toggle="tooltip" title="hi">hover me</span>',
-    );
+    document.body.insertAdjacentHTML("beforeend", '<span data-toggle="tooltip" title="hi">hover me</span>');
     (globalThis as any).commonLoader();
     expect(tooltipSpy).toHaveBeenCalled();
   });
@@ -121,10 +108,7 @@ describe("commonLoader", () => {
     const tagsSpy = jest.fn().mockReturnThis();
     global.$.fn.tagsinput = tagsSpy;
 
-    document.body.insertAdjacentHTML(
-      "beforeend",
-      '<input data-toggle="tags" />',
-    );
+    document.body.insertAdjacentHTML("beforeend", '<input data-toggle="tags" />');
     (globalThis as any).commonLoader();
     expect(tagsSpy).toHaveBeenCalled();
   });

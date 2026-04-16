@@ -20,9 +20,9 @@
 /*  Helpers                                                           */
 /* ------------------------------------------------------------------ */
 
-const qs  = (sel, root = document) => root.querySelector(sel);
+const qs = (sel, root = document) => root.querySelector(sel);
 const qsa = (sel, root = document) => root.querySelectorAll(sel);
-const byId = (id) => document.getElementById(id);
+const byId = id => document.getElementById(id);
 
 function csrfToken() {
   const meta = qs('meta[name="csrf-token"]');
@@ -141,7 +141,9 @@ onDelegate("click", '[data-ajax-popup="true"]', function (e) {
   const size = el.dataset.size || "md";
   const url = el.dataset.url;
 
-  qsa(".modal-dialog").forEach(function (d) { d.classList.remove("modal-xl"); });
+  qsa(".modal-dialog").forEach(function (d) {
+    d.classList.remove("modal-xl");
+  });
 
   const modal = byId("commonModal");
   if (!modal) return;
@@ -249,7 +251,9 @@ function arrayToJson(form) {
   if (!el) return {};
   const formData = new FormData(el);
   const indexed_array = {};
-  formData.forEach(function (value, key) { indexed_array[key] = value; });
+  formData.forEach(function (value, key) {
+    indexed_array[key] = value;
+  });
   return indexed_array;
 }
 
@@ -270,7 +274,9 @@ function taskCheckbox() {
   let percentage = count > 0 ? parseInt(String((checked.length / count) * 100), 10) : 0;
   if (isNaN(percentage)) percentage = 0;
 
-  qsa(".custom-label").forEach(function (el) { el.textContent = percentage + "%"; });
+  qsa(".custom-label").forEach(function (el) {
+    el.textContent = percentage + "%";
+  });
 
   const prog = byId("taskProgress");
   if (!prog) return;
@@ -290,8 +296,7 @@ function commonLoader() {
   // Tooltip, TagsInput — jQuery plugins
   if (typeof $ !== "undefined") {
     $('[data-toggle="tooltip"]').tooltip();
-    if (qs('[data-toggle="tags"]'))
-      $('[data-toggle="tags"]').tagsinput({ tagClass: "badge badge-primary" });
+    if (qs('[data-toggle="tags"]')) $('[data-toggle="tags"]').tagsinput({ tagClass: "badge badge-primary" });
 
     // Scrollbar plugin
     const scrollbar = $(".scrollbar-inner");
@@ -315,12 +320,15 @@ function commonLoader() {
         else label.textContent = name;
       }
     });
-    input.addEventListener("focus", function () { input.classList.add("has-focus"); });
-    input.addEventListener("blur", function () { input.classList.remove("has-focus"); });
+    input.addEventListener("focus", function () {
+      input.classList.add("has-focus");
+    });
+    input.addEventListener("blur", function () {
+      input.classList.remove("has-focus");
+    });
   });
 
-  if (qs(".jscolor") && typeof jscolor !== "undefined")
-    jscolor.installByClassName("jscolor");
+  if (qs(".jscolor") && typeof jscolor !== "undefined") jscolor.installByClassName("jscolor");
 
   summernote();
 }
@@ -330,7 +338,9 @@ onDelegate("change", "input[type=file]", function () {
   const fileclass = this.getAttribute("data-filename");
   const finalname = this.value.split("\\").pop();
   if (fileclass) {
-    qsa("." + fileclass).forEach(function (el) { el.textContent = finalname; });
+    qsa("." + fileclass).forEach(function (el) {
+      el.textContent = finalname;
+    });
   }
 });
 
@@ -357,8 +367,7 @@ function summernote() {
     $(".summernote-simple").summernote(opts);
     $(".dropdown-toggle").dropdown();
   }
-  if (qs(".summernote-simple-2"))
-    $(".summernote-simple-2").summernote(opts);
+  if (qs(".summernote-simple-2")) $(".summernote-simple-2").summernote(opts);
 }
 
 /* ------------------------------------------------------------------ */
@@ -371,17 +380,19 @@ onDelegate("click", ".bs-pass-para", function (e) {
   Swal.mixin({
     customClass: { confirmButton: "btn btn-success", cancelButton: "btn btn-danger" },
     buttonsStyling: false,
-  }).fire({
-    title: "Are you sure?",
-    text: "This action can not be undone. Do you want to continue?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "No",
-    reverseButtons: true,
-  }).then(function (result) {
-    if (result.isConfirmed) form.submit();
-  });
+  })
+    .fire({
+      title: "Are you sure?",
+      text: "This action can not be undone. Do you want to continue?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+      reverseButtons: true,
+    })
+    .then(function (result) {
+      if (result.isConfirmed) form.submit();
+    });
 });
 
 // POS system delete button
@@ -391,42 +402,50 @@ onDelegate("click", ".bs-pass-para-pos", function (e) {
   Swal.mixin({
     customClass: { confirmButton: "btn btn-success", cancelButton: "btn btn-danger" },
     buttonsStyling: false,
-  }).fire({
-    title: "Are you sure?",
-    text: "This action can not be undone. Do you want to continue?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes",
-    cancelButtonText: "No",
-    reverseButtons: true,
-  }).then(function (result) {
-    if (result.isConfirmed && confirmId) {
-      const form = byId(confirmId);
-      if (form) form.submit();
-    }
-  });
+  })
+    .fire({
+      title: "Are you sure?",
+      text: "This action can not be undone. Do you want to continue?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+      reverseButtons: true,
+    })
+    .then(function (result) {
+      if (result.isConfirmed && confirmId) {
+        const form = byId(confirmId);
+        if (form) form.submit();
+      }
+    });
 });
 
 /* ------------------------------------------------------------------ */
 /*  AJAX helpers (global — usados por Blade inline scripts)           */
 /* ------------------------------------------------------------------ */
 function postAjax(url, data, cb) {
-  ajaxPost(url, data, "POST").then(cb).catch(function (err) {
-    console.error("[postAjax]", err);
-  });
+  ajaxPost(url, data, "POST")
+    .then(cb)
+    .catch(function (err) {
+      console.error("[postAjax]", err);
+    });
 }
 
 function deleteAjax(url, data, cb) {
-  ajaxPost(url, data, "DELETE").then(cb).catch(function (err) {
-    console.error("[deleteAjax]", err);
-  });
+  ajaxPost(url, data, "DELETE")
+    .then(cb)
+    .catch(function (err) {
+      console.error("[deleteAjax]", err);
+    });
 }
 
 /* ------------------------------------------------------------------ */
 /*  Currency formatting                                               */
 /* ------------------------------------------------------------------ */
 function addCommas(num) {
-  const number = parseFloat(num).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+  const number = parseFloat(num)
+    .toFixed(2)
+    .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
   const pre = typeof site_currency_symbol_position !== "undefined" && site_currency_symbol_position === "pre" ? site_currency_symbol : "";
   const post = typeof site_currency_symbol_position !== "undefined" && site_currency_symbol_position === "post" ? site_currency_symbol : "";
   return pre + number + post;
@@ -446,9 +465,13 @@ function wcqib_refresh_quantity_increments() {
   qsa("div.quantity:not(.buttons_added), td.quantity:not(.buttons_added)").forEach(function (el) {
     el.classList.add("buttons_added");
     const minus = document.createElement("input");
-    minus.type = "button"; minus.value = "-"; minus.className = "minus";
+    minus.type = "button";
+    minus.value = "-";
+    minus.className = "minus";
     const plus = document.createElement("input");
-    plus.type = "button"; plus.value = "+"; plus.className = "plus";
+    plus.type = "button";
+    plus.value = "+";
+    plus.className = "plus";
     el.insertBefore(minus, el.firstChild);
     el.appendChild(plus);
   });
@@ -485,8 +508,7 @@ onDelegate("keydown", 'input[name="quantity"], input[name="quantity[]"]', functi
   if (allow.includes(e.keyCode)) return;
   if (e.keyCode === 65 && e.ctrlKey) return;
   if (e.keyCode >= 35 && e.keyCode <= 39) return;
-  if ((e.shiftKey || e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105))
-    e.preventDefault();
+  if ((e.shiftKey || e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) e.preventDefault();
 });
 
 /* ------------------------------------------------------------------ */
@@ -495,8 +517,7 @@ onDelegate("keydown", 'input[name="quantity"], input[name="quantity[]"]', functi
 function JsSearchBox() {
   if (typeof $ === "undefined" || !qs(".js-searchBox")) return;
   $(".js-searchBox").each(function () {
-    if ($(this).parent().find(".formTextbox").length === 0)
-      $(this).searchBox({ elementWidth: "250" });
+    if ($(this).parent().find(".formTextbox").length === 0) $(this).searchBox({ elementWidth: "250" });
   });
 }
 
