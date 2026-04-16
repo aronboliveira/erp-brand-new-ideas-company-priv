@@ -6,35 +6,35 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: erp-ingress
-  namespace: erp-prestech
-  labels:
-    app.kubernetes.io/part-of: erp-prestech
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    name: erp-ingress
+    namespace: erp-prestech
+    labels:
+        app.kubernetes.io/part-of: erp-prestech
+    annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "false"
+        nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
 spec:
-  ingressClassName: nginx
-  rules:
-    - host: erp.local
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: erp-backend
-                port:
-                  number: 80
-    # ── Rota para frontend separado (comentado — servido pelo backend) ──
-    # - host: app.erp.local
-    #   http:
-    #     paths:
-    #       - path: /
-    #         pathType: Prefix
-    #         backend:
-    #           service:
-    #             name: erp-frontend
-    #             port:
-    #               number: 80
+    ingressClassName: nginx
+    rules:
+        - host: erp.local
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: erp-backend
+                            port:
+                                number: 80
+        # ── Rota para frontend separado (comentado — servido pelo backend) ──
+        # - host: app.erp.local
+        #   http:
+        #     paths:
+        #       - path: /
+        #         pathType: Prefix
+        #         backend:
+        #           service:
+        #             name: erp-frontend
+        #             port:
+        #               number: 80

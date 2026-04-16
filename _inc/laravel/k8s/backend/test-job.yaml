@@ -1,0 +1,51 @@
+###############################################################################
+# ERP Nova Prestech — PHPUnit Test Job
+# Runs the test suite directly inside the test image.
+# Usage: kubectl apply -f k8s/backend/test-job.yaml
+###############################################################################
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: erp-phpunit
+    namespace: erp-prestech
+    labels:
+        app: erp-test
+        app.kubernetes.io/part-of: erp-prestech
+spec:
+    backoffLimit: 0
+    ttlSecondsAfterFinished: 600
+    template:
+        metadata:
+            labels:
+                app: erp-test
+        spec:
+            restartPolicy: Never
+            containers:
+                - name: phpunit
+                  image: erp-prestech-test:latest
+                  imagePullPolicy: Never
+                  command:
+                      - /bin/sh
+                      - "-c"
+                      - |
+                          php -d memory_limit=512M artisan test --no-coverage --filter UtilityTest
+                  envFrom:
+                      - configMapRef:
+                            name: erp-backend-config
+                      - secretRef:
+                            name: erp-backend-secrets
+                  env:
+                      - name: DB_HOST
+                        value: mysql-service
+                      - name: DB_DATABASE
+                        value: erp_prestech_db
+                      - name: REDIS_HOST
+                        value: redis-service
+                  resources:
+                      requests:
+                          memory: "512Mi"
+                          cpu: "200m"
+                      limits:
+                          memory: "2Gi"
+                          cpu: "1000m"
+                  workingDir: /var/www

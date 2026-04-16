@@ -5,58 +5,58 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis
-  namespace: erp-prestech
-  labels:
-    app: redis
-    app.kubernetes.io/part-of: erp-prestech
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: redis
-  template:
-    metadata:
-      labels:
+    name: redis
+    namespace: erp-prestech
+    labels:
         app: redis
-    spec:
-      containers:
-        - name: redis
-          image: redis:7-alpine
-          ports:
-            - containerPort: 6379
-              name: redis
-          resources:
-            requests:
-              memory: "64Mi"
-              cpu: "50m"
-            limits:
-              memory: "128Mi"
-              cpu: "200m"
-          readinessProbe:
-            exec:
-              command: ["redis-cli", "ping"]
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          livenessProbe:
-            exec:
-              command: ["redis-cli", "ping"]
-            initialDelaySeconds: 10
-            periodSeconds: 15
+        app.kubernetes.io/part-of: erp-prestech
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: redis
+    template:
+        metadata:
+            labels:
+                app: redis
+        spec:
+            containers:
+                - name: redis
+                  image: redis:7-alpine
+                  ports:
+                      - containerPort: 6379
+                        name: redis
+                  resources:
+                      requests:
+                          memory: "64Mi"
+                          cpu: "50m"
+                      limits:
+                          memory: "128Mi"
+                          cpu: "200m"
+                  readinessProbe:
+                      exec:
+                          command: ["redis-cli", "ping"]
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                  livenessProbe:
+                      exec:
+                          command: ["redis-cli", "ping"]
+                      initialDelaySeconds: 10
+                      periodSeconds: 15
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis-service
-  namespace: erp-prestech
-  labels:
-    app: redis
+    name: redis-service
+    namespace: erp-prestech
+    labels:
+        app: redis
 spec:
-  selector:
-    app: redis
-  ports:
-    - protocol: TCP
-      port: 6379
-      targetPort: 6379
-  type: ClusterIP
+    selector:
+        app: redis
+    ports:
+        - protocol: TCP
+          port: 6379
+          targetPort: 6379
+    type: ClusterIP

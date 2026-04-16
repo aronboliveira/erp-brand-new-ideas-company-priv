@@ -5,7 +5,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: erp-prestech
-  labels:
-    app.kubernetes.io/part-of: erp-prestech
-    environment: local
+    name: erp-prestech
+    labels:
+        app.kubernetes.io/part-of: erp-prestech
+        environment: local

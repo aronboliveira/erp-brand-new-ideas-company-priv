@@ -1,115 +1,105 @@
 ###############################################################################
 # ERP Nova Prestech — MySQL 8.0 para Kubernetes local (minikube)
-# Utiliza PersistentVolumeClaim para dados e ConfigMap/Secret para credenciais.
+# Uses emptyDir for ephemeral test data (fresh DB on every deploy).
 ###############################################################################
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: mysql-pvc
-  namespace: erp-prestech
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 2Gi
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql
-  namespace: erp-prestech
-  labels:
-    app: mysql
-    app.kubernetes.io/part-of: erp-prestech
-spec:
-  replicas: 1
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      app: mysql
-  template:
-    metadata:
-      labels:
+    name: mysql
+    namespace: erp-prestech
+    labels:
         app: mysql
-    spec:
-      containers:
-        - name: mysql
-          image: mysql:8.0
-          ports:
-            - containerPort: 3306
-              name: mysql
-          envFrom:
-            - secretRef:
-                name: erp-backend-secrets
-          env:
-            - name: MYSQL_DATABASE
-              value: "erp_prestech_db"
-            - name: MYSQL_USER
-              valueFrom:
-                secretKeyRef:
-                  name: erp-backend-secrets
-                  key: DB_USERNAME
-            - name: MYSQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: erp-backend-secrets
-                  key: DB_PASSWORD
-            - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: erp-backend-secrets
-                  key: DB_ROOT_PASSWORD
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
-          volumeMounts:
-            - name: mysql-storage
-              mountPath: /var/lib/mysql
-          readinessProbe:
-            exec:
-              command:
-                - mysqladmin
-                - ping
-                - "-h"
-                - "localhost"
-            initialDelaySeconds: 20
-            periodSeconds: 10
-            timeoutSeconds: 5
-          livenessProbe:
-            exec:
-              command:
-                - mysqladmin
-                - ping
-                - "-h"
-                - "localhost"
-            initialDelaySeconds: 30
-            periodSeconds: 15
-            timeoutSeconds: 5
-      volumes:
-        - name: mysql-storage
-          persistentVolumeClaim:
-            claimName: mysql-pvc
+        app.kubernetes.io/part-of: erp-prestech
+spec:
+    replicas: 1
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+            app: mysql
+    template:
+        metadata:
+            labels:
+                app: mysql
+        spec:
+            initContainers:
+                - name: clean-datadir
+                  image: busybox:1.36
+                  command: ["sh", "-c", "rm -rf /var/lib/mysql/*"]
+                  volumeMounts:
+                      - name: mysql-storage
+                        mountPath: /var/lib/mysql
+            containers:
+                - name: mysql
+                  image: mysql:8.0
+                  ports:
+                      - containerPort: 3306
+                        name: mysql
+                  env:
+                      - name: MYSQL_DATABASE
+                        value: "erp_prestech_db"
+                      - name: MYSQL_USER
+                        value: "test"
+                      - name: MYSQL_PASSWORD
+                        value: "test"
+                      - name: MYSQL_ROOT_PASSWORD
+                        value: "test"
+                  resources:
+                      requests:
+                          memory: "256Mi"
+                          cpu: "100m"
+                      limits:
+                          memory: "1Gi"
+                          cpu: "500m"
+                  volumeMounts:
+                      - name: mysql-storage
+                        mountPath: /var/lib/mysql
+                  startupProbe:
+                      exec:
+                          command:
+                              - mysqladmin
+                              - ping
+                              - "-h"
+                              - "127.0.0.1"
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 60
+                  readinessProbe:
+                      exec:
+                          command:
+                              - mysqladmin
+                              - ping
+                              - "-h"
+                              - "127.0.0.1"
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                  livenessProbe:
+                      exec:
+                          command:
+                              - mysqladmin
+                              - ping
+                              - "-h"
+                              - "127.0.0.1"
+                      periodSeconds: 15
+                      timeoutSeconds: 5
+            volumes:
+                - name: mysql-storage
+                  emptyDir: {}
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mysql-service
-  namespace: erp-prestech
-  labels:
-    app: mysql
+    name: mysql-service
+    namespace: erp-prestech
+    labels:
+        app: mysql
 spec:
-  selector:
-    app: mysql
-  ports:
-    - protocol: TCP
-      port: 3306
-      targetPort: 3306
-  type: ClusterIP
+    selector:
+        app: mysql
+    ports:
+        - protocol: TCP
+          port: 3306
+          targetPort: 3306
+    type: ClusterIP

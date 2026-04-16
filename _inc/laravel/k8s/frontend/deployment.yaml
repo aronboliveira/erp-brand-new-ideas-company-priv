@@ -9,52 +9,52 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: erp-frontend
-  namespace: erp-prestech
-  labels:
-    app: erp-frontend
-    app.kubernetes.io/part-of: erp-prestech
-spec:
-  replicas: 0  # Desativado — o frontend é servido pelo backend Blade/Mix
-  selector:
-    matchLabels:
-      app: erp-frontend
-  template:
-    metadata:
-      labels:
+    name: erp-frontend
+    namespace: erp-prestech
+    labels:
         app: erp-frontend
-    spec:
-      containers:
-        - name: frontend
-          # image: acr-name.azurecr.io/erp-frontend:latest  # Azure ACR (comentado)
-          image: erp-prestech-frontend:latest
-          imagePullPolicy: Never
-          ports:
-            - containerPort: 3000
-          env:
-            - name: NODE_ENV
-              value: "production"
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
+        app.kubernetes.io/part-of: erp-prestech
+spec:
+    replicas: 0 # Desativado — o frontend é servido pelo backend Blade/Mix
+    selector:
+        matchLabels:
+            app: erp-frontend
+    template:
+        metadata:
+            labels:
+                app: erp-frontend
+        spec:
+            containers:
+                - name: frontend
+                  # image: acr-name.azurecr.io/erp-frontend:latest  # Azure ACR (comentado)
+                  image: erp-prestech-frontend:latest
+                  imagePullPolicy: Never
+                  ports:
+                      - containerPort: 3000
+                  env:
+                      - name: NODE_ENV
+                        value: "production"
+                  resources:
+                      requests:
+                          memory: "256Mi"
+                          cpu: "100m"
+                      limits:
+                          memory: "512Mi"
+                          cpu: "500m"
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: erp-frontend
-  namespace: erp-prestech
-  labels:
-    app: erp-frontend
+    name: erp-frontend
+    namespace: erp-prestech
+    labels:
+        app: erp-frontend
 spec:
-  selector:
-    app: erp-frontend
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 3000
-  type: ClusterIP
+    selector:
+        app: erp-frontend
+    ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 3000
+    type: ClusterIP
