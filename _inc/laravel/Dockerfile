@@ -50,9 +50,15 @@ COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
 WORKDIR /var/www
 
-# Install PHP dependencies (cached layer)
+# Install PHP dependencies (cached layer — skip autoloader since classmap
+# dirs don't exist yet; the full dump-autoload runs after COPY . .)
+ARG INSTALL_DEV=false
 COPY composer.json composer.lock ./
-RUN composer install --prefer-dist --no-dev --no-interaction --no-scripts --optimize-autoloader
+RUN if [ "$INSTALL_DEV" = "true" ]; then \
+        composer install --prefer-dist --no-interaction --no-scripts --no-autoloader; \
+    else \
+        composer install --prefer-dist --no-dev --no-interaction --no-scripts --no-autoloader; \
+    fi
 
 # Application source
 COPY . .
@@ -61,7 +67,7 @@ COPY . .
 COPY --from=frontend /build/public/css/ public/css/
 COPY --from=frontend /build/public/js/  public/js/
 
-# Post-install
+# Post-install: now that all source is present, generate optimized autoloader
 RUN composer dump-autoload --optimize \
     && php artisan config:cache || true \
     && php artisan route:cache || true \

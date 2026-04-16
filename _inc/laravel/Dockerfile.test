@@ -1,0 +1,12 @@
+# Lightweight test layer on top of the production image
+FROM erp-prestech-app:latest
+
+# Add test files and PHPUnit config
+COPY tests/ /var/www/tests/
+COPY phpunit.xml /var/www/phpunit.xml
+
+# Install dev dependencies (phpunit, mockery, etc.)
+RUN composer install --dev --no-interaction --no-scripts \
+    && composer dump-autoload --optimize
+
+WORKDIR /var/www

@@ -8,9 +8,7 @@ _test*
 .DS_STORE
 .git/
 .github/
-tests/
 phpstan.neon
-phpunit.xml
 jest.config.cjs
 babel.config.cjs
 nginx/
