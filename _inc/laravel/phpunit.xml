@@ -171,10 +171,13 @@
             <directory suffix="Test.php">./tests/Feature/security/roleplay/white-hat/php</directory>
             <directory suffix="Test.php">./tests/Unit/security/roleplay/white-hat/php</directory>
         </testsuite>
+        <!-- Roleplay-BlackHat: intentionally gitignored (**/black-hat/), local-only -->
+        <!--
         <testsuite name="Roleplay-BlackHat">
             <directory suffix="Test.php">./tests/Feature/security/roleplay/black-hat/php</directory>
             <directory suffix="Test.php">./tests/Unit/security/roleplay/black-hat/php</directory>
         </testsuite>
+        -->
         <testsuite name="Roleplay-CISO">
             <directory suffix="Test.php">./tests/Feature/security/roleplay/ciso/php</directory>
             <directory suffix="Test.php">./tests/Unit/security/roleplay/ciso/php</directory>
