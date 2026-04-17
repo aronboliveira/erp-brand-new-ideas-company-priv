@@ -59,3 +59,44 @@ tsconfig.tsbuildinfo
 
 .deprecated/
 .deprecated/**
+
+# ─── Playwright / test artifacts ──────────────────────────────────────────────
+playwright-report/
+tests/e2e/test-results/
+tests/e2e/results.json
+tests/frontend/js/playwright-report/
+tests/frontend/js/test-results/
+
+# ─── PHPUnit / PHPStan caches ─────────────────────────────────────────────────
+.phpunit.result.cache
+storage/phpstan/
+
+# ─── Laravel runtime (sessions, compiled views, framework cache) ──────────────
+storage/framework/sessions/
+storage/framework/views/
+storage/framework/cache/
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+storage/logs/
+debug_paytabs.log
+
+# ─── Generated exports and uploads ───────────────────────────────────────────
+storage/exports/
+storage/uploads/
+
+# ─── Python bytecode ──────────────────────────────────────────────────────────
+**/__pycache__/
+*.pyc
+*.pyo
+
+# ─── Test output files ────────────────────────────────────────────────────────
+test_output.txt
+ut_out.txt
+ut_summary.txt
+git-status-inc-laravel.txt
+
+# ─── TypeScript build info ────────────────────────────────────────────────────
+tsconfig.tsbuildinfo
+
+# ─── IDE history ──────────────────────────────────────────────────────────────
+.history
