@@ -38,7 +38,7 @@ class CisoComplianceTest extends TestCase
         // Em Laravel testing, CSRF middleware pode ser bypassed pelo TestCase,
         // então POST sem token pode retornar 302 (redirect) ou 419
         $r = $this->post('/login', ['email' => 'test@test.com']);
-        $this->assertContains($r->getStatusCode(), [302, 419, 422],
+        $this->assertContains($r->getStatusCode(), [302, 419, 422, 429],
             '[CISO-CSRF] POST /login sem CSRF retornou status inesperado: ' . $r->getStatusCode());
     }
 

@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property string|\Illuminate\Support\Carbon|null $reconciled_at
  * @property string|null $status
+ * @method static \Illuminate\Database\Eloquent\Builder withoutEagerLoads()
  */
 class Revenue extends Model
 {

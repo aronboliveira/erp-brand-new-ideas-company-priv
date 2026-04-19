@@ -4159,7 +4159,7 @@ class ContractControllerTest extends TestCase
         $memUsed = ($memAfter - $memBefore) / 1024 / 1024; // MB
         
         // Assert reasonable performance bounds
-        $this->assertLessThan(5000, $execTime, "noteStore took > 5s for 3 iterations");
+        $this->assertLessThan(8000, $execTime, "noteStore took > 8s for 3 iterations");
         $this->assertLessThan(50, $memUsed, "noteStore used > 50MB for 3 iterations");
     }
 

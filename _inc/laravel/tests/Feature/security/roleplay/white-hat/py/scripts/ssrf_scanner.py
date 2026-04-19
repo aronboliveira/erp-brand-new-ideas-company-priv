@@ -36,7 +36,7 @@ SSRF_PAYLOADS = [
     "gopher://127.0.0.1:6379/_INFO",
 ]
 
-Injectable_PARAMS = ["url", "redirect", "callback", "next", "link", "src", "image", "file", "path"]
+INJECTABLE_PARAMS = ["url", "redirect", "callback", "next", "link", "src", "image", "file", "path"]
 
 INJECTABLE_ENDPOINTS = [
     "/api/fetch",

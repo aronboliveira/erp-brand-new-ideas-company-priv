@@ -108,7 +108,7 @@ class BackendDevEndpointTest extends TestCase
     {
         // Laravel TestCase pode bypass CSRF — verificar que não dá 500
         $r = $this->post('/login', ['email' => 'test@test.com']);
-        $this->assertContains($r->getStatusCode(), [302, 419, 422],
+        $this->assertContains($r->getStatusCode(), [302, 419, 422, 429],
             '[BACKEND-DEV] POST /login sem CSRF: ' . $r->getStatusCode());
     }
 

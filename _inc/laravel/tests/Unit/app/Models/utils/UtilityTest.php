@@ -104,6 +104,7 @@ class UtilityTest extends TestCase
 		config(['extends_base_table.sync_disabled' => true]);
 		\Illuminate\Database\Eloquent\Model::unguard();
 		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+		$this->seedChartOfAccountTypesAndSubTypes();
 		// Create a super-admin user for auth-based tests
 		// Use firstOrCreate to avoid duplicate entry errors when the DB
 		// already has this email (RefreshDatabase wraps in transactions but
@@ -149,6 +150,37 @@ class UtilityTest extends TestCase
 		unset($_ENV['THEME_COLOR'], $_SERVER['THEME_COLOR']);
 		Mockery::close();
 		parent::tearDown();
+	}
+
+	/**
+	 * Seed chart_of_account_types and chart_of_account_sub_types so that
+	 * ChartOfAccount::enforceTypeAndSubtypeConstraints() doesn't throw
+	 * "Invalid chart of account type" during tests.
+	 */
+	private function seedChartOfAccountTypesAndSubTypes(): void
+	{
+		$typeMap = [
+			CTC::TP_ASSETS      => CTC::AST,
+			CTC::TP_LIABILITIES => CTC::LBL,
+			CTC::TP_EQUITY      => CTC::EQT,
+			CTC::TP_INCOME      => CTC::ICM,
+			CTC::TP_COGS        => CTC::CGS,
+			CTC::TP_EXPENSES    => CTC::EXP,
+		];
+		foreach ($typeMap as $uuid => $shortName) {
+			DB::table('chart_of_account_types')->updateOrInsert(
+				['id' => $uuid],
+				['name' => CTC::COA_TPS[$shortName], 'created_at' => now(), 'updated_at' => now()]
+			);
+		}
+		foreach (CTC::COA_SBTPS as $typeUuid => $subtypes) {
+			foreach ($subtypes as $subUuid => $subName) {
+				DB::table('chart_of_account_sub_types')->updateOrInsert(
+					['id' => $subUuid],
+					['name' => $subName, 'type' => $typeUuid, 'created_at' => now(), 'updated_at' => now()]
+				);
+			}
+		}
 	}
 
 	/**
@@ -2205,7 +2237,9 @@ class UtilityTest extends TestCase
 		$wh = \App\Models\Warehouse::create(['name' => 'W3', 'zip' => '00003']);
 		$prod = \App\Models\ProductService::create(['sku' => 'SKU0006-' . uniqid(), 'type' => 'product', 'quantity' => 0]);
 		Utility::addWarehouseStock($prod->id, 10, $wh->id);
-		$rec = \App\Models\WarehouseProduct::first();
+		$rec = \App\Models\WarehouseProduct::where('product_id', $prod->id)
+			->where('warehouse_id', $wh->id)
+			->first();
 		$this->assertEquals(10, $rec->quantity);
 		Utility::addWarehouseStock($prod->id, 5, $wh->id);
 		$this->assertEquals(15, $rec->fresh()->quantity);
@@ -8717,8 +8751,11 @@ class UtilityTest extends TestCase
 		$user = User::factory()->create(['lang' => 'en', 'type' => 'company']);
 		$this->actingAs($user);
 
+		// Use unique slug to avoid collision with pre-seeded templates
+		$uniqueSlug = 'test-welcome-' . \Illuminate\Support\Str::random(8);
+
 		// Create an EmailTemplate and EmailTemplateLang
-		$template = EmailTemplate::create(['title' => 'welcome', 'from' => 'noreply@example.com']);
+		$template = EmailTemplate::create(['title' => $uniqueSlug, 'from' => 'noreply@example.com']);
 		EmailTemplateLang::create([
 			'subject' => 'Test',
 			'parent_id' => $template->id,
@@ -8726,7 +8763,7 @@ class UtilityTest extends TestCase
 			'content'   => 'Welcome {user_name}!'
 		]);
 		// Create UserEmailTemplate to be active
-		UserEmailTemplate::create([
+		$uet = UserEmailTemplate::create([
 			'template_id' => $template->id,
 			'user_id'     => $user?->creatorId(),
 			'is_active'   => 1
@@ -8745,7 +8782,7 @@ class UtilityTest extends TestCase
 
 		Mail::fake();
 
-		$response = Utility::sendEmailTemplate('welcome', ['user@example.com'], ['user_name' => 'Alice']);
+		$response = Utility::sendEmailTemplate($uniqueSlug, ['user@example.com'], ['user_name' => 'Alice']);
 		$this->assertTrue($response['is_success']);
 		Mail::assertSent(CommonEmailTemplate::class, function ($mail) {
 			return $mail->hasTo('user@example.com') &&
@@ -8756,7 +8793,8 @@ class UtilityTest extends TestCase
 		$user2 = User::factory()->create(['lang' => 'en']);
 		$this->actingAs($user2);
 		// Create template and activate for user2
-		$template2 = EmailTemplate::create(['title' => 'notify', 'from' => 'notify@test.com']);
+		$uniqueSlug2 = 'test-notify-' . \Illuminate\Support\Str::random(8);
+		$template2 = EmailTemplate::create(['title' => $uniqueSlug2, 'from' => 'notify@test.com']);
 		EmailTemplateLang::create([
 			'subject' => 'Test',
 			'parent_id' => $template2->id,
@@ -8781,7 +8819,7 @@ class UtilityTest extends TestCase
 		]);
 
 		Mail::fake();
-		$resp2 = Utility::sendUserEmailTemplate('notify', ['user2@example.com'], ['user_name' => 'Bob']);
+		$resp2 = Utility::sendUserEmailTemplate($template2->slug, ['user2@example.com'], ['user_name' => 'Bob']);
 		$this->assertTrue($resp2['is_success']);
 		Mail::assertSent(CommonEmailTemplate::class, function ($mail) {
 			return $mail->hasTo('user2@example.com') &&
@@ -9411,15 +9449,18 @@ class UtilityTest extends TestCase
 		Auth::login($companyUser);
 
 		// No template exists => should return error
-		$resp1 = Utility::sendEmailTemplate('nonexistent', ['to@example.com'], []);
+		$resp1 = Utility::sendEmailTemplate('nonexistent-' . \Illuminate\Support\Str::random(8), ['to@example.com'], []);
 		$this->assertFalse($resp1['is_success']);
 
+		// Use unique slugs to avoid collision with pre-seeded templates
+		$uniqueSlug = 'test-welcome-' . \Illuminate\Support\Str::random(8);
+
 		// Create EmailTemplate and EmailTemplateLang, but user email template inactive
-		$template = EmailTemplate::create(['title' => 'Welcome', 'from' => 'no-reply@example.com']);
+		$template = EmailTemplate::create(['title' => $uniqueSlug, 'from' => 'no-reply@example.com']);
 		EmailTemplateLang::create(['subject' => 'Test', 'parent_id' => $template->id, 'lang' => 'en', 'content' => 'Hello {user_name}']);
 		$inactive = UserEmailTemplate::create(['template_id' => $template->id, 'user_id' => $companyUser->creatorId(), 'is_active' => 0]);
 
-		$resp2 = Utility::sendEmailTemplate('Welcome', ['to@example.com'], ['user_name' => 'Alice']);
+		$resp2 = Utility::sendEmailTemplate($uniqueSlug, ['to@example.com'], ['user_name' => 'Alice']);
 		$this->assertTrue($resp2['is_success']);
 		$this->assertFalse($resp2['error']);
 
@@ -9427,7 +9468,7 @@ class UtilityTest extends TestCase
 		$inactive->is_active = 1;
 		$inactive->save();
 		EmailTemplateLang::where('parent_id', $template->id)->update(['content' => '']);
-		$resp3 = Utility::sendEmailTemplate('Welcome', ['to@example.com'], []);
+		$resp3 = Utility::sendEmailTemplate($uniqueSlug, ['to@example.com'], []);
 		$this->assertFalse($resp3['is_success']);
 
 		// Now test sendUserEmailTemplate for Super Admin path
@@ -9436,13 +9477,14 @@ class UtilityTest extends TestCase
 		Auth::login($super);
 
 		// No template => error
-		$resp4 = Utility::sendUserEmailTemplate('Missing', ['x@y.com'], []);
+		$resp4 = Utility::sendUserEmailTemplate('missing-' . \Illuminate\Support\Str::random(8), ['x@y.com'], []);
 		$this->assertFalse($resp4['is_success']);
 
 		// Create template and lang with content
-		EmailTemplate::create(['title' => 'Notify', 'from' => 'notify@example.com']);
+		$uniqueSlug3 = 'test-notify-' . \Illuminate\Support\Str::random(8);
+		EmailTemplate::create(['title' => $uniqueSlug3, 'from' => 'notify@example.com']);
 		EmailTemplateLang::create(['subject' => 'Test', 'parent_id' => $template->id, 'lang' => 'en', 'content' => 'World']);
-		$resp5 = Utility::sendUserEmailTemplate('Notify', ['x@y.com'], []);
+		$resp5 = Utility::sendUserEmailTemplate($uniqueSlug3, ['x@y.com'], []);
 		$this->assertTrue($resp5['is_success']);
 	}
 
@@ -11666,15 +11708,16 @@ class UtilityTest extends TestCase
 		$user = User::factory()->create(['lang' => 'en']);
 		Auth::login($user);
 
-		$template = EmailTemplate::create(['title' => 'UserTemp', 'from' => 'no-reply@test']);
+		$uniqueSlug = 'test-usertemp-' . \Illuminate\Support\Str::random(8);
+		$template = EmailTemplate::create(['title' => $uniqueSlug, 'from' => 'no-reply@test']);
 		// No UserEmailTemplate => should skip
-		$res1 = Utility::sendUserEmailTemplate('UserTemp', ['x@test'], []);
+		$res1 = Utility::sendUserEmailTemplate($template->slug, ['x@test'], []);
 		$this->assertTrue($res1['is_success']);
 		Mail::assertNothingSent();
 
 		// Create UserEmailTemplate inactive => still skip
 		UserEmailTemplate::create(['template_id' => $template->id, 'user_id' => $user?->creatorId(), 'is_active' => 0]);
-		$res2 = Utility::sendUserEmailTemplate($template->title, ['y@test'], []);
+		$res2 = Utility::sendUserEmailTemplate($template->slug, ['y@test'], []);
 		$this->assertTrue($res2['is_success']);
 		Mail::assertNothingSent();
 
@@ -11697,7 +11740,7 @@ class UtilityTest extends TestCase
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'from@test'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'Mailer']
 		]);
-		$res3 = Utility::sendUserEmailTemplate($template->title, ['z@test'], ['user_name' => 'EndUser']);
+		$res3 = Utility::sendUserEmailTemplate($template->slug, ['z@test'], ['user_name' => 'EndUser']);
 		$this->assertTrue($res3['is_success']);
 		Mail::assertSent(CommonEmailTemplate::class, function ($mail) {
 			return str_contains($mail->template->content, 'Hi EndUser');
@@ -12092,6 +12135,13 @@ class UtilityTest extends TestCase
 	public function it_creates_chart_of_account_data_without_subtype_lookup()
 	{
 		ChartOfAccount::query()->delete();
+		// Seed required ChartOfAccountType and ChartOfAccountSubType records
+		foreach (CTC::COA_SBTPS as $typeId => $subtypes) {
+			DB::table('chart_of_account_types')->updateOrInsert(['id' => $typeId], ['name' => $typeId, 'created_by' => DatabaseConstants::DEFAULT_UUID]);
+			foreach ($subtypes as $subId => $subName) {
+				DB::table('chart_of_account_sub_types')->updateOrInsert(['id' => $subId], ['name' => $subName, 'type' => $typeId, 'created_by' => DatabaseConstants::DEFAULT_UUID]);
+			}
+		}
 		$dummyUser = User::factory()->create();
 		Utility::chartOfAccountData($dummyUser);
 		// Static list has entries; verify first code exists
@@ -12997,6 +13047,13 @@ class UtilityTest extends TestCase
 	{
 		$user = User::factory()->create();
 		DB::table('chart_of_accounts')->delete();
+		// Seed required ChartOfAccountType and ChartOfAccountSubType records
+		foreach (CTC::COA_SBTPS as $typeId => $subtypes) {
+			DB::table('chart_of_account_types')->updateOrInsert(['id' => $typeId], ['name' => $typeId, 'created_by' => DatabaseConstants::DEFAULT_UUID]);
+			foreach ($subtypes as $subId => $subName) {
+				DB::table('chart_of_account_sub_types')->updateOrInsert(['id' => $subId], ['name' => $subName, 'type' => $typeId, 'created_by' => DatabaseConstants::DEFAULT_UUID]);
+			}
+		}
 		Utility::chartOfAccountData($user);
 		foreach (Utility::$chartOfAccount as $account) {
 			$model = ChartOfAccount::where('code', $account['code'])

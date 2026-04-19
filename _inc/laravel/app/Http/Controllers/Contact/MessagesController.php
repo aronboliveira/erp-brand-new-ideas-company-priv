@@ -138,7 +138,7 @@ class MessagesController extends Controller
         }, ['file' => $fileName]);
     }
 
-    public function send(Request $request): JsonResponse
+    public function send(Request $request): JsonResponse|RedirectResponse
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($request, $action) {
@@ -212,7 +212,7 @@ class MessagesController extends Controller
         }, ['uri' => $request->getRequestUri()]);
     }
 
-    public function fetch(Request $request): JsonResponse
+    public function fetch(Request $request): JsonResponse|RedirectResponse
     {
         $action = class_basename(static::class) . '@' . __FUNCTION__;
         return $this->measureProfile($action, function () use ($request, $action) {

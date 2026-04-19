@@ -66,7 +66,7 @@ class QaEdgeCaseTest extends TestCase
             'email'    => '',
             'password' => '',
         ]);
-        $this->assertContains($r->getStatusCode(), [302, 419, 422],
+        $this->assertContains($r->getStatusCode(), [302, 419, 422, 429],
             "[QA] Login com campos vazios retornou {$r->getStatusCode()}");
     }
 
@@ -76,7 +76,7 @@ class QaEdgeCaseTest extends TestCase
             'email'    => '   ',
             'password' => '   ',
         ]);
-        $this->assertContains($r->getStatusCode(), [302, 419, 422],
+        $this->assertContains($r->getStatusCode(), [302, 419, 422, 429],
             "[QA] Login com espaços retornou {$r->getStatusCode()}");
     }
 

@@ -31,8 +31,8 @@ class GreenHatSmokeTest extends TestCase
             'email'    => "' OR '1'='1",
             'password' => "' OR '1'='1",
         ]);
-        // 302 (redirect back) ou 419 (CSRF) — never 500
-        $this->assertContains($r->getStatusCode(), [302, 419, 422]);
+        // 302 (redirect back) ou 419 (CSRF) ou 429 (rate-limited) — never 500
+        $this->assertContains($r->getStatusCode(), [302, 419, 422, 429]);
     }
 
     public function test_login_com_admin_dash_dash(): void
@@ -41,7 +41,7 @@ class GreenHatSmokeTest extends TestCase
             'email'    => "admin'--",
             'password' => 'password',
         ]);
-        $this->assertContains($r->getStatusCode(), [302, 419, 422]);
+        $this->assertContains($r->getStatusCode(), [302, 419, 422, 429]);
     }
 
     /** @dataProvider classicPayloads */

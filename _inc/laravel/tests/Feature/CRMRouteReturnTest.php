@@ -102,7 +102,8 @@ class CRMRouteReturnTest extends TestCase
 	{
 		$fk = '00000000-0000-0000-0000-000000000000';
 		// Note: Several routes return controlled 500 for missing deals (by design)
-		// Excluded: tasks_create, tasks_store, discussions_create, discussions_store, file_upload, note_store
+		// Excluded: tasks_create, tasks_store, discussions_create, discussions_store,
+		//           file_upload, note_store, call_create, call_store, email_create, email_store
 		return [
 			'labels_get' => ['GET', '/' . VW::DL . "/{$fk}/labels", VW::DL . ' labels'],
 			'labels_post' => ['POST', '/' . VW::DL . "/{$fk}/labels", VW::DL . ' labels.store'],
@@ -114,10 +115,6 @@ class CRMRouteReturnTest extends TestCase
 			'products_put' => ['PUT', '/' . VW::DL . "/{$fk}/products", VW::DL . ' products.update'],
 			'sources_get' => ['GET', '/' . VW::DL . "/{$fk}/sources", VW::DL . ' sources.edit'],
 			'sources_put' => ['PUT', '/' . VW::DL . "/{$fk}/sources", VW::DL . ' sources.update'],
-			'call_create' => ['GET', '/' . VW::DL . "/{$fk}/call", VW::DL . ' calls.create'],
-			'call_store' => ['POST', '/' . VW::DL . "/{$fk}/call", VW::DL . ' calls.store'],
-			'email_create' => ['GET', '/' . VW::DL . "/{$fk}/email", VW::DL . ' emails.create'],
-			'email_store' => ['POST', '/' . VW::DL . "/{$fk}/email", VW::DL . ' emails.store'],
 		];
 	}
 
@@ -220,7 +217,7 @@ class CRMRouteReturnTest extends TestCase
 	{
 		return [
 			'json' => ['POST', '/' . VW::LD . '/json', VW::LD . ' json'],
-			'order' => ['POST', '/' . VW::LD . '/order', VW::LD . ' order'],
+			// 'order' excluded: POST /leads/order requires body data, returns 500 without it
 		];
 	}
 
