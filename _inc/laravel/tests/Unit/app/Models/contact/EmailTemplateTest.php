@@ -78,6 +78,8 @@ class EmailTemplateTest extends TestCase
 	 **/
 	public function email_template_data_returns_and_caches_first()
 	{
+		EmailTemplate::factory()->create();
+
 		$data1 = EmailTemplate::emailTemplateData();
 		$data2 = EmailTemplate::emailTemplateData();
 
