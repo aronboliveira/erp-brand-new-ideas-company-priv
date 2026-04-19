@@ -3,13 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module ship
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (function () {
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataBound = "data-shipping-bound", dataArmed = "data-shipping-error-armed";
     const qs = (s, r = document) => r.querySelector(s);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBS = () => !!(
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]'))) && !!window.bootstrap.Toast;
     const ensureToastContainer = () => {

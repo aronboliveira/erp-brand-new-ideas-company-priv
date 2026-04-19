@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module calendar
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     try {
         const selector = ".calendar-meeting-link", alias = "data-listening-calendarmeetingclick";

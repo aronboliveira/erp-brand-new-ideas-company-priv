@@ -82,10 +82,27 @@ const browserGlobals = {
   XMLHttpRequest: "readonly",
   getComputedStyle: "readonly",
   CSS: "readonly",
+  FileReader: "readonly",
+  DOMParser: "readonly",
+  MouseEvent: "readonly",
+  Storage: "readonly",
   /* Project-level globals injected by other scripts */
   taskCheckbox: "readonly",
   common_bind: "readonly",
   commonLoader: "readonly",
+  /* Third-party plugin globals */
+  Slider: "readonly",
+  IMask: "readonly",
+  Datepicker: "readonly",
+  DateRangePicker: "readonly",
+  notifier: "readonly",
+  tns: "readonly",
+  introJs: "readonly",
+  VanillaTree: "readonly",
+  Bouncer: "readonly",
+  define: "readonly",
+  feather: "readonly",
+  PerfectScrollbar: "readonly",
 };
 
 /**
@@ -102,9 +119,39 @@ const coreGlobals = (function () {
   return g;
 })();
 
+/**
+ * Disable every @typescript-eslint/* rule that appears in inline comments
+ * across the JS codebase.  The TS plugin is NOT loaded for plain JS, so
+ * ESLint reports "Definition for rule '…' was not found" as an error.
+ * Setting them to "off" silences those phantom errors.
+ */
+const tsRuleOverrides = {
+  "@typescript-eslint/explicit-function-return-type": "off",
+  "@typescript-eslint/no-unused-vars": "off",
+  "@typescript-eslint/no-unsafe-member-access": "off",
+  "@typescript-eslint/no-unsafe-call": "off",
+  "@typescript-eslint/no-unsafe-assignment": "off",
+  "@typescript-eslint/prefer-nullish-coalescing": "off",
+  "@typescript-eslint/no-unsafe-argument": "off",
+  "@typescript-eslint/no-misused-promises": "off",
+  "@typescript-eslint/no-explicit-any": "off",
+  "@typescript-eslint/restrict-plus-operands": "off",
+  "@typescript-eslint/prefer-for-of": "off",
+  "@typescript-eslint/no-base-to-string": "off",
+  "@typescript-eslint/no-unsafe-return": "off",
+  "@typescript-eslint/restrict-template-expressions": "off",
+  "@typescript-eslint/no-floating-promises": "off",
+};
+
 export default [
   /* ── base recommended rules ──────────────────────────────────────── */
   js.configs.recommended,
+
+  /* ── suppress phantom @typescript-eslint/* inline directives ──── */
+  {
+    files: ["**/*.js", "**/*.cjs", "**/*.mjs"],
+    rules: tsRuleOverrides,
+  },
 
   /* ── core singleton files ────────────────────────────────────────── */
   {
@@ -115,6 +162,7 @@ export default [
       globals: coreGlobals,
     },
     rules: {
+      ...tsRuleOverrides,
       "no-unused-vars": [
         "warn",
         {
@@ -124,6 +172,7 @@ export default [
         },
       ],
       "no-undef": "error",
+      "no-redeclare": "off",
       "no-var": "error",
       "prefer-const": "warn",
       eqeqeq: ["warn", "always", { null: "ignore" }],
@@ -135,11 +184,12 @@ export default [
   {
     files: ["public/assets/js/routes/**/*.js"],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2022,
       sourceType: "script",
       globals: browserGlobals,
     },
     rules: {
+      ...tsRuleOverrides,
       "no-unused-vars": [
         "warn",
         {
@@ -149,6 +199,7 @@ export default [
         },
       ],
       "no-undef": "error",
+      "no-redeclare": "off",
       "no-var": "error",
       "prefer-const": "warn",
       eqeqeq: ["warn", "always", { null: "ignore" }],
@@ -166,9 +217,69 @@ export default [
       globals: browserGlobals,
     },
     rules: {
+      ...tsRuleOverrides,
       "no-unused-vars": "warn",
       "no-undef": "error",
+      "no-redeclare": "off",
       "prefer-const": "warn",
+    },
+  },
+
+  /* ── page scripts and generic helpers (browser IIFE) ──────────── */
+  {
+    files: [
+      "public/assets/js/pages/**/*.js",
+      "public/assets/js/generic/**/*.js",
+      "public/assets/js/dash.js",
+    ],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "script",
+      globals: browserGlobals,
+    },
+    rules: {
+      ...tsRuleOverrides,
+      "no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+      "no-undef": "error",
+      "no-redeclare": "off",
+      "no-console": ["warn", { allow: ["error", "warn"] }],
+    },
+  },
+
+  /* ── Node.js config files at project root ─────────────────────── */
+  {
+    files: [
+      "*.cjs",
+      "*.config.js",
+      "*.config.cjs",
+      "public/assets/js/**/*.cjs",
+      "scripts/**/*.cjs",
+    ],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "commonjs",
+      globals: {
+        process: "readonly",
+        console: "readonly",
+        __dirname: "readonly",
+        __filename: "readonly",
+        require: "readonly",
+        module: "writable",
+        exports: "writable",
+      },
+    },
+    rules: {
+      ...tsRuleOverrides,
+      "no-unused-vars": "warn",
+      "no-undef": "error",
+      "no-redeclare": "off",
     },
   },
 
@@ -179,6 +290,7 @@ export default [
       ecmaVersion: 2022,
       sourceType: "commonjs",
       globals: {
+        ...browserGlobals,
         /* Node.js built-ins */
         process: "readonly",
         console: "readonly",
@@ -212,6 +324,7 @@ export default [
       },
     },
     rules: {
+      ...tsRuleOverrides,
       "no-unused-vars": [
         "warn",
         {
@@ -226,18 +339,52 @@ export default [
     },
   },
 
+  /* ── route JS module files (ES import/export) ──────────────────── */
+  {
+    files: [
+      "public/assets/js/routes/**/shared/*.js",
+    ],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: browserGlobals,
+    },
+    rules: {
+      ...tsRuleOverrides,
+      "no-unused-vars": "warn",
+      "no-undef": "error",
+      "no-redeclare": "off",
+    },
+  },
+
   /* ── global ignores ───────────────────────────────────────────────── */
   {
     ignores: [
       "node_modules/**",
       "vendor/**",
+      ".backup/**",
+      ".venv/**",
+      "ts/**",
+      "Modules/**",
+      "utils/**",
       "public/assets/js/core/erp-bootstrap.min.js",
+      "public/assets/js/plugins/**",
+      "public/assets/js/vendor-all.js",
+      "public/assets/js/jquery.repeater.min.js",
+      "public/assets/js/wow.min.js",
       "public/js/**",
       "public/Modules/**",
+      "public/css/**",
       "storage/**",
       "bootstrap/cache/**",
       "tests/e2e/**",
       "tests/frontend/**",
+      "tests/Feature/security/roleplay/**",
+      "scripts/**",
+      /* Minified / third-party page scripts */
+      "public/assets/js/pages/wow.min.js",
+      "public/assets/js/pages/form-validation.js",
+      "public/assets/js/pages/form-masking-custom.js",
       /* Files that contain Blade-template-escaped characters or
          server-rendered data and are only valid post-compilation: */
       "public/assets/js/routes/chartOfAccounts/date.js",

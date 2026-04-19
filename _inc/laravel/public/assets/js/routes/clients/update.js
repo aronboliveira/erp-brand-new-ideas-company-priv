@@ -11,7 +11,7 @@
         const guardMsg = f.getAttribute("data-guard-msg") ?? "Route unavailable", actionHref = f.getAttribute("data-action-href") ?? "";
         if (!f.getAttribute("action") && actionHref && actionHref !== "#")
             f.setAttribute("action", actionHref);
-        // eslint-disable-next-line no-inner-declarations
+         
         function toastOrAlert(msg) {
             try {
                 const hasBootstrap = !!window.bootstrap.Toast;

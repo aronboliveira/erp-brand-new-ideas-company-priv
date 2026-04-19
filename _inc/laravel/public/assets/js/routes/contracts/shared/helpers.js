@@ -10,8 +10,6 @@
  * Delegates to ERPGuard/ERPUtils singletons where possible.
  * @module contracts/shared/helpers
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function (global) {
     "use strict";
     // Avoid re-initialization
@@ -23,13 +21,10 @@
         : { guard: null };
     const ERR_FALLBACK = "# ERROR", DATA_CLIENT_LOCALIZED = "data-client-localized", DATA_GUARD_MSG = "data-guard-msg", DATA_SV_LOCALIZED = "data-sv-localized";
     /** @param {string} s @param {Element|Document} r @returns {Element|null} */
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const qs = (s, r = document) => r.querySelector(s);
     /** @param {string} s @param {Element|Document} r @returns {NodeList} */
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const qsa = (s, r = document) => r.querySelectorAll(s);
     /** Delegates to guard.hasBootstrap() */
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBootstrap = () => (guard ? guard.hasBootstrap() : false);
     /** Kept for backward-compat API; guard handles toasts internally */
     const ensureToastContainer = (id = "np-toast-container") => {
@@ -77,17 +72,13 @@
             alert(msg);
         }
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     /** Delegates to guard.getMsg() */
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getLocalizedMessage = (_el, key) => {
         if (guard)
             return guard.getMsg(key) || ERR_FALLBACK;
         return ERR_FALLBACK;
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     /** Resolves URL from element data-url/href. Delegates to guard.resolveUrl() */
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const verifyRouteFromElement = (el) => {
         if (guard)
             return guard.resolveUrl(el) ?? "";
@@ -97,10 +88,8 @@
         return url && url !== "#" ? url : href && href !== "#" ? href : "";
     };
     /** Verifies URL validity. Delegates to guard.isInvalidUrl() */
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const verifyRoute = (candidate) => guard ? !guard.isInvalidUrl(candidate) : !!(candidate && candidate !== "#");
     /** Delegates to guard.getCsrfToken() */
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getToken = () => guard
         ? guard.getCsrfToken()
         : (document
@@ -108,11 +97,9 @@
             ?.getAttribute("content") ?? "");
     /**
      * Checks if jQuery is available
-     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
      * @param {Function} onError - Callback on error
      * @returns {boolean}
      */
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const ensureJQuery = (onError) => {
         const $ = global.jQuery;
         if (!$?.fn) {
@@ -130,12 +117,10 @@
         return true;
     };
     /**
-     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
      * Checks if Dropzone is available
      * @param {Function} onError - Callback on error
      * @returns {boolean}
      */
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const ensureDropzone = (onError) => {
         if (!global.Dropzone) {
             try {
@@ -155,7 +140,6 @@
      * Checks if running on localhost
      * @returns {boolean}
      */
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const isLocalhost = () => global.location.hostname === "localhost" ||
         global.location.hostname === "127.0.0.1";
     /**

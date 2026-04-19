@@ -3,9 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module labels
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const $ = window.jQuery;
     if (!$) {
@@ -20,10 +17,7 @@
         return;
     }
     const ERR_FB = "# ERROR", DCL = "data-client-localized", DGM = "data-guard-msg", DSL = "data-sv-localized", DPL = "data-pointer-listener", FORM_ID = "leads-labels-form", MSG_KEY = "leads_labels_store_route_unavailable";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBootstrapCss = () => !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el) => {
         let msg = ERR_FB;
         if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true") {
@@ -101,18 +95,15 @@
         };
         handlersPointer.set(form, h);
         $btns.each(function () {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             $(this).on("pointerup", h);
         });
     };
     const unbindFormPointerGuard = (form) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const h = handlersPointer.get(form);
         if (h) {
             $(form)
                 .find('button[type="submit"], input[type="submit"]')
                 .each(function () {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 $(this).off("pointerup", h);
             });
             handlersPointer.delete(form);

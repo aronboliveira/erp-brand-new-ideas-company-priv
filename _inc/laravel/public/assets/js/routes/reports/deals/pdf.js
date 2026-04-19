@@ -3,9 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     const qs = (s, r = document) => r.querySelector(s);
@@ -89,9 +86,7 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, msgKey) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||
@@ -167,7 +162,6 @@
     };
     const check_theme = (color_val) => {
         $("#theme_color").prop("checked", false);
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         $('input[value="' + color_val + '"]').prop("checked", true);
     };
     window.check_theme = check_theme;
@@ -197,8 +191,6 @@
                 scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             window.html2pdf().set(opt).from(area).save();
         }
         catch (_) {

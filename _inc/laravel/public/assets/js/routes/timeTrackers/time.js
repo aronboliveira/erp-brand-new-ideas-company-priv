@@ -3,15 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module time
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-timeentry-error", dataInitGuard = "data-timeentry-initialized";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const qs = (s, r = document) => r.querySelector(s);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBootstrap = () => qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
     const ensureToastContainer = () => {
@@ -79,9 +74,7 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, msgKey) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||
@@ -136,17 +129,13 @@
         if (!$targets.length)
             return;
         $targets.each(function () {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const el = this;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             if ($(el).data("timeEntry"))
                 return;
             try {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 $(el).timeEntry({ show24Hours: true });
             }
             catch (_) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 scheduleClickError(getMsg(el, "time_unavailable"));
             }
         });

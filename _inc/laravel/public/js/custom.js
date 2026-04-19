@@ -8,7 +8,7 @@
  * @module custom
  */
 // @ts-nocheck
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-base-to-string, @typescript-eslint/no-floating-promises, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/restrict-plus-operands, no-var, prefer-const */
+
 /* global bootstrap, flatpickr, Swal, $, jQuery, simpleDatatables, Choices, jscolor, site_currency_symbol, site_currency_symbol_position */
 // PULL REQUEST START — Alteração customizada: remoção parcial de jQuery
 "use strict";

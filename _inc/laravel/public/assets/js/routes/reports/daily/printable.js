@@ -172,15 +172,12 @@
                     filename = input.value || filename;
             }
             if (typeof window.html2pdf !== "object" ||
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
                 typeof window.html2pdf().set !==
                     "function") {
                 showError("no_lib");
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call
             window.html2pdf()
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 .set({
                 margin: 0.3,
                 filename,
@@ -188,9 +185,7 @@
                 html2canvas: { scale: 4, dpi: 72, letterRendering: true },
                 jsPDF: { unit: "in", format: "a2" },
             })
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 .from(printable)
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 .save();
         }
         catch (e) {

@@ -4,7 +4,7 @@
  * @module buttons.html5
  */
 // @ts-nocheck
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/no-var-requires, no-control-regex, no-mixed-spaces-and-tabs, no-shadow-restricted-names, no-useless-escape, no-var, prefer-const */
+
 /* global $, jQuery */
 /*!
  * HTML5 export buttons for Buttons and DataTables.

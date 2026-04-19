@@ -13,7 +13,6 @@
                 if (img.getAttribute("data-listener-active") === "true")
                     return;
                 img.setAttribute("data-listener-active", "true");
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 img.addEventListener("click", async (e) => {
                     try {
                         e.preventDefault();
@@ -126,7 +125,7 @@
             }
         });
         // SECURITY: Safe HTML insertion helper
-        // eslint-disable-next-line no-inner-declarations
+         
         function safeSethtmlContent(el, html) {
             try {
                 // Use DOMParser to safely parse HTML, then clone nodes to prevent scripts

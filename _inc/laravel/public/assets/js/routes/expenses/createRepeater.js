@@ -3,14 +3,9 @@
  * @generated from original JavaScript - manual review recommended
  * @module createRepeater
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", langSessionKey = "erp-np-lang";
     let errorMessage = "";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getLocalizedMessage = (msgKey, el) => {
         let msg = errFb;
         if (el.getAttribute("data-sv-localized") === "true" ||

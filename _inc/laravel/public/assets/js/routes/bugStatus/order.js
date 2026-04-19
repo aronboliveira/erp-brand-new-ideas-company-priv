@@ -3,15 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module order
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const errFb = "# ERROR", guardMsgKey = "data-guard-msg", clientFlag = "data-client-localized", langKey = "erp-np-lang";
     let errorMessage = "";
     const translations = window
         .translations;
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function getLocalizedMessage(key, el) {
         let msg = errFb;
         if (el.getAttribute(clientFlag) === "true") {
@@ -100,8 +96,6 @@
                     .on("sortstop", function () {
                     try {
                         const order = [];
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                         this.querySelectorAll("li").forEach((li, idx) => {
                             order[idx] = li.getAttribute("data-id");
                         });
@@ -120,8 +114,6 @@
                         });
                     }
                     catch (e) {
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
                         errorMessage = getLocalizedMessage(e.message, el);
                     }
                 });

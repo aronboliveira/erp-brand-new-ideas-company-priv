@@ -4,7 +4,7 @@
  * @module ac-slider
  */
 "use strict";
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unused-vars, no-var */
+
 setTimeout(function () {
     // [ slider ]
     var slider = tns({

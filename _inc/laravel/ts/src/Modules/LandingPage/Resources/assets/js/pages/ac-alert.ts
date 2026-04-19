@@ -176,8 +176,9 @@ document.querySelector(".bs-ajex-req")?.addEventListener("click", function () {
     showCancelButton: true,
     confirmButtonText: "Look up",
     showLoaderOnConfirm: true,
-    preConfirm: (login: string) => {
-      return fetch(`//api.github.com/users/` + login)
+    preConfirm: (login: unknown) => {
+      const loginStr = login as string;
+      return fetch(`//api.github.com/users/` + loginStr)
         .then(response => {
           if (!response.ok) {
             throw new Error(response.statusText);

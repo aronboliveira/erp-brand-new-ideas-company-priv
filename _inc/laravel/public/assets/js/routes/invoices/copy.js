@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module copy
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     try {
         const selector = ".copy-invoice-link", alias = "data-listening-copyinvoiceclick";

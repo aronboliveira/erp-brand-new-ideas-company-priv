@@ -3,9 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module call
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const $ = window.jQuery;
     if (!$) {
@@ -20,10 +17,7 @@
         return;
     }
     const ERR_FB = "# ERROR", DCL = "data-client-localized", DGM = "data-guard-msg", DSL = "data-sv-localized", DLA = "data-listener-active", DPL = "data-pointer-listener", DMK = "data-msg-key";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBootstrapCss = () => !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, fallbackKey) => {
         let msg = ERR_FB;
         if (el.getAttribute(DSL) === "true" || el.getAttribute(DCL) === "true") {
@@ -121,17 +115,14 @@
         };
         handlersPointer.set(form, h);
         $btns.each(function () {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             $(this).on("pointerup", h);
         });
     };
     const unbindAnchorGuard = (el) => {
         if (!el)
             return;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const h = handlersClick.get(el);
         if (h) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             $(el).off("click", h);
             handlersClick.delete(el);
         }
@@ -140,13 +131,11 @@
     const unbindFormPointerGuard = (form) => {
         if (!form)
             return;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const h = handlersPointer.get(form);
         if (h) {
             $(form)
                 .find('button[type="submit"], input[type="submit"]')
                 .each(function () {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 $(this).off("pointerup", h);
             });
             handlersPointer.delete(form);

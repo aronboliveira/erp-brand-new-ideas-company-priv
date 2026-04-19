@@ -10,7 +10,7 @@
 // [ basic-Slider ]
 (function () {
   const slider = new Slider("#ex1", {
-    formatter: function (value: number): string {
+    formatter: function (value: number | [number, number]): string {
       return "Current value: " + String(value);
     },
   });
@@ -47,7 +47,7 @@
 // [ current-Slider ]
 (function () {
   const slider = new Slider("#ex6");
-  slider.on("slide", function (sliderValue: number): void {
+  slider.on("slide", function (sliderValue: number | [number, number]): void {
     const el = document.getElementById("ex6SliderVal");
     if (el) el.textContent = String(sliderValue);
   });
@@ -221,7 +221,7 @@
     ticks: [0, 1, 2, 3, 4],
     ticks_positions: [0, 30, 70, 90, 100],
     ticks_snap_bounds: 200,
-    formatter: function (value: number): string {
+    formatter: function (value: number | [number, number]): string {
       return "Current value: " + String(value);
     },
     ticks_tooltip: true,

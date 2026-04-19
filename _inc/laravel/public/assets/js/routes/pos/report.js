@@ -3,9 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module report
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const $ = window.jQuery;
     if (!$) {
@@ -20,11 +17,8 @@
         return;
     }
     const ERR_FB = "# ERROR", DCL = "data-client-localized", DGM = "data-guard-msg", DSL = "data-sv-localized", DLA = "data-listener-active", MSG_KEY = "pos_route_unavailable";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBootstrapCss = () => 
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el) => {
         let msg = ERR_FB;
         if (!el)
@@ -105,10 +99,8 @@
     const unbind = (el) => {
         if (!el)
             return;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const h = handlers.get(el);
         if (h) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             $(el).off("click", h);
             handlers.delete(el);
         }
@@ -172,7 +164,6 @@
                 if (!$t.length)
                     return;
                 $t.each(function () {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     $(this).attr("data-dt-init", "true").DataTable({ order: [] });
                 });
             }

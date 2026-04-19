@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module picker
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     const BS_LINK = 'link[href*="bootstrap"]', DATE_PICKER_CLASS = ".daterangepicker", DATE_PICKER_ATTR = "data-datepicker", _translations = {
         ar: { datepicker_unavailable: "فشل في تهيئة منتقي التاريخ" },

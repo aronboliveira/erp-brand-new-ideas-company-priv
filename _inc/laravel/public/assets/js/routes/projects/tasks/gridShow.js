@@ -3,8 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module gridShow
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     function toast(msg) {
         const m = msg ??
@@ -41,8 +39,6 @@
             alert(m);
         }
     }
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function disabledUrl(a) {
         const href = (a.getAttribute("href") ?? "").trim(), url = (a.getAttribute("data-url") || href || "").trim();
         if (!url || url === "#" || href === "#")
@@ -105,10 +101,8 @@
         });
         if (window.bootstrap &&
             document.querySelector('[data-bs-toggle="tooltip"]'))
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             [].slice
                 .call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 .forEach(function (el) {
                 window.bootstrap.Tooltip.getOrCreateInstance(el);
             });
@@ -117,7 +111,6 @@
         if (!("MutationObserver" in window))
             return;
         const mo = new MutationObserver(function (muts) {
-            // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (let i = 0; i < muts.length; i++) {
                 if (muts[i].addedNodes.length) {
                     bind();

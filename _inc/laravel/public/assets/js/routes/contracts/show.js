@@ -39,7 +39,7 @@
                 }
             };
         }
-        // eslint-disable-next-line no-inner-declarations
+         
         function guardByAction(formSelector, anchorSelector) {
             const forms = document.querySelectorAll(formSelector);
             Array.prototype.forEach.call(forms, function (f) {
@@ -56,7 +56,7 @@
                 }
             });
         }
-        // eslint-disable-next-line no-inner-declarations
+         
         function guardByHref(anchor) {
             if (!anchor)
                 return;
@@ -73,7 +73,7 @@
                 }
             }
         }
-        // eslint-disable-next-line no-inner-declarations
+         
         function _guardByDataUrl(anchor) {
             if (!anchor)
                 return;

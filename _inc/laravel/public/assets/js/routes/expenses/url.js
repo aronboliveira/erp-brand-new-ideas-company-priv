@@ -3,8 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module url
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const SUCCESS_KEY = "url_copy_success", ERROR_KEY = "url_copy_failed", ATTR_ACTIVE = "data-listener-active", SELECTOR = ".copy_link";
     const showError = (msg) => {
@@ -29,8 +27,6 @@
     const showSuccess = (msg) => {
         show_toastr("success", msg, "success");
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (key) => {
         let lang = (sessionStorage.getItem("erp-np-lang") ??
             document.documentElement.lang ??
@@ -64,7 +60,6 @@
             }
         };
         handlers.set(el, handler);
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         if (!el.getAttribute("data-listener-bound-click")) {
             el.setAttribute("data-listener-bound-click", "1");
             el.addEventListener("click", handler);
@@ -74,7 +69,6 @@
         if (![...els].some(el => document.body.contains(el))) {
             els.forEach((el) => {
                 const h = handlers.get(el);
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 if (h)
                     el.removeEventListener("click", h);
             });

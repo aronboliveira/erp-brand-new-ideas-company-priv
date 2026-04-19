@@ -4,7 +4,7 @@
  * @module form-masking-custom
  */
 "use strict";
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unused-vars, no-var */
+
 var regExpMask = IMask(document.querySelector(".date"), {
     mask: "00/00/0000",
 }), regExpMask = IMask(document.querySelector(".date2"), {

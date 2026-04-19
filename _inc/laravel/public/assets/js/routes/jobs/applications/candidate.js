@@ -4,9 +4,7 @@
  * @module candidate
  */
 (() => {
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const Q = (s) => document.querySelector(s);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const QA = (s) => Array.from(document.querySelectorAll(s)), DEFAULT_ROUTE_MSG = "Requested route is unavailable. Please contact technical support or your domain administrator.";
     const toast = (m) => {
         const txt = m || DEFAULT_ROUTE_MSG, hasBs = !!(document.querySelector('link[rel="stylesheet"][href*="bootstrap"]') &&

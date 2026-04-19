@@ -3,12 +3,8 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const qs = (s, r = document) => r.querySelector(s), errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", _dataSvLocalized = "data-sv-localized", dataErrGuard = "data-error-guard", dataListenerGuard = "data-listener-guard";
     if (!$) {
         try {
@@ -129,9 +125,7 @@
             }
         });
         mo.observe(document.body, { childList: true, subtree: true });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const _safeFloat = (v) => {
         const n = parseFloat(String(v));
         return Number.isFinite(n) ? n : 0;
@@ -162,8 +156,6 @@
                 showErrorNow(getMsg(el, "plugin_unavailable"));
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             window.html2pdf().set(opt).from(el).save();
         }
         catch (_) {

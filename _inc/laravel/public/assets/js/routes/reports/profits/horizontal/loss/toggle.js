@@ -3,16 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module toggle
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const qs = (s, r = document) => r.querySelector(s), errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const dataFilterGuard = "data-filter-guard";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute("data-sv-localized") === "true" ||

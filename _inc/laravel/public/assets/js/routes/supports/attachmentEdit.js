@@ -98,36 +98,25 @@
         const $img = $("#image");
         if ($input.length) {
             const onChange = function () {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
                 const file = this?.files?.[0];
                 if (!file || !$img.length) {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     guardOnce(this, "attachment_preview_unavailable");
                     return;
                 }
                 try {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
                     const prev = this.getAttribute("data-prev-url") ?? "";
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     const url = URL.createObjectURL(file);
                     $img.attr("src", url);
                     if (prev)
                         try {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                             URL.revokeObjectURL(prev);
                         }
                         catch (__err) {
                             console.error(`[attachmentEdit] Error:`, __err);
                         }
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                     this.setAttribute("data-prev-url", url);
                 }
                 catch {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     guardOnce(this, "attachment_preview_unavailable");
                 }
             };

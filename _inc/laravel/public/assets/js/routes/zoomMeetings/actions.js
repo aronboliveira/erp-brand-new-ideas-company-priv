@@ -3,16 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module actions
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     const errFb = "# ERROR", _dataClientLocalized = "data-client-localized", _dataGuardMsg = "data-guard-msg", _dataSvLocalized = "data-sv-localized", dataInit = "data-zoomdel-bound", dataErr = "data-zoomdel-error", ns = "._npZoomDel";
     const qs = (s, r = document) => r.querySelector(s);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBS = () => !!(
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]'))) && !!window.bootstrap.Toast;
     const ensureToastContainer = () => {
@@ -81,9 +76,7 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const localize = (el, key) => {
         const err = errFb, dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg";
         if (el.getAttribute("data-sv-localized") === "true" ||

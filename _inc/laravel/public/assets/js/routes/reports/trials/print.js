@@ -3,8 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module print
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const qs = (s, r = document) => r.querySelector(s);
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataErrGuard = "data-error-guard", dataPrintBound = "data-print-init-bound";
@@ -23,7 +21,6 @@
     };
     const showErrorNow = (message) => {
         const hasBsLink = 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         qs('link[rel="stylesheet"][href*="bootstrap"]') ||
             qs('link[href*="bootstrap"]');
         const hasBsToast = window.bootstrap.Toast;
@@ -79,9 +76,7 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, msgKey) => {
         const errFbL = errFb, dataClientLocalizedL = dataClientLocalized, dataGuardMsgL = dataGuardMsg;
         let msg = errFbL;

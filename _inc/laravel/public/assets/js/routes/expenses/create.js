@@ -4,8 +4,6 @@
  * @module create
  */
 // assets/js/routes/expenses/create.js
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     try {
         const qs = (s, r = document) => r.querySelector(s);
@@ -147,30 +145,23 @@
                 });
                 if (!res.ok)
                     throw new Error("Bad response");
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 const data = await res.json().catch(() => ({})), detail = qs(detailSel);
                 if (!detail)
                     return;
                 detail.replaceChildren();
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
                 const _serverMarkup = data?.html ?? "";
                 if (_serverMarkup) {
                     const _tmpl = document.createElement("template");
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                     _tmpl.innerHTML = _serverMarkup;
                     detail.append(_tmpl.content);
                 }
                 detail.classList.toggle("d-none", 
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                 !(data?.html && String(data.html).trim().length));
             }
             catch (err) {
                 console.error(`[create] Error:`, err);
             }
         };
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         const toNum = (v) => {
             const n = parseFloat(String(v).replace(/,/g, "").trim());
             return isFinite(n) ? n : 0;
@@ -191,8 +182,6 @@
                 }
                 if (row2) {
                     const accInput = qs(".accountAmount", row2), accCell = qs(".accountamount", row2), accVal = toNum(accInput?.value);
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
                     if (accCell)
                         accCell.textContent = accVal.toFixed(2);
                     totalAmount += accVal;
@@ -224,7 +213,6 @@
             }
             const itemSel = qs(".item", container);
             if (itemSel && once(itemSel, "data-item-bound")) {
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 itemSel.addEventListener("change", async () => {
                     const url = (itemSel.getAttribute("data-url") ?? "#").trim(), guard = itemSel.getAttribute("data-guard-msg") ?? "Endpoint unavailable.", id = itemSel.value, tbody = container.closest("tbody[data-repeater-item]");
                     if (!tbody || !id)
@@ -274,19 +262,16 @@
         const empSel = document.getElementById("employee"), cusSel = document.getElementById("customer"), venSel = document.getElementById("vendor");
         if (empSel && once(empSel, "data-bound"))
             if (!empSel.getAttribute("data-listener-bound-change")) {
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 empSel.setAttribute("data-listener-bound-change", "1");
                 empSel.addEventListener("change", () => fetchDetail(empSel, "#employee_detail"));
             }
         if (cusSel && once(cusSel, "data-bound"))
             if (!cusSel.getAttribute("data-listener-bound-change")) {
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 cusSel.setAttribute("data-listener-bound-change", "1");
                 cusSel.addEventListener("change", () => fetchDetail(cusSel, "#customer_detail"));
             }
         if (venSel && once(venSel, "data-bound"))
             if (!venSel.getAttribute("data-listener-bound-change")) {
-                // eslint-disable-next-line @typescript-eslint/no-misused-promises
                 venSel.setAttribute("data-listener-bound-change", "1");
                 venSel.addEventListener("change", () => fetchDetail(venSel, "#vendor_detail"));
             }

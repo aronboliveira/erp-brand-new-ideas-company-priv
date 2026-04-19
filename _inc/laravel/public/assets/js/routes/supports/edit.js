@@ -55,9 +55,7 @@
                         if (window.location.hostname === "localhost" ||
                             window.location.hostname === "127.0.0.1")
                             console.error("[assets/js/routes/supports/edit.js] Bootstrap toast instantiation error:", 
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                             err?.constructor?.name ?? "Error", 
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                             err?.message ?? "Unknown error");
                         alert(msg);
                     }
@@ -71,9 +69,7 @@
                 if (window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1")
                     console.error("[assets/js/routes/supports/edit.js] Submit handler error:", 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.constructor?.name ?? "Error", 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.message ?? "Unknown error");
             }
         });
@@ -82,9 +78,7 @@
         if (window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1")
             console.error("[assets/js/routes/supports/edit.js] Initialization error:", 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             error?.constructor?.name ?? "Error", 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             error?.message ?? "Unknown error");
     }
 })();

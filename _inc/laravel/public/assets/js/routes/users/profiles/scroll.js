@@ -3,17 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module scroll
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataBindGuard = "data-scrollspy-bound", dataClickGuard = "data-listgroup-click-bound", dataErrGuard = "data-scrollspy-error";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const qs = (s, r = document) => r.querySelector(s);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBS = () => !!(
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]'))) && !!window.bootstrap.Toast;
     const ensureToast = () => {
@@ -81,9 +75,7 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||
@@ -139,10 +131,8 @@
             if (!document.body.contains(target))
                 o.disconnect();
         });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         mo.observe(document.body, { childList: true, subtree: true });
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const bindListClicks = () => {
         const root = document.body;
         if (root.getAttribute(dataClickGuard) === "true")
@@ -162,9 +152,6 @@
         const ns = ".lgitem";
         $(document).on("click" + ns, ".list-group-item", function () {
             try {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
                 const href = this.getAttribute("href") ?? "";
                 const $all = $(".list-group-item");
                 if ($all.length)

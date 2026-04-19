@@ -3,14 +3,9 @@
  * @generated from original JavaScript - manual review recommended
  * @module convert
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const L1 = "data-client-toggle-listener", L2 = "data-guard-listener", DCL = "data-client-localized", DGM = "data-guard-msg", DSL = "data-sv-localized";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const ERR = "# ERROR";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function hasBootstrapCss() {
         try {
             return !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
@@ -49,10 +44,8 @@
         }
         catch (_) {
             alert(msg);
-            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         }
     }
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function getMsg(el, key) {
         try {
             let msg = ERR;
@@ -120,7 +113,6 @@
                 .off("click.convertDeal")
                 .on("click.convertDeal", function () {
                 try {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     toggleBlocks(this.value === "exist");
                 }
                 catch (_) {

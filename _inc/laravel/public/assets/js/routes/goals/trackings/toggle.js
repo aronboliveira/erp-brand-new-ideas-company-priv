@@ -3,13 +3,8 @@
  * @generated from original JavaScript - manual review recommended
  * @module toggle
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const errFb = "# ERROR", dataClientLoc = "data-client-localized", dataGuardMsg = "data-guard-msg";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function getLocalizedMessage(el, key) {
         let msg = errFb;
         if (el.getAttribute(dataClientLoc) === "true") {
@@ -33,9 +28,7 @@
             }
         }
         return msg;
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     }
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function showError(msg) {
         const bsLink = document.querySelector("link[href*='bootstrap']");
         if (bsLink && window.bootstrap.Toast) {
@@ -68,13 +61,8 @@
     document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll(".toggleswitch").forEach((el) => {
             try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
                 if (typeof $(el).bootstrapToggle !== "function")
                     throw new Error("bootstrapToggle missing");
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call
                 $(el).bootstrapToggle();
             }
             catch {

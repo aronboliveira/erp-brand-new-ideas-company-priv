@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     const toast = (msg) => {
         try {

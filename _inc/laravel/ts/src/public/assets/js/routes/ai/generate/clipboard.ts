@@ -60,7 +60,7 @@
           toast(okMsg);
         }
       } catch (err) {
-        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("[assets/js/routes/aiTemplates/clipboard.js] Copy error:", err?.constructor?.name ?? "Error", err?.message ?? "Unknown error");
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("[assets/js/routes/aiTemplates/clipboard.js] Copy error:", err?.constructor?.name ?? "Error", (err as Error)?.message ?? "Unknown error");
         toast(errMsg);
       }
     };
@@ -74,7 +74,7 @@
           const err = desc.getAttribute("data-copy-err-msg") ?? "Copy failed. Please try again.";
           doCopy((desc as HTMLTextAreaElement).value ?? "", ok, err);
         } catch (err2) {
-          if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("[assets/js/routes/aiTemplates/clipboard.js] Copy-all click error:", err2?.constructor?.name ?? "Error", err2?.message ?? "Unknown error");
+          if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("[assets/js/routes/aiTemplates/clipboard.js] Copy-all click error:", err2?.constructor?.name ?? "Error", (err2 as Error)?.message ?? "Unknown error");
         }
       });
     }
@@ -91,11 +91,11 @@
           const err = desc.getAttribute("data-copy-err-msg") ?? "Copy failed. Please try again.";
           doCopy(selected, ok, err);
         } catch (err2) {
-          if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("[assets/js/routes/aiTemplates/clipboard.js] Copy-selected click error:", err2?.constructor?.name ?? "Error", err2?.message ?? "Unknown error");
+          if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("[assets/js/routes/aiTemplates/clipboard.js] Copy-selected click error:", err2?.constructor?.name ?? "Error", (err2 as Error)?.message ?? "Unknown error");
         }
       });
     }
   } catch (error) {
-    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("[assets/js/routes/aiTemplates/clipboard.js] Initialization error:", error?.constructor?.name ?? "Error", error?.message ?? "Unknown error");
+    if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("[assets/js/routes/aiTemplates/clipboard.js] Initialization error:", error?.constructor?.name ?? "Error", (error as Error)?.message ?? "Unknown error");
   }
 })();

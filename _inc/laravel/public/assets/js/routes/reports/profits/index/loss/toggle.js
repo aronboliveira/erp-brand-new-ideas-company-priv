@@ -3,12 +3,8 @@
  * @generated from original JavaScript - manual review recommended
  * @module toggle
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const qs = (s, r = document) => r.querySelector(s), errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-error-guard", dataFilterGuard = "data-filter-guard";
     const ensureToastContainer = () => {
         const id = "np-toast-container", existing = qs("#" + id);
@@ -78,9 +74,7 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||

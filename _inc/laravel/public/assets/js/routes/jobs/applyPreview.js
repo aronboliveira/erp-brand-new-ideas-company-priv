@@ -3,12 +3,8 @@
  * @generated from original JavaScript - manual review recommended
  * @module applyPreview
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     try {
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         const safeURL = (file) => {
             try {
                 return URL.createObjectURL(file);

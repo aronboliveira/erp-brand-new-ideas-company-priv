@@ -5,7 +5,7 @@
  */
 // @ts-nocheck
 "use strict";
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+
 // [ html-demo ]
 const main = document.querySelector("#tree-demo"), info = document.querySelector("#tree-msg");
 const tree = new VanillaTree(main, {

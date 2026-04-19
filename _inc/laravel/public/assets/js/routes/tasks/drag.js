@@ -3,9 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module drag
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     if (!$) {
@@ -82,7 +79,6 @@
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||
@@ -107,10 +103,8 @@
                 el.setAttribute(dataClientLocalized, "true");
             }
         }
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         return msg;
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const resolveUrl = (el, explicit) => {
         const url = el.getAttribute("data-url") ?? "", href = el
             ? el.tagName === "FORM"
@@ -166,11 +160,9 @@
             },
             error: function () {
                 scheduleInteractiveError(getMsg(elForMsg ?? document.body, msgKey ?? "ajax_unavailable"));
-                // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
             },
         });
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const initDragula = () => {
         if (!window.dragula) {
             try {
@@ -190,7 +182,6 @@
             const containers = $host.data("containers");
             const nodes = [];
             if (containers?.length) {
-                // eslint-disable-next-line @typescript-eslint/prefer-for-of
                 for (let i = 0; i < containers.length; i++) {
                     const n = document.getElementById(containers[i]);
                     if (n)
@@ -355,14 +346,10 @@
                             " alt='" +
                             (user?.name ? user.name : "") +
                             "'></a></div><div class='col ml-n2'><p class='d-block h6 text-sm font-weight-light mb-0 text-break'>" +
-                            // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                             (d.comment ?? "") +
                             "</p><small class='d-block'>" +
                             now +
                             "</small></div><div class='col-auto'><a href='#' class='delete-comment' data-url='" +
-                            // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                             (d.deleteUrl ?? "") +
                             "'><i class='ti ti-trash-alt text-danger'></i></a></div></div></div>";
                         $("#comments").prepend(html);
@@ -421,28 +408,16 @@
                     try {
                         const d = (typeof data === "string" ? JSON.parse(data) : data);
                         const html = '<div class="card border shadow-none checklist-member"><div class="px-3 py-2 row align-items-center"><div class="col-10"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="check-item-' +
-                            // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                             (d.id ?? "") +
                             '" value="' +
-                            // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                             (d.id ?? "") +
                             '" data-url="' +
-                            // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                             (d.updateUrl ?? "") +
                             '"><label class="custom-control-label h6 text-sm" for="check-item-' +
-                            // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                             (d.id ?? "") +
                             '">' +
-                            // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                             (d.name ?? "") +
                             "</label></div></div><div class='col-auto card-meta d-inline-flex align-items-center ml-sm-auto'><a href='#' class='action-item delete-checklist' role='button' data-url='" +
-                            // eslint-disable-next-line @typescript-eslint/no-base-to-string
-                            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
                             (d.deleteUrl ?? "") +
                             "'><i class='ti ti-trash-alt text-danger'></i></a></div></div></div>";
                         $("#checklist").append(html);

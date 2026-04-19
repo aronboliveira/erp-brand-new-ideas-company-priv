@@ -98,7 +98,6 @@
                             if (yes) {
                                 // SECURITY: Safe handler dispatch instead of new Function()
                                 const handlers = window.__confirmHandlers;
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 handlers?.[yes]?.() || safeFormAction(yes, yesBtn);
                             }
                         }
@@ -117,7 +116,6 @@
                             if (yes) {
                                 // SECURITY: Safe handler dispatch instead of new Function()
                                 const handlers = window.__confirmHandlers;
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 handlers?.[yes]?.() || safeFormAction(yes, document.body);
                             }
                         }
@@ -131,7 +129,6 @@
     }
     // SECURITY: Safe fallback for confirm handlers instead of new Function()
     function safeFormAction(actionStr, 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _element) {
         if (!actionStr)
             return;

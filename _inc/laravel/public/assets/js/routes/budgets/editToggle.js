@@ -3,12 +3,8 @@
  * @generated from original JavaScript - manual review recommended
  * @module editToggle
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", langKey = "erp-np-lang";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function getLocalizedMessage(key, el) {
         let msg = errFb;
         if (el.getAttribute(dataClientLocalized) === "true") {
@@ -93,7 +89,6 @@
                 if ($el.data("listener-income") === true)
                     return;
                 $el.data("listener-income", true);
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const handler = (_e) => {
                     try {
                         const $row = $el.closest("tr");
@@ -107,14 +102,10 @@
                         let mTotal = 0;
                         $row
                             .parent()
-                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                            // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
                             .find(`.${month}_income`)
                             .each((_i, inp) => {
                             mTotal += parseFloat(String($(inp).val() ?? "")) || 0;
                         });
-                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                        // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
                         $row.parent().find(`.${month}_total_income`).text(String(mTotal));
                         let grand = 0;
                         $row
@@ -149,7 +140,6 @@
                 if ($el.data("listener-expense") === true)
                     return;
                 $el.data("listener-expense", true);
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const handler = (_e) => {
                     try {
                         const $row = $el.closest("tr");
@@ -162,14 +152,10 @@
                         let mTotal = 0;
                         $row
                             .parent()
-                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                            // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
                             .find(`.${month}_expense`)
                             .each((_i, inp) => {
                             mTotal += parseFloat(String($(inp).val() ?? "")) || 0;
                         });
-                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                        // eslint-disable-next-line @typescript-eslint/no-base-to-string, @typescript-eslint/restrict-template-expressions
                         $row.parent().find(`.${month}_total_expense`).text(String(mTotal));
                         let grand = 0;
                         $row
@@ -204,12 +190,10 @@
                 if ($el.data("listener-period") === true)
                     return;
                 $el.data("listener-period", true);
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const handler = (_e) => {
                     try {
                         const val = $el.val() ?? "";
                         $(".budget_plan").addClass("d-none");
-                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                         $(`#${val}`).removeClass("d-none").addClass("d-block");
                     }
                     catch {

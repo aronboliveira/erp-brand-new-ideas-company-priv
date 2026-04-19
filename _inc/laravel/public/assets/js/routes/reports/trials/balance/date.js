@@ -3,10 +3,8 @@
  * @generated from original JavaScript - manual review recommended
  * @module date
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (function () {
     const $ = window.jQuery;
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const qs = (s, r = document) => r.querySelector(s), errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-error-guard", dataInitGuard = "data-date-sync-init", dataListenerGuard = "data-date-sync-listener";
     if (!$) {
         try {

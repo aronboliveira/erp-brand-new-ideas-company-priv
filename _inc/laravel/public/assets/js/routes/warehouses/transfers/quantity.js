@@ -3,15 +3,10 @@
  * @generated from original JavaScript - manual review recommended
  * @module quantity
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-warehouse-error", dataBindGuard = "data-warehouse-bound", ns = "._npWarehouse", qs = (s, r = document) => r.querySelector(s);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBootstrap = () => !!(
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]'))) && !!window.bootstrap.Toast;
     const ensureToastContainer = () => {
@@ -79,9 +74,7 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||
@@ -147,7 +140,6 @@
         if (placeholder)
             $sel.append(`<option value="">${placeholder}</option>`);
         Object.entries(entries).forEach(([key, value]) => {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             $sel.append(`<option value="${key}">${value}</option>`);
         });
     };
@@ -173,7 +165,6 @@
                     if ($to.length && data.to_warehouses) {
                         $to.empty();
                         Object.entries(data.to_warehouses).forEach(([key, value]) => {
-                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             $to.append(`<option value="${key}">${value}</option>`);
                         });
                     }
@@ -213,12 +204,10 @@
             return;
         host.setAttribute(dataBindGuard, "true");
         $(document).on("change" + ns, 'select[name="from_warehouse"]', function () {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const v = String($(this).val() ?? "");
             getProduct(v);
         });
         $(document).on("change" + ns, "#product_id", function () {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const pid = String($(this).val() ?? ""), wid = String($("#warehouse_id").val() ?? "");
             getQuantity(pid, wid);
         });

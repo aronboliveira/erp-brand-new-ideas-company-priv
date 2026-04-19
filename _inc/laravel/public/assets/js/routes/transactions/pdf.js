@@ -3,17 +3,11 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-pdf-error";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const qs = (s, r = document) => r.querySelector(s);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBootstrap = () => !!(
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]'))) && !!window.bootstrap.Toast;
     const ensureToastContainer = () => {
@@ -84,9 +78,7 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||
@@ -153,9 +145,6 @@
             jsPDF: { unit: "in", format: "A4" },
         };
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call
             window.html2pdf().set(opt).from(area).save();
         }
         catch (_) {
@@ -164,7 +153,6 @@
     };
     if (!window.saveAsPDF)
         window.saveAsPDF = function () {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             doSave(document.body);
         };
 })();

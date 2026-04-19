@@ -70,9 +70,7 @@
                 if (window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1")
                     console.error("[assets/js/routes/aiGrammar/clipboard.js] Copy error:", 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.constructor?.name ?? "Error", 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.message ?? "Unknown error");
                 toast(errMsg);
             }
@@ -91,9 +89,7 @@
                     if (window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1")
                         console.error("[assets/js/routes/aiGrammar/clipboard.js] Click handler error:", 
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                         err2?.constructor?.name ?? "Error", 
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                         err2?.message ?? "Unknown error");
                 }
             });
@@ -103,9 +99,7 @@
         if (window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1")
             console.error("[assets/js/routes/aiGrammar/clipboard.js] Initialization error:", 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             error?.constructor?.name ?? "Error", 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             error?.message ?? "Unknown error");
     }
 })();

@@ -3,7 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module show
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     try {
         const selector = ".show-invoice-link", alias = "data-listening-showinvoiceclick";

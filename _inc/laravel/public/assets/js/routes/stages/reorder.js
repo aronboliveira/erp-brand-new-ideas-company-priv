@@ -3,9 +3,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module reorder
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     const qs = (s, r = document) => r.querySelector(s);
@@ -80,8 +77,6 @@
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||

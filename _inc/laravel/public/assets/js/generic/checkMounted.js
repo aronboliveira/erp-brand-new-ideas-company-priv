@@ -3,7 +3,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module checkMounted
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars */
+
 /* global bootstrap, $, jQuery */
 (() => {
     const checkMounted = () => {

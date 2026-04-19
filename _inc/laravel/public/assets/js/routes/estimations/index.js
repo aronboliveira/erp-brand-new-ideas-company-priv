@@ -3,12 +3,8 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     try {
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         const once = (el, attr) => {
             if (!el)
                 return false;
