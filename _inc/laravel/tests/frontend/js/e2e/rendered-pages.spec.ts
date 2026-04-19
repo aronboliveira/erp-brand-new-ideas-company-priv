@@ -9,7 +9,7 @@
  *
  * Served by http-server on port 3847 (playwright-frontend.config.cjs).
  */
-const { test, expect } = require("@playwright/test");
+import { test, expect } from "@playwright/test";
 
 const BASE = "http://localhost:3847/mocks/rendered";
 

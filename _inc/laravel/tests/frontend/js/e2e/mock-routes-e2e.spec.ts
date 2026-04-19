@@ -11,7 +11,10 @@
 import { test, expect } from "@playwright/test";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const MOCKS_DIR = path.resolve(__dirname, "..", "pages", "mocks");
 
 /** Get list of category HTML files */
