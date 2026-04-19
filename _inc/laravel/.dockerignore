@@ -21,6 +21,7 @@ storage/debugbar/
 storage/phpstan/
 storage/framework/cache/
 storage/framework/sessions/
+storage/framework/testing/
 storage/framework/views/
 .env
 .env.example

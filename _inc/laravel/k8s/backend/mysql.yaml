@@ -32,6 +32,11 @@ spec:
             containers:
                 - name: mysql
                   image: mysql:8.0
+                  args:
+                      - "--innodb-doublewrite=0"
+                      - "--innodb-flush-log-at-trx-commit=0"
+                      - "--sync-binlog=0"
+                      - "--innodb-flush-method=nosync"
                   ports:
                       - containerPort: 3306
                         name: mysql
@@ -46,11 +51,11 @@ spec:
                         value: "test"
                   resources:
                       requests:
-                          memory: "256Mi"
-                          cpu: "100m"
-                      limits:
-                          memory: "1Gi"
+                          memory: "512Mi"
                           cpu: "500m"
+                      limits:
+                          memory: "2Gi"
+                          cpu: "2000m"
                   volumeMounts:
                       - name: mysql-storage
                         mountPath: /var/lib/mysql
@@ -85,7 +90,9 @@ spec:
                       timeoutSeconds: 5
             volumes:
                 - name: mysql-storage
-                  emptyDir: {}
+                  emptyDir:
+                      medium: Memory
+                      sizeLimit: 1Gi
 
 ---
 apiVersion: v1

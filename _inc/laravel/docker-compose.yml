@@ -32,6 +32,12 @@ services:
             DB_HOST: db
             REDIS_HOST: redis
             SESSION_SECURE_COOKIE: "false"
+        healthcheck:
+            test: ["CMD-SHELL", "php-fpm-healthcheck 2>/dev/null || kill -0 1"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 15s
         depends_on:
             db:
                 condition: service_healthy

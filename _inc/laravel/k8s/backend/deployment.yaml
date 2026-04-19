@@ -22,14 +22,14 @@ spec:
                 app: erp-backend
         spec:
             initContainers:
-                # Copia o código da aplicação para volume compartilhado com nginx
-                - name: copy-app-code
+                # Copia somente public/ (assets estáticos) para volume compartilhado com nginx
+                - name: copy-public
                   image: erp-prestech-app:latest
                   imagePullPolicy: Never
-                  command: ["/bin/sh", "-c", "cp -r /var/www/. /shared/www/"]
+                  command: ["/bin/sh", "-c", "cp -a /var/www/public/. /shared/public/"]
                   volumeMounts:
-                      - name: app-code
-                        mountPath: /shared/www
+                      - name: public-assets
+                        mountPath: /shared/public
             containers:
                 # ── PHP-FPM Application Container ──────────────────────────────────
                 - name: php-fpm
@@ -51,9 +51,7 @@ spec:
                       limits:
                           memory: "1Gi"
                           cpu: "500m"
-                  volumeMounts:
-                      - name: app-code
-                        mountPath: /var/www
+                  # PHP-FPM uses /var/www from the image directly (no volume overlay)
                   readinessProbe:
                       tcpSocket:
                           port: 9000
@@ -75,8 +73,8 @@ spec:
                       - name: nginx-config
                         mountPath: /etc/nginx/conf.d/default.conf
                         subPath: default.conf
-                      - name: app-code
-                        mountPath: /var/www
+                      - name: public-assets
+                        mountPath: /var/www/public
                   resources:
                       requests:
                           memory: "64Mi"
@@ -101,8 +99,9 @@ spec:
                 - name: nginx-config
                   configMap:
                       name: nginx-config
-                - name: app-code
-                  emptyDir: {}
+                - name: public-assets
+                  emptyDir:
+                      medium: Memory
 
 ---
 apiVersion: v1

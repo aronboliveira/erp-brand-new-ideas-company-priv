@@ -41,6 +41,12 @@ data:
             client_max_body_size   100M;
             fastcgi_read_timeout   120s;
 
+            location /health {
+                access_log off;
+                return 200 'ok';
+                add_header Content-Type text/plain;
+            }
+
             location / {
                 try_files $uri $uri/ /index.php?$query_string;
             }
