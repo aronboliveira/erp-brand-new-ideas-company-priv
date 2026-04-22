@@ -203,7 +203,7 @@
         fragment.appendChild(node.cloneNode(true));
       }
       el.appendChild(fragment);
-    } catch (e) {
+    } catch (_e) {
       el.textContent = html;
     }
   }

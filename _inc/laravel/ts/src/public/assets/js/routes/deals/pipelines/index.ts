@@ -105,7 +105,7 @@
         const form = document.getElementById("change-pipeline");
         if (!form) throw new Error("pipeline_change_failed");
         (form as HTMLFormElement).submit();
-      } catch (e) {
+      } catch (_e) {
         errorMessage = getMsg("pipeline_change_failed", sel);
       }
     };

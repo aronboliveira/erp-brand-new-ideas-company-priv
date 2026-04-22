@@ -34,7 +34,7 @@
                         body.textContent = msg;
                     new window.bootstrap.Toast(t, { delay: 4000 }).show();
                 }
-                catch (e) {
+                catch (_e) {
                     alert(msg);
                 }
             };

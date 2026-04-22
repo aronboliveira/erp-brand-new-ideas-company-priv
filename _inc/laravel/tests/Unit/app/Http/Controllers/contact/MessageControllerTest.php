@@ -26,7 +26,7 @@ class MessageControllerTest extends TestCase
 	 **/
 	public function test_pusher_auth_rejects_guests()
 	{
-		$response = $this->post('/chats/chats/auth', [
+		$response = $this->post('/chats/chat/auth', [
 			'channel_name' => 'private-channel',
 			'socket_id'    => '123.456',
 		]);

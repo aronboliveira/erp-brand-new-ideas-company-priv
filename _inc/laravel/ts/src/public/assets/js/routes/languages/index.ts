@@ -77,7 +77,7 @@
           .querySelector('meta[name="csrf-token"]')
           ?.getAttribute("content") ??
         "";
-      if (!token) console.info("CSRF token missing");
+      if (!token) console.warn("CSRF token missing");
       $.ajax({
         type: "POST",
         url: requestUrl,

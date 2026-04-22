@@ -66,7 +66,7 @@
                     ?.getAttribute("content") ??
                 "";
             if (!token)
-                console.info("CSRF token missing");
+                console.warn("CSRF token missing");
             $.ajax({
                 type: "POST",
                 url: requestUrl,

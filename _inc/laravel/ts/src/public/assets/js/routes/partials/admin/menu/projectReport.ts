@@ -5,7 +5,7 @@
  */
 
 ((): void => {
-  console.info("Loaded: projectReport.js");
+  console.warn("Loaded: projectReport.js");
   const listenerAttr = "data-project-report-index-listener-active",
     el = document.getElementById("project-report-index-link");
   if (!el || el.getAttribute(listenerAttr) === "true") return;

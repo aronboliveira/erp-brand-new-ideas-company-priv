@@ -3,7 +3,7 @@
  * @generated from original JavaScript — automated migration
  * @module clipboard
  */
-function copyToClipboard(element) {
+function _copyToClipboard(element) {
     const copyText = element.id;
     navigator.clipboard.writeText(copyText);
     // document.addEventListener('copy', function (e) {

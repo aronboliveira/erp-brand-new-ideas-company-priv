@@ -94,7 +94,7 @@
                     throw new Error("pipeline_change_failed");
                 form.submit();
             }
-            catch (e) {
+            catch (_e) {
                 errorMessage = getMsg("pipeline_change_failed", sel);
             }
         };

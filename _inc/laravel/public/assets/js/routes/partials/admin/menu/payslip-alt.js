@@ -52,9 +52,9 @@
                 }
                 l.setAttribute("data-failed-route", "true");
             }
-            catch (err) { }
+            catch (_err) { }
         });
     }
-    catch (err) { }
+    catch (_err) { }
 })();
 //# sourceMappingURL=payslip-alt.js.map
