@@ -31,7 +31,7 @@
             document.body.appendChild(container);
           }
           if (bootstrapLink && window.bootstrap) {
-            console.info(container);
+            console.warn(container);
             const toastEl = document.createElement("div");
             toastEl.className = "toast";
             for (const [k, v] of Object.entries({
@@ -40,13 +40,13 @@
               "aria-atomic": "true",
             }))
               toastEl.setAttribute(k, v);
-            console.info(toastEl);
+            console.warn(toastEl);
             const body = document.createElement("div");
             body.className = "toast-body";
             body.textContent = msg;
             toastEl.appendChild(body);
             container.appendChild(toastEl);
-            console.info(body);
+            console.warn(body);
             bootstrap.Toast.getOrCreateInstance(toastEl).show();
           } else {
             alert(msg);
@@ -54,7 +54,7 @@
           el.setAttribute("data-failed-route", "true");
         }
       } catch (error) {
-        console.info(error);
+        console.warn(error);
       }
     });
   }

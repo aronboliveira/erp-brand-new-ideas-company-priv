@@ -57,7 +57,7 @@ class MessageControllerTest extends TestCase
 			)
 			->andReturn(response('AUTHORIZED', 200));
 
-		$response = $this->post('/chats/chats/auth', [
+		$response = $this->post('/chats/chat/auth', [
 			'channel_name' => 'my-channel',
 			'socket_id'    => 'socket-789',
 		]);

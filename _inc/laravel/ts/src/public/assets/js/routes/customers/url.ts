@@ -96,7 +96,7 @@
     });
   }).observe(document.body, { childList: true, subtree: true });
 
-  // @ts-expect-error -- migration: function overload type
+  // @ts-ignore -- migration: function overload type
   window.copyToClipboard = (text: string): void => {
     const element = document.getElementById(text) ?? document.body;
     try {

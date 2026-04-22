@@ -20,9 +20,7 @@ if (document.body?.getAttribute("data-validation-init") !== "true") {
           valueMismatch: function (field: HTMLInputElement) {
             const selector = field.getAttribute("data-bouncer-match");
             if (!selector) return false;
-            const otherField = field.form?.querySelector(
-              selector,
-            ) as HTMLInputElement | null;
+            const otherField = field.form?.querySelector(selector) as HTMLInputElement | null;
             if (!otherField) return true;
             return otherField.value !== field.value;
           },
@@ -30,9 +28,7 @@ if (document.body?.getAttribute("data-validation-init") !== "true") {
         messages: {
           valueMismatch: function (field: HTMLInputElement) {
             const customMessage = field.getAttribute("data-bouncer-mismatch-message");
-            return customMessage
-              ? customMessage
-              : "Please make sure the fields match.";
+            return customMessage ? customMessage : "Please make sure the fields match.";
           },
         },
       });

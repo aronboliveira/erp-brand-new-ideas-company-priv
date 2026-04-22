@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Chatify\ChatifyServiceProvider as BaseChatifyServiceProvider;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Custom Chatify provider that skips vendor migrations.
@@ -27,5 +28,40 @@ class ChatifyServiceProvider extends BaseChatifyServiceProvider
                 \Chatify\Console\InstallChatify::class,
             ]);
         }
+    }
+
+    /**
+     * Override the base loadRoutes() to use Laravel 10-compatible fully-qualified
+     * class names instead of the upstream namespace-prefixed string controllers
+     * (which are not supported in Laravel 8+).
+     */
+    protected function loadRoutes(): void
+    {
+        $prefix = config('chatify.routes.prefix', 'chats');
+        $mw     = config('chatify.routes.middleware', ['web', 'auth']);
+
+        // Pusher auth must be accessible without the auth middleware so that
+        // unauthenticated requests receive a 401 instead of a 302 redirect.
+        Route::post("{$prefix}/chat/auth", [\App\Http\Controllers\MessagesController::class, 'pusherAuth'])
+            ->middleware('web');
+
+        Route::group(['prefix' => $prefix, 'middleware' => $mw], function () {
+            Route::get('/{id?}', [\App\Http\Controllers\MessagesController::class, 'index'])
+                ->where('id', '[0-9]+');
+            Route::post('/id-info',           [\App\Http\Controllers\MessagesController::class, 'idFetchData']);
+            Route::get('/downloads/{file}',   [\App\Http\Controllers\MessagesController::class, 'download']);
+            Route::post('/send-message',      [\App\Http\Controllers\MessagesController::class, 'send']);
+            Route::post('/fetch-messages',    [\App\Http\Controllers\MessagesController::class, 'fetch']);
+            Route::post('/make-seen',         [\App\Http\Controllers\MessagesController::class, 'seen']);
+            Route::post('/star',              [\App\Http\Controllers\MessagesController::class, 'favorite']);
+            Route::get('/favorites',          [\App\Http\Controllers\MessagesController::class, 'getFavorites']);
+            Route::post('/search',            [\App\Http\Controllers\MessagesController::class, 'search']);
+            Route::get('/shared',             [\App\Http\Controllers\MessagesController::class, 'sharedPhotos']);
+            Route::post('/delete-conversation', [\App\Http\Controllers\MessagesController::class, 'deleteConversation']);
+            Route::post('/update-settings',   [\App\Http\Controllers\MessagesController::class, 'updateSettings']);
+            Route::post('/set-active-status', [\App\Http\Controllers\MessagesController::class, 'setActiveStatus']);
+            Route::get('/get-contacts',       [\App\Http\Controllers\MessagesController::class, 'getContacts']);
+            Route::post('/update-contacts',   [\App\Http\Controllers\MessagesController::class, 'updateContactItem']);
+        });
     }
 }

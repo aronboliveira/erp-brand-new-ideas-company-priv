@@ -6,7 +6,7 @@
 
 import "./bootstrap";
 
-// @ts-expect-error - alpinejs is a runtime dependency without type declarations
+// @ts-ignore - alpinejs is a runtime dependency without type declarations
 import Alpine from "alpinejs";
 
 window.Alpine = Alpine;

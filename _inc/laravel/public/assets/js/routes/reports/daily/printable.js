@@ -188,7 +188,7 @@
                 .from(printable)
                 .save();
         }
-        catch (e) {
+        catch (_e) {
             showError("pdf_fail");
         }
     };

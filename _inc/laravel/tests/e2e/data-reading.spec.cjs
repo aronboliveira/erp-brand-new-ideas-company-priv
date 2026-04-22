@@ -27,7 +27,11 @@ async function pollFor(page, predicate, { maxRetries = 8, delay = 500 } = {}) {
 /* ------------------------------------------------------------------ */
 test.describe("Dashboard stat cards", () => {
   test("stat cards mount and display numeric values", async ({ page }) => {
-    try { await page.goto(`${BASE}/dashboard`); } catch { return; }
+    try {
+      await page.goto(`${BASE}/dashboard`);
+    } catch {
+      return;
+    }
     await page.waitForLoadState("networkidle").catch(() => {});
 
     const cards = page.locator(".card");
@@ -51,7 +55,11 @@ test.describe("Dashboard stat cards", () => {
   });
 
   test("stat card labels are meaningful text", async ({ page }) => {
-    try { await page.goto(`${BASE}/dashboard`); } catch { return; }
+    try {
+      await page.goto(`${BASE}/dashboard`);
+    } catch {
+      return;
+    }
     await page.waitForLoadState("networkidle").catch(() => {});
 
     const labels = page.locator(".card h6, .card .h6, .card-title, .card small");
@@ -76,7 +84,11 @@ test.describe("Dashboard stat cards", () => {
 /* ------------------------------------------------------------------ */
 test.describe("Dashboard chart containers", () => {
   test("chart container elements are present in DOM", async ({ page }) => {
-    try { await page.goto(`${BASE}/dashboard`); } catch { return; }
+    try {
+      await page.goto(`${BASE}/dashboard`);
+    } catch {
+      return;
+    }
     await page.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {});
 
     // Check for known chart containers or any generic chart element
@@ -178,7 +190,11 @@ test.describe("DataTable empty state layout", () => {
 
   for (const route of emptyDataPages) {
     test(`${route}: empty table does not show broken layout`, async ({ page }) => {
-      try { await page.goto(`${BASE}/${route}`); } catch { return; }
+      try {
+        await page.goto(`${BASE}/${route}`);
+      } catch {
+        return;
+      }
       await page.waitForLoadState("networkidle").catch(() => {});
 
       // The card/container wrapping the table should be visible
@@ -205,7 +221,11 @@ test.describe("Kanban boards render stage columns", () => {
 
   for (const { route, label } of kanbanPages) {
     test(`${label}: kanban or card view mounts`, async ({ page }) => {
-      try { await page.goto(`${BASE}/${route}`); } catch { return; }
+      try {
+        await page.goto(`${BASE}/${route}`);
+      } catch {
+        return;
+      }
       await page.waitForLoadState("networkidle").catch(() => {});
 
       // Kanban boards use various selectors depending on implementation
@@ -243,7 +263,11 @@ test.describe("Report page chart containers", () => {
   for (const { route, label, chartIds } of reportPages) {
     test(`${label}: page loads and chart containers exist`, async ({ page }) => {
       let resp;
-      try { resp = await page.goto(`${BASE}/${route}`); } catch { return; }
+      try {
+        resp = await page.goto(`${BASE}/${route}`);
+      } catch {
+        return;
+      }
       await page.waitForLoadState("networkidle").catch(() => {});
 
       // Page should load successfully (200 or redirect)
@@ -319,7 +343,11 @@ test.describe("Create form field integrity", () => {
   for (const { route, label, fields } of createPages) {
     test(`${label}: create form has required fields`, async ({ page }) => {
       let resp;
-      try { resp = await page.goto(`${BASE}/${route}`); } catch { return; }
+      try {
+        resp = await page.goto(`${BASE}/${route}`);
+      } catch {
+        return;
+      }
       await page.waitForLoadState("networkidle").catch(() => {});
 
       if (!resp || resp.status() >= 400) {
@@ -356,7 +384,11 @@ test.describe("Create form field integrity", () => {
 /* ------------------------------------------------------------------ */
 test.describe("Sidebar menu data", () => {
   test("sidebar has navigation links", async ({ page }) => {
-    try { await page.goto(`${BASE}/dashboard`); } catch { return; }
+    try {
+      await page.goto(`${BASE}/dashboard`);
+    } catch {
+      return;
+    }
     await page.waitForLoadState("networkidle").catch(() => {});
 
     const sidebarLinks = page.locator(".sidebar-menu a, .dash-sidebar a, nav.sidebar a, .navbar-nav a, .sidebar a");
@@ -365,7 +397,11 @@ test.describe("Sidebar menu data", () => {
   });
 
   test("sidebar links have non-empty text or icon", async ({ page }) => {
-    try { await page.goto(`${BASE}/dashboard`); } catch { return; }
+    try {
+      await page.goto(`${BASE}/dashboard`);
+    } catch {
+      return;
+    }
     await page.waitForLoadState("networkidle").catch(() => {});
 
     const links = page.locator(".sidebar-menu a, .dash-sidebar a, nav.sidebar a, .sidebar a");
@@ -396,7 +432,11 @@ test.describe("Breadcrumb data rendering", () => {
 
   for (const route of bcPages) {
     test(`${route}: breadcrumb renders with text content`, async ({ page }) => {
-      try { await page.goto(`${BASE}/${route}`); } catch { return; }
+      try {
+        await page.goto(`${BASE}/${route}`);
+      } catch {
+        return;
+      }
       await page.waitForLoadState("networkidle").catch(() => {});
 
       const bc = page.locator(".breadcrumb, [aria-label='breadcrumb'], .page-header-title");
@@ -416,7 +456,11 @@ test.describe("Breadcrumb data rendering", () => {
 test.describe("Users data display", () => {
   test("users page renders list with content", async ({ page }) => {
     let resp;
-    try { resp = await page.goto(`${BASE}/users`); } catch { return; }
+    try {
+      resp = await page.goto(`${BASE}/users`);
+    } catch {
+      return;
+    }
     await page.waitForLoadState("networkidle").catch(() => {});
 
     if (!resp || resp.status() >= 400) {
@@ -449,7 +493,11 @@ test.describe("Users data display", () => {
 test.describe("Plans data display", () => {
   test("plans page shows plan entries", async ({ page }) => {
     let resp;
-    try { resp = await page.goto(`${BASE}/plans`); } catch { return; }
+    try {
+      resp = await page.goto(`${BASE}/plans`);
+    } catch {
+      return;
+    }
     await page.waitForLoadState("networkidle").catch(() => {});
 
     if (!resp || resp.status() >= 400) {
@@ -483,7 +531,11 @@ test.describe("Plans data display", () => {
 /* ------------------------------------------------------------------ */
 test.describe("Calendar component", () => {
   test("meeting calendar renders FullCalendar container", async ({ page }) => {
-    try { await page.goto(`${BASE}/meetings`); } catch { return; }
+    try {
+      await page.goto(`${BASE}/meetings`);
+    } catch {
+      return;
+    }
     await page.waitForLoadState("networkidle").catch(() => {});
 
     const fc = page.locator(".fc, .fullcalendar, #calendar, [class*='calendar'], .fc-view");
@@ -515,7 +567,11 @@ test.describe("No critical JS errors on data-heavy pages", () => {
         if (!isBenign) errors.push(msg);
       });
 
-      try { await page.goto(`${BASE}/${route}`); } catch { return; }
+      try {
+        await page.goto(`${BASE}/${route}`);
+      } catch {
+        return;
+      }
       await page.waitForLoadState("networkidle").catch(() => {});
       // Small wait for async JS init
       await page.waitForTimeout(1000);
@@ -539,7 +595,11 @@ test.describe("Grid layout integrity", () => {
 
   for (const route of gridPages) {
     test(`${route}: grid columns have positive dimensions`, async ({ page }) => {
-      try { await page.goto(`${BASE}/${route}`); } catch { return; }
+      try {
+        await page.goto(`${BASE}/${route}`);
+      } catch {
+        return;
+      }
       await page.waitForLoadState("networkidle").catch(() => {});
 
       const cols = page.locator(".row > [class*='col-']:visible");

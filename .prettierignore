@@ -2,3 +2,5 @@
 **/obfuscate.js
 _test.html
 **_test.html
+.tmp/github-testing-steer/
+.tmp/github-testing-steer/**

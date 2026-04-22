@@ -25,8 +25,7 @@ test.beforeEach(async ({ page }) => {
   page.on("dialog", d => d.accept());
   page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async () => {
     const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
-    if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
-      await btn.click({ force: true });
+    if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) await btn.click({ force: true });
   });
 });
 
@@ -54,45 +53,25 @@ async function assertFinanceRenders(page, route, label) {
   }
   await test.step(`Navigate to ${label}`, async () => {
     expect(resp?.status(), `${label} HTTP status`).toBeLessThan(400);
-    await page
-      .waitForLoadState("domcontentloaded", { timeout: 60000 })
-      .catch(() => {});
+    await page.waitForLoadState("domcontentloaded", { timeout: 60000 }).catch(() => {});
   });
 
   await test.step("Layout container visible", async () => {
-    const layout = page
-      .locator(
-        ".dash-content, .dash-container, main, #app, .wrapper, .content-wrapper, .main-content, .container-fluid, .pcoded-content, body",
-      )
-      .first();
+    const layout = page.locator(".dash-content, .dash-container, main, #app, .wrapper, .content-wrapper, .main-content, .container-fluid, .pcoded-content, body").first();
     await expect(layout).toBeVisible({ timeout: 15000 });
   });
 
   await test.step("Has table / card / canvas / form", async () => {
-    const content = page.locator(
-      [
-        "table",
-        ".card",
-        "canvas",
-        "form",
-        ".chart",
-        "[class*='report']",
-        ".apexcharts-canvas",
-      ].join(", "),
-    );
+    const content = page.locator(["table", ".card", "canvas", "form", ".chart", "[class*='report']", ".apexcharts-canvas"].join(", "));
     await expect(content.first()).toBeAttached({ timeout: 15000 });
   });
 
-  const tables = page.locator(
-    "table.datatable, table.dataTable-table, table.table, .table-responsive table, .card-body table",
-  );
+  const tables = page.locator("table.datatable, table.dataTable-table, table.table, .table-responsive table, .card-body table");
   const tableCount = await tables.count();
 
   if (tableCount > 0) {
     await test.step("Table has headers", async () => {
-      const hdr = tables
-        .first()
-        .locator("thead th, thead td, tr:first-child th");
+      const hdr = tables.first().locator("thead th, thead td, tr:first-child th");
       await expect(hdr.first()).toBeAttached({ timeout: 10000 });
     });
   }
@@ -106,11 +85,7 @@ test.describe("Payslip Types – Fixed Route", () => {
   });
 
   test("payslip_types/create renders correctly", async ({ page }) => {
-    await assertFinanceRenders(
-      page,
-      "payslip_types/create",
-      "Payslip Types Create",
-    );
+    await assertFinanceRenders(page, "payslip_types/create", "Payslip Types Create");
   });
 });
 
@@ -316,10 +291,6 @@ test.describe("Proposal – Rendering", () => {
 
 test.describe("Employee Salary – Rendering", () => {
   test("employees/salary index", async ({ page }) => {
-    await assertFinanceRenders(
-      page,
-      "employees/salary",
-      "Employee Salary Index",
-    );
+    await assertFinanceRenders(page, "employees/salary", "Employee Salary Index");
   });
 });

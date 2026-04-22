@@ -196,7 +196,7 @@
         .from(printable)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         .save();
-    } catch (e) {
+    } catch (_e) {
       showError("pdf_fail");
     }
   };

@@ -47,7 +47,7 @@
             new URL(url, window.location.origin);
             return false;
         }
-        catch (e) {
+        catch (_e) {
             return true;
         }
     }

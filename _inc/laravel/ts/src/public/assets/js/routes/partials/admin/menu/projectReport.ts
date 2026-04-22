@@ -13,7 +13,7 @@
   if (!el.getAttribute("data-listener-bound-click")) {
     el.setAttribute("data-listener-bound-click", "1");
     el.addEventListener("click", event => {
-      console.info("Clicked: project-report-index-link");
+      console.warn("Clicked: project-report-index-link");
       try {
         const url = el.getAttribute("data-url"),
           href = (el as HTMLAnchorElement).href.replace(window.location.origin, "").replace(window.location.pathname, "");
@@ -55,7 +55,7 @@
     });
   }
   const observer = new MutationObserver((): void => {
-    console.info("MutationObserver triggered for project-report-index-link");
+    console.warn("MutationObserver triggered for project-report-index-link");
     if (!document.getElementById("project-report-index-link")) observer.disconnect();
   });
   observer.observe(document.body, { childList: true, subtree: true });
