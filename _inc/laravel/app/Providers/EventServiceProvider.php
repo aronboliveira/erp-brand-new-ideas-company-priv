@@ -18,6 +18,8 @@ class EventServiceProvider extends ServiceProvider
     public function boot(): void
     {
         parent::boot();
+        \App\Models\Invoice::observe(\App\Observers\Bills\InvoiceObserver::class);
+        \App\Models\Bill::observe(\App\Observers\Bills\BillObserver::class);
     }
 
     public function shouldDiscoverEvents(): bool

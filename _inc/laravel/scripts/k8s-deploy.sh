@@ -117,6 +117,16 @@ apply_manifests() {
     kubectl apply -f "${K8S_DIR}/backend/redis.yaml"
     kubectl apply -f "${K8S_DIR}/backend/deployment.yaml"
     kubectl apply -f "${K8S_DIR}/frontend/deployment.yaml"
+
+    # Aguardar o admission webhook do ingress-nginx estar pronto antes de
+    # criar o Ingress — evita "context deadline exceeded" no webhook validate.
+    log_info "Aguardando ingress-nginx admission webhook estar pronto..."
+    kubectl wait --namespace ingress-nginx \
+        --for=condition=ready pod \
+        --selector=app.kubernetes.io/component=controller \
+        --timeout=90s 2>/dev/null \
+    || log_warn "ingress-nginx controller não ficou pronto em 90s; tentando aplicar ingress mesmo assim."
+
     kubectl apply -f "${K8S_DIR}/ingress.yaml"
     log_ok "Manifests aplicados."
 }

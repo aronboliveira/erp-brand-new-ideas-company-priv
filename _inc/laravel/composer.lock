@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a9e3ab97fca741bda6839821beeeff23",
+    "content-hash": "20e41a95cba672117cbe225154505dbb",
     "packages": [
         {
             "name": "anandsiddharth/laravel-paytm-wallet",
@@ -1741,6 +1741,80 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
+            "name": "ekmungai/eloquent-ifrs",
+            "version": "v5.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ekmungai/eloquent-ifrs.git",
+                "reference": "2d0b5ee37cc8ba2cf4ac343251d330e00ac5ffdf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ekmungai/eloquent-ifrs/zipball/2d0b5ee37cc8ba2cf4ac343251d330e00ac5ffdf",
+                "reference": "2d0b5ee37cc8ba2cf4ac343251d330e00ac5ffdf",
+                "shasum": ""
+            },
+            "require": {
+                "doctrine/dbal": "^2.10|^3.1|^4.2",
+                "illuminate/auth": "^10.0|^11.0|^12.0",
+                "illuminate/database": "^10.0|^11.0|^12.0",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "laravel/legacy-factories": "1.x-dev|^1.4",
+                "nunomaduro/collision": "^7.0",
+                "orchestra/testbench": "^6.0|^7.0|^8.0|^10.0",
+                "phpunit/phpunit": "^9.4|^11.5.3",
+                "spatie/laravel-ignition": "^1.6.4|^2.0",
+                "squizlabs/php_codesniffer": "*"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "IFRS\\IFRSServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "IFRS\\": "src"
+                },
+                "classmap": [
+                    "database/factories"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Edward Mungai",
+                    "email": "emungai@karanjamungai.com"
+                }
+            ],
+            "description": "Eloquent Double Entry Accounting with focus on IFRS Compliant Reporting",
+            "keywords": [
+                "Accounting",
+                "eloquent",
+                "laravel",
+                "lumen",
+                "reporting"
+            ],
+            "support": {
+                "issues": "https://github.com/ekmungai/eloquent-ifrs/issues",
+                "source": "https://github.com/ekmungai/eloquent-ifrs"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/ekmungai",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-03-21T11:42:04+00:00"
         },
         {
             "name": "ezyang/htmlpurifier",

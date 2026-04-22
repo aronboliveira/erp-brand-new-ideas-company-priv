@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Utility;
 
 use App\Models\Utility;
-use Illuminate\Support\Facades\{Config, DB, Log};
+use Illuminate\Support\Facades\{Config, Log};
 use Spatie\GoogleCalendar\Event as GoogleEvent;
 use Carbon\Carbon;
 
@@ -71,14 +71,12 @@ class CalendarService
         self::configure();
 
         try {
-            DB::transaction(function () use ($request, $type) {
-                $event                = new GoogleEvent();
-                $event->name          = $request->title;
-                $event->startDateTime = Carbon::parse($request->start_date);
-                $event->endDateTime   = Carbon::parse($request->end_date);
-                $event->colorId       = Utility::colorCodeData($type);
-                $event->save();
-            });
+            $event                = new GoogleEvent();
+            $event->name          = $request->title;
+            $event->startDateTime = Carbon::parse($request->start_date);
+            $event->endDateTime   = Carbon::parse($request->end_date);
+            $event->colorId       = Utility::colorCodeData($type);
+            $event->save();
         } catch (\Throwable $e) {
             Log::error(self::class . '::addEvent — failed adding calendar event: ' . $e->getMessage());
         }

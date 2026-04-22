@@ -1,0 +1,34 @@
+@php
+use Modules\LandingPage\Config\Constants\RoutesResourcesConstants;
+@endphp
+{{Collective\Html\FormFacade::model(null, array('route' => array(RoutesResourcesConstants::FQ.'.update', $key), 'method' => 'POST','enctype' => "multipart/form-data")) }}
+<div class="modal-body">
+    @csrf
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                {{ Collective\Html\FormFacade::label('questions', __('Questions'), ['class' => 'form-label']) }}
+                {{ Collective\Html\FormFacade::text('faq_questions',$faq['faq_questions'], ['class' => 'form-control', 'placeholder' => __('Enter Questions')]) }}
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="form-group">
+                {{ Collective\Html\FormFacade::label('answer', __('Answer'), ['class' => 'form-label']) }}
+                {{ Collective\Html\FormFacade::textarea('faq_answer', $faq['faq_answer'], ['class' => 'form-control summernote-simple', 'placeholder' => __('Enter Answer')]) }}
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="modal-footer">
+    <input type="button" value="{{__('Cancel')}}" class="btn btn-light" data-bs-dismiss="modal">
+    <input type="submit" value="{{__('Update')}}" class="btn btn-primary">
+</div>
+{{ Collective\Html\FormFacade::close() }}
+{{--<script>--}}
+{{--    tinymce.init({--}}
+{{--      selector: '#mytextarea',--}}
+{{--      menubar: '',--}}
+{{--    });--}}
+{{--  </script>--}}

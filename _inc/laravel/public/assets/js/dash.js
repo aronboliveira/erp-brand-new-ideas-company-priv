@@ -102,8 +102,7 @@
      * @private
      */
     #initFeatherIcons() {
-      if (typeof feather !== "undefined" && typeof feather.replace === "function")
-        feather.replace();
+      if (typeof feather !== "undefined" && typeof feather.replace === "function") feather.replace();
     }
 
     /**
@@ -195,12 +194,10 @@
       toggle.addEventListener("click", () => {
         if (this.isMinimenu) {
           this.#body?.classList.remove(DashboardController.#MINIMENU_CLASS);
-          document.querySelectorAll(".dash-navbar li:not(.dash-trigger) .dash-submenu")
-            .forEach(el => el.style.display = "none");
+          document.querySelectorAll(".dash-navbar li:not(.dash-trigger) .dash-submenu").forEach(el => (el.style.display = "none"));
         } else {
           this.#body?.classList.add(DashboardController.#MINIMENU_CLASS);
-          document.querySelectorAll(".dash-navbar li .dash-submenu")
-            .forEach(el => el.removeAttribute("style"));
+          document.querySelectorAll(".dash-navbar li .dash-submenu").forEach(el => el.removeAttribute("style"));
           this.#collapseedge();
         }
       });
@@ -273,7 +270,7 @@
       if (!topbarLink || topbarLink.hasAttribute(DashboardController.#DATA_LISTENER)) return;
 
       topbarLink.setAttribute(DashboardController.#DATA_LISTENER, "true");
-      topbarLink.addEventListener("click", (e) => {
+      topbarLink.addEventListener("click", e => {
         const target = e.target;
         setTimeout(() => target?.parentNode?.children[1]?.removeAttribute("style"), 1000);
       });
@@ -316,13 +313,11 @@
 
         const parent1 = li?.parentNode?.parentNode;
         parent1?.classList.add(DashboardController.#ACTIVE_CLASS, DashboardController.#TRIGGER_CLASS);
-        if (li?.parentNode instanceof HTMLElement)
-          li.parentNode.style.display = "block";
+        if (li?.parentNode instanceof HTMLElement) li.parentNode.style.display = "block";
 
         const parent2 = parent1?.parentNode?.parentNode;
         parent2?.classList.add(DashboardController.#ACTIVE_CLASS, DashboardController.#TRIGGER_CLASS);
-        if (parent1?.parentNode instanceof HTMLElement)
-          parent1.parentNode.style.display = "block";
+        if (parent1?.parentNode instanceof HTMLElement) parent1.parentNode.style.display = "block";
       });
 
       this.#setupTabLayoutActive();
@@ -354,8 +349,7 @@
 
       const dataValue = activeTab.getAttribute("data-value");
       document.querySelector(".tab-sidemenu > ul > li")?.classList.remove(DashboardController.#ACTIVE_CLASS);
-      document.querySelector(`.tab-sidemenu > ul > li > a[data-cont="${dataValue}"]`)
-        ?.parentNode?.classList.add(DashboardController.#ACTIVE_CLASS);
+      document.querySelector(`.tab-sidemenu > ul > li > a[data-cont="${dataValue}"]`)?.parentNode?.classList.add(DashboardController.#ACTIVE_CLASS);
     }
 
     /**
@@ -364,12 +358,12 @@
      */
     #setupTabLayout() {
       const tabItems = document.querySelectorAll(".tab-sidemenu > ul > li");
-      
+
       tabItems.forEach(item => {
         if (item.hasAttribute(DashboardController.#DATA_LISTENER)) return;
         item.setAttribute(DashboardController.#DATA_LISTENER, "true");
 
-        item.addEventListener("click", (e) => {
+        item.addEventListener("click", e => {
           let target = e.target;
           if (target.tagName === "A") target = target.parentNode;
           if (target.tagName === "I") target = target.parentNode.parentNode;
@@ -378,8 +372,7 @@
           document.querySelector(".navbar-content .dash-tabcontent.active")?.classList.remove(DashboardController.#ACTIVE_CLASS);
           document.querySelector(".tab-sidemenu > ul > li.active")?.classList.remove(DashboardController.#ACTIVE_CLASS);
           target.classList.add(DashboardController.#ACTIVE_CLASS);
-          document.querySelector(`.navbar-content .dash-tabcontent[data-value="${dataCont}"]`)
-            ?.classList.add(DashboardController.#ACTIVE_CLASS);
+          document.querySelector(`.navbar-content .dash-tabcontent[data-value="${dataCont}"]`)?.classList.add(DashboardController.#ACTIVE_CLASS);
         });
       });
     }
@@ -399,9 +392,7 @@
         const sidebar = document.querySelector(".page-sidebar");
 
         [overlay, sidebar, toggleBtn].forEach(el => {
-          isActive
-            ? el?.classList.remove(DashboardController.#ACTIVE_CLASS)
-            : el?.classList.add(DashboardController.#ACTIVE_CLASS);
+          isActive ? el?.classList.remove(DashboardController.#ACTIVE_CLASS) : el?.classList.add(DashboardController.#ACTIVE_CLASS);
         });
       });
 
@@ -409,8 +400,7 @@
       if (sideOverlay && !sideOverlay.hasAttribute(DashboardController.#DATA_LISTENER)) {
         sideOverlay.setAttribute(DashboardController.#DATA_LISTENER, "true");
         sideOverlay.addEventListener("click", () => {
-          [sideOverlay, document.querySelector(".page-sidebar"), toggleBtn]
-            .forEach(el => el?.classList.remove(DashboardController.#ACTIVE_CLASS));
+          [sideOverlay, document.querySelector(".page-sidebar"), toggleBtn].forEach(el => el?.classList.remove(DashboardController.#ACTIVE_CLASS));
         });
       }
     }
@@ -427,10 +417,10 @@
         if (dropdown.hasAttribute(DashboardController.#DATA_LISTENER)) return;
         dropdown.setAttribute(DashboardController.#DATA_LISTENER, "true");
 
-        dropdown.addEventListener("mouseenter", (e) => {
+        dropdown.addEventListener("mouseenter", e => {
           e.target.children[1]?.classList.add("show");
         });
-        dropdown.addEventListener("mouseleave", (e) => {
+        dropdown.addEventListener("mouseleave", e => {
           e.target.children[1]?.classList.remove("show");
         });
       });
@@ -448,8 +438,8 @@
         if (item.hasAttribute(DashboardController.#DATA_LISTENER)) return;
         item.setAttribute(DashboardController.#DATA_LISTENER, "true");
 
-        item.addEventListener("mouseenter", (e) => this.#handleSubmenuEdge(e.target));
-        item.addEventListener("mouseleave", (e) => this.#cleanupSubmenuEdge(e.target));
+        item.addEventListener("mouseenter", e => this.#handleSubmenuEdge(e.target));
+        item.addEventListener("mouseleave", e => this.#cleanupSubmenuEdge(e.target));
       });
     }
 
@@ -466,17 +456,14 @@
       const docW = window.innerWidth;
       const docH = window.innerHeight;
 
-      if (rect.left + rect.width > docW)
-        submenu.classList.add("edge");
+      if (rect.left + rect.width > docW) submenu.classList.add("edge");
 
       if (rect.top + rect.height > docH) {
         const scrollTop = document.documentElement.scrollTop;
-        const maxH = docH - (rect.top - scrollTop);
         submenu.classList.add("scroll-menu");
         submenu.style.maxHeight = `calc(100vh - ${rect.top - scrollTop}px)`;
 
-        if (typeof PerfectScrollbar !== "undefined")
-          new PerfectScrollbar(submenu, { wheelSpeed: 0.5, suppressScrollX: true });
+        if (typeof PerfectScrollbar !== "undefined") new PerfectScrollbar(submenu, { wheelSpeed: 0.5, suppressScrollX: true });
       }
     }
 
@@ -501,7 +488,7 @@
         if (input.hasAttribute(DashboardController.#DATA_LISTENER)) return;
         input.setAttribute(DashboardController.#DATA_LISTENER, "true");
 
-        input.addEventListener("change", (e) => {
+        input.addEventListener("change", e => {
           const checkbox = e.target;
           const parent = checkbox.parentNode;
 
@@ -571,8 +558,7 @@
     #setupMenuClick() {
       if (this.isMinimenu) return;
 
-      document.querySelectorAll(".dash-navbar li:not(.dash-trigger) .dash-submenu")
-        .forEach(el => el.style.display = "none");
+      document.querySelectorAll(".dash-navbar li:not(.dash-trigger) .dash-submenu").forEach(el => (el.style.display = "none"));
 
       this.#attachMenuClickHandlers(".dash-navbar > li:not(.dash-caption)", false);
       this.#attachMenuClickHandlers(".dash-navbar > li:not(.dash-caption) li", true);
@@ -589,7 +575,7 @@
         if (item.hasAttribute(DashboardController.#DATA_LISTENER)) return;
         item.setAttribute(DashboardController.#DATA_LISTENER, "true");
 
-        item.addEventListener("click", (e) => {
+        item.addEventListener("click", e => {
           e.stopPropagation();
           let target = e.target;
           if (target.tagName === "SPAN") target = target.parentNode;
@@ -623,8 +609,7 @@
         sibling.classList.remove(DashboardController.#TRIGGER_CLASS);
         let target = sibling;
         if (target.tagName === "LI") target = sibling.children[0];
-        if (target?.parentNode?.classList.contains("dash-hasmenu"))
-          this.#slideUp(target.parentNode.children[1], 200);
+        if (target?.parentNode?.classList.contains("dash-hasmenu")) this.#slideUp(target.parentNode.children[1], 200);
       });
     }
 
@@ -648,7 +633,7 @@
         if (item.hasAttribute(`${DashboardController.#DATA_LISTENER}-horiz`)) return;
         item.setAttribute(`${DashboardController.#DATA_LISTENER}-horiz`, "true");
 
-        item.addEventListener("click", (e) => {
+        item.addEventListener("click", e => {
           e.stopPropagation();
           let target = e.target;
           if (target.tagName === "SPAN") target = target.parentNode;
@@ -659,14 +644,9 @@
           if (parent.classList.contains(DashboardController.#TRIGGER_CLASS)) {
             parent.classList.remove(DashboardController.#TRIGGER_CLASS);
           } else {
-            const triggerSelector = selector.includes(".dash-submenu > li > .dash-submenu")
-              ? ".dash-submenu .dash-submenu li.dash-trigger"
-              : selector.includes(".dash-submenu > li")
-                ? ".dash-submenu li.dash-trigger"
-                : "li.dash-trigger";
+            const triggerSelector = selector.includes(".dash-submenu > li > .dash-submenu") ? ".dash-submenu .dash-submenu li.dash-trigger" : selector.includes(".dash-submenu > li") ? ".dash-submenu li.dash-trigger" : "li.dash-trigger";
 
-            document.querySelectorAll(triggerSelector)
-              .forEach(el => el.classList.remove(DashboardController.#TRIGGER_CLASS));
+            document.querySelectorAll(triggerSelector).forEach(el => el.classList.remove(DashboardController.#TRIGGER_CLASS));
             parent.classList.add(DashboardController.#TRIGGER_CLASS);
           }
         });
@@ -700,8 +680,8 @@
         if (item.hasAttribute(`${DashboardController.#DATA_LISTENER}-edge`)) return;
         item.setAttribute(`${DashboardController.#DATA_LISTENER}-edge`, "true");
 
-        item.addEventListener("mouseenter", (e) => this.#handleSubmenuEdge(e.target));
-        item.addEventListener("mouseleave", (e) => this.#cleanupSubmenuEdge(e.target));
+        item.addEventListener("mouseenter", e => this.#handleSubmenuEdge(e.target));
+        item.addEventListener("mouseleave", e => this.#cleanupSubmenuEdge(e.target));
       });
     }
 
@@ -834,7 +814,5 @@
     }
   };
 
-  document.readyState === "loading"
-    ? document.addEventListener("DOMContentLoaded", initDashboard)
-    : initDashboard();
+  document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initDashboard) : initDashboard();
 })();

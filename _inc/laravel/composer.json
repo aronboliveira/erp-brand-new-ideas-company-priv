@@ -14,6 +14,7 @@
     "arkitecht/laravel-twilio": "^1.6",
     "coingate/coingate-php": "^4.1",
     "doctrine/dbal": "^3.7",
+    "ekmungai/eloquent-ifrs": "^5.0",
     "guzzlehttp/guzzle": "^7.8",
     "inertiajs/inertia-laravel": "^2.0",
     "iyzico/iyzipay-php": "^2.0",

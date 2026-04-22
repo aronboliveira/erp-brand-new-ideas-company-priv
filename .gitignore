@@ -186,3 +186,6 @@ _old/**
 
 **/.deprecated/
 **/.deprecated/**
+
+.history/
+.history/**
