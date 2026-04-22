@@ -16,12 +16,23 @@ class ChatifyServiceProvider extends BaseChatifyServiceProvider
 {
     public function boot(): void
     {
-        // Load views and routes only — skip loadMigrationsFrom()
-        $this->loadViewsFrom(
-            dirname((new \ReflectionClass(BaseChatifyServiceProvider::class))->getFileName()) . '/views',
-            'Chatify'
-        );
-        $this->loadRoutes();
+        // Load views only — skip loadMigrationsFrom()
+        // Wrap in try-catch so a missing views directory never prevents route registration.
+        try {
+            $viewsPath = dirname((new \ReflectionClass(BaseChatifyServiceProvider::class))->getFileName()) . '/views';
+            if (is_dir($viewsPath)) {
+                $this->loadViewsFrom($viewsPath, 'Chatify');
+            }
+        } catch (\Throwable) {
+            // Silently ignore — views are not required for the messaging routes.
+        }
+
+        // Defer route registration until after ALL service providers have booted.
+        // This ensures we are not subject to the RouteServiceProvider's URI-pluralisation
+        // loop which iterates over routes already in the collection at that moment.
+        $this->app->booted(function () {
+            $this->loadRoutes();
+        });
 
         if ($this->app->runningInConsole()) {
             $this->commands([

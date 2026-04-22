@@ -5,7 +5,7 @@ namespace Tests\Unit\app\Http\Controllers\contact;
 use Tests\TestCase;
 use App\Models\{ChMessage as Message, ChFavorite as Favorite, User};
 use Chatify\Facades\ChatifyMessenger as Chatify;
-use Illuminate\{Foundation\Testing\RefreshDatabase, Support\Facades\File};
+use Illuminate\{Foundation\Testing\RefreshDatabase, Support\Facades\File, Support\Facades\Route};
 use Spatie\Permission\Models\Permission;
 
 class MessageControllerTest extends TestCase
@@ -17,6 +17,18 @@ class MessageControllerTest extends TestCase
 		parent::setUp();
 		// Ensure the 'send message' permission exists for guard 'web'
 		Permission::findOrCreate('send message', 'web');
+		// Guarantee the pusher-auth route exists regardless of service-provider boot order.
+		$prefix = config('chatify.routes.prefix', 'chats');
+		$routeExists = collect(Route::getRoutes()->getRoutes())
+			->contains(fn ($r) =>
+				$r->uri() === "{$prefix}/chat/auth" &&
+				in_array('POST', $r->methods())
+			);
+		if (!$routeExists) {
+			Route::post("{$prefix}/chat/auth",
+				[\App\Http\Controllers\MessagesController::class, 'pusherAuth']
+			)->middleware('web');
+		}
 	}
 
 	/**
