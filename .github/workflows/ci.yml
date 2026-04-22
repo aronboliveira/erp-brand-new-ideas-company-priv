@@ -28,7 +28,7 @@ env:
     NODE_VERSION: "20"
     PYTHON_VERSION: "3.11"
     LARAVEL_DIR: "_inc/laravel"
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     # ── Azure (comentado — não utilizado por enquanto) ────────────────────
     # AZURE_ACR_NAME: erpacr
     # AZURE_ACR_LOGIN: erpacr.azurecr.io
