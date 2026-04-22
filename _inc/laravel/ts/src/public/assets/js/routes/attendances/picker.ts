@@ -127,7 +127,7 @@
         format: "yyyy-mm-dd",
         locale: { format: "YYYY-MM-DD" },
       });
-    } catch (err) {
+    } catch (_err) {
       showError("datepicker_unavailable");
     }
   };
@@ -160,7 +160,7 @@
         });
       }
     });
-  } catch (err) {
+  } catch (_err) {
     showError("datepicker_unavailable");
   }
 })();

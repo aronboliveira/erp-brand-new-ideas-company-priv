@@ -1,7 +1,0 @@
-<task>
-	- If endpoints are missing methods, add them and make sure to follow the same pattern as the other ones in the module, if any;
-	- If there are no other endpoints in the module, follow the same pattern as the other modules, if any, or create a new one based on best practices for Laravel development and RESTful API design;
-	- If there methods without endpoints, add the endpoints and make sure to follow the same pattern as the other ones in the module, if any;
-	<directives>
-	</directives>
-</task>

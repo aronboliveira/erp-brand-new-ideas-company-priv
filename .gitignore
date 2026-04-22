@@ -189,3 +189,5 @@ _old/**
 
 .history/
 .history/**
+**/.history/
+**/.history/**

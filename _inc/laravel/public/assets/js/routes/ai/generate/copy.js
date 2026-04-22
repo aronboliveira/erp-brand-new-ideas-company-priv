@@ -235,7 +235,7 @@
                 cache: false,
                 success: function (data) {
                     try {
-                        if (data.tone == 1) {
+                        if (data.tone === 1) {
                             $(".tone").removeClass("d-none");
                             $(".tone select").attr("name", "tone");
                         }
@@ -331,7 +331,7 @@
     const init = () => {
         if (!$.fn) {
             try {
-                console.info("jQuery unavailable");
+                console.warn("jQuery unavailable");
             }
             catch (_) {
                 console.error(`[copy] Error:`, _);

@@ -7,14 +7,14 @@
 
 setTimeout(function () {
     // [ slider ]
-    var slider = tns({
+    var _slider = tns({
         container: ".slider1",
         items: 1,
         slideBy: "page",
         autoplay: true,
     });
     // [ Only-Nav slider ]
-    var slider = tns({
+    var _slider = tns({
         container: ".slider2",
         items: 1,
         axis: "vertical",
@@ -22,7 +22,7 @@ setTimeout(function () {
         autoplay: true,
     });
     // [ Only-Dots slider ]
-    var slider = tns({
+    var _slider = tns({
         container: "#customize",
         items: 3,
         center: true,

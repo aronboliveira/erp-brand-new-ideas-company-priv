@@ -174,7 +174,7 @@
           el.classList.toggle("d-block", !showMonth);
           el.classList.toggle("d-none", showMonth);
         });
-    } catch (err) {
+    } catch (_err) {
       showError("toggle_failed");
     }
   };
@@ -205,7 +205,7 @@
 
     const checked = document.querySelector(`${TYPE_RADIO}:checked`);
     if (checked) checked.dispatchEvent(new Event("change"));
-  } catch (err) {
+  } catch (_err) {
     showError("toggler_unavailable");
   }
 })();

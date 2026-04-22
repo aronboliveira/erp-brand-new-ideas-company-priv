@@ -8,7 +8,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unused-vars, no-var */
 setTimeout(function () {
   // [ slider ]
-  var slider = tns({
+  var _slider = tns({
     container: ".slider1",
     items: 1,
     slideBy: "page",
@@ -16,7 +16,7 @@ setTimeout(function () {
   });
 
   // [ Only-Nav slider ]
-  var slider = tns({
+  var _slider = tns({
     container: ".slider2",
     items: 1,
     axis: "vertical",
@@ -25,7 +25,7 @@ setTimeout(function () {
   });
 
   // [ Only-Dots slider ]
-  var slider = tns({
+  var _slider = tns({
     container: "#customize",
     items: 3,
     center: true,
