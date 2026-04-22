@@ -71,6 +71,15 @@ See [`where-to-update-and-read.yml`](where-to-update-and-read.yml) for the canon
 
 ---
 
+## Update & archive flow
+
+- Start from [`where-to-update-and-read.yml`](where-to-update-and-read.yml) before changing docs, scripts, or routes.
+- Keep durable documentation under [`README.md`](README.md), [`.notes/`](.notes/), [`_inc/laravel/.notes/`](_inc/laravel/.notes/), and [`_inc/utils/`](_inc/utils/).
+- Treat all `.history/` paths as archived local context: keep files on disk, but do not track them in git.
+- Keep reusable automation in [`_inc/utils/scripts/`](_inc/utils/scripts/) or [`_inc/laravel/utils/scripts/`](_inc/laravel/utils/scripts/); move one-off repair scripts to the nearest `.history/` tree.
+
+---
+
 ## Tech stack
 
 | Layer | Technology | Version |

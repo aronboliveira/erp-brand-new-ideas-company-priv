@@ -42,6 +42,13 @@ for per-language coding conventions see `_inc/utils/prompts/.guidelines/`.
 | Agent behaviour config             | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` |
 | Full filesystem map                | `where-to-update-and-read.yml`                                          |
 
+## Update policy (app scope)
+
+- Keep durable app guidance in [`.guidelines/`](.guidelines/) and the top-level docs in this folder.
+- Save route checks, run outputs, and one-off artifacts under [`.history/`](.history/) only.
+- Promote only reusable automation into [`_inc/laravel/utils/scripts/`](../../utils/scripts/).
+- Treat `.history/` as gitignored archival context; keep local files, but do not re-track them.
+
 ## CHORES
 
 After finishing a large task, consider clearing cache and logs, and save some data of your procedures as instructed:

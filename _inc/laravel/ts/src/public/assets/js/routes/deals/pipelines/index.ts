@@ -20,18 +20,9 @@
     if (el.getAttribute(FL_CLIENT) === "true") {
       msg = el.getAttribute(FL_GUARD) || msg;
     } else {
-      let lang = (
-        sessionStorage.getItem(LANG_KEY) ??
-        (document.documentElement.lang || "en")
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
+      let lang = (sessionStorage.getItem(LANG_KEY) ?? (document.documentElement.lang || "en")).toLowerCase().replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        window.translations?.[lang]?.[key] ??
-        el.getAttribute(FL_GUARD) ??
-        window.translations?.en?.[key] ??
-        msg;
+      msg = window.translations?.[lang]?.[key] ?? el.getAttribute(FL_GUARD) ?? window.translations?.en?.[key] ?? msg;
       if (msg !== ERR_FB) {
         el.setAttribute(FL_GUARD, msg);
         el.setAttribute(FL_CLIENT, "true");
@@ -48,9 +39,7 @@
         c.id = "toast-container";
         document.body.appendChild(c);
       }
-      const bs =
-        !!document.querySelector('link[href*="bootstrap"]') &&
-        window.bootstrap.Toast;
+      const bs = !!document.querySelector('link[href*="bootstrap"]') && window.bootstrap.Toast;
       if (bs) {
         const t = document.createElement("div");
         t.className = "toast";
@@ -93,9 +82,7 @@
   }).observe(document.body, { childList: true, subtree: true });
 
   document.addEventListener("DOMContentLoaded", (): void => {
-    const sel = document.querySelector<HTMLElement>(
-      ".change-pipeline select[name=default_pipeline_id]",
-    );
+    const sel = document.querySelector<HTMLElement>(".change-pipeline select[name=default_pipeline_id]");
     if (!sel) return;
     if (sel.dataset.listenerAttached === "true") return;
     sel.dataset.listenerAttached = "true";

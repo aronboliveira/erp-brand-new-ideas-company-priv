@@ -34,13 +34,8 @@
 
         e.preventDefault();
 
-        const msg = (
-          l.getAttribute("data-guard-msg") ??
-          "Payslip route is unavailable. Please contact technical support or your domain administrator."
-        ).trim();
-        const hasBs = !!(
-          document.querySelector('link[href*="bootstrap"]') && window.bootstrap
-        );
+        const msg = (l.getAttribute("data-guard-msg") ?? "Payslip route is unavailable. Please contact technical support or your domain administrator.").trim();
+        const hasBs = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
 
         if (hasBs) {
           const c = ensureToastContainer();

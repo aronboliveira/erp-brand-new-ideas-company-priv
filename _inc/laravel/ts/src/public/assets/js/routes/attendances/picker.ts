@@ -14,21 +14,18 @@
       ar: { datepicker_unavailable: "فشل في تهيئة منتقي التاريخ" },
       da: { datepicker_unavailable: "Kunne ikke initialisere datovælger" },
       de: {
-        datepicker_unavailable:
-          "Datumauswahl konnte nicht initialisiert werden",
+        datepicker_unavailable: "Datumauswahl konnte nicht initialisiert werden",
       },
       en: { datepicker_unavailable: "Failed to initialize date picker" },
       es: {
         datepicker_unavailable: "Error al inicializar el selector de fecha",
       },
       fr: {
-        datepicker_unavailable:
-          "Échec de l'initialisation du sélecteur de date",
+        datepicker_unavailable: "Échec de l'initialisation du sélecteur de date",
       },
       he: { datepicker_unavailable: "נכשל באתחול בורר התאריכים" },
       it: {
-        datepicker_unavailable:
-          "Impossibile inizializzare il selettore di data",
+        datepicker_unavailable: "Impossibile inizializzare il selettore di data",
       },
       ja: { datepicker_unavailable: "日付ピッカーの初期化に失敗しました" },
       nl: { datepicker_unavailable: "Initialiseren van datumkiezer mislukt" },
@@ -57,26 +54,12 @@
       dataClientLocalized = "data-client-localized",
       dataGuardMsg = "data-guard-msg";
     let msg = errFb;
-    if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
-    )
-      msg = el.getAttribute(dataGuardMsg) || errFb;
+    if (el?.getAttribute("data-sv-localized") === "true" || el?.getAttribute(dataClientLocalized) === "true") msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ??
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
+      let lang = (window.sessionStorage.getItem("erp-np-lang") ?? document.documentElement.lang ?? "en").toLowerCase().replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       const msgKey = key;
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
-        window.translations?.en?.[msgKey] ||
-        errFb;
+      msg = window.translations?.[lang]?.[msgKey] || el?.getAttribute(dataGuardMsg) || window.translations?.en?.[msgKey] || errFb;
       if (msg !== errFb && el) {
         el.setAttribute(dataGuardMsg, msg);
         el.setAttribute(dataClientLocalized, "true");
@@ -121,8 +104,7 @@
       const $el = $(el) as JQuery & {
         daterangepicker?: (...args: unknown[]) => unknown;
       };
-      if (typeof $el.daterangepicker !== "function")
-        throw new Error("daterangepicker plugin not available");
+      if (typeof $el.daterangepicker !== "function") throw new Error("daterangepicker plugin not available");
       $el.daterangepicker({
         format: "yyyy-mm-dd",
         locale: { format: "YYYY-MM-DD" },
@@ -135,11 +117,7 @@
   const observer = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
       mutation.removedNodes.forEach(node => {
-        if (node.nodeType === 1 && (node as Element).matches(DATE_PICKER_CLASS))
-          (node as Element).removeEventListener(
-            "click",
-            handleDatePickerClick as unknown as EventListener,
-          );
+        if (node.nodeType === 1 && (node as Element).matches(DATE_PICKER_CLASS)) (node as Element).removeEventListener("click", handleDatePickerClick as unknown as EventListener);
       });
     });
   });

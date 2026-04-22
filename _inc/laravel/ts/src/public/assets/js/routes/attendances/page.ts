@@ -93,26 +93,12 @@
       dataClientLocalized = "data-client-localized",
       dataGuardMsg = "data-guard-msg";
     let msg = errFb;
-    if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
-    )
-      msg = el.getAttribute(dataGuardMsg) || errFb;
+    if (el?.getAttribute("data-sv-localized") === "true" || el?.getAttribute(dataClientLocalized) === "true") msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ??
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
+      let lang = (window.sessionStorage.getItem("erp-np-lang") ?? document.documentElement.lang ?? "en").toLowerCase().replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       const msgKey = key;
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
-        window.translations?.en?.[msgKey] ||
-        errFb;
+      msg = window.translations?.[lang]?.[msgKey] || el?.getAttribute(dataGuardMsg) || window.translations?.en?.[msgKey] || errFb;
       if (msg !== errFb && el) {
         el.setAttribute(dataGuardMsg, msg);
         el.setAttribute(dataClientLocalized, "true");
@@ -120,9 +106,7 @@
     }
     const bs = document.querySelector(BS_LINK);
     if (bs && window.bootstrap.Toast) {
-      const existingToast = toastContainer.querySelector(
-        '.toast[data-error-key="' + key + '"]',
-      );
+      const existingToast = toastContainer.querySelector('.toast[data-error-key="' + key + '"]');
       if (existingToast) return;
       const toast = document.createElement("div");
       toast.className = "toast align-items-center text-bg-danger border-0";
@@ -162,18 +146,14 @@
       if (!target) return;
       const type = target.value ?? "",
         showMonth = type === "monthly";
-      document
-        .querySelectorAll(`.${MONTH_CLASS}`)
-        .forEach((el: Element): void => {
-          el.classList.toggle("d-block", showMonth);
-          el.classList.toggle("d-none", !showMonth);
-        });
-      document
-        .querySelectorAll(`.${DATE_CLASS}`)
-        .forEach((el: Element): void => {
-          el.classList.toggle("d-block", !showMonth);
-          el.classList.toggle("d-none", showMonth);
-        });
+      document.querySelectorAll(`.${MONTH_CLASS}`).forEach((el: Element): void => {
+        el.classList.toggle("d-block", showMonth);
+        el.classList.toggle("d-none", !showMonth);
+      });
+      document.querySelectorAll(`.${DATE_CLASS}`).forEach((el: Element): void => {
+        el.classList.toggle("d-block", !showMonth);
+        el.classList.toggle("d-none", showMonth);
+      });
     } catch (_err) {
       showError("toggle_failed");
     }
@@ -182,8 +162,7 @@
   const observer = new MutationObserver(mutations => {
     mutations.forEach(mutation => {
       mutation.removedNodes.forEach(node => {
-        if (node.nodeType === 1 && (node as HTMLElement).matches(TYPE_RADIO))
-          (node as HTMLElement).removeEventListener("change", handleToggle);
+        if (node.nodeType === 1 && (node as HTMLElement).matches(TYPE_RADIO)) (node as HTMLElement).removeEventListener("change", handleToggle);
       });
     });
   });

@@ -9,12 +9,8 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
   try {
-    const qs = (
-      s: string,
-      r: Element | Document = document,
-    ): HTMLElement | null => r.querySelector(s);
-    const qsa = (s: string, r: Element | Document = document): HTMLElement[] =>
-      Array.from(r.querySelectorAll(s));
+    const qs = (s: string, r: Element | Document = document): HTMLElement | null => r.querySelector(s);
+    const qsa = (s: string, r: Element | Document = document): HTMLElement[] => Array.from(r.querySelectorAll(s));
     const once = (el: HTMLElement | null, attr: string): boolean => {
       if (!el) return false;
       if (el.getAttribute(attr) === "true") return false;
@@ -44,9 +40,7 @@
       }
     };
     const toast = (msg: string): void => {
-      const hasBootstrap = !!(
-        document.querySelector('link[href*="bootstrap"]') && window.bootstrap
-      );
+      const hasBootstrap = !!(document.querySelector('link[href*="bootstrap"]') && window.bootstrap);
       let container = document.getElementById("toast-container");
       if (!container) {
         container = document.createElement("div");
@@ -86,9 +80,7 @@
               url = (fm.getAttribute("data-url") ?? action ?? "#").trim();
             if (url !== "#" && action !== "#") return;
             e.preventDefault();
-            const msg =
-              fm.getAttribute("data-guard-msg") ??
-              "Store expense route is unavailable. Please contact technical support or your domain administrator.";
+            const msg = fm.getAttribute("data-guard-msg") ?? "Store expense route is unavailable. Please contact technical support or your domain administrator.";
             toast(msg);
             fm.setAttribute("data-failed-route", "true");
           } catch (err) {
@@ -107,9 +99,7 @@
             url = (a.getAttribute("data-url") ?? href ?? "#").trim();
           if (url !== "#" && href !== "#") return;
           e.preventDefault();
-          const msg =
-            a.getAttribute("data-guard-msg") ??
-            "Route is unavailable. Please contact technical support or your domain administrator.";
+          const msg = a.getAttribute("data-guard-msg") ?? "Route is unavailable. Please contact technical support or your domain administrator.";
           toast(msg);
           a.setAttribute("data-failed-route", "true");
         } catch (err) {
@@ -131,24 +121,18 @@
       if (ven) ven.classList.toggle("d-none", type !== "vendor");
     };
 
-    const fetchDetail = async (
-      selectEl: HTMLElement | null,
-      detailSel: string,
-    ): Promise<void> => {
+    const fetchDetail = async (selectEl: HTMLElement | null, detailSel: string): Promise<void> => {
       try {
         if (!selectEl) return;
         const url = (selectEl.getAttribute("data-url") ?? "#").trim(),
-          guard =
-            selectEl.getAttribute("data-guard-msg") ?? "Endpoint unavailable.",
+          guard = selectEl.getAttribute("data-guard-msg") ?? "Endpoint unavailable.",
           id = (selectEl as HTMLSelectElement).value;
         if (!id) return;
         if (url === "#") {
           toast(guard);
           return;
         }
-        const token = (
-            (qs("#token") as HTMLInputElement | null)?.value ?? ""
-          ).trim(),
+        const token = ((qs("#token") as HTMLInputElement | null)?.value ?? "").trim(),
           res = await fetch(url, {
             method: "POST",
             headers: {
@@ -198,18 +182,10 @@
         const row1 = tbody.querySelector("tr:nth-child(1)"),
           row2 = tbody.querySelector("tr:nth-child(2)");
         if (row1) {
-          const qty = toNum(
-              (qs(".quantity", row1) as HTMLInputElement | null)?.value,
-            ),
-            price = toNum(
-              (qs(".price", row1) as HTMLInputElement | null)?.value,
-            ),
-            disc = toNum(
-              (qs(".discount", row1) as HTMLInputElement | null)?.value,
-            ),
-            taxRate = toNum(
-              (qs(".itemTaxRate", row1) as HTMLInputElement | null)?.value,
-            ),
+          const qty = toNum((qs(".quantity", row1) as HTMLInputElement | null)?.value),
+            price = toNum((qs(".price", row1) as HTMLInputElement | null)?.value),
+            disc = toNum((qs(".discount", row1) as HTMLInputElement | null)?.value),
+            taxRate = toNum((qs(".itemTaxRate", row1) as HTMLInputElement | null)?.value),
             line = qty * price,
             taxAmt = (line - disc) * (taxRate / 100),
             amt = line - disc + taxAmt;
@@ -222,10 +198,7 @@
           if (amtCell) amtCell.textContent = amt.toFixed(2);
         }
         if (row2) {
-          const accInput = qs(
-              ".accountAmount",
-              row2,
-            ) as HTMLInputElement | null,
+          const accInput = qs(".accountAmount", row2) as HTMLInputElement | null,
             accCell = qs(".accountamount", row2),
             accVal = toNum(accInput?.value);
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -254,10 +227,7 @@
         inp.addEventListener("input", recalcTable);
         inp.addEventListener("change", recalcTable);
       });
-      const acc = qs(
-        ".accountAmount",
-        container.closest("tbody[data-repeater-item]")!,
-      );
+      const acc = qs(".accountAmount", container.closest("tbody[data-repeater-item]")!);
       if (acc) {
         acc.addEventListener("input", recalcTable);
         acc.addEventListener("change", recalcTable);
@@ -267,8 +237,7 @@
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         itemSel.addEventListener("change", async (): Promise<void> => {
           const url = (itemSel.getAttribute("data-url") ?? "#").trim(),
-            guard =
-              itemSel.getAttribute("data-guard-msg") ?? "Endpoint unavailable.",
+            guard = itemSel.getAttribute("data-guard-msg") ?? "Endpoint unavailable.",
             id = itemSel.value,
             tbody = container.closest("tbody[data-repeater-item]");
           if (!tbody || !id) return;
@@ -276,9 +245,7 @@
             toast(guard);
             return;
           }
-          const token = (
-            (qs("#token") as HTMLInputElement | null)?.value ?? ""
-          ).trim();
+          const token = ((qs("#token") as HTMLInputElement | null)?.value ?? "").trim();
           try {
             const res = await fetch(url, {
               method: "POST",
@@ -300,17 +267,13 @@
               taxesBox = qs(".taxes", tbody),
               taxRate = qs(".itemTaxRate", tbody) as HTMLInputElement | null,
               taxPrice = qs(".itemTaxPrice", tbody) as HTMLInputElement | null;
-            if (unit && data.unit !== undefined)
-              unit.textContent = String(data.unit ?? "");
-            if (price && data.price !== undefined)
-              price.value = String(data.price ?? "");
+            if (unit && data.unit !== undefined) unit.textContent = String(data.unit ?? "");
+            if (price && data.price !== undefined) price.value = String(data.price ?? "");
             if (taxesBox && data.taxesHtml !== undefined)
               // SECURITY: Use safe HTML insertion instead of innerHTML
               safeSethtmlContent(taxesBox, String(data.taxesHtml ?? ""));
-            if (taxRate && data.taxRate !== undefined)
-              taxRate.value = String(data.taxRate ?? "");
-            if (taxPrice && data.taxPrice !== undefined)
-              taxPrice.value = String(data.taxPrice ?? "");
+            if (taxRate && data.taxRate !== undefined) taxRate.value = String(data.taxRate ?? "");
+            if (taxPrice && data.taxPrice !== undefined) taxPrice.value = String(data.taxPrice ?? "");
           } catch (err) {
             console.error(`[create] Error:`, err);
           }
@@ -335,25 +298,19 @@
       if (!empSel.getAttribute("data-listener-bound-change")) {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         empSel.setAttribute("data-listener-bound-change", "1");
-        empSel.addEventListener("change", () =>
-          fetchDetail(empSel, "#employee_detail"),
-        );
+        empSel.addEventListener("change", () => fetchDetail(empSel, "#employee_detail"));
       }
     if (cusSel && once(cusSel, "data-bound"))
       if (!cusSel.getAttribute("data-listener-bound-change")) {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         cusSel.setAttribute("data-listener-bound-change", "1");
-        cusSel.addEventListener("change", () =>
-          fetchDetail(cusSel, "#customer_detail"),
-        );
+        cusSel.addEventListener("change", () => fetchDetail(cusSel, "#customer_detail"));
       }
     if (venSel && once(venSel, "data-bound"))
       if (!venSel.getAttribute("data-listener-bound-change")) {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         venSel.setAttribute("data-listener-bound-change", "1");
-        venSel.addEventListener("change", () =>
-          fetchDetail(venSel, "#vendor_detail"),
-        );
+        venSel.addEventListener("change", () => fetchDetail(venSel, "#vendor_detail"));
       }
 
     qsa("tbody[data-repeater-item] tr:nth-child(1)").forEach(row => {
@@ -365,9 +322,7 @@
         btn.addEventListener("click", (): void => {
           setTimeout((): void => {
             qsa("tbody[data-repeater-item]").forEach(tb => {
-              const row = tb.querySelector(
-                "tr:nth-child(1)",
-              ) as HTMLTableRowElement | null;
+              const row = tb.querySelector("tr:nth-child(1)") as HTMLTableRowElement | null;
               bindRow(row);
             });
           }, 0);

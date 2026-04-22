@@ -19,24 +19,12 @@
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (key: string, el: HTMLElement) => {
     let msg = errFb;
-    if (
-      el.getAttribute("data-sv-localized") === "true" ||
-      el.getAttribute(clientLoc) === "true"
-    ) {
+    if (el.getAttribute("data-sv-localized") === "true" || el.getAttribute(clientLoc) === "true") {
       msg = el.getAttribute(guardMsg) || errFb;
     } else {
-      let lang = (
-        window.sessionStorage.getItem(langKey) ??
-        document.documentElement.lang ??
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
+      let lang = (window.sessionStorage.getItem(langKey) ?? document.documentElement.lang ?? "en").toLowerCase().replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-      msg =
-        window.translations?.[lang]?.[key] ||
-        window.translations?.en?.[key] ||
-        errFb;
+      msg = window.translations?.[lang]?.[key] || window.translations?.en?.[key] || errFb;
       if (msg !== errFb) {
         el.setAttribute(guardMsg, msg);
         el.setAttribute(clientLoc, "true");
@@ -104,9 +92,7 @@
         });
       }).observe(document.body, { childList: true, subtree: true });
     });
-    const checkedInput = document.querySelector<HTMLInputElement>(
-      'input[name="type"]:checked',
-    );
+    const checkedInput = document.querySelector<HTMLInputElement>('input[name="type"]:checked');
     if (checkedInput) onTypeChange.call(checkedInput);
   };
 
@@ -178,11 +164,7 @@
       initSelection();
       ["employee", "customer", "vendor"].forEach(setupAjax);
     } catch {
-      if (
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-      )
-        console.error("Initialization error");
+      if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("Initialization error");
     }
   });
 

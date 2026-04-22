@@ -89,6 +89,13 @@ resolved-issue logs, fix history, context snapshots, and session reports in
 See [`where-to-update-and-read.yml`](../../where-to-update-and-read.yml) for the comprehensive filesystem architecture map
 with every path an LLM agent or developer must check.
 
+## Update policy
+
+1. Read [`.guidelines/`](.guidelines/) and [`where-to-update-and-read.yml`](../../where-to-update-and-read.yml) before making code or docs changes.
+2. Keep durable guidance in [`.guidelines/`](.guidelines/) and this README.
+3. Store historical artifacts under [`.history/`](.history/); this path is archived context and should remain gitignored.
+4. If a helper script is one-off or host-specific, archive it in the nearest `.history/` scripts path instead of keeping it as reusable tooling.
+
 ## CHORES
 
 After finishing a large task, consider clearing cache and logs, and save some data of your procedures as instructed:

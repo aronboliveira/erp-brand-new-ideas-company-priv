@@ -1,18 +1,33 @@
 # \_inc/utils/ — Global / Infrastructure Utilities
 
-Pertains to **infrastructure-level** observations and tools that affect the web server, cloud provider, containers, or the OS.
+Pertains to **infrastructure-level** observations and tools that affect the web server,
+cloud provider, containers, or the OS.
 
 ## Structure
 
 ```
-scripts/
-  sh/       — Shell scripts (system ops, Docker, nginx, MySQL admin, crons)
-  py/       — Python scripts (analysis, comparison, data processing)
-  php/      — PHP CLI scripts (global checks, not Laravel-specific)
-prompts/    — Structured prompts (XML/YAML) for agent workflows
-regexes/    — Reusable regex/grep patterns for CLI and CI
-logs/       — Runtime logs from infra scripts (gitignored via *.log)
+_inc/utils/
+├── scripts/
+│   ├── sh/         # Shell scripts (system ops, Docker, nginx, MySQL admin)
+│   └── py/         # Python scripts (analysis, comparisons, diagnostics)
+├── prompts/        # Prompt templates and coding guidelines
+├── cli/            # Durable command logs by date
+├── find/           # Durable find command notes
+├── grep/           # Durable grep command notes
+├── regex/          # Durable regex command notes
+├── regexes/        # Reusable regex references
+├── assets/         # Utility assets
+├── containers/     # Container-related helpers
+├── logs/           # Runtime logs (gitignored)
+├── .llms/          # LLM context and session artifacts
+└── .history/       # Archived utility artifacts (gitignored)
 ```
+
+## Script triage rules
+
+- Reusable scripts stay in [`scripts/`](scripts/).
+- One-off or host-specific scripts should be moved to [`.history/`](.history/) (for example, `.history/scripts/{lang}/YYYYMMDD-*`).
+- Keep `.history/` as local archival context and do not re-track it in git.
 
 ## Scope
 

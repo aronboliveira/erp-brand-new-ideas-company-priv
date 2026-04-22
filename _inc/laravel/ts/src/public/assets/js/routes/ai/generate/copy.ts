@@ -20,16 +20,13 @@
     dataBoundChange = "data-bound-template-change",
     dataBoundGen = "data-bound-generate",
     copiedMsgId = "ai-copied-msg",
-    qs = (s: string, r: ParentNode = document): HTMLElement | null =>
-      r.querySelector(s);
+    qs = (s: string, r: ParentNode = document): HTMLElement | null => r.querySelector(s);
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const _qsa = (s: string, r = document) =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     Array.prototype.slice.call(r.querySelectorAll(s) || []);
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const hasBootstrap = () =>
-    qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-    (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
+  const hasBootstrap = () => qs('link[rel="stylesheet"][href*="bootstrap"]') || (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");
     if (c) return c;
@@ -55,8 +52,7 @@
           "aria-atomic": "true",
         }))
           t.setAttribute(k, v);
-        t.innerHTML =
-          '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+        t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
         container.appendChild(t);
       }
       const body = qs(".toast-body", t);
@@ -93,26 +89,13 @@
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getMsg = (el: HTMLElement, key: string) => {
     let msg = errFb;
-    if (
-      el.getAttribute(dataSvLocalized) === "true" ||
-      el.getAttribute(dataClientLocalized) === "true"
-    ) {
+    if (el.getAttribute(dataSvLocalized) === "true" || el.getAttribute(dataClientLocalized) === "true") {
       msg = el.getAttribute(dataGuardMsg) || errFb;
     } else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ??
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
+      let lang = (window.sessionStorage.getItem("erp-np-lang") ?? document.documentElement.lang ?? "en").toLowerCase().replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       const msgKey = key;
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el.getAttribute(dataGuardMsg) ||
-        window.translations?.en?.[msgKey] ||
-        errFb;
+      msg = window.translations?.[lang]?.[msgKey] || el.getAttribute(dataGuardMsg) || window.translations?.en?.[msgKey] || errFb;
       if (msg !== errFb && el) {
         el.setAttribute(dataGuardMsg, msg);
         el.setAttribute(dataClientLocalized, "true");
@@ -127,29 +110,14 @@
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   ) => {
     const url = el?.getAttribute("data-url") || "",
-      href = el
-        ? el.tagName === "FORM"
-          ? (el.getAttribute("action") ?? "")
-          : (el.getAttribute("href") ?? "")
-        : "";
-    if (
-      (!explicit || explicit === "#") &&
-      (!url || url === "#") &&
-      (!href || href === "#")
-    )
-      return null;
-    return explicit && explicit !== "#"
-      ? explicit
-      : url && url !== "#"
-        ? url
-        : href;
+      href = el ? (el.tagName === "FORM" ? (el.getAttribute("action") ?? "") : (el.getAttribute("href") ?? "")) : "";
+    if ((!explicit || explicit === "#") && (!url || url === "#") && (!href || href === "#")) return null;
+    return explicit && explicit !== "#" ? explicit : url && url !== "#" ? url : href;
   };
   const setCheckedFirstRadio = (): void => {
     const modal = qs("#commonModalOver");
     if (!modal) return;
-    const first = qs(
-      "#commonModalOver input[type='radio']",
-    ) as HTMLInputElement | null;
+    const first = qs("#commonModalOver input[type='radio']") as HTMLInputElement | null;
     if (first) {
       if (!first.checked) {
         first.checked = true;
@@ -168,8 +136,7 @@
     }
     const $ta = $('textarea[name="' + name + '"]');
     if ($ta.length === 0) return false;
-    const isSummer =
-      $ta.hasClass("summernote-simple") || $ta.hasClass("summernote-simple-2");
+    const isSummer = $ta.hasClass("summernote-simple") || $ta.hasClass("summernote-simple-2");
     if (isSummer && typeof $ta.summernote === "function")
       try {
         $ta.summernote("code", String(value ?? ""));
@@ -200,30 +167,20 @@
   };
   const copyText = (): void => {
     try {
-      const selected =
-          $('input[name="template_name"]:checked').attr("data-name") ?? "",
+      const selected = $('input[name="template_name"]:checked').attr("data-name") ?? "",
         copied = $("#ai-description").val() ?? "";
       if (selected === "") {
-        scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable"),
-        );
+        scheduleInteractiveErrorClick(getMsg(document.body, "copy_unavailable"));
         return;
       }
       const ok = writeField(selected, copied);
       if (!ok) {
-        scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable"),
-        );
+        scheduleInteractiveErrorClick(getMsg(document.body, "copy_unavailable"));
         return;
       }
       const anchor = qs("#ai-description");
       ensureCopiedLabel(anchor);
-      if (window.show_toastr)
-        window.show_toastr(
-          "success",
-          "Result text has been copied successfully",
-          "success",
-        );
+      if (window.show_toastr) window.show_toastr("success", "Result text has been copied successfully", "success");
       (
         $("#commonModalOver") as JQuery<HTMLElement> & {
           modal: (action: string) => void;
@@ -235,35 +192,22 @@
   };
   const copySelectedText = (): void => {
     try {
-      const selected =
-          $('input[name="template_name"]:checked').attr("data-name") ?? "",
-        selText =
-          (window.getSelection && window.getSelection()?.toString()) || "";
+      const selected = $('input[name="template_name"]:checked').attr("data-name") ?? "",
+        selText = (window.getSelection && window.getSelection()?.toString()) || "";
       if (selected === "") {
-        scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable"),
-        );
+        scheduleInteractiveErrorClick(getMsg(document.body, "copy_unavailable"));
         return;
       }
       if (selText === "") {
-        scheduleInteractiveErrorClick(
-          getMsg(document.body, "selection_unavailable"),
-        );
+        scheduleInteractiveErrorClick(getMsg(document.body, "selection_unavailable"));
         return;
       }
       if (!writeField(selected, selText)) {
-        scheduleInteractiveErrorClick(
-          getMsg(document.body, "copy_unavailable"),
-        );
+        scheduleInteractiveErrorClick(getMsg(document.body, "copy_unavailable"));
         return;
       }
       ensureCopiedLabel(qs("#ai-description"));
-      if (window.show_toastr)
-        window.show_toastr(
-          "success",
-          "Result text has been copied successfully",
-          "success",
-        );
+      if (window.show_toastr) window.show_toastr("success", "Result text has been copied successfully", "success");
       (
         $("#commonModalOver") as JQuery<HTMLElement> & {
           modal: (action: string) => void;
@@ -277,53 +221,41 @@
     const root = document.body;
     if (root.getAttribute(dataBoundChange) === "true") return;
     root.setAttribute(dataBoundChange, "true");
-    $(document.body).on(
-      "change.aiTemplate",
-      ".template_name",
-      function (this: HTMLElement): void {
-        const el = this;
-        const templateId = String($(el).val() ?? "");
-        const explicit =
-          '{{route("generate.keywords",["__templateId"])}}'.replace(
-            "__templateId",
-            templateId,
-          );
-        const endpoint = resolveRoute(el, explicit);
-        if (!endpoint) {
-          scheduleInteractiveErrorClick(getMsg(el, "keywords_unavailable"));
-          return;
-        }
-        $.ajax({
-          type: "post",
-          url: endpoint,
-          dataType: "json",
-          data: { _token: "{{ csrf_token() }}", template_id: templateId },
-          cache: false,
-          success: function (data: { tone?: number; template?: string }) {
-            try {
-              if (data.tone === 1) {
-                $(".tone").removeClass("d-none");
-                $(".tone select").attr("name", "tone");
-              } else {
-                $(".tone").addClass("d-none");
-                $(".d-none select").removeAttr("name");
-              }
-              $("#getkeywords").empty();
-              $("#getkeywords").append(data.template ?? "");
-            } catch (_) {
-              scheduleInteractiveErrorClick(
-                getMsg(document.body, "keywords_unavailable"),
-              );
+    $(document.body).on("change.aiTemplate", ".template_name", function (this: HTMLElement): void {
+      const el = this;
+      const templateId = String($(el).val() ?? "");
+      const explicit = '{{route("generate.keywords",["__templateId"])}}'.replace("__templateId", templateId);
+      const endpoint = resolveRoute(el, explicit);
+      if (!endpoint) {
+        scheduleInteractiveErrorClick(getMsg(el, "keywords_unavailable"));
+        return;
+      }
+      $.ajax({
+        type: "post",
+        url: endpoint,
+        dataType: "json",
+        data: { _token: "{{ csrf_token() }}", template_id: templateId },
+        cache: false,
+        success: function (data: { tone?: number; template?: string }) {
+          try {
+            if (data.tone === 1) {
+              $(".tone").removeClass("d-none");
+              $(".tone select").attr("name", "tone");
+            } else {
+              $(".tone").addClass("d-none");
+              $(".d-none select").removeAttr("name");
             }
-          },
-          error: function (): void {
-            scheduleInteractiveErrorClick(
-              getMsg(document.body, "server_unavailable"),
-            );
-          },
-        });
-      },
-    );
+            $("#getkeywords").empty();
+            $("#getkeywords").append(data.template ?? "");
+          } catch (_) {
+            scheduleInteractiveErrorClick(getMsg(document.body, "keywords_unavailable"));
+          }
+        },
+        error: function (): void {
+          scheduleInteractiveErrorClick(getMsg(document.body, "server_unavailable"));
+        },
+      });
+    });
     const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(root)) {
         $(document.body).off(".aiTemplate");
@@ -337,63 +269,52 @@
     if (!btn) return;
     if (btn.getAttribute(dataBoundGen) === "true") return;
     btn.setAttribute(dataBoundGen, "true");
-    $(document.body).on(
-      "click.aiGenerate",
-      "#generate",
-      function (this: HTMLElement): void {
-        const el = this;
-        const form = $("#myForm"),
-          explicit = '{{ route("generate.response") }}',
-          endpoint = resolveRoute(form.get(0), explicit);
-        if (!endpoint) {
-          scheduleInteractiveErrorClick(getMsg(el, "generate_unavailable"));
-          return;
-        }
-        $.ajax({
-          type: "post",
-          url: endpoint,
-          dataType: "json",
-          data: form.serialize(),
-          cache: false,
-          beforeSend: function (): void {
-            try {
-              $("#generate").empty();
-              $("#generate").append(
-                '<span class="spinner-grow spinner-grow-sm" role="status"></span>',
-              );
-            } catch (_) {
-              console.error(`[copy] Error:`, _);
+    $(document.body).on("click.aiGenerate", "#generate", function (this: HTMLElement): void {
+      const el = this;
+      const form = $("#myForm"),
+        explicit = '{{ route("generate.response") }}',
+        endpoint = resolveRoute(form.get(0), explicit);
+      if (!endpoint) {
+        scheduleInteractiveErrorClick(getMsg(el, "generate_unavailable"));
+        return;
+      }
+      $.ajax({
+        type: "post",
+        url: endpoint,
+        dataType: "json",
+        data: form.serialize(),
+        cache: false,
+        beforeSend: function (): void {
+          try {
+            $("#generate").empty();
+            $("#generate").append('<span class="spinner-grow spinner-grow-sm" role="status"></span>');
+          } catch (_) {
+            console.error(`[copy] Error:`, _);
+          }
+        },
+        success: function (data: string | { message?: string }) {
+          try {
+            $(".response").removeClass("d-none");
+            $("#generate").text("Re-Generate");
+            if (typeof data !== "string" && data.message) {
+              if (window.show_toastr) window.show_toastr("error", data.message, "error");
+              (
+                $("#commonModalOver") as JQuery<HTMLElement> & {
+                  modal: (action: string) => void;
+                }
+              ).modal("hide");
+            } else {
+              $("#ai-description").val((data ?? "") as string);
             }
-          },
-          success: function (data: string | { message?: string }) {
-            try {
-              $(".response").removeClass("d-none");
-              $("#generate").text("Re-Generate");
-              if (typeof data !== "string" && data.message) {
-                if (window.show_toastr)
-                  window.show_toastr("error", data.message, "error");
-                (
-                  $("#commonModalOver") as JQuery<HTMLElement> & {
-                    modal: (action: string) => void;
-                  }
-                ).modal("hide");
-              } else {
-                $("#ai-description").val((data ?? "") as string);
-              }
-            } catch (_) {
-              scheduleInteractiveErrorClick(
-                getMsg(document.body, "generate_unavailable"),
-              );
-            }
-          },
-          error: function (): void {
-            scheduleInteractiveErrorClick(
-              getMsg(document.body, "server_unavailable"),
-            );
-          },
-        });
-      },
-    );
+          } catch (_) {
+            scheduleInteractiveErrorClick(getMsg(document.body, "generate_unavailable"));
+          }
+        },
+        error: function (): void {
+          scheduleInteractiveErrorClick(getMsg(document.body, "server_unavailable"));
+        },
+      });
+    });
     const mo = new MutationObserver((_m, o) => {
       if (!document.body.contains(btn)) {
         $(document.body).off(".aiGenerate");
@@ -413,9 +334,7 @@
       } catch (_) {
         console.error(`[copy] Error:`, _);
       }
-      scheduleInteractiveErrorClick(
-        getMsg(document.body, "plugin_unavailable"),
-      );
+      scheduleInteractiveErrorClick(getMsg(document.body, "plugin_unavailable"));
       return;
     }
     setCheckedFirstRadio();
@@ -423,9 +342,7 @@
     bindGenerate();
     exposeGlobals();
   };
-  document.readyState === "loading"
-    ? document.addEventListener("DOMContentLoaded", init, { once: true })
-    : init();
+  document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", init, { once: true }) : init();
 })();
 
 export {};
