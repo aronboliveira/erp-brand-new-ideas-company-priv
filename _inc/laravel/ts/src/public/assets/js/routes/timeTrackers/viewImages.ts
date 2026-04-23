@@ -81,7 +81,7 @@
                 const m = window.bootstrap.Modal.getOrCreateInstance(modal);
                 m.show();
               }
-            } catch (xhrErr) {
+            } catch (_xhrErr) {
               const msg =
                   "Failed to load tracker images. Please try again later.",
                 bsLink = document.querySelector('link[href*="bootstrap"]');
@@ -148,7 +148,7 @@
           fragment.appendChild(node.cloneNode(true));
         }
         el.appendChild(fragment);
-      } catch (e) {
+      } catch (_e) {
         // Fallback to textContent if parsing fails
         el.textContent = html;
       }

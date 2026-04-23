@@ -66,7 +66,7 @@
         }
 
         f.setAttribute("data-failed-route", "true");
-      } catch (err) {
+      } catch (_err) {
         /* no-op */
       }
     });

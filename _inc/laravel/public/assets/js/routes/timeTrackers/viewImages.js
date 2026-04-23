@@ -78,7 +78,7 @@
                                 m.show();
                             }
                         }
-                        catch (xhrErr) {
+                        catch (_xhrErr) {
                             const msg = "Failed to load tracker images. Please try again later.", bsLink = document.querySelector('link[href*="bootstrap"]');
                             let container = document.getElementById("toast-container");
                             if (!container) {
@@ -146,7 +146,7 @@
                 }
                 el.appendChild(fragment);
             }
-            catch (e) {
+            catch (_e) {
                 // Fallback to textContent if parsing fails
                 el.textContent = html;
             }

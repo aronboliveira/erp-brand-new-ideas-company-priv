@@ -44,7 +44,7 @@
                     try {
                         window.bootstrap.Toast.getOrCreateInstance(toast).show();
                     }
-                    catch (err) {
+                    catch (_err) {
                         alert(msg);
                     }
                 }
