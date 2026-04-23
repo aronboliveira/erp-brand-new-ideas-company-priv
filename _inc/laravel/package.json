@@ -65,7 +65,7 @@
     "markdown-to-jsx": "^7.1.2",
     "mic-recorder-to-mp3": "2.2.2",
     "moment": "^2.29.4",
-    "next": "15.2.4",
+    "next": "^15.2.4",
     "qrcode.react": "4.1.0",
     "query-string": "^7.1.1",
     "react": "^18.3.1",
@@ -127,5 +127,13 @@
     "jquery": "^3.7.1",
     "typescript": "^5",
     "vanilla-cookieconsent": "^2.9.2"
+  },
+  "overrides": {
+    "glob": "^10.0.0",
+    "uuid": "11.0.5",
+    "jsdom": "^25.0.0",
+    "react-trello": {
+      "react-redux": "^9.0.0"
+    }
   }
 }

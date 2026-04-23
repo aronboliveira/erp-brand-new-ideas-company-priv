@@ -87,6 +87,9 @@ jobs:
             - name: npm ci
               run: npm ci --ignore-scripts
 
+            - name: npm audit fix
+              run: npm audit fix --ignore-scripts || true
+
             - name: ESLint
               run: npx eslint public/assets/js/ --ext .js --max-warnings=50 || true
 
