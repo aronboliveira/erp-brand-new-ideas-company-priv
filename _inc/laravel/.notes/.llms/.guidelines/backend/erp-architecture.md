@@ -123,7 +123,7 @@ All chains populated and functional:
 
 ## Security Findings (verified 2026-03-02)
 
-All 7 findings from backend scan verified as CREDIBLE (see `.notes/KNOWN_ISSUES.md` K7-K15):
+All 7 findings from backend scan verified as CREDIBLE (see `_inc/laravel/.notes/KNOWN_ISSUES.md` K7-K15):
 
 - **Critical:** ApiController file_put_contents + mkdir 0777 (path traversal)
 - **High:** LanguageController 0777 + unsanitized $fileName; 10 middleware log bearerToken; 36 zero-byte tests + phpunit.xml SQLite commented out
@@ -138,10 +138,10 @@ All 7 findings from backend scan verified as CREDIBLE (see `.notes/KNOWN_ISSUES.
 
 ## File Organization
 
-- Utility/moment-routine scripts moved to `_inc/utils/.llms/scripts/20260218/`
-- CLI references in `_inc/utils/.llms/cli/` (by date)
-- Session notes in `_inc/utils/.llms/notes/` (by date)
-- Subagent context in `_inc/utils/.llms/ctx/` (this file)
+- Utility/moment-routine scripts moved to `_inc/laravel/utils/.llms/scripts/20260218/`
+- CLI references in `_inc/laravel/utils/.llms/cli/` (by date)
+- Session notes in `_inc/laravel/utils/.llms/notes/` (by date)
+- Subagent context in `_inc/laravel/utils/.llms/ctx/` (this file)
 
 ## Format-Based Context Files (added 2026-03-01)
 

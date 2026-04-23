@@ -1,53 +1,57 @@
-# \_inc/laravel/.notes/.llms/ — App-Specific LLM Guidelines & History
+# _inc/laravel/.notes/.llms/ — Unified LLM Guidelines & History
 
-> Application-scoped guidelines and session artefacts for the Laravel workspace.
+> Unified tree for LLM guidelines and historical context.
+> This folder merges the former root-level and app-hidden notes trees.
 > Canonical filesystem map → [`where-to-update-and-read.yml`](../../../../where-to-update-and-read.yml)
 
 ## Purpose
 
-Contains guidelines specific to the main application (security roleplay, testing
-patterns), plus historical reports and fix summaries scoped to `_inc/laravel/`.
-For architecture-wide guidelines see `.notes/.llms/.guidelines/` at the repo root;
-for per-language coding conventions see `_inc/utils/prompts/.guidelines/`.
+Houses the unified **guidelines tree** (`.guidelines/`) for architecture,
+backend/frontend/database conventions, security patterns, testing strategies,
+agent roles, and Laravel app-specific roleplay/security material. Also stores
+historical snapshots in `.history/`.
 
 ## Directory structure
 
 ```
 .llms/
 ├── README.md                           ← You are here
-├── .guidelines/
-│   ├── security-roleplay-guidelines.md Security roleplay testing framework guide
-│   ├── security-roleplay-profiles.xml  Role profiles (black-hat, green-hat, white-hat, CISO, backend-dev, QA)
-│   └── security-test-map.xml           Mapping of roles → test suites → scripts
-├── .history/
-│   └── reports/
-│       └── route_verify_*.txt          Route verification run logs
-├── AGENT_BRANCH_MERGE_LOG.md           Agent branch merge history
-├── OVERLAPPING_FILES_PHPSTAN_VS_AGENT.txt
-├── PHPSTAN_FIX_SUMMARY.md              PHPStan remediation summary
-├── route-view-testing-pattern.md       Pattern for route→view smoke tests
-├── security-testing-audit.md           Security test coverage audit
-├── test-fixes-20260313.md              Test-fix session notes
-└── typescript-migration.md             TS migration plan and status
+├── .guidelines/                        ★ Unified guideline tree
+│   ├── README.md                       Tree overview
+│   ├── THE_TESTER.md                   QA agent persona
+│   ├── project.yml                     Global project config
+│   ├── constraints.md                  Hard rules and constraints
+│   ├── backend/                        Architecture and coding conventions
+│   ├── database/                       DB conventions
+│   ├── frontend/                       Blade/JS/TS guidance
+│   ├── infrastructure/                 Server and infra references
+│   ├── modules/                        Domain module guidance
+│   ├── roles/                          Agent role definitions
+│   ├── security/                       Security patterns + roleplay profiles/test maps
+│   └── testing/                        CI and test architecture
+├── .history/                           Historical context (reference only)
+├── route-view-testing-pattern.md       App route→view smoke test pattern
+├── security-testing-audit.md           Security coverage audit
+└── typescript-migration.md             TS migration notes
 ```
 
 ## Guidelines checklist (paths agents & developers must read)
 
-| What                               | Where                                                                   |
-| ---------------------------------- | ----------------------------------------------------------------------- |
-| This app-specific context          | `_inc/laravel/.notes/.llms/` (here)                                     |
-| Primary architecture guidelines    | `.notes/.llms/.guidelines/`                                             |
-| Coding-style guides (per-language) | `_inc/utils/prompts/.guidelines/`                                       |
-| LLM session context & tooling      | `_inc/utils/.llms/`                                                     |
-| Agent behaviour config             | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` |
-| Full filesystem map                | `where-to-update-and-read.yml`                                          |
+| What | Where |
+| --- | --- |
+| Unified context tree | `_inc/laravel/.notes/.llms/` (here) |
+| Primary + app guidelines | `_inc/laravel/.notes/.llms/.guidelines/` |
+| Coding-style guides (per-language) | `_inc/laravel/utils/prompts/.guidelines/` |
+| LLM session context | `_inc/laravel/utils/.llms/` |
+| Agent behaviour config | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` |
+| Full filesystem map | `where-to-update-and-read.yml` |
 
-## Update policy (app scope)
+## Update policy
 
-- Keep durable app guidance in [`.guidelines/`](.guidelines/) and the top-level docs in this folder.
-- Save route checks, run outputs, and one-off artifacts under [`.history/`](.history/) only.
-- Promote only reusable automation into [`_inc/laravel/utils/scripts/`](../../utils/scripts/).
-- Treat `.history/` as gitignored archival context; keep local files, but do not re-track them.
+1. Read [`.guidelines/`](.guidelines/) and [`where-to-update-and-read.yml`](../../../../where-to-update-and-read.yml) before making code or docs changes.
+2. Keep durable guidance in [`.guidelines/`](.guidelines/) and this README.
+3. Store historical artifacts under [`.history/`](.history/); this path is archived context and should remain gitignored.
+4. If a helper script is one-off or host-specific, archive it in the nearest `.history/` scripts path instead of keeping it as reusable tooling.
 
 ## CHORES
 

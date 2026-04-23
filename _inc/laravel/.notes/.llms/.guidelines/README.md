@@ -76,6 +76,6 @@
 
 ## Arquivos complementares / Complementary files
 
-- `_inc/utils/prompts/.guidelines/` — Regras de codificação por linguagem (PHP, JS, CSS, Python, React, TS)
+- `_inc/laravel/utils/prompts/.guidelines/` — Regras de codificação por linguagem (PHP, JS, CSS, Python, React, TS)
 - `_inc/laravel/.notes/.llms/` — Logs de sessões e relatórios históricos
-- `.notes/.llms/.history/` — Arquivo de relatórios antigos
+- `_inc/laravel/.notes/.llms/.history/` — Arquivo de relatórios antigos

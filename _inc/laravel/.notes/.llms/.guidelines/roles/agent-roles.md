@@ -13,7 +13,7 @@
 - `backend/controllers/controller-patterns.md` — padrões de controller
 - `modules/billing/billing-guide.md` — domínio de faturamento
 - `database/database-guide.md` — schema e migrations
-- `_inc/utils/prompts/.guidelines/php/financial.md` — regras financeiras
+- `_inc/laravel/utils/prompts/.guidelines/php/financial.md` — regras financeiras
 - `testing/test-architecture.json` — como testar
 
 ### 2. Backend Engineer — HRM
@@ -24,8 +24,8 @@
 - `backend/models/model-conventions.md`
 - `modules/hrm/hrm-guide.md`
 - `database/database-guide.md`
-- `_inc/utils/prompts/.guidelines/php/models.md`
-- `_inc/utils/prompts/.guidelines/php/controllers.md`
+- `_inc/laravel/utils/prompts/.guidelines/php/models.md`
+- `_inc/laravel/utils/prompts/.guidelines/php/controllers.md`
 
 ### 3. Backend Engineer — CRM
 
@@ -43,7 +43,7 @@
 - `backend/services/delegation-patterns.md`
 - `modules/accounting/accounting-guide.md`
 - `modules/billing/billing-guide.md`
-- `_inc/utils/prompts/.guidelines/php/financial.md`
+- `_inc/laravel/utils/prompts/.guidelines/php/financial.md`
 - `database/database-guide.md`
 
 ### 5. Frontend Engineer — Blade/JS
@@ -53,8 +53,8 @@
 - `frontend/blade/blade-conventions.md`
 - `frontend/assets/js-singletons.md`
 - `frontend/esm-iife-strategy.md`
-- `_inc/utils/prompts/.guidelines/javascript/coding-rules.md`
-- `_inc/utils/prompts/.guidelines/css/styling.md`
+- `_inc/laravel/utils/prompts/.guidelines/javascript/coding-rules.md`
+- `_inc/laravel/utils/prompts/.guidelines/css/styling.md`
 
 ### 6. Frontend Engineer — TypeScript
 
@@ -62,8 +62,8 @@
 
 - `frontend/typescript/typescript-guide.md`
 - `frontend/assets/js-singletons.md`
-- `_inc/utils/prompts/.guidelines/typescript/type-safety.md`
-- `_inc/utils/prompts/.guidelines/javascript/singletons.md`
+- `_inc/laravel/utils/prompts/.guidelines/typescript/type-safety.md`
+- `_inc/laravel/utils/prompts/.guidelines/javascript/singletons.md`
 - `testing/typescript-test-harness.md`
 
 ### 7. QA Engineer — PHPUnit
@@ -72,7 +72,7 @@
 
 - `testing/test-architecture.json`
 - `testing/test_suites.xml`
-- `_inc/utils/prompts/.guidelines/php/testing.md`
+- `_inc/laravel/utils/prompts/.guidelines/php/testing.md`
 - `backend/services/delegation-patterns.md` (para entender stubs)
 - `database/database-guide.md` (para seeding)
 
@@ -103,7 +103,7 @@
 - `backend/controllers/controller-patterns.md`
 - Módulo relevante em `modules/`
 - `testing/test-architecture.json`
-- `_inc/utils/prompts/.guidelines/php/testing.md`
+- `_inc/laravel/utils/prompts/.guidelines/php/testing.md`
 
 ## Como Injetar Contexto
 

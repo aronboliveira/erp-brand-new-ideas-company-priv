@@ -47,9 +47,9 @@ paths:
     tests_js: _inc/laravel/tests/frontend/js
     tests_e2e: _inc/laravel/tests/frontend/js/e2e
     notes: notes
-    llm_notes: _inc/utils/.llms/notes
-    llm_ctx: _inc/utils/.llms/ctx
-    scripts: _inc/utils/scripts
+    llm_notes: _inc/laravel/utils/.llms/notes
+    llm_ctx: _inc/laravel/utils/.llms/ctx
+    scripts: _inc/laravel/utils/scripts
     ignored:
         - _old/
         - origin/

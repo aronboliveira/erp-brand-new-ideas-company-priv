@@ -2,7 +2,7 @@
 <!--
   Security Testing Directory Map
   Cross-references all test files by scope, actor, language, and framework.
-  Referenced by: .notes/.llms/security-testing-audit.md
+  Referenced by: _inc/laravel/.notes/.llms/security-testing-audit.md
   Generated: 2026-03-31
 -->
 <security-test-map>

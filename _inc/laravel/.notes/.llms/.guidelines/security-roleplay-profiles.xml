@@ -2,7 +2,7 @@
 <!--
   Security Roleplay Test Profiles
   Defines the actor personas, their behavior patterns, and test expectations.
-  Referenced by: .notes/.llms/security-testing-audit.md
+  Referenced by: _inc/laravel/.notes/.llms/security-testing-audit.md
   Generated: 2026-03-31
 -->
 <security-roleplay-profiles>
