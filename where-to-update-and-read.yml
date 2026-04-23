@@ -140,9 +140,12 @@ starters:
     scripts:
         - volatile: .tmp/scripts/*
         - durable:
-              - generic: _inc/scripts/*
+              - generic: _inc/utils/scripts/*
               - app-setup: _inc/laravel/scripts/*
               - app-utils: _inc/laravel/utils/scripts/*
+        - archive-policy:
+              - one-off-or-host-specific: "Move to nearest .history/scripts/{lang}/YYYYMMDD/ and keep untracked."
+              - reusable-only: "Keep reusable automation in _inc/utils/scripts/* or _inc/laravel/utils/scripts/*."
         - javascript:
             - guidelines: _inc/utils/JAVASCRIPT_FILE_PATTERN.md
             - main-paths:
@@ -257,8 +260,9 @@ starters:
                 - _inc/laravel/tests/python/{exports,imports}/*.py
                 - _inc/laravel/tests/sh/_generate_curl_tests.py
                 - _inc/laravel/tests/postman/scripts/*.py
+                - _inc/utils/scripts/py/*.py
+                - _inc/utils/scripts/py/analysis/*.py
                 - _inc/laravel/utils/scripts/py/*.py
-                - _inc/laravel/utils/scripts/fix_langs_constants.py
                 - _inc/laravel/.tmp/copilot/*/scripts/*.py
                 - _inc/laravel/.tmp/copilot/*/fragments/*.py
     tests:
@@ -284,7 +288,7 @@ starters:
         - _inc/.seeders/*
     outdated:
         - path: **/.history/*
-        - note: "This directory contains historical files that are no longer relevant. Regularly review and clean up these locations to maintain an organized workspace."
+        - note: "Historical local context and archives. Keep on disk for reference but do not keep tracked in git."
     etc:
         checks:
             - memory-usage: "Monitor memory constantly. You need to review how much memory_limit your're giving to php commands, and be sure to keep track of php and node processes with free, ps -o %mem or ps aux, or even tracking oom risk by calling dmesg or journalctl with grep -i oom or -u earlyoom. Sudo passowrd is available at .gh/sudo.yml, so you can echo sudo -S. Invoke sleeps before tasks until stabilization is achieved, and kill+restart processes as needed to prevent OOM crashes."

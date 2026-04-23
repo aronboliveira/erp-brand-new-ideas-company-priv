@@ -28,8 +28,8 @@ Enterprise Resource Planning system for **Nova Prestech**. This repository is th
 │       ├── regexes.md             #    Regex patterns for codebase searches
 │       ├── greps.md               #    Recommended grep commands
 │       ├── finds.md               #    Recommended find commands
-│       ├── prompts/               #    LLM prompt templates (migration, seeding, etc.)
-│       └── py/                    #    Python helper scripts (compare funcs, rearrange)
+│       ├── scripts/               #    Utility scripts (sh/, py/, analysis)
+│       └── prompts/               #    LLM prompt templates (migration, seeding, etc.)
 │
 ├── _old/                          # Fork with experimental modifications (reference only)
 │   ├── app/                       #    Controllers, Models with manual edits
@@ -61,13 +61,13 @@ Enterprise Resource Planning system for **Nova Prestech**. This repository is th
 All conventions, architecture decisions, and agent instructions live under three guideline trees.
 See [`where-to-update-and-read.yml`](where-to-update-and-read.yml) for the canonical **filesystem architecture map** with the full directory layout and every path an LLM agent or developer must check.
 
-| Tree | Path | Scope |
-|---|---|---|
-| Primary guidelines | [`.notes/.llms/.guidelines/`](.notes/.llms/.guidelines/) | Architecture, backend, frontend, DB, modules, security, testing, roles |
-| Coding-style guides | [`_inc/utils/prompts/.guidelines/`](_inc/utils/prompts/.guidelines/) | Per-language rules (PHP, JS, TS, Python, CSS, React) in md/xml/yml/toml |
-| App-specific guides | [`_inc/laravel/.notes/.llms/.guidelines/`](_inc/laravel/.notes/.llms/.guidelines/) | Security roleplay profiles, test maps |
-| Agent config | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` | Copilot/agent behaviour |
-| LLM session context | [`_inc/utils/.llms/`](_inc/utils/.llms/) | CLI logs, agent context, working notes |
+| Tree                | Path                                                                               | Scope                                                                   |
+| ------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Primary guidelines  | [`.notes/.llms/.guidelines/`](.notes/.llms/.guidelines/)                           | Architecture, backend, frontend, DB, modules, security, testing, roles  |
+| Coding-style guides | [`_inc/utils/prompts/.guidelines/`](_inc/utils/prompts/.guidelines/)               | Per-language rules (PHP, JS, TS, Python, CSS, React) in md/xml/yml/toml |
+| App-specific guides | [`_inc/laravel/.notes/.llms/.guidelines/`](_inc/laravel/.notes/.llms/.guidelines/) | Security roleplay profiles, test maps                                   |
+| Agent config        | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md`            | Copilot/agent behaviour                                                 |
+| LLM session context | [`_inc/utils/.llms/`](_inc/utils/.llms/)                                           | CLI logs, agent context, working notes                                  |
 
 ---
 
@@ -82,22 +82,22 @@ See [`where-to-update-and-read.yml`](where-to-update-and-read.yml) for the canon
 
 ## Tech stack
 
-| Layer | Technology | Version |
-|---|---|---|
-| Language | PHP | 8.3 |
-| Framework | Laravel | 10.x |
-| Module system | nWidart/laravel-modules | 10.x |
-| Database | MySQL / MariaDB | 8.0+ |
-| Cache / Queue | Redis (optional, file driver default) | 7.x |
-| Frontend bundler | Laravel Mix (Webpack) | 6.x |
-| CSS framework | Tailwind CSS + Bootstrap 5 | — |
-| JS architecture | Vanilla ES2022 (IIFE singletons) | — |
-| Testing (backend) | PHPUnit | 10.x |
-| Testing (frontend) | Jest + ts-jest (jsdom) | 29.x |
-| Static analysis | PHPStan (level 5) | 2.x |
-| Containerisation | Docker + Docker Compose | — |
-| Auth | Laravel Fortify (custom `/fortify-*` prefix) | — |
-| IDs | UUID (not auto-increment) | — |
+| Layer              | Technology                                   | Version |
+| ------------------ | -------------------------------------------- | ------- |
+| Language           | PHP                                          | 8.3     |
+| Framework          | Laravel                                      | 10.x    |
+| Module system      | nWidart/laravel-modules                      | 10.x    |
+| Database           | MySQL / MariaDB                              | 8.0+    |
+| Cache / Queue      | Redis (optional, file driver default)        | 7.x     |
+| Frontend bundler   | Laravel Mix (Webpack)                        | 6.x     |
+| CSS framework      | Tailwind CSS + Bootstrap 5                   | —       |
+| JS architecture    | Vanilla ES2022 (IIFE singletons)             | —       |
+| Testing (backend)  | PHPUnit                                      | 10.x    |
+| Testing (frontend) | Jest + ts-jest (jsdom)                       | 29.x    |
+| Static analysis    | PHPStan (level 5)                            | 2.x     |
+| Containerisation   | Docker + Docker Compose                      | —       |
+| Auth               | Laravel Fortify (custom `/fortify-*` prefix) | —       |
+| IDs                | UUID (not auto-increment)                    | —       |
 
 ---
 
@@ -189,16 +189,16 @@ See [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/test
 
 ## Utility scripts
 
-| File | Purpose |
-|---|---|
-| `_inc/utils/regexes.md` | Regex patterns for codebase audits |
-| `_inc/utils/greps.md` | `grep` one-liners for debugging |
-| `_inc/utils/finds.md` | `find` one-liners for file discovery |
-| `_inc/utils/py/compare_funcs_models.py` | Compare method signatures between old/new models |
-| `_inc/utils/py/compare_funcs_names.py` | Diff function names across directories |
-| `_inc/utils/py/rearrange.py` | Rearrange import statements |
-| `_inc/utils/py/read_deps.py` | Parse composer/package dependency trees |
-| `_inc/utils/prompts/` | XML/Markdown prompt templates for LLM-assisted migration |
+| File                                                     | Purpose                                                  |
+| -------------------------------------------------------- | -------------------------------------------------------- |
+| `_inc/utils/regexes.md`                                  | Regex patterns for codebase audits                       |
+| `_inc/utils/greps.md`                                    | `grep` one-liners for debugging                          |
+| `_inc/utils/finds.md`                                    | `find` one-liners for file discovery                     |
+| `_inc/utils/scripts/py/analysis/compare_funcs_models.py` | Compare method signatures between old/new models         |
+| `_inc/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff function names across directories                   |
+| `_inc/utils/scripts/py/analysis/rearrange.py`            | Rearrange import statements                              |
+| `_inc/utils/scripts/py/analysis/read_deps.py`            | Parse composer/package dependency trees                  |
+| `_inc/utils/prompts/`                                    | XML/Markdown prompt templates for LLM-assisted migration |
 
 ---
 
@@ -246,8 +246,8 @@ Sistema de Planificación de Recursos Empresariales para **Nova Prestech**. Este
 │       ├── regexes.md             #    Patrones regex para auditorías del código
 │       ├── greps.md               #    Comandos grep recomendados
 │       ├── finds.md               #    Comandos find recomendados
-│       ├── prompts/               #    Templates de prompts LLM (migración, seeding, etc.)
-│       └── py/                    #    Scripts auxiliares en Python
+│       ├── scripts/               #    Scripts utilitarios (sh/, py/, analysis)
+│       └── prompts/               #    Templates de prompts LLM (migración, seeding, etc.)
 │
 ├── _old/                          # Fork con modificaciones experimentales (solo referencia)
 ├── origin/                        # Fork upstream sin modificar (ERPGo)
@@ -267,34 +267,34 @@ Sistema de Planificación de Recursos Empresariales para **Nova Prestech**. Este
 Todas las convenciones, decisiones arquitectónicas e instrucciones para agentes están en tres árboles de guías.
 Consulte [`where-to-update-and-read.yml`](where-to-update-and-read.yml) para el **mapa de arquitectura del sistema de archivos** con el diseño completo y cada ruta que un agente LLM o desarrollador debe verificar.
 
-| Árbol | Ruta | Alcance |
-|---|---|---|
-| Guías primarias | `.notes/.llms/.guidelines/` | Arquitectura, backend, frontend, BD, módulos, seguridad, testing, roles |
-| Guías de estilo | `_inc/utils/prompts/.guidelines/` | Reglas por lenguaje (PHP, JS, TS, Python, CSS, React) |
-| Guías de la app | `_inc/laravel/.notes/.llms/.guidelines/` | Perfiles de roleplay de seguridad, mapas de tests |
-| Config de agente | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` | Comportamiento del agente |
-| Contexto LLM | `_inc/utils/.llms/` | Logs de CLI, contexto de agentes, notas de trabajo |
+| Árbol            | Ruta                                                                    | Alcance                                                                 |
+| ---------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Guías primarias  | `.notes/.llms/.guidelines/`                                             | Arquitectura, backend, frontend, BD, módulos, seguridad, testing, roles |
+| Guías de estilo  | `_inc/utils/prompts/.guidelines/`                                       | Reglas por lenguaje (PHP, JS, TS, Python, CSS, React)                   |
+| Guías de la app  | `_inc/laravel/.notes/.llms/.guidelines/`                                | Perfiles de roleplay de seguridad, mapas de tests                       |
+| Config de agente | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` | Comportamiento del agente                                               |
+| Contexto LLM     | `_inc/utils/.llms/`                                                     | Logs de CLI, contexto de agentes, notas de trabajo                      |
 
 ---
 
 ## Stack tecnológico
 
-| Capa | Tecnología | Versión |
-|---|---|---|
-| Lenguaje | PHP | 8.3 |
-| Framework | Laravel | 10.x |
-| Sistema de módulos | nWidart/laravel-modules | 10.x |
-| Base de datos | MySQL / MariaDB | 8.0+ |
-| Cache / Cola | Redis (opcional, driver file por defecto) | 7.x |
-| Bundler frontend | Laravel Mix (Webpack) | 6.x |
-| Framework CSS | Tailwind CSS + Bootstrap 5 | — |
-| Arquitectura JS | Vanilla ES2022 (IIFE singletons) | — |
-| Testing (backend) | PHPUnit | 10.x |
-| Testing (frontend) | Jest + ts-jest (jsdom) | 29.x |
-| Análisis estático | PHPStan (level 5) | 2.x |
-| Contenedorización | Docker + Docker Compose | — |
-| Auth | Laravel Fortify (prefijo personalizado `/fortify-*`) | — |
-| IDs | UUID (no auto-increment) | — |
+| Capa               | Tecnología                                           | Versión |
+| ------------------ | ---------------------------------------------------- | ------- |
+| Lenguaje           | PHP                                                  | 8.3     |
+| Framework          | Laravel                                              | 10.x    |
+| Sistema de módulos | nWidart/laravel-modules                              | 10.x    |
+| Base de datos      | MySQL / MariaDB                                      | 8.0+    |
+| Cache / Cola       | Redis (opcional, driver file por defecto)            | 7.x     |
+| Bundler frontend   | Laravel Mix (Webpack)                                | 6.x     |
+| Framework CSS      | Tailwind CSS + Bootstrap 5                           | —       |
+| Arquitectura JS    | Vanilla ES2022 (IIFE singletons)                     | —       |
+| Testing (backend)  | PHPUnit                                              | 10.x    |
+| Testing (frontend) | Jest + ts-jest (jsdom)                               | 29.x    |
+| Análisis estático  | PHPStan (level 5)                                    | 2.x     |
+| Contenedorización  | Docker + Docker Compose                              | —       |
+| Auth               | Laravel Fortify (prefijo personalizado `/fortify-*`) | —       |
+| IDs                | UUID (no auto-increment)                             | —       |
 
 ---
 
@@ -386,16 +386,16 @@ Ver [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/test
 
 ## Scripts utilitarios
 
-| Archivo | Propósito |
-|---|---|
-| `_inc/utils/regexes.md` | Patrones regex para auditorías del código |
-| `_inc/utils/greps.md` | Comandos `grep` para depuración |
-| `_inc/utils/finds.md` | Comandos `find` para descubrimiento de archivos |
-| `_inc/utils/py/compare_funcs_models.py` | Comparar firmas de métodos entre modelos old/new |
-| `_inc/utils/py/compare_funcs_names.py` | Diff de nombres de funciones entre directorios |
-| `_inc/utils/py/rearrange.py` | Reorganizar sentencias de import |
-| `_inc/utils/py/read_deps.py` | Parsear árboles de dependencias composer/package |
-| `_inc/utils/prompts/` | Templates de prompts para migración asistida por LLM |
+| Archivo                                                  | Propósito                                            |
+| -------------------------------------------------------- | ---------------------------------------------------- |
+| `_inc/utils/regexes.md`                                  | Patrones regex para auditorías del código            |
+| `_inc/utils/greps.md`                                    | Comandos `grep` para depuración                      |
+| `_inc/utils/finds.md`                                    | Comandos `find` para descubrimiento de archivos      |
+| `_inc/utils/scripts/py/analysis/compare_funcs_models.py` | Comparar firmas de métodos entre modelos old/new     |
+| `_inc/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff de nombres de funciones entre directorios       |
+| `_inc/utils/scripts/py/analysis/rearrange.py`            | Reorganizar sentencias de import                     |
+| `_inc/utils/scripts/py/analysis/read_deps.py`            | Parsear árboles de dependencias composer/package     |
+| `_inc/utils/prompts/`                                    | Templates de prompts para migración asistida por LLM |
 
 ---
 
@@ -442,8 +442,8 @@ Sistema de Planejamento de Recursos Empresariais para **Nova Prestech**. Este re
 │       ├── regexes.md             #    Padrões regex para auditorias do código
 │       ├── greps.md               #    Comandos grep recomendados
 │       ├── finds.md               #    Comandos find recomendados
-│       ├── prompts/               #    Templates de prompts LLM (migração, seeding, etc.)
-│       └── py/                    #    Scripts auxiliares em Python (comparar funções, reorganizar)
+│       ├── scripts/               #    Scripts utilitários (sh/, py/, analysis)
+│       └── prompts/               #    Templates de prompts LLM (migração, seeding, etc.)
 │
 ├── _old/                          # Fork com modificações experimentais (apenas referência)
 │   ├── app/                       #    Controllers, Models com edições manuais
@@ -475,34 +475,34 @@ Sistema de Planejamento de Recursos Empresariais para **Nova Prestech**. Este re
 Todas as convenções, decisões arquiteturais e instruções para agentes estão em três árvores de guias.
 Consulte [`where-to-update-and-read.yml`](where-to-update-and-read.yml) para o **mapa de arquitetura do sistema de arquivos** com o layout completo e cada caminho que um agente LLM ou desenvolvedor deve verificar.
 
-| Árvore | Caminho | Escopo |
-|---|---|---|
-| Guias primárias | `.notes/.llms/.guidelines/` | Arquitetura, backend, frontend, BD, módulos, segurança, testes, papéis |
-| Guias de estilo | `_inc/utils/prompts/.guidelines/` | Regras por linguagem (PHP, JS, TS, Python, CSS, React) |
-| Guias da app | `_inc/laravel/.notes/.llms/.guidelines/` | Perfis de roleplay de segurança, mapas de testes |
-| Config de agente | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` | Comportamento do agente |
-| Contexto LLM | `_inc/utils/.llms/` | Logs de CLI, contexto de agentes, notas de trabalho |
+| Árvore           | Caminho                                                                 | Escopo                                                                 |
+| ---------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Guias primárias  | `.notes/.llms/.guidelines/`                                             | Arquitetura, backend, frontend, BD, módulos, segurança, testes, papéis |
+| Guias de estilo  | `_inc/utils/prompts/.guidelines/`                                       | Regras por linguagem (PHP, JS, TS, Python, CSS, React)                 |
+| Guias da app     | `_inc/laravel/.notes/.llms/.guidelines/`                                | Perfis de roleplay de segurança, mapas de testes                       |
+| Config de agente | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` | Comportamento do agente                                                |
+| Contexto LLM     | `_inc/utils/.llms/`                                                     | Logs de CLI, contexto de agentes, notas de trabalho                    |
 
 ---
 
 ## Stack tecnológico
 
-| Camada | Tecnologia | Versão |
-|---|---|---|
-| Linguagem | PHP | 8.3 |
-| Framework | Laravel | 10.x |
-| Sistema de módulos | nWidart/laravel-modules | 10.x |
-| Banco de dados | MySQL / MariaDB | 8.0+ |
-| Cache / Fila | Redis (opcional, driver file por padrão) | 7.x |
-| Bundler frontend | Laravel Mix (Webpack) | 6.x |
-| Framework CSS | Tailwind CSS + Bootstrap 5 | — |
-| Arquitetura JS | Vanilla ES2022 (IIFE singletons) | — |
-| Testes (backend) | PHPUnit | 10.x |
-| Testes (frontend) | Jest + ts-jest (jsdom) | 29.x |
-| Análise estática | PHPStan (level 5) | 2.x |
-| Conteinerização | Docker + Docker Compose | — |
-| Auth | Laravel Fortify (prefixo personalizado `/fortify-*`) | — |
-| IDs | UUID (não auto-increment) | — |
+| Camada             | Tecnologia                                           | Versão |
+| ------------------ | ---------------------------------------------------- | ------ |
+| Linguagem          | PHP                                                  | 8.3    |
+| Framework          | Laravel                                              | 10.x   |
+| Sistema de módulos | nWidart/laravel-modules                              | 10.x   |
+| Banco de dados     | MySQL / MariaDB                                      | 8.0+   |
+| Cache / Fila       | Redis (opcional, driver file por padrão)             | 7.x    |
+| Bundler frontend   | Laravel Mix (Webpack)                                | 6.x    |
+| Framework CSS      | Tailwind CSS + Bootstrap 5                           | —      |
+| Arquitetura JS     | Vanilla ES2022 (IIFE singletons)                     | —      |
+| Testes (backend)   | PHPUnit                                              | 10.x   |
+| Testes (frontend)  | Jest + ts-jest (jsdom)                               | 29.x   |
+| Análise estática   | PHPStan (level 5)                                    | 2.x    |
+| Conteinerização    | Docker + Docker Compose                              | —      |
+| Auth               | Laravel Fortify (prefixo personalizado `/fortify-*`) | —      |
+| IDs                | UUID (não auto-increment)                            | —      |
 
 ---
 
@@ -594,16 +594,16 @@ Ver [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/test
 
 ## Scripts utilitários
 
-| Arquivo | Finalidade |
-|---|---|
-| `_inc/utils/regexes.md` | Padrões regex para auditorias do código |
-| `_inc/utils/greps.md` | Comandos `grep` para depuração |
-| `_inc/utils/finds.md` | Comandos `find` para descoberta de arquivos |
-| `_inc/utils/py/compare_funcs_models.py` | Comparar assinaturas de métodos entre modelos old/new |
-| `_inc/utils/py/compare_funcs_names.py` | Diff de nomes de funções entre diretórios |
-| `_inc/utils/py/rearrange.py` | Reorganizar sentenças de import |
-| `_inc/utils/py/read_deps.py` | Parsear árvores de dependências composer/package |
-| `_inc/utils/prompts/` | Templates de prompts XML/Markdown para migração assistida por LLM |
+| Arquivo                                                  | Finalidade                                                        |
+| -------------------------------------------------------- | ----------------------------------------------------------------- |
+| `_inc/utils/regexes.md`                                  | Padrões regex para auditorias do código                           |
+| `_inc/utils/greps.md`                                    | Comandos `grep` para depuração                                    |
+| `_inc/utils/finds.md`                                    | Comandos `find` para descoberta de arquivos                       |
+| `_inc/utils/scripts/py/analysis/compare_funcs_models.py` | Comparar assinaturas de métodos entre modelos old/new             |
+| `_inc/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff de nomes de funções entre diretórios                         |
+| `_inc/utils/scripts/py/analysis/rearrange.py`            | Reorganizar sentenças de import                                   |
+| `_inc/utils/scripts/py/analysis/read_deps.py`            | Parsear árvores de dependências composer/package                  |
+| `_inc/utils/prompts/`                                    | Templates de prompts XML/Markdown para migração assistida por LLM |
 
 ---
 

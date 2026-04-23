@@ -1,4 +1,4 @@
-# _inc/utils/.llms/ — LLM Session Context & Working Notes
+# \_inc/utils/.llms/ — LLM Session Context & Working Notes
 
 > Developer tooling workspace context for LLM agents.
 > Canonical filesystem map → [`where-to-update-and-read.yml`](../../../where-to-update-and-read.yml)
@@ -36,11 +36,18 @@ guidelines see `.notes/.llms/.guidelines/`.
 
 ## Guidelines checklist (paths agents & developers must read)
 
-| What | Where |
-|---|---|
-| This tooling context | `_inc/utils/.llms/` (here) |
-| Primary architecture guidelines | `.notes/.llms/.guidelines/` |
-| Coding-style guides (per-language) | `_inc/utils/prompts/.guidelines/` |
-| App-specific guidelines | `_inc/laravel/.notes/.llms/.guidelines/` |
-| Agent behaviour config | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` |
-| Full filesystem map | `where-to-update-and-read.yml` |
+| What                               | Where                                                                   |
+| ---------------------------------- | ----------------------------------------------------------------------- |
+| This tooling context               | `_inc/utils/.llms/` (here)                                              |
+| Primary architecture guidelines    | `.notes/.llms/.guidelines/`                                             |
+| Coding-style guides (per-language) | `_inc/utils/prompts/.guidelines/`                                       |
+| App-specific guidelines            | `_inc/laravel/.notes/.llms/.guidelines/`                                |
+| Agent behaviour config             | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` |
+| Full filesystem map                | `where-to-update-and-read.yml`                                          |
+
+## Update policy
+
+1. Read `where-to-update-and-read.yml` before adding or reorganizing context files.
+2. Keep durable context in `ctx/` and stable reference docs in this folder.
+3. Save transient logs, dated notes, and one-off working artifacts under the nearest `.history/` path.
+4. Keep `.history/` content local and gitignored; do not re-track archived files.
