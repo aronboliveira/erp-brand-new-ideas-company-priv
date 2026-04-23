@@ -61,22 +61,22 @@ Enterprise Resource Planning system for **Nova Prestech**. This repository is th
 All conventions, architecture decisions, and agent instructions live under three guideline trees.
 See [`where-to-update-and-read.yml`](where-to-update-and-read.yml) for the canonical **filesystem architecture map** with the full directory layout and every path an LLM agent or developer must check.
 
-| Tree                | Path                                                                               | Scope                                                                   |
-| ------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Primary guidelines  | [`.notes/.llms/.guidelines/`](.notes/.llms/.guidelines/)                           | Architecture, backend, frontend, DB, modules, security, testing, roles  |
-| Coding-style guides | [`_inc/utils/prompts/.guidelines/`](_inc/utils/prompts/.guidelines/)               | Per-language rules (PHP, JS, TS, Python, CSS, React) in md/xml/yml/toml |
-| App-specific guides | [`_inc/laravel/.notes/.llms/.guidelines/`](_inc/laravel/.notes/.llms/.guidelines/) | Security roleplay profiles, test maps                                   |
-| Agent config        | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md`            | Copilot/agent behaviour                                                 |
-| LLM session context | [`_inc/utils/.llms/`](_inc/utils/.llms/)                                           | CLI logs, agent context, working notes                                  |
+| Tree                | Path                                                                                 | Scope                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| Primary guidelines  | [`_inc/laravel/.notes/.llms/.guidelines/`](_inc/laravel/.notes/.llms/.guidelines/)   | Architecture, backend, frontend, DB, modules, security, testing, roles  |
+| Coding-style guides | [`_inc/laravel/utils/prompts/.guidelines/`](_inc/laravel/utils/prompts/.guidelines/) | Per-language rules (PHP, JS, TS, Python, CSS, React) in md/xml/yml/toml |
+| App-specific guides | [`_inc/laravel/.notes/.llms/`](_inc/laravel/.notes/.llms/)                           | App-scoped reports, roleplay maps, and test guidance                    |
+| Agent config        | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md`              | Copilot/agent behaviour                                                 |
+| LLM session context | [`_inc/laravel/utils/.llms/`](_inc/laravel/utils/.llms/)                             | CLI logs, agent context, working notes                                  |
 
 ---
 
 ## Update & archive flow
 
 - Start from [`where-to-update-and-read.yml`](where-to-update-and-read.yml) before changing docs, scripts, or routes.
-- Keep durable documentation under [`README.md`](README.md), [`.notes/`](.notes/), [`_inc/laravel/.notes/`](_inc/laravel/.notes/), and [`_inc/utils/`](_inc/utils/).
+- Keep durable documentation under [`README.md`](README.md), [`_inc/laravel/.notes/`](_inc/laravel/.notes/), and [`_inc/laravel/utils/`](_inc/laravel/utils/).
 - Treat all `.history/` paths as archived local context: keep files on disk, but do not track them in git.
-- Keep reusable automation in [`_inc/utils/scripts/`](_inc/utils/scripts/) or [`_inc/laravel/utils/scripts/`](_inc/laravel/utils/scripts/); move one-off repair scripts to the nearest `.history/` tree.
+- Keep reusable automation in [`_inc/laravel/utils/scripts/`](_inc/laravel/utils/scripts/); move one-off repair scripts to the nearest `.history/` tree.
 
 ---
 
@@ -189,16 +189,16 @@ See [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/test
 
 ## Utility scripts
 
-| File                                                     | Purpose                                                  |
-| -------------------------------------------------------- | -------------------------------------------------------- |
-| `_inc/utils/regexes.md`                                  | Regex patterns for codebase audits                       |
-| `_inc/utils/greps.md`                                    | `grep` one-liners for debugging                          |
-| `_inc/utils/finds.md`                                    | `find` one-liners for file discovery                     |
-| `_inc/utils/scripts/py/analysis/compare_funcs_models.py` | Compare method signatures between old/new models         |
-| `_inc/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff function names across directories                   |
-| `_inc/utils/scripts/py/analysis/rearrange.py`            | Rearrange import statements                              |
-| `_inc/utils/scripts/py/analysis/read_deps.py`            | Parse composer/package dependency trees                  |
-| `_inc/utils/prompts/`                                    | XML/Markdown prompt templates for LLM-assisted migration |
+| File                                                             | Purpose                                                  |
+| ---------------------------------------------------------------- | -------------------------------------------------------- |
+| `_inc/laravel/utils/regexes.md`                                  | Regex patterns for codebase audits                       |
+| `_inc/laravel/utils/greps.md`                                    | `grep` one-liners for debugging                          |
+| `_inc/laravel/utils/finds.md`                                    | `find` one-liners for file discovery                     |
+| `_inc/laravel/utils/scripts/py/analysis/compare_funcs_models.py` | Compare method signatures between old/new models         |
+| `_inc/laravel/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff function names across directories                   |
+| `_inc/laravel/utils/scripts/py/analysis/rearrange.py`            | Rearrange import statements                              |
+| `_inc/laravel/utils/scripts/py/analysis/read_deps.py`            | Parse composer/package dependency trees                  |
+| `_inc/laravel/utils/prompts/`                                    | XML/Markdown prompt templates for LLM-assisted migration |
 
 ---
 
@@ -269,11 +269,11 @@ Consulte [`where-to-update-and-read.yml`](where-to-update-and-read.yml) para el 
 
 | Árbol            | Ruta                                                                    | Alcance                                                                 |
 | ---------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Guías primarias  | `.notes/.llms/.guidelines/`                                             | Arquitectura, backend, frontend, BD, módulos, seguridad, testing, roles |
-| Guías de estilo  | `_inc/utils/prompts/.guidelines/`                                       | Reglas por lenguaje (PHP, JS, TS, Python, CSS, React)                   |
-| Guías de la app  | `_inc/laravel/.notes/.llms/.guidelines/`                                | Perfiles de roleplay de seguridad, mapas de tests                       |
+| Guías primarias  | `_inc/laravel/.notes/.llms/.guidelines/`                                | Arquitectura, backend, frontend, BD, módulos, seguridad, testing, roles |
+| Guías de estilo  | `_inc/laravel/utils/prompts/.guidelines/`                               | Reglas por lenguaje (PHP, JS, TS, Python, CSS, React)                   |
+| Guías de la app  | `_inc/laravel/.notes/.llms/`                                            | Reportes de app, mapas de roleplay y guías de prueba                    |
 | Config de agente | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` | Comportamiento del agente                                               |
-| Contexto LLM     | `_inc/utils/.llms/`                                                     | Logs de CLI, contexto de agentes, notas de trabajo                      |
+| Contexto LLM     | `_inc/laravel/utils/.llms/`                                             | Logs de CLI, contexto de agentes, notas de trabajo                      |
 
 ---
 
@@ -386,16 +386,16 @@ Ver [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/test
 
 ## Scripts utilitarios
 
-| Archivo                                                  | Propósito                                            |
-| -------------------------------------------------------- | ---------------------------------------------------- |
-| `_inc/utils/regexes.md`                                  | Patrones regex para auditorías del código            |
-| `_inc/utils/greps.md`                                    | Comandos `grep` para depuración                      |
-| `_inc/utils/finds.md`                                    | Comandos `find` para descubrimiento de archivos      |
-| `_inc/utils/scripts/py/analysis/compare_funcs_models.py` | Comparar firmas de métodos entre modelos old/new     |
-| `_inc/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff de nombres de funciones entre directorios       |
-| `_inc/utils/scripts/py/analysis/rearrange.py`            | Reorganizar sentencias de import                     |
-| `_inc/utils/scripts/py/analysis/read_deps.py`            | Parsear árboles de dependencias composer/package     |
-| `_inc/utils/prompts/`                                    | Templates de prompts para migración asistida por LLM |
+| Archivo                                                          | Propósito                                            |
+| ---------------------------------------------------------------- | ---------------------------------------------------- |
+| `_inc/laravel/utils/regexes.md`                                  | Patrones regex para auditorías del código            |
+| `_inc/laravel/utils/greps.md`                                    | Comandos `grep` para depuración                      |
+| `_inc/laravel/utils/finds.md`                                    | Comandos `find` para descubrimiento de archivos      |
+| `_inc/laravel/utils/scripts/py/analysis/compare_funcs_models.py` | Comparar firmas de métodos entre modelos old/new     |
+| `_inc/laravel/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff de nombres de funciones entre directorios       |
+| `_inc/laravel/utils/scripts/py/analysis/rearrange.py`            | Reorganizar sentencias de import                     |
+| `_inc/laravel/utils/scripts/py/analysis/read_deps.py`            | Parsear árboles de dependencias composer/package     |
+| `_inc/laravel/utils/prompts/`                                    | Templates de prompts para migración asistida por LLM |
 
 ---
 
@@ -477,11 +477,11 @@ Consulte [`where-to-update-and-read.yml`](where-to-update-and-read.yml) para o *
 
 | Árvore           | Caminho                                                                 | Escopo                                                                 |
 | ---------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Guias primárias  | `.notes/.llms/.guidelines/`                                             | Arquitetura, backend, frontend, BD, módulos, segurança, testes, papéis |
-| Guias de estilo  | `_inc/utils/prompts/.guidelines/`                                       | Regras por linguagem (PHP, JS, TS, Python, CSS, React)                 |
-| Guias da app     | `_inc/laravel/.notes/.llms/.guidelines/`                                | Perfis de roleplay de segurança, mapas de testes                       |
+| Guias primárias  | `_inc/laravel/.notes/.llms/.guidelines/`                                | Arquitetura, backend, frontend, BD, módulos, segurança, testes, papéis |
+| Guias de estilo  | `_inc/laravel/utils/prompts/.guidelines/`                               | Regras por linguagem (PHP, JS, TS, Python, CSS, React)                 |
+| Guias da app     | `_inc/laravel/.notes/.llms/`                                            | Relatórios da app, mapas de roleplay e guias de teste                  |
 | Config de agente | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` | Comportamento do agente                                                |
-| Contexto LLM     | `_inc/utils/.llms/`                                                     | Logs de CLI, contexto de agentes, notas de trabalho                    |
+| Contexto LLM     | `_inc/laravel/utils/.llms/`                                             | Logs de CLI, contexto de agentes, notas de trabalho                    |
 
 ---
 
@@ -594,16 +594,16 @@ Ver [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/test
 
 ## Scripts utilitários
 
-| Arquivo                                                  | Finalidade                                                        |
-| -------------------------------------------------------- | ----------------------------------------------------------------- |
-| `_inc/utils/regexes.md`                                  | Padrões regex para auditorias do código                           |
-| `_inc/utils/greps.md`                                    | Comandos `grep` para depuração                                    |
-| `_inc/utils/finds.md`                                    | Comandos `find` para descoberta de arquivos                       |
-| `_inc/utils/scripts/py/analysis/compare_funcs_models.py` | Comparar assinaturas de métodos entre modelos old/new             |
-| `_inc/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff de nomes de funções entre diretórios                         |
-| `_inc/utils/scripts/py/analysis/rearrange.py`            | Reorganizar sentenças de import                                   |
-| `_inc/utils/scripts/py/analysis/read_deps.py`            | Parsear árvores de dependências composer/package                  |
-| `_inc/utils/prompts/`                                    | Templates de prompts XML/Markdown para migração assistida por LLM |
+| Arquivo                                                          | Finalidade                                                        |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `_inc/laravel/utils/regexes.md`                                  | Padrões regex para auditorias do código                           |
+| `_inc/laravel/utils/greps.md`                                    | Comandos `grep` para depuração                                    |
+| `_inc/laravel/utils/finds.md`                                    | Comandos `find` para descoberta de arquivos                       |
+| `_inc/laravel/utils/scripts/py/analysis/compare_funcs_models.py` | Comparar assinaturas de métodos entre modelos old/new             |
+| `_inc/laravel/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff de nomes de funções entre diretórios                         |
+| `_inc/laravel/utils/scripts/py/analysis/rearrange.py`            | Reorganizar sentenças de import                                   |
+| `_inc/laravel/utils/scripts/py/analysis/read_deps.py`            | Parsear árvores de dependências composer/package                  |
+| `_inc/laravel/utils/prompts/`                                    | Templates de prompts XML/Markdown para migração assistida por LLM |
 
 ---
 

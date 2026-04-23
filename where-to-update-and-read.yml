@@ -2,31 +2,23 @@
 ## FILESYSTEM ARCHITECTURE MAP
 ## ──────────────────────────────────────────────────────────────
 ## Root: erp_prestech/
-##   ├── .notes/                           Durable team notes (issues, plans, work journal)
-##   │   └── .llms/
-##   │       ├── .guidelines/              ★ PRIMARY guideline tree (30+ files)
-##   │       │   ├── project.yml           Global config
-##   │       │   ├── constraints.md        Hard rules
-##   │       │   ├── backend/              PHP/Laravel (architecture, constants, controllers, models, services, middleware)
-##   │       │   ├── database/             Migrations, seeders, DB conventions
-##   │       │   ├── frontend/             Blade, JS singletons, ESM→IIFE, TS, template-literal testing
-##   │       │   ├── infrastructure/       server.toml
-##   │       │   ├── modules/              accounting, billing, crm, hrm, planning, products
-##   │       │   ├── roles/                agent-roles.md
-##   │       │   ├── security/             security-patterns.xml
-##   │       │   └── testing/              CI, test-architecture, test suites, TS harness
-##   │       └── .history/                 Resolved issues, fix logs, reports, session snapshots (outdated context)
-##   │
 ##   ├── _inc/laravel/                     ⭐ Main application workspace
-##   │   └── .notes/.llms/
-##   │       ├── .guidelines/              App-specific security guidelines (roleplay profiles, test map)
-##   │       ├── .history/                 Reports, route verifications
-##   │       ├── route-view-testing-pattern.md
-##   │       ├── security-testing-audit.md
-##   │       ├── typescript-migration.md
-##   │       └── …
+##   │   └── .notes/                        Durable team notes (issues, plans, work journal)
+##   │       └── .llms/
+##   │           ├── .guidelines/          ★ Unified guideline tree (primary + app-specific)
+##   │           │   ├── project.yml       Global config
+##   │           │   ├── constraints.md    Hard rules
+##   │           │   ├── backend/          PHP/Laravel (architecture, constants, controllers, models, services, middleware)
+##   │           │   ├── database/         Migrations, seeders, DB conventions
+##   │           │   ├── frontend/         Blade, JS singletons, ESM→IIFE, TS, template-literal testing
+##   │           │   ├── infrastructure/   server.toml
+##   │           │   ├── modules/          accounting, billing, crm, hrm, planning, products
+##   │           │   ├── roles/            agent-roles.md
+##   │           │   ├── security/         security-patterns.xml + roleplay maps
+##   │           │   └── testing/          CI, test-architecture, test suites, TS harness
+##   │           └── .history/             Resolved issues, fix logs, reports, session snapshots (outdated context)
 ##   │
-##   ├── _inc/utils/                       Developer tooling workspace
+##   ├── _inc/laravel/utils/                       Developer tooling workspace
 ##   │   ├── .llms/                        LLM CLI logs, agent context, session notes, scripts
 ##   │   │   ├── ctx/agents/               Agent README + backend/frontend/infrastructure guides
 ##   │   │   └── notes/{date}/*.md         Chronological working notes
@@ -46,11 +38,11 @@
 starters:
     workspaces:
         - app: _inc/laravel/*
-        - infra-os-utils: _inc/utils/*
+        - infra-os-utils: _inc/laravel/utils/*
     documentation:
         - README.md
-        - .notes/{.llms/.guidelines/*,*.md}
-        - _inc/utils/{.llms/*,prompts/.guidelines/*,*.md}
+        - _inc/laravel/.notes/{.llms/.guidelines/*,*.md}
+        - _inc/laravel/utils/{.llms/*,prompts/.guidelines/*,*.md}
     guidelines:
         # ── MANDATORY READS ─────────────────────────────────────
         # LLM agents and developers MUST check these paths before
@@ -58,10 +50,10 @@ starters:
         # ────────────────────────────────────────────────────────
         architecture-map:
             note: "Refer to the FILESYSTEM ARCHITECTURE MAP at the top of this file for the full directory tree."
-            primary-guidelines:   .notes/.llms/.guidelines/
-            coding-style-guides:  _inc/utils/prompts/.guidelines/
-            app-specific:         _inc/laravel/.notes/.llms/.guidelines/
-            agent-context:        _inc/utils/.llms/ctx/agents/
+            primary-guidelines:   _inc/laravel/.notes/.llms/.guidelines/
+            coding-style-guides:  _inc/laravel/utils/prompts/.guidelines/
+            app-specific:         _inc/laravel/.notes/.llms/
+            agent-context:        _inc/laravel/utils/.llms/ctx/agents/
         agent-config:
             - .agent.md
             - .instructions.md
@@ -72,82 +64,81 @@ starters:
             - .prettierrc
         domain-guidelines-index:
             backend:
-                - .notes/.llms/.guidelines/backend/erp-architecture.md
-                - .notes/.llms/.guidelines/backend/naming-conventions.yml
-                - .notes/.llms/.guidelines/backend/constants_map.json
-                - .notes/.llms/.guidelines/backend/middleware_pipeline.xml
-                - .notes/.llms/.guidelines/backend/controllers/controller-patterns.md
-                - .notes/.llms/.guidelines/backend/models/model-conventions.md
-                - .notes/.llms/.guidelines/backend/services/delegation-patterns.md
+                - _inc/laravel/.notes/.llms/.guidelines/backend/erp-architecture.md
+                - _inc/laravel/.notes/.llms/.guidelines/backend/naming-conventions.yml
+                - _inc/laravel/.notes/.llms/.guidelines/backend/constants_map.json
+                - _inc/laravel/.notes/.llms/.guidelines/backend/middleware_pipeline.xml
+                - _inc/laravel/.notes/.llms/.guidelines/backend/controllers/controller-patterns.md
+                - _inc/laravel/.notes/.llms/.guidelines/backend/models/model-conventions.md
+                - _inc/laravel/.notes/.llms/.guidelines/backend/services/delegation-patterns.md
             database:
-                - .notes/.llms/.guidelines/database/database-guide.md
+                - _inc/laravel/.notes/.llms/.guidelines/database/database-guide.md
             frontend:
-                - .notes/.llms/.guidelines/frontend/esm-iife-strategy.md
-                - .notes/.llms/.guidelines/frontend/template-literal-testing.md
-                - .notes/.llms/.guidelines/frontend/blade/blade-conventions.md
-                - .notes/.llms/.guidelines/frontend/assets/js-singletons.md
-                - .notes/.llms/.guidelines/frontend/typescript/typescript-guide.md
+                - _inc/laravel/.notes/.llms/.guidelines/frontend/esm-iife-strategy.md
+                - _inc/laravel/.notes/.llms/.guidelines/frontend/template-literal-testing.md
+                - _inc/laravel/.notes/.llms/.guidelines/frontend/blade/blade-conventions.md
+                - _inc/laravel/.notes/.llms/.guidelines/frontend/assets/js-singletons.md
+                - _inc/laravel/.notes/.llms/.guidelines/frontend/typescript/typescript-guide.md
             modules:
-                - .notes/.llms/.guidelines/modules/{accounting,billing,crm,hrm,planning,products}/*-guide.md
+                - _inc/laravel/.notes/.llms/.guidelines/modules/{accounting,billing,crm,hrm,planning,products}/*-guide.md
             security:
-                - .notes/.llms/.guidelines/security/security-patterns.xml
+                - _inc/laravel/.notes/.llms/.guidelines/security/security-patterns.xml
                 - _inc/laravel/.notes/.llms/.guidelines/security-roleplay-guidelines.md
                 - _inc/laravel/.notes/.llms/.guidelines/security-roleplay-profiles.xml
                 - _inc/laravel/.notes/.llms/.guidelines/security-test-map.xml
             testing:
-                - .notes/.llms/.guidelines/testing/test-architecture.json
-                - .notes/.llms/.guidelines/testing/test_suites.xml
-                - .notes/.llms/.guidelines/testing/ci.yml
-                - .notes/.llms/.guidelines/testing/typescript-test-harness.md
+                - _inc/laravel/.notes/.llms/.guidelines/testing/test-architecture.json
+                - _inc/laravel/.notes/.llms/.guidelines/testing/test_suites.xml
+                - _inc/laravel/.notes/.llms/.guidelines/testing/ci.yml
+                - _inc/laravel/.notes/.llms/.guidelines/testing/typescript-test-harness.md
                 - _inc/laravel/.notes/.llms/route-view-testing-pattern.md
             roles:
-                - .notes/.llms/.guidelines/roles/agent-roles.md
-                - .notes/.llms/.guidelines/THE_TESTER.md
+                - _inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md
+                - _inc/laravel/.notes/.llms/.guidelines/THE_TESTER.md
             infrastructure:
-                - .notes/.llms/.guidelines/infrastructure/server.toml
+                - _inc/laravel/.notes/.llms/.guidelines/infrastructure/server.toml
             constraints:
-                - .notes/.llms/.guidelines/constraints.md
-                - .notes/.llms/.guidelines/project.yml
+                - _inc/laravel/.notes/.llms/.guidelines/constraints.md
+                - _inc/laravel/.notes/.llms/.guidelines/project.yml
         coding-style-guides:
-            general:     _inc/utils/prompts/.guidelines/general/*.{md,xml,yml,toml}
-            css:         _inc/utils/prompts/.guidelines/css/*.{md,xml,yml,toml}
-            javascript:  _inc/utils/prompts/.guidelines/javascript/*.{md,xml,yml,toml}
-            php:         _inc/utils/prompts/.guidelines/php/*.{md,xml,yml,toml}
-            python:      _inc/utils/prompts/.guidelines/python/*.{md,xml,yml,toml}
-            react:       _inc/utils/prompts/.guidelines/react/*.{md,xml,yml,toml}
-            typescript:  _inc/utils/prompts/.guidelines/typescript/*.{md,xml,yml,toml}
+            general:     _inc/laravel/utils/prompts/.guidelines/general/*.{md,xml,yml,toml}
+            css:         _inc/laravel/utils/prompts/.guidelines/css/*.{md,xml,yml,toml}
+            javascript:  _inc/laravel/utils/prompts/.guidelines/javascript/*.{md,xml,yml,toml}
+            php:         _inc/laravel/utils/prompts/.guidelines/php/*.{md,xml,yml,toml}
+            python:      _inc/laravel/utils/prompts/.guidelines/python/*.{md,xml,yml,toml}
+            react:       _inc/laravel/utils/prompts/.guidelines/react/*.{md,xml,yml,toml}
+            typescript:  _inc/laravel/utils/prompts/.guidelines/typescript/*.{md,xml,yml,toml}
         audits:
             - commands: "Please save, as label:value (possibly prepending a comment for complex cases), uniquely (that is, if you use it twice in the same date do not write it again) used
-                - CLIs: in [_inc/utils/cli/$(date +%Y%m%d)/*.{md,txt,yml}, _inc/laravel/utils/cli/$(date +%Y%m%d)/*.{md,txt,yml}];
-                - Regexes: in [_inc/utils/regex/$(date +%Y%m%d)/*.{md,txt,yml}, _inc/laravel/utils/regex/$(date +%Y%m%d)/*.{md,txt,yml}];
-                - Grep : in [_inc/utils/grep/$(date +%Y%m%d)/*.{md,txt,yml}, _inc/laravel/utils/grep/$(date +%Y%m%d)/*.{md,txt,yml}];
-                - Find (bash program): in [_inc/utils/find/$(date +%Y%m%d)/*.{md,txt,yml}, _inc/laravel/utils/find/$(date +%Y%m%d)/*.{md,txt,yml}]
+                - CLIs: in [_inc/laravel/utils/cli/$(date +%Y%m%d)/*.{md,txt,yml}];
+                - Regexes: in [_inc/laravel/utils/regex/$(date +%Y%m%d)/*.{md,txt,yml}];
+                - Grep : in [_inc/laravel/utils/grep/$(date +%Y%m%d)/*.{md,txt,yml}];
+                - Find (bash program): in [_inc/laravel/utils/find/$(date +%Y%m%d)/*.{md,txt,yml}]
         reports:
-            - extension-pick: _inc/utils/REPORT_FILE_PATTERN.md
+            - extension-pick: _inc/laravel/utils/REPORT_FILE_PATTERN.md
     credentials:
         - sudo: .gh/sudo.yml
     note-taking:
         - volatile: .tmp/*
         - durable:
-              - .notes/*
               - _inc/laravel/.notes/*
         - notes: "Update these regularly, not only at the end of a prompt response"
     llm-context:
-        - erp-context:   _inc/utils/.llms/ctx/erp_context.md
-        - agent-guides:  _inc/utils/.llms/ctx/agents/
-        - session-notes: _inc/utils/.llms/notes/
-        - cli-history:   _inc/utils/.llms/cli/
+        - erp-context:   _inc/laravel/utils/.llms/ctx/erp_context.md
+        - agent-guides:  _inc/laravel/utils/.llms/ctx/agents/
+        - session-notes: _inc/laravel/utils/.llms/notes/
+        - cli-history:   _inc/laravel/utils/.llms/cli/
     scripts:
         - volatile: .tmp/scripts/*
         - durable:
-              - generic: _inc/utils/scripts/*
+              - generic: _inc/laravel/utils/scripts/*
               - app-setup: _inc/laravel/scripts/*
               - app-utils: _inc/laravel/utils/scripts/*
         - archive-policy:
               - one-off-or-host-specific: "Move to nearest .history/scripts/{lang}/YYYYMMDD/ and keep untracked."
-              - reusable-only: "Keep reusable automation in _inc/utils/scripts/* or _inc/laravel/utils/scripts/*."
+              - reusable-only: "Keep reusable automation in _inc/laravel/utils/scripts/*."
         - javascript:
-            - guidelines: _inc/utils/JAVASCRIPT_FILE_PATTERN.md
+            - guidelines: _inc/laravel/utils/JAVASCRIPT_FILE_PATTERN.md
             - main-paths:
                 - _inc/laravel/*.{cjs,mjs}
                 - _inc/laravel/{babel.config,jest.config,webpack.mix,playwright.config,playwright-frontend.config}.cjs
@@ -205,7 +196,7 @@ starters:
             - notes:
                 - "##DO NOT WORK ON THE PATHS WITH */ts/* FOR NOW##"
         - typescript:
-            - guidelines: _inc/utils/TYPESCRIPT_FILE_PATTERN.md
+            - guidelines: _inc/laravel/utils/TYPESCRIPT_FILE_PATTERN.md
             - main-paths:
                 - _inc/laravel/tests/frontend/js/setup.ts
                 - _inc/laravel/tests/frontend/js/playwright.config.ts
@@ -219,7 +210,7 @@ starters:
             - notes:
                 - "##DO NOT WORK ON THE PATHS WITH */ts/* FOR NOW##"
         - css:
-            - guidelines: _inc/utils/CSS_FILE_PATTERN.toml
+            - guidelines: _inc/laravel/utils/CSS_FILE_PATTERN.toml
             - main-paths:
                 - _inc/laravel/resources/css/*.css
                 - _inc/laravel/public/css/*.css
@@ -260,9 +251,8 @@ starters:
                 - _inc/laravel/tests/python/{exports,imports}/*.py
                 - _inc/laravel/tests/sh/_generate_curl_tests.py
                 - _inc/laravel/tests/postman/scripts/*.py
-                - _inc/utils/scripts/py/*.py
-                - _inc/utils/scripts/py/analysis/*.py
                 - _inc/laravel/utils/scripts/py/*.py
+                - _inc/laravel/utils/scripts/py/analysis/*.py
                 - _inc/laravel/.tmp/copilot/*/scripts/*.py
                 - _inc/laravel/.tmp/copilot/*/fragments/*.py
     tests:
@@ -295,9 +285,9 @@ starters:
         filesystem:
             - long-processing: "For long processing tasks, consider using a dedicated directory for temporary files. This can help prevent clutter and ensure that important files are not accidentally deleted. Regularly review and clean up this directory to maintain an organized workspace. Also, try breaking into subprocedures, like fragments of files, and them merging them together (cleaning up the fragments later), so you don't lose progress, and saving in .tmp/copilot/{datetime}/ the steps you have taken already."
             - issue-tracking:
-                  open-issues: .notes/KNOWN_ISSUES.md
-                  resolved-issues: .notes/.llms/.history/RESOLVED_ISSUES.md
-                  work-journal: .notes/CURRENT_WORKING_ISSUES_WORK.md
+                  open-issues: _inc/laravel/.notes/KNOWN_ISSUES.md
+                  resolved-issues: _inc/laravel/.notes/.llms/.history/RESOLVED_ISSUES.md
+                  work-journal: _inc/laravel/.notes/CURRENT_WORKING_ISSUES_WORK.md
                   rules:
                       - "KNOWN_ISSUES.md contains ONLY open/unresolved issues"
                       - "When an issue is resolved, move it to RESOLVED_ISSUES.md with HOW it was solved"

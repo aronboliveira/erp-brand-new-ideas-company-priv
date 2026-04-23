@@ -70,4 +70,4 @@ Third-party libraries loaded via CDN are declared in `src/types/globals.d.ts`:
 
 ## Migration Status
 
-Track migration progress in `.notes/.llms/ts-migration-status.md`.
+Track migration progress in `_inc/laravel/.notes/.llms/ts-migration-status.md`.
