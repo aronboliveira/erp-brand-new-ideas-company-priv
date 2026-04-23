@@ -18,7 +18,7 @@
  *   DELETE /api/*          → JSON success/error
  *   GET    /               → health check
  *
- * @see .notes/.llms/.guidelines/frontend/template-literal-testing.md
+ * @see _inc/laravel/.notes/.llms/.guidelines/frontend/template-literal-testing.md
  */
 
 const http = require("http");

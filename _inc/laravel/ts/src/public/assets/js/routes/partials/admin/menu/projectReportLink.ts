@@ -14,9 +14,7 @@
     el.addEventListener("click", event => {
       try {
         const url = el.getAttribute("data-url"),
-          href = (el as HTMLAnchorElement).href
-            .replace(window.location.origin, "")
-            .replace(window.location.pathname, "");
+          href = (el as HTMLAnchorElement).href.replace(window.location.origin, "").replace(window.location.pathname, "");
         if ((!url || url === "#") && (!href || href === "#")) {
           event.preventDefault();
           const msg = el.getAttribute("data-guard-msg") ?? "# ERROR",
@@ -25,8 +23,7 @@
           if (!container) {
             container = document.createElement("div");
             container.id = "toast-container";
-            container.className =
-              "toast-container position-fixed top-0 end-0 p-3";
+            container.className = "toast-container position-fixed top-0 end-0 p-3";
             container.style.zIndex = "1080";
             document.body.appendChild(container);
           }
@@ -59,8 +56,7 @@
     });
   }
   const observer = new MutationObserver((): void => {
-    if (!document.getElementById("project-report-index-link"))
-      observer.disconnect();
+    if (!document.getElementById("project-report-index-link")) observer.disconnect();
   });
   observer.observe(document.body, { childList: true, subtree: true });
 })();

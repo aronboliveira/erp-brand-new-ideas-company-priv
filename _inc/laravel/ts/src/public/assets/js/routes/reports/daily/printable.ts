@@ -93,11 +93,8 @@
   let toastContainer: HTMLElement | null = null;
   const getToastContainer = (): HTMLElement => {
     if (!toastContainer) {
-      toastContainer =
-        document.querySelector<HTMLElement>(".toast-container") ??
-        document.createElement("div");
-      toastContainer.className =
-        "toast-container position-fixed bottom-0 end-0 p-3";
+      toastContainer = document.querySelector<HTMLElement>(".toast-container") ?? document.createElement("div");
+      toastContainer.className = "toast-container position-fixed bottom-0 end-0 p-3";
       if (!toastContainer.parentNode) document.body.append(toastContainer);
     }
     return toastContainer;
@@ -108,33 +105,18 @@
       dataClientLocalized = "data-client-localized",
       dataGuardMsg = "data-guard-msg";
     let msg = errFb;
-    if (
-      el?.getAttribute("data-sv-localized") === "true" ||
-      el?.getAttribute(dataClientLocalized) === "true"
-    )
-      msg = el.getAttribute(dataGuardMsg) || errFb;
+    if (el?.getAttribute("data-sv-localized") === "true" || el?.getAttribute(dataClientLocalized) === "true") msg = el.getAttribute(dataGuardMsg) || errFb;
     else {
-      let lang = (
-        window.sessionStorage.getItem("erp-np-lang") ??
-        document.documentElement.lang ??
-        "en"
-      )
-        .toLowerCase()
-        .replace(/_/g, "-");
+      let lang = (window.sessionStorage.getItem("erp-np-lang") ?? document.documentElement.lang ?? "en").toLowerCase().replace(/_/g, "-");
       lang = lang === "pt-br" ? lang : lang.slice(0, 2);
       const msgKey = key;
-      msg =
-        window.translations?.[lang]?.[msgKey] ||
-        el?.getAttribute(dataGuardMsg) ||
-        window.translations?.en?.[msgKey] ||
-        errFb;
+      msg = window.translations?.[lang]?.[msgKey] || el?.getAttribute(dataGuardMsg) || window.translations?.en?.[msgKey] || errFb;
       if (msg !== errFb && el) {
         el.setAttribute(dataGuardMsg, msg);
         el.setAttribute(dataClientLocalized, "true");
       }
     }
-    const hasBootstrap =
-      document.querySelector(BS_LINK) && window.bootstrap.Toast;
+    const hasBootstrap = document.querySelector(BS_LINK) && window.bootstrap.Toast;
 
     if (hasBootstrap) {
       const container = getToastContainer(),
@@ -187,8 +169,7 @@
       if (
         typeof window.html2pdf !== "object" ||
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-        typeof (window.html2pdf as (...args: unknown[]) => any)().set !==
-          "function"
+        typeof (window.html2pdf as (...args: unknown[]) => any)().set !== "function"
       ) {
         showError("no_lib");
         return;

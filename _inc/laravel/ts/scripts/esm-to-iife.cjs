@@ -17,7 +17,7 @@
  * Usage:
  *   node scripts/esm-to-iife.cjs [--dry-run] [--verbose]
  *
- * @see .notes/.llms/.guidelines/frontend/esm-iife-strategy.md
+ * @see _inc/laravel/.notes/.llms/.guidelines/frontend/esm-iife-strategy.md
  */
 
 const fs = require("fs");

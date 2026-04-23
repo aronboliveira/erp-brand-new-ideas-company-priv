@@ -8,9 +8,7 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
   function toast(msg: string | null): void {
-    const m =
-        msg ??
-        "Requested route is unavailable. Please contact technical support or your domain administrator.",
+    const m = msg ?? "Requested route is unavailable. Please contact technical support or your domain administrator.",
       hasBootstrap = typeof window.bootstrap.Toast !== "undefined";
     if (hasBootstrap) {
       let box = document.getElementById("toast-container");
@@ -80,38 +78,24 @@
 
   function bind(): void {
     document.querySelectorAll("a.project-task-index-link").forEach(guard);
-    document
-      .querySelectorAll<HTMLElement>(".card-progress")
-      .forEach(function (card) {
-        if (card.dataset.cardBound === "1") return;
-        card.dataset.cardBound = "1";
-        card.addEventListener("click", function (e: Event) {
-          const target = e.target as HTMLElement | null;
-          if (
-            target?.closest(
-              'a,button,input,textarea,select,[role="button"],[data-ajax-popup]',
-            )
-          )
-            return;
-          const link = card.querySelector("a.project-task-index-link");
-          if (!link) return;
-          if (disabledUrl(link)) {
-            e.preventDefault();
-            toast(link.getAttribute("data-guard-msg"));
-            return;
-          }
-          const url = (
-            link.getAttribute("data-url") ??
-            link.getAttribute("href") ??
-            "#"
-          ).trim();
-          if (url && url !== "#") window.location.assign(url);
-        });
+    document.querySelectorAll<HTMLElement>(".card-progress").forEach(function (card) {
+      if (card.dataset.cardBound === "1") return;
+      card.dataset.cardBound = "1";
+      card.addEventListener("click", function (e: Event) {
+        const target = e.target as HTMLElement | null;
+        if (target?.closest('a,button,input,textarea,select,[role="button"],[data-ajax-popup]')) return;
+        const link = card.querySelector("a.project-task-index-link");
+        if (!link) return;
+        if (disabledUrl(link)) {
+          e.preventDefault();
+          toast(link.getAttribute("data-guard-msg"));
+          return;
+        }
+        const url = (link.getAttribute("data-url") ?? link.getAttribute("href") ?? "#").trim();
+        if (url && url !== "#") window.location.assign(url);
       });
-    if (
-      window.bootstrap &&
-      document.querySelector('[data-bs-toggle="tooltip"]')
-    )
+    });
+    if (window.bootstrap && document.querySelector('[data-bs-toggle="tooltip"]'))
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       [].slice
         .call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -140,9 +124,7 @@
     observe();
   }
 
-  document.readyState === "loading"
-    ? document.addEventListener("DOMContentLoaded", init)
-    : init();
+  document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", init) : init();
 })();
 
 export {};
