@@ -1,51 +1,40 @@
-# \_inc/laravel/utils/ — Laravel Project Utilities
+# \_inc/laravel/utils/ — Global / Infrastructure Utilities
 
-Pertains to the **Laravel application layer**: frontend, backend/server, and database.
+Pertains to **infrastructure-level** observations and tools that affect the web server,
+cloud provider, containers, or the OS.
 
 ## Structure
 
 ```
-scripts/
-  sh/         — Shell scripts (artisan helpers, test runners, migration tools)
-  py/         — Python scripts (code analysis, seeder generation)
-  php/        — PHP CLI scripts (route checks, model inspections)
-  js/         — JS/Node scripts (asset tooling, refactors, build helpers)
-  ts-harness/ — TypeScript test harness generators (see below)
-prompts/      — Structured prompts for Laravel-specific agent workflows
-regexes/      — Regex/grep patterns for PHP, Blade, JS within the project
-logs/         — Runtime logs from Laravel dev scripts (gitignored via *.log)
-caches/       — Cached outputs (nohup, PHPUnit results, PHPStan caches)
+_inc/laravel/utils/
+├── scripts/
+│   ├── sh/         # Shell scripts (system ops, Docker, nginx, MySQL admin)
+│   └── py/         # Python scripts (analysis, comparisons, diagnostics)
+├── prompts/        # Prompt templates and coding guidelines
+├── cli/            # Durable command logs by date
+├── find/           # Durable find command notes
+├── grep/           # Durable grep command notes
+├── regex/          # Durable regex command notes
+├── regexes/        # Reusable regex references
+├── assets/         # Utility assets
+├── containers/     # Container-related helpers
+├── logs/           # Runtime logs (gitignored)
+├── .llms/          # LLM context and session artifacts
+└── .history/       # Archived utility artifacts (gitignored)
 ```
 
-## TypeScript Test Harness Scripts
+## Script triage rules
 
-Located in `scripts/ts-harness/`:
-
-| Script                          | Purpose                                          |
-| ------------------------------- | ------------------------------------------------ |
-| `scan-views.php`                | Extract JS dependencies from Laravel blade views |
-| `generate-harness.cjs`          | Generate mock HTML pages from view mapping       |
-| `generate-playwright-tests.cjs` | Generate Playwright e2e test specs               |
-| `generate-jest-tests.cjs`       | Generate Jest unit test files                    |
-| `update-harness-index.cjs`      | Update harness index with all pages              |
-
-### Usage
-
-```bash
-# From project root:
-php _inc/laravel/utils/scripts/ts-harness/scan-views.php .tmp/copilot/view-js-map.json
-node _inc/laravel/utils/scripts/ts-harness/generate-harness.cjs
-node _inc/laravel/utils/scripts/ts-harness/generate-playwright-tests.cjs
-node _inc/laravel/utils/scripts/ts-harness/generate-jest-tests.cjs
-node _inc/laravel/utils/scripts/ts-harness/update-harness-index.cjs
-```
+- Reusable scripts stay in [`scripts/`](scripts/).
+- One-off or host-specific scripts should be moved to [`.history/`](.history/) (for example, `.history/scripts/{lang}/YYYYMMDD-*`).
+- Keep `.history/` as local archival context and do not re-track it in git.
 
 ## Scope
 
-- Artisan command wrappers and helpers
-- PHPUnit / PHPStan / Larastan running utilities
-- Database migration and seeder tools
-- Route and model analysis scripts
-- Frontend asset compilation helpers
-- Blade template analysis
-- Laravel-specific grep patterns (Eloquent, middleware, etc.)
+- Docker / Dockerfile / docker-compose operations
+- Nginx config generation and testing
+- MySQL administrative commands (user management, backup, restore)
+- OS-level cron, supervisor, and systemd operations
+- Cloud provider deployment scripts
+- Cross-project analysis (comparing repos, dependencies)
+- Infrastructure-level monitoring and alerting patterns
