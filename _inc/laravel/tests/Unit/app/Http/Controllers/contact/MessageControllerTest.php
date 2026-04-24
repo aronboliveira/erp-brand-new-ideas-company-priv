@@ -211,7 +211,7 @@ class MessageControllerTest extends TestCase
 		$user = User::factory()->create();
 		$this->actingAs($user);
 
-		$response = $this->post('/chats/chats/auth', [
+		$response = $this->post('/chats/chat/auth', [
 			'channel_name' => 'private-test',
 			'socket_id'    => '1234.5678',
 		]);
@@ -226,7 +226,7 @@ class MessageControllerTest extends TestCase
 	 **/
 	public function pusher_auth_returns_401_for_guest()
 	{
-		$response = $this->post('/chats/chats/auth', [
+		$response = $this->post('/chats/chat/auth', [
 			'channel_name' => 'private-test',
 			'socket_id'    => '1234.5678',
 		]);
