@@ -36,14 +36,7 @@ async function measureTimeAsync(fn: () => Promise<void>): Promise<number> {
 function loadERPGuard(): void {
   delete (window as any).ERPGuard;
   const code = fs.readFileSync(ERP_GUARD_PATH, "utf-8");
-  const fn = new Function(
-    "window",
-    "document",
-    "localStorage",
-    "navigator",
-    "bootstrap",
-    code,
-  );
+  const fn = new Function("window", "document", "localStorage", "navigator", "bootstrap", code);
   fn(window, document, localStorage, navigator, (window as any).bootstrap);
 }
 
@@ -53,14 +46,7 @@ function loadERPGuard(): void {
 function loadERPUtils(): void {
   delete (window as any).ERPUtils;
   const code = fs.readFileSync(ERP_UTILS_PATH, "utf-8");
-  const fn = new Function(
-    "window",
-    "document",
-    "localStorage",
-    "sessionStorage",
-    "navigator",
-    code,
-  );
+  const fn = new Function("window", "document", "localStorage", "sessionStorage", "navigator", code);
   fn(window, document, localStorage, sessionStorage, navigator);
 }
 
@@ -605,10 +591,7 @@ describe("Performance Optimization", () => {
 /**
  * Simple debounce implementation for testing
  */
-function debounce<T extends (...args: any[]) => void>(
-  fn: T,
-  delay: number,
-): T & { cancel: () => void } {
+function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T & { cancel: () => void } {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   const debounced = ((...args: Parameters<T>) => {
