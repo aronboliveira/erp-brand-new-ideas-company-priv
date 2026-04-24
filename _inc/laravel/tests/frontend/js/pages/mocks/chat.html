@@ -67,9 +67,9 @@
           <span class="status" id="status-0"></span>
         </td>
       </tr>
-      <tr data-route-idx="1" data-uri="/chats/chats/auth">
+      <tr data-route-idx="1" data-uri="/chats/chat/auth">
         <td><code>POST</code></td>
-        <td><code>/chats/chats/auth</code></td>
+        <td><code>/chats/chat/auth</code></td>
         <td>pusher.auth</td>
         <td class="action-col">Chatify\Http\Controllers\MessagesController@pusherAuth</td>
         <td><span class="badge auth">Auth</span></td>
@@ -279,7 +279,7 @@
     case 0:
       return { url: '/chats', method: 'GET', hasBody: false };
     case 1:
-      return { url: '/chats/chats/auth', method: 'POST', hasBody: true };
+      return { url: '/chats/chat/auth', method: 'POST', hasBody: true };
     case 2:
       return { url: '/chats/delete-conversation', method: 'POST', hasBody: true };
     case 3:
