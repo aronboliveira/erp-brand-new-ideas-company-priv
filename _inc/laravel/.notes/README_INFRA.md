@@ -1,4 +1,4 @@
-# _inc/laravel/.notes/README_INFRA.md
+# \_inc/laravel/.notes/README_INFRA.md
 
 Infrastructure and tooling context map for developers and agents.
 
@@ -40,14 +40,14 @@ _inc/laravel/utils/.llms/
 
 ## Guidelines checklist
 
-| What                               | Where                                                                    |
-| ---------------------------------- | ------------------------------------------------------------------------ |
-| Tooling session context            | `_inc/laravel/utils/.llms/`                                              |
+| What                               | Where                                                                   |
+| ---------------------------------- | ----------------------------------------------------------------------- |
+| Tooling session context            | `_inc/laravel/utils/.llms/`                                             |
 | Primary architecture guidelines    | `_inc/laravel/.notes/.llms/.guidelines/`                                |
 | Coding-style guides (per-language) | `_inc/laravel/utils/prompts/.guidelines/`                               |
-| App-specific guidance              | `_inc/laravel/.notes/.llms/`                                             |
+| App-specific guidance              | `_inc/laravel/.notes/.llms/`                                            |
 | Agent behavior config              | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` |
-| Full filesystem map                | `where-to-update-and-read.yml`                                           |
+| Full filesystem map                | `where-to-update-and-read.yml`                                          |
 
 ## Update policy
 

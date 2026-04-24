@@ -21,15 +21,12 @@
 
             const url = img.getAttribute("data-url") ?? "#";
             if (!url || url === "#") {
-              const msg =
-                img.getAttribute("data-guard-msg") ??
-                "View tracker images route is unavailable. Please contact technical support or your domain administrator.";
+              const msg = img.getAttribute("data-guard-msg") ?? "View tracker images route is unavailable. Please contact technical support or your domain administrator.";
               let container = document.getElementById("toast-container");
               if (!container) {
                 container = document.createElement("div");
                 container.id = "toast-container";
-                container.className =
-                  "toast-container position-fixed top-0 end-0 p-3";
+                container.className = "toast-container position-fixed top-0 end-0 p-3";
                 container.style.zIndex = "1080";
                 document.body.appendChild(container);
               }
@@ -82,15 +79,13 @@
                 m.show();
               }
             } catch (_xhrErr) {
-              const msg =
-                  "Failed to load tracker images. Please try again later.",
+              const msg = "Failed to load tracker images. Please try again later.",
                 bsLink = document.querySelector('link[href*="bootstrap"]');
               let container = document.getElementById("toast-container");
               if (!container) {
                 container = document.createElement("div");
                 container.id = "toast-container";
-                container.className =
-                  "toast-container position-fixed top-0 end-0 p-3";
+                container.className = "toast-container position-fixed top-0 end-0 p-3";
                 container.style.zIndex = "1080";
                 document.body.appendChild(container);
               }

@@ -7,7 +7,7 @@ Durable repository-level notes and guidance for developers and agents.
 1. Read [`where-to-update-and-read.yml`](../../../where-to-update-and-read.yml).
 2. Update durable guidance in this tree and in [`.llms/`](.llms/).
 3. For infrastructure/session-context conventions, read [`README_INFRA.md`](README_INFRA.md).
-3. Keep volatile or historical output in [`.history/`](.history/).
+4. Keep volatile or historical output in [`.history/`](.history/).
 
 ## Formats
 

@@ -12,30 +12,21 @@
 const fs = require("fs");
 const path = require("path");
 
+const SHOW_SECURITY_TEST_WARNINGS = process.env.SHOW_SECURITY_TEST_WARNINGS === "1";
+
+function securityWarn(message) {
+  if (SHOW_SECURITY_TEST_WARNINGS) {
+    console.warn(message);
+  }
+}
+
 /* ══════════════════════════════════════════════════════════════════
  *  Payloads maliciosos
  * ══════════════════════════════════════════════════════════════════ */
 
-const SQLI_PAYLOADS = [
-  "' OR '1'='1",
-  "' OR '1'='1' --",
-  "'; DROP TABLE users; --",
-  "1; DROP TABLE settings; --",
-  "' UNION SELECT NULL,NULL,NULL --",
-  "' UNION SELECT username,password,NULL FROM users --",
-  "1' AND SLEEP(5) --",
-  "admin'--",
-  "-1 OR 1=1",
-  "' OR '' = '",
-];
+const SQLI_PAYLOADS = ["' OR '1'='1", "' OR '1'='1' --", "'; DROP TABLE users; --", "1; DROP TABLE settings; --", "' UNION SELECT NULL,NULL,NULL --", "' UNION SELECT username,password,NULL FROM users --", "1' AND SLEEP(5) --", "admin'--", "-1 OR 1=1", "' OR '' = '"];
 
-const XSS_VIA_SQLI = [
-  '<script>alert("sqli")</script>',
-  '"><img src=x onerror=alert(1)>',
-  "javascript:alert(document.cookie)",
-  '<svg onload=alert(1)>',
-  "' onmouseover='alert(1)'",
-];
+const XSS_VIA_SQLI = ['<script>alert("sqli")</script>', '"><img src=x onerror=alert(1)>', "javascript:alert(document.cookie)", "<svg onload=alert(1)>", "' onmouseover='alert(1)'"];
 
 const DANGEROUS_CHARS = ["'", '"', ";", "--", "/*", "*/", "\\", "\x00"];
 
@@ -45,29 +36,13 @@ const DANGEROUS_CHARS = ["'", '"', ";", "--", "/*", "*/", "\\", "\x00"];
 
 /** Escapa HTML de maneira básica (como o Blade {{ }} faz) */
 function htmlEntities(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
 /** Verifica se uma string contém marcadores de SQL injection */
 function containsSqlKeywords(str) {
-  const patterns = [
-    /\bUNION\b/i,
-    /\bSELECT\b/i,
-    /\bDROP\b/i,
-    /\bINSERT\b/i,
-    /\bDELETE\s+FROM\b/i,
-    /\bUPDATE\b.*\bSET\b/i,
-    /\bSLEEP\s*\(/i,
-    /\bBENCHMARK\s*\(/i,
-    /--\s*$/,
-    /;\s*$/,
-  ];
-  return patterns.some((p) => p.test(str));
+  const patterns = [/\bUNION\b/i, /\bSELECT\b/i, /\bDROP\b/i, /\bINSERT\b/i, /\bDELETE\s+FROM\b/i, /\bUPDATE\b.*\bSET\b/i, /\bSLEEP\s*\(/i, /\bBENCHMARK\s*\(/i, /--\s*$/, /;\s*$/];
+  return patterns.some(p => p.test(str));
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -94,25 +69,14 @@ describe("SQL Injection — Sanitização de Input no Cliente", () => {
   });
 
   test("containsSqlKeywords detecta payloads conhecidos", () => {
-    const detectable = [
-      "' UNION SELECT NULL --",
-      "'; DROP TABLE users; --",
-      "1' AND SLEEP(5) --",
-    ];
+    const detectable = ["' UNION SELECT NULL --", "'; DROP TABLE users; --", "1' AND SLEEP(5) --"];
     for (const payload of detectable) {
       expect(containsSqlKeywords(payload)).toBe(true);
     }
   });
 
   test("containsSqlKeywords não gera falso positivo para input normal", () => {
-    const safeInputs = [
-      "João da Silva",
-      "email@example.com",
-      "Rua das Flores, 123",
-      "12345-678",
-      "+55 11 99999-0000",
-      "R$ 1.234,56",
-    ];
+    const safeInputs = ["João da Silva", "email@example.com", "Rua das Flores, 123", "12345-678", "+55 11 99999-0000", "R$ 1.234,56"];
     for (const input of safeInputs) {
       expect(containsSqlKeywords(input)).toBe(false);
     }
@@ -137,9 +101,7 @@ describe("SQL Injection — DOM Form Security", () => {
   });
 
   test("input[type=email] rejeita payloads SQLi via validação nativa", () => {
-    const emailInput = /** @type {HTMLInputElement} */ (
-      document.getElementById("email-input")
-    );
+    const emailInput = /** @type {HTMLInputElement} */ (document.getElementById("email-input"));
     for (const payload of SQLI_PAYLOADS) {
       emailInput.value = payload;
       // Navegadores validam email nativamente — verify o padrão
@@ -148,9 +110,7 @@ describe("SQL Injection — DOM Form Security", () => {
   });
 
   test("input[type=number] rejeita strings SQLi", () => {
-    const numInput = /** @type {HTMLInputElement} */ (
-      document.getElementById("id-input")
-    );
+    const numInput = /** @type {HTMLInputElement} */ (document.getElementById("id-input"));
     for (const payload of SQLI_PAYLOADS) {
       numInput.value = payload;
       // valueAsNumber deve ser NaN para payloads string
@@ -159,21 +119,15 @@ describe("SQL Injection — DOM Form Security", () => {
   });
 
   test("input[maxlength] limita tamanho de payloads longos", () => {
-    const searchInput = /** @type {HTMLInputElement} */ (
-      document.getElementById("search-input")
-    );
+    const searchInput = /** @type {HTMLInputElement} */ (document.getElementById("search-input"));
     const longPayload = "' OR '1'='1".repeat(100); // 1100 chars
     searchInput.value = longPayload;
     // maxlength=255 deve truncar no navegador (jsdom não enforce, mas verify atributo)
-    expect(parseInt(searchInput.getAttribute("maxlength") || "0")).toBeLessThan(
-      longPayload.length
-    );
+    expect(parseInt(searchInput.getAttribute("maxlength") || "0")).toBeLessThan(longPayload.length);
   });
 
   test("formulário contém token CSRF", () => {
-    const tokenInput = /** @type {HTMLInputElement} */ (
-      document.querySelector('input[name="_token"]')
-    );
+    const tokenInput = /** @type {HTMLInputElement} */ (document.querySelector('input[name="_token"]'));
     expect(tokenInput).not.toBeNull();
     expect(tokenInput.value).toBeTruthy();
     expect(tokenInput.type).toBe("hidden");
@@ -189,7 +143,7 @@ describe("SQL Injection — Static Code Scan (Blade views)", () => {
 
   test("enumerar usos de $_GET em Blade views (informativo)", () => {
     if (!fs.existsSync(viewsDir)) {
-      console.warn("Diretório de views não encontrado: " + viewsDir);
+      securityWarn("Diretório de views não encontrado: " + viewsDir);
       return;
     }
 
@@ -220,11 +174,9 @@ describe("SQL Injection — Static Code Scan (Blade views)", () => {
     scanDir(viewsDir);
 
     if (violations.length > 0) {
-      console.warn(
-        `⚠ ${violations.length} usos de superglobals encontrados em Blade views:`
-      );
-      violations.slice(0, 20).forEach((v) => {
-        console.warn(`  ${v.file}:${v.line} — ${v.code}`);
+      securityWarn(`⚠ ${violations.length} usos de superglobals encontrados em Blade views:`);
+      violations.slice(0, 20).forEach(v => {
+        securityWarn(`  ${v.file}:${v.line} — ${v.code}`);
       });
     }
 
@@ -250,12 +202,7 @@ describe("SQL Injection — Static Code Scan (Blade views)", () => {
           const lines = content.split("\n");
           lines.forEach((line, i) => {
             // {!! ... !!} com input de request são perigosos
-            if (
-              /\{!!\s*\$_GET\b/.test(line) ||
-              /\{!!\s*\$_POST\b/.test(line) ||
-              /\{!!\s*\$_REQUEST\b/.test(line) ||
-              /\{!!\s*request\(\)->input\b/.test(line)
-            ) {
+            if (/\{!!\s*\$_GET\b/.test(line) || /\{!!\s*\$_POST\b/.test(line) || /\{!!\s*\$_REQUEST\b/.test(line) || /\{!!\s*request\(\)->input\b/.test(line)) {
               critical.push({
                 file: path.relative(viewsDir, fullPath),
                 line: i + 1,

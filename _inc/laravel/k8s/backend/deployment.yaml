@@ -94,7 +94,6 @@ spec:
                           port: 80
                       initialDelaySeconds: 15
                       periodSeconds: 20
-
             volumes:
                 - name: nginx-config
                   configMap:

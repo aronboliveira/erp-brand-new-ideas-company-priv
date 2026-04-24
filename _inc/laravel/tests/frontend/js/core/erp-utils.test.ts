@@ -5,15 +5,7 @@
  */
 import path from "path";
 import fs from "fs";
-import {
-  createMockBootstrap,
-  resetDOM,
-  wait,
-  createButton,
-  createInput,
-  simulateClick,
-  PUBLIC_JS_PATH,
-} from "../setup";
+import { createMockBootstrap, resetDOM, wait, createButton, createInput, simulateClick, PUBLIC_JS_PATH } from "../setup";
 
 // Path to source files
 const ERP_UTILS_PATH = path.join(PUBLIC_JS_PATH, "core", "erp-utils.js");
@@ -25,14 +17,7 @@ const ERP_GUARD_PATH = path.join(PUBLIC_JS_PATH, "core", "erp-guard.js");
 function loadERPGuard(): void {
   delete (window as any).ERPGuard;
   const code = fs.readFileSync(ERP_GUARD_PATH, "utf-8");
-  const fn = new Function(
-    "window",
-    "document",
-    "localStorage",
-    "navigator",
-    "bootstrap",
-    code,
-  );
+  const fn = new Function("window", "document", "localStorage", "navigator", "bootstrap", code);
   fn(window, document, localStorage, navigator, (window as any).bootstrap);
 }
 
@@ -43,14 +28,7 @@ function loadERPUtils(): void {
   delete (window as any).ERPUtils;
   // Reset singleton
   const code = fs.readFileSync(ERP_UTILS_PATH, "utf-8");
-  const fn = new Function(
-    "window",
-    "document",
-    "localStorage",
-    "sessionStorage",
-    "navigator",
-    code,
-  );
+  const fn = new Function("window", "document", "localStorage", "sessionStorage", "navigator", code);
   fn(window, document, localStorage, sessionStorage, navigator);
 }
 
@@ -155,16 +133,15 @@ describe("ERPUtils", () => {
           configurable: true,
         });
 
-        const result = await window.ERPUtils.copyToClipboard(
-          "test text",
-          false,
-        );
+        const result = await window.ERPUtils.copyToClipboard("test text", false);
 
         expect(writeTextMock).toHaveBeenCalledWith("test text");
         expect(result).toBe(true);
       });
 
       it("should use fallback when Clipboard API fails", async () => {
+        const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
         Object.defineProperty(navigator, "clipboard", {
           value: {
             writeText: jest.fn().mockRejectedValue(new Error("Not allowed")),
@@ -176,13 +153,14 @@ describe("ERPUtils", () => {
         // execCommand fallback
         document.execCommand = jest.fn().mockReturnValue(true);
 
-        const result = await window.ERPUtils.copyToClipboard(
-          "test text",
-          false,
-        );
+        try {
+          const result = await window.ERPUtils.copyToClipboard("test text", false);
 
-        // Either modern or fallback should work
-        expect(result === true || result === false).toBe(true);
+          // Either modern or fallback should work
+          expect(result === true || result === false).toBe(true);
+        } finally {
+          consoleErrorSpy.mockRestore();
+        }
       });
 
       it("should show success notification when showNotification is true", async () => {
@@ -289,10 +267,7 @@ describe("ERPUtils", () => {
           configurable: true,
         });
 
-        window.ERPUtils.bindClipboardAction(
-          button,
-          (el: HTMLElement) => el.dataset.value || "",
-        );
+        window.ERPUtils.bindClipboardAction(button, (el: HTMLElement) => el.dataset.value || "");
 
         simulateClick(button);
         await wait(10);
@@ -563,9 +538,15 @@ describe("ERPUtils", () => {
         const original: any = { a: 1 };
         original.self = original;
 
+        const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
         // JSON.stringify fails on circular refs, should return original
-        const result = window.ERPUtils.deepClone(original);
-        expect(result).toBe(original);
+        try {
+          const result = window.ERPUtils.deepClone(original);
+          expect(result).toBe(original);
+        } finally {
+          consoleErrorSpy.mockRestore();
+        }
       });
     });
   });
@@ -640,9 +621,7 @@ describe("ERPUtils", () => {
 
         div.getBoundingClientRect = jest.fn().mockReturnValue({ top: 500 });
 
-        const scrollToSpy = jest
-          .spyOn(window, "scrollTo")
-          .mockImplementation(() => {});
+        const scrollToSpy = jest.spyOn(window, "scrollTo").mockImplementation(() => {});
 
         window.ERPUtils.scrollToElement(div);
 
@@ -658,9 +637,7 @@ describe("ERPUtils", () => {
 
         div.getBoundingClientRect = jest.fn().mockReturnValue({ top: 500 });
 
-        const scrollToSpy = jest
-          .spyOn(window, "scrollTo")
-          .mockImplementation(() => {});
+        const scrollToSpy = jest.spyOn(window, "scrollTo").mockImplementation(() => {});
 
         window.ERPUtils.scrollToElement("#scroll-target");
 
@@ -675,9 +652,7 @@ describe("ERPUtils", () => {
 
         div.getBoundingClientRect = jest.fn().mockReturnValue({ top: 500 });
 
-        const scrollToSpy = jest
-          .spyOn(window, "scrollTo")
-          .mockImplementation(() => {});
+        const scrollToSpy = jest.spyOn(window, "scrollTo").mockImplementation(() => {});
 
         window.ERPUtils.scrollToElement(div, { offset: 100 });
 
@@ -691,9 +666,7 @@ describe("ERPUtils", () => {
       });
 
       it("should do nothing for non-existent selector", () => {
-        const scrollToSpy = jest
-          .spyOn(window, "scrollTo")
-          .mockImplementation(() => {});
+        const scrollToSpy = jest.spyOn(window, "scrollTo").mockImplementation(() => {});
 
         window.ERPUtils.scrollToElement("#non-existent");
 
@@ -727,18 +700,12 @@ describe("ERPUtils", () => {
       });
 
       it("should accept custom URL", () => {
-        const result = window.ERPUtils.getQueryParam(
-          "test",
-          "http://example.com/?test=value",
-        );
+        const result = window.ERPUtils.getQueryParam("test", "http://example.com/?test=value");
         expect(result).toBe("value");
       });
 
       it("should handle URL-encoded values", () => {
-        const result = window.ERPUtils.getQueryParam(
-          "encoded",
-          "http://example.com/?encoded=hello%20world",
-        );
+        const result = window.ERPUtils.getQueryParam("encoded", "http://example.com/?encoded=hello%20world");
         expect(result).toBe("hello world");
       });
     });
@@ -748,9 +715,7 @@ describe("ERPUtils", () => {
         delete (window as any).location;
         (window as any).location = { href: "http://localhost/" };
 
-        const pushStateSpy = jest
-          .spyOn(window.history, "pushState")
-          .mockImplementation(() => {});
+        const pushStateSpy = jest.spyOn(window.history, "pushState").mockImplementation(() => {});
 
         window.ERPUtils.setQueryParam("key", "value");
 
@@ -763,9 +728,7 @@ describe("ERPUtils", () => {
         delete (window as any).location;
         (window as any).location = { href: "http://localhost/" };
 
-        const replaceStateSpy = jest
-          .spyOn(window.history, "replaceState")
-          .mockImplementation(() => {});
+        const replaceStateSpy = jest.spyOn(window.history, "replaceState").mockImplementation(() => {});
 
         window.ERPUtils.setQueryParam("key", "value", false);
 
@@ -917,9 +880,7 @@ describe("ERPUtils", () => {
 
         await window.ERPUtils.saveAsPDF();
 
-        expect(mockHtml2pdf.set).toHaveBeenCalledWith(
-          expect.objectContaining({ filename: "custom-filename" }),
-        );
+        expect(mockHtml2pdf.set).toHaveBeenCalledWith(expect.objectContaining({ filename: "custom-filename" }));
       });
 
       it("should use default filename when input is empty", async () => {
@@ -937,9 +898,7 @@ describe("ERPUtils", () => {
 
         await window.ERPUtils.saveAsPDF();
 
-        expect(mockHtml2pdf.set).toHaveBeenCalledWith(
-          expect.objectContaining({ filename: "export" }),
-        );
+        expect(mockHtml2pdf.set).toHaveBeenCalledWith(expect.objectContaining({ filename: "export" }));
       });
 
       it("should handle pdf generation error", async () => {
