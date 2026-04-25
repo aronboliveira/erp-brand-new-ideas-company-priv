@@ -7,6 +7,14 @@ import { test, expect } from "@playwright/test";
 
 const BASE = process.env.APP_URL || "http://127.0.0.1:8000";
 
+// Skip in CI unless a live server URL is provided via APP_URL
+test.beforeEach(async ({}, testInfo) => {
+  testInfo.skip(
+    !!(process.env.CI && !process.env.APP_URL),
+    "Requires a running Laravel server (set APP_URL to enable)"
+  );
+});
+
 // Helper: Login and get authenticated context
 async function loginAsAdmin(page: any) {
   await page.goto(`${BASE}/login`);

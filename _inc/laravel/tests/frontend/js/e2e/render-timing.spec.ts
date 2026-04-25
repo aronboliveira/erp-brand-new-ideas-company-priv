@@ -14,6 +14,14 @@ import { test, expect, Page, BrowserContext } from "@playwright/test";
 import * as fs from "fs";
 import * as path from "path";
 
+// Skip in CI unless a live server URL is provided via APP_URL
+test.beforeEach(async ({}, testInfo) => {
+  testInfo.skip(
+    !!(process.env.CI && !process.env.APP_URL),
+    "Requires a running Laravel server (set APP_URL to enable)"
+  );
+});
+
 const BASE = process.env.APP_URL || "http://127.0.0.1:8000";
 const TEST_EMAIL =
   process.env.TEST_EMAIL || "u_1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c@test.local";
