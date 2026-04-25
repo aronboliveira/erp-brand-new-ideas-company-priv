@@ -216,7 +216,10 @@ jobs:
             - name: Install Playwright browsers
               run: npx playwright install --with-deps chromium
 
-            - name: Playwright
+            - name: Playwright (frontend mock pages)
+              run: npx playwright test --config=playwright-frontend.config.cjs --project=chromium --reporter=list
+
+            - name: Playwright (e2e, requires server — soft)
               run: npx playwright test --reporter=list || true
 
     # ════════════════════════════════════════════════════════════════════════
