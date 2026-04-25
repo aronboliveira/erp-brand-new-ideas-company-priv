@@ -7,11 +7,11 @@
  * Uses the same selectors that the real E2E tests (financial.spec.cjs,
  * module-pages.spec.cjs) use — if these fail, the real tests will too.
  *
- * Served by http-server on port 3847 (playwright-frontend.config.cjs).
+ * Served by http-server on port 3000 (playwright-frontend.config.cjs).
  */
 import { test, expect } from "@playwright/test";
 
-const BASE = "http://localhost:3847/mocks/rendered";
+const BASE = "http://localhost:3000/mocks/rendered";
 
 /* ------------------------------------------------------------------ */
 /*  Helper: benign JS error patterns (same as module-pages.spec.cjs)  */

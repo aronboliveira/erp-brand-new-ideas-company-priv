@@ -320,20 +320,19 @@ test.describe("CRUD Operations", () => {
   });
 
   test("fetch users should show loading state", async ({ page }) => {
-    const fetchPromise = page.click("#btn-fetch-users");
-
-    // Loading should appear
-    await page.waitForSelector("#data-loading", {
+    // Register the waitFor BEFORE clicking to avoid the race where the 300ms
+    // simulated delay completes before CDP round-trips deliver the visibility event.
+    const loadingVisible = page.waitForSelector("#data-loading", {
       state: "visible",
-      timeout: 2000,
+      timeout: 3000,
     });
+    void page.click("#btn-fetch-users");
+    await loadingVisible;
     expect(await page.locator("#data-loading").isVisible()).toBe(true);
 
-    // Wait for completion
-    await fetchPromise;
     await page.waitForSelector("#data-loading", {
       state: "hidden",
-      timeout: 3000,
+      timeout: 5000,
     });
   });
 
