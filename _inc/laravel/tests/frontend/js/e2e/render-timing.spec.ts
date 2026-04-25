@@ -235,6 +235,12 @@ function summarise(r: NavTiming) {
 // TEST SUITE
 // ============================================================================
 test.describe.serial("Render Timing Benchmark", () => {
+  // Skip the entire group before any beforeAll can attempt a server connection
+  test.skip(
+    !!(process.env.CI && !process.env.APP_URL),
+    "Requires a running Laravel server (set APP_URL to enable)"
+  );
+
   const allResults: ViewResult[] = [];
 
   test.afterAll(async () => {
