@@ -2,18 +2,31 @@
 ###############################################################################
 # ERP Nova Prestech — Kubernetes Local Deploy (minikube + kubectl)
 #
-# Uso:
-#   ./scripts/k8s-deploy.sh --soft    # Deploy incremental (aplica manifests)
-#   ./scripts/k8s-deploy.sh --mixed   # Rebuild imagem + redeploy
-#   ./scripts/k8s-deploy.sh --hard    # Limpa tudo, rebuild do zero + seed
+# Uso interativo (padrão):
+#   ./scripts/k8s-deploy.sh
 #
-# Pré-requisitos:
-#   - minikube instalado e disponível no PATH
-#   - kubectl instalado e disponível no PATH
-#   - docker instalado e disponível no PATH
+# Flags de resposta automática (combinam com o fluxo interativo):
+#   --artifacts-rebuild   Auto-responde "sim" para recompilar artefatos
+#   --img-rebuild         Auto-responde "sim" para rebuild da imagem Docker
+#   --pod-rebuild         Auto-responde "rollout restart" para pods
+#   --pod-delete          Auto-responde "delete + recriar" para pods
 #
-# Equivalências com composer serve-*:
-#   --soft  → sem wipe de banco, aplica manifests, migrate (correspondente)
+# Modos legados (ainda suportados para scripts):
+#   --soft    Deploy incremental (aplica manifests)
+#   --mixed   Rebuild imagem + redeploy
+#   --hard    Limpa tudo, rebuild do zero + seed
+#
+# Fluxo interativo (cada passo tem 60 s de tolerância, padrão em maiúscula):
+#   1. Reconstruir artefatos de compilação? [S/n]
+#      └─ sim → rebuild Docker + rollout restart (automático, fim)
+#      └─ não → passo 2
+#   2. Reconstruir imagem Docker? [S/n]
+#      └─ sim → rollout restart (automático, fim)
+#      └─ não → passo 3
+#   3. Ação nos pods?  1=rollout restart  2=delete+recriar  3=nenhuma  [padrão: 1]
+#
+# Equivalências modos legados:
+#   --soft  → sem wipe de banco, aplica manifests, migrate
 #   --mixed → rebuild imagem, redeploy, migrate:fresh --seed
 #   --hard  → delete namespace inteiro, rebuild tudo, wipe + migrate --seed
 ###############################################################################
@@ -26,14 +39,39 @@ K8S_DIR="${LARAVEL_DIR}/k8s"
 NAMESPACE="erp-prestech"
 APP_IMAGE="erp-prestech-app:latest"
 MINIKUBE_PROFILE="${MINIKUBE_PROFILE:-minikube}"
-DEPLOY_MODE="${1:---mixed}"
+
+# Flags de resposta automática
+OPT_ARTIFACTS=false
+OPT_IMG=false
+OPT_POD_REBUILD=false
+OPT_POD_DELETE=false
+
+# Modo legado (vazio = fluxo interativo)
+DEPLOY_MODE=""
+
+# ── Parse de argumentos ──────────────────────────────────────────────────────
+for arg in "$@"; do
+    case "$arg" in
+        --artifacts-rebuild) OPT_ARTIFACTS=true  ;;
+        --img-rebuild)       OPT_IMG=true        ;;
+        --pod-rebuild)       OPT_POD_REBUILD=true ;;
+        --pod-delete)        OPT_POD_DELETE=true  ;;
+        --soft|-s)           DEPLOY_MODE="soft"   ;;
+        --mixed|-m)          DEPLOY_MODE="mixed"  ;;
+        --hard|-h)           DEPLOY_MODE="hard"   ;;
+        --status)            DEPLOY_MODE="status" ;;
+        --stop)              DEPLOY_MODE="stop"   ;;
+        --destroy)           DEPLOY_MODE="destroy";;
+        --help|help)         DEPLOY_MODE="help"   ;;
+    esac
+done
 
 # Cores para output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 log_info()  { echo -e "${CYAN}[INFO]${NC}  $*"; }
 log_ok()    { echo -e "${GREEN}[OK]${NC}    $*"; }
@@ -70,7 +108,6 @@ ensure_minikube() {
         log_ok "Minikube já está rodando."
     fi
 
-    # Habilitar addons se necessário
     minikube addons enable ingress -p "$MINIKUBE_PROFILE" 2>/dev/null || true
     minikube addons enable metrics-server -p "$MINIKUBE_PROFILE" 2>/dev/null || true
 }
@@ -80,6 +117,23 @@ setup_docker_env() {
     log_info "Configurando ambiente Docker do minikube..."
     eval "$(minikube docker-env -p "$MINIKUBE_PROFILE")"
     log_ok "Docker apontando para minikube daemon."
+}
+
+# ── Reconstruir artefatos de compilação (TS / assets) ───────────────────────
+build_artifacts() {
+    log_info "Reconstruindo artefatos de compilação (TypeScript / assets)..."
+    cd "$LARAVEL_DIR"
+    if [[ -f "package.json" ]] && grep -q '"build"' package.json 2>/dev/null; then
+        npm run build 2>&1 | tail -10
+        log_ok "Artefatos compilados com sucesso."
+    else
+        log_warn "Script 'build' não encontrado em package.json; pulando compilação de assets."
+    fi
+    # Composer autoload optimizado para produção
+    if command -v composer &>/dev/null; then
+        composer install --no-dev --optimize-autoloader --no-interaction 2>&1 | tail -5 || true
+        log_ok "Autoload do Composer otimizado."
+    fi
 }
 
 # ── Build da imagem Docker ──────────────────────────────────────────────────
@@ -118,8 +172,6 @@ apply_manifests() {
     kubectl apply -f "${K8S_DIR}/backend/deployment.yaml"
     kubectl apply -f "${K8S_DIR}/frontend/deployment.yaml"
 
-    # Aguardar o admission webhook do ingress-nginx estar pronto antes de
-    # criar o Ingress — evita "context deadline exceeded" no webhook validate.
     log_info "Aguardando ingress-nginx admission webhook estar pronto..."
     kubectl wait --namespace ingress-nginx \
         --for=condition=ready pod \
@@ -166,10 +218,20 @@ artisan_exec() {
 
 # ── Rollout restart ─────────────────────────────────────────────────────────
 rollout_restart() {
-    log_info "Reiniciando deployment erp-backend..."
+    log_info "Reiniciando deployment erp-backend (rollout restart)..."
     kubectl rollout restart deployment/erp-backend -n "$NAMESPACE"
     kubectl rollout status deployment/erp-backend -n "$NAMESPACE" --timeout=180s
     log_ok "Rollout completo."
+}
+
+# ── Deletar pods e recriar via reapply de manifest ──────────────────────────
+delete_recreate_pods() {
+    log_info "Deletando deployment erp-backend e reaplicando manifest..."
+    kubectl delete -f "${K8S_DIR}/backend/deployment.yaml" \
+        --ignore-not-found --wait=true --timeout=60s || true
+    kubectl apply -f "${K8S_DIR}/backend/deployment.yaml"
+    kubectl rollout status deployment/erp-backend -n "$NAMESPACE" --timeout=180s
+    log_ok "Pods recriados com sucesso."
 }
 
 # ── Limpar namespace inteiro ────────────────────────────────────────────────
@@ -200,7 +262,127 @@ show_status() {
 }
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MODOS DE DEPLOY
+# HELPERS DE PROMPT (saída em stdout, mensagens em stderr)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ask_yesno <pergunta> <padrão: s|n>
+# Imprime "s" ou "n" no stdout. Timeout de 60 s → padrão.
+ask_yesno() {
+    local question="$1"
+    local default="${2:-s}"
+    local label
+    [[ "$default" == "s" ]] && label="[S/n]" || label="[s/N]"
+
+    echo -ne "${CYAN}[?]${NC}    ${question} ${label} (60s → '${default}'): " >&2
+    local answer
+    if read -t 60 -r answer 2>/dev/null; then
+        answer="${answer,,}"
+        case "$answer" in
+            s|sim|y|yes) echo "s" ;;
+            n|nao|não|no) echo "n" ;;
+            *) echo "$default" ;;
+        esac
+    else
+        echo "" >&2
+        log_warn "Tempo esgotado. Usando padrão: '${default}'." >&2
+        echo "$default"
+    fi
+}
+
+# ask_pod_action
+# Imprime "1", "2" ou "3" no stdout. Timeout de 60 s → "1".
+ask_pod_action() {
+    echo -e "${CYAN}[?]${NC}    Ação nos pods:" >&2
+    echo -e "         ${YELLOW}1${NC}) Rollout restart   (padrão)" >&2
+    echo -e "         ${YELLOW}2${NC}) Delete + recriar  (kubectl delete deployment + reapply)" >&2
+    echo -e "         ${YELLOW}3${NC}) Nenhuma ação" >&2
+    echo -ne "         Escolha [1/2/3] (60s → '1'): " >&2
+    local choice
+    if read -t 60 -r choice 2>/dev/null; then
+        case "$choice" in
+            1|2|3) echo "$choice" ;;
+            *) echo "1" ;;
+        esac
+    else
+        echo "" >&2
+        log_warn "Tempo esgotado. Usando padrão: rollout restart." >&2
+        echo "1"
+    fi
+}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FLUXO INTERATIVO
+# ══════════════════════════════════════════════════════════════════════════════
+
+interactive_deploy() {
+    log_info "━━━ DEPLOY INTERATIVO ━━━"
+    ensure_minikube
+    setup_docker_env
+    ensure_namespace
+    apply_manifests
+    wait_for_pods
+
+    local do_artifacts do_img pod_action
+
+    # ── Passo 1: artefatos de compilação? ─────────────────────────────────
+    echo ""
+    if [[ "$OPT_ARTIFACTS" == "true" ]]; then
+        log_info "Flag --artifacts-rebuild: reconstruindo artefatos de compilação."
+        do_artifacts="s"
+    else
+        do_artifacts="$(ask_yesno 'Reconstruir artefatos de compilação (TS/assets)?' 's')"
+    fi
+
+    if [[ "$do_artifacts" == "s" ]]; then
+        build_artifacts
+        build_image
+        rollout_restart
+        show_status
+        log_ok "Deploy interativo concluído."
+        return
+    fi
+
+    # ── Passo 2: rebuild da imagem Docker? ────────────────────────────────
+    echo ""
+    if [[ "$OPT_IMG" == "true" ]]; then
+        log_info "Flag --img-rebuild: reconstruindo imagem Docker."
+        do_img="s"
+    else
+        do_img="$(ask_yesno 'Reconstruir imagem Docker?' 's')"
+    fi
+
+    if [[ "$do_img" == "s" ]]; then
+        build_image
+        rollout_restart
+        show_status
+        log_ok "Deploy interativo concluído."
+        return
+    fi
+
+    # ── Passo 3: ação nos pods ────────────────────────────────────────────
+    echo ""
+    if [[ "$OPT_POD_REBUILD" == "true" ]]; then
+        log_info "Flag --pod-rebuild: rollout restart."
+        pod_action="1"
+    elif [[ "$OPT_POD_DELETE" == "true" ]]; then
+        log_info "Flag --pod-delete: delete e recriar pods."
+        pod_action="2"
+    else
+        pod_action="$(ask_pod_action)"
+    fi
+
+    case "$pod_action" in
+        1) rollout_restart ;;
+        2) delete_recreate_pods ;;
+        3) log_info "Nenhuma ação realizada nos pods." ;;
+    esac
+
+    show_status
+    log_ok "Deploy interativo concluído."
+}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# MODOS LEGADOS
 # ══════════════════════════════════════════════════════════════════════════════
 
 deploy_soft() {
@@ -224,7 +406,7 @@ deploy_mixed() {
     ensure_namespace
     apply_manifests
     wait_for_pods
-    sleep 5  # Aguardar serviços estabilizarem
+    sleep 5
     artisan_exec config:clear || true
     artisan_exec cache:clear || true
     artisan_exec optimize:clear || true
@@ -241,20 +423,16 @@ deploy_hard() {
     ensure_minikube
     setup_docker_env
 
-    # Limpa tudo
     nuke_namespace
     sleep 3
 
-    # Rebuild sem cache
     build_image
 
-    # Recria do zero
     ensure_namespace
     apply_manifests
     wait_for_pods
-    sleep 10  # Aguardar MySQL inicializar completamente
+    sleep 10
 
-    # Artisan setup completo
     artisan_exec key:generate --force || true
     artisan_exec config:clear || true
     artisan_exec cache:clear || true
@@ -274,46 +452,65 @@ deploy_hard() {
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
+show_help() {
+    echo "Uso: $0 [modo-legado | flags-interativas]"
+    echo ""
+    echo "  Fluxo interativo (padrão quando nenhum modo legado é passado):"
+    echo "    Sem argumentos        Prompts guiados com 60 s de tolerância cada"
+    echo "    --artifacts-rebuild   Auto: recompilar TS/assets → rebuild Docker → rollout restart"
+    echo "    --img-rebuild         Auto: rebuild Docker → rollout restart"
+    echo "    --pod-rebuild         Auto: rollout restart"
+    echo "    --pod-delete          Auto: delete deployment + reapply"
+    echo ""
+    echo "  Modos legados:"
+    echo "    --soft    Deploy incremental (build com cache, apply manifests, migrate)"
+    echo "    --mixed   Rebuild imagem, redeploy, migrate:fresh --seed"
+    echo "    --hard    Nuke namespace, rebuild total do zero, full seed"
+    echo "    --status  Mostrar status do cluster"
+    echo "    --stop    Parar minikube"
+    echo "    --destroy Remover namespace erp-prestech do cluster"
+}
+
 main() {
     echo ""
     log_info "ERP Nova Prestech — Kubernetes Local Deploy"
-    log_info "Modo: ${DEPLOY_MODE}"
     echo ""
 
     check_prerequisites
 
     case "$DEPLOY_MODE" in
-        --soft|-s)
+        soft)
             deploy_soft
             ;;
-        --mixed|-m)
+        mixed)
             deploy_mixed
             ;;
-        --hard|-h)
+        hard)
             deploy_hard
             ;;
-        --status)
+        status)
             ensure_minikube
             show_status
             ;;
-        --stop)
+        stop)
             log_info "Parando minikube..."
             minikube stop -p "$MINIKUBE_PROFILE"
             log_ok "Minikube parado."
             ;;
-        --destroy)
+        destroy)
             nuke_namespace
             log_ok "Recursos K8s removidos. Minikube ainda rodando."
             ;;
+        help)
+            show_help
+            ;;
+        "")
+            # Fluxo interativo (padrão)
+            interactive_deploy
+            ;;
         *)
-            echo "Uso: $0 {--soft|--mixed|--hard|--status|--stop|--destroy}"
-            echo ""
-            echo "  --soft    Deploy incremental (build com cache, apply manifests, migrate)"
-            echo "  --mixed   Rebuild imagem, redeploy, migrate:fresh --seed"
-            echo "  --hard    Nuke namespace, rebuild total do zero, full seed"
-            echo "  --status  Mostrar status do cluster"
-            echo "  --stop    Parar minikube"
-            echo "  --destroy Remover namespace erp-prestech do cluster"
+            log_err "Modo desconhecido: ${DEPLOY_MODE}"
+            show_help
             exit 1
             ;;
     esac
