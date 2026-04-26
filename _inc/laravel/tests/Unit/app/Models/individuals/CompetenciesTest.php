@@ -23,7 +23,7 @@ class CompetenciesTest extends TestCase
 	 **/
 	public function it_has_expected_fillable_fields()
 	{
-		$expected = ['name', 'type', 'created_by'];
+		$expected = ['name', 'type', 'code', 'created_by'];
 		$this->assertEquals($expected, (new Competencies())->getFillable());
 	}
 
