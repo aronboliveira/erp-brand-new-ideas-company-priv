@@ -176,6 +176,9 @@ jobs:
             - name: Run migrations
               run: php artisan migrate --force
 
+            - name: Seed base catalog data
+              run: php artisan db:seed --class=ContentValidationSeeder --force
+
             - name: PHPUnit
               run: php -d memory_limit=2G vendor/bin/phpunit --no-coverage --stop-on-failure
 

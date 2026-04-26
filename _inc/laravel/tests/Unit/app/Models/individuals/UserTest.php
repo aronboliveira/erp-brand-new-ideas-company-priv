@@ -1776,7 +1776,19 @@ class UserTest extends TestCase
 	 **/
 	public function get_img_image_attribute_returns_correct_avatar()
 	{
-		$this->markTestSkipped('employees table has no avatar column — getImgImageAttribute references non-existent column (production bug)');
+		// Case 1: user has no related Employee — accessor falls through to default.
+		$user = User::factory()->create(['type' => 'user']);
+		$this->assertStringContainsString('avatar.png', $user->img_image,
+			'Should return default avatar URL when no Employee record exists');
+
+		// Case 2: user has a related Employee but no avatar value —
+		// employees.avatar does not exist as a DB column (production gap), so
+		// $detail->avatar is null and the accessor must still return the default.
+		Employee::factory()->create(['user_id' => $user->id]);
+		// Refresh to clear any cached relations
+		$user->refresh();
+		$this->assertStringContainsString('avatar.png', $user->img_image,
+			'Should return default avatar URL when Employee has no avatar set');
 	}
 
 	/**

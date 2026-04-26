@@ -5788,10 +5788,28 @@ class UtilityTest extends TestCase
 		$this->assertEquals('accepted', Utility::getValByName1('gdpr_cookie'));
 	}
 
-	/** 
+	/**
 	 ** @test
-	 * * This test covers calendar helpers: colorCodeData, googleCalendarConfig,
-	 * * addCalendarData, and getCalendarData. **/
+	 ** colorCodeData maps known event types to their Google Calendar color IDs.
+	 **/
+	public function it_maps_color_codes_for_event_types()
+	{
+		$this->assertEquals(1, Utility::colorCodeData('event'));
+		$this->assertEquals(2, Utility::colorCodeData('zoom_meeting'));
+		$this->assertEquals(3, Utility::colorCodeData('task'));
+		$this->assertEquals(11, Utility::colorCodeData('appointment'));
+		$this->assertEquals(4, Utility::colorCodeData('holiday'));
+		$this->assertEquals(10, Utility::colorCodeData('call'));
+		$this->assertEquals(5, Utility::colorCodeData('meeting'));
+		$this->assertEquals(6, Utility::colorCodeData('leave'));
+		$this->assertEquals(9, Utility::colorCodeData('interview_schedule'));
+		$this->assertEquals(11, Utility::colorCodeData('unknown_type'));
+	}
+
+	/**
+	 ** @test
+	 * * This test covers calendar helpers: googleCalendarConfig,
+	 * * addCalendarData, and getCalendarData — requires live Google Calendar credentials. **/
 	public function it_manages_calendar_functions()
 	{
 		$this->markTestSkipped('Requires live Google Calendar API credentials.');
