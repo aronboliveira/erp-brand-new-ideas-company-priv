@@ -556,14 +556,15 @@ class ContentValidationSeeder extends Seeder
             'competencies' => function () use ($uuid, $now, $creatorId) {
                 $names = ['Communication', 'Leadership', 'Problem Solving'];
                 for ($i = 0; $i < self::MIN_ROWS; $i++) {
-                    DB::table('competencies')->insert(array_filter([
+                    DB::table('competencies')->insertOrIgnore([
                         'id'         => $uuid(),
+                        'code'       => 'CMPT-' . strtoupper(\Illuminate\Support\Str::random(6)) . '-' . ($i + 1),
                         'name'       => $names[$i],
                         'type'       => 'technical',
                         'created_by' => $creatorId,
                         'created_at' => $now,
                         'updated_at' => $now,
-                    ]));
+                    ]);
                 }
             },
 

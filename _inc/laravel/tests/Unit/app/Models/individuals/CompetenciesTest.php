@@ -4,6 +4,7 @@ namespace Tests\Unit\Models;
 
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use App\Models\{Competencies, PerformanceType};
 
 class CompetenciesTest extends TestCase
@@ -37,7 +38,7 @@ class CompetenciesTest extends TestCase
 		$competency = Competencies::create([
 			'name'       => 'Quality',
 			'type'       => $performanceType->id,
-			'created_by' => 1,
+			'created_by' => (string) Str::uuid(),
 		]);
 
 		$this->assertInstanceOf(PerformanceType::class, $competency->performance);
