@@ -228,3 +228,26 @@ _inc/laravel/os
 _inc/laravel/re
 _inc/laravel/subprocess
 _inc/laravel/sys
+
+# stale/generated review artifacts
+_inc/Dockerfile
+_inc/docker-compose.yml
+_inc/nginx/
+_inc/nginx/**
+_inc/php/
+_inc/php/**
+_inc/laravel/database/schema/*.sql
+_inc/laravel/database/migrations/2025_06_03_000000_create_users_table.php
+_inc/laravel/Modules/LandingPage/Database/Migrations/2025_06_03_000000_create_users_table.php
+_inc/laravel/webpack.mix.js
+_inc/laravel/frontend/app/public/.htaccess
+_inc/laravel/frontend/app/public/index.php
+_inc/laravel/frontend/app/public/web.config
+_inc/laravel/frontend/app/public/mix-manifest.json
+*.jsasasas
+_inc/laravel/tests/Unit/app/Http/Controllers/bills/BenefitPaymentControlleTest.php
+_inc/laravel/tests/Unit/app/Http/Controllers/planning/PromotioControllerTest.php
+_inc/laravel/tests/Unit/app/Imports/EmployessImportTest.php
+_inc/laravel/tests/Unit/app/Models/activity/ActiivityLogTest.php
+_inc/laravel/tests/Unit/app/Models/activity/ApprasailTest.php
+_inc/laravel/tests/Unit/app/Models/activity/ComissionTest.php
