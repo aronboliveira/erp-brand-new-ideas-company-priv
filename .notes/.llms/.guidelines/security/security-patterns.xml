@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ERP Prestech — Security Patterns & Code Review Checklist
+  Format: XML (complex, heavily structured instruction set)
+  Use this as a reference when reviewing PRs or adding new code.
+-->
+<securityPatterns project="erp-prestech" lastUpdated="2026-03-04">
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section name="file-upload-sanitization">
+    <description>
+      Every file upload MUST sanitize the original filename and restrict permissions.
+      These patterns were established after fixing 16 vulnerable upload sites across 13 files.
+    </description>
+
+    <pattern id="SP01" name="filename-sanitization">
+      <rule>Strip all characters except alphanumeric, dot, hyphen, underscore</rule>
+      <code language="php"><![CDATA[
+$safeName = preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
+      ]]></code>
+      <appliesTo>Any call to getClientOriginalName() before storage</appliesTo>
+    </pattern>
+
+    <pattern id="SP02" name="directory-permissions">
+      <rule>Directories: 0755. Files: 0644. Never 0777.</rule>
+      <code language="php"><![CDATA[
+if (!is_dir($dir)) {
+    mkdir($dir, 0755, true);
+}
+file_put_contents($path, $content);
+chmod($path, 0644);
+      ]]></code>
+    </pattern>
+
+    <pattern id="SP03" name="image-extension-whitelist">
+      <rule>For image uploads, validate extension against whitelist</rule>
+      <code language="php"><![CDATA[
+$allowed = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp'];
+$ext = strtolower(pathinfo($safeName, PATHINFO_EXTENSION));
+if (!in_array($ext, $allowed, true)) {
+    return response()->json(['error' => 'Invalid file type'], 422);
+}
+      ]]></code>
+    </pattern>
+
+    <pattern id="SP04" name="base64-validation">
+      <rule>Validate base64 payloads strictly before writing to disk</rule>
+      <code language="php"><![CDATA[
+if (base64_decode($data, true) === false) {
+    return response()->json(['error' => 'Invalid payload'], 400);
+}
+      ]]></code>
+    </pattern>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section name="sql-injection-prevention">
+    <description>
+      Raw SQL fragments (whereRaw, selectRaw, FIND_IN_SET) MUST use parameterized bindings.
+      16 sites were fixed across 5 files.
+    </description>
+
+    <pattern id="SP05" name="find-in-set-parameterized">
+      <before><![CDATA[
+->whereRaw("FIND_IN_SET('" . $userId . "', assigned_to)")
+      ]]></before>
+      <after><![CDATA[
+->whereRaw("FIND_IN_SET(?, assigned_to)", [$userId])
+      ]]></after>
+      <affectedFiles>
+        <file>app/Http/Controllers/ProjectController.php</file>
+        <file>app/Http/Controllers/ProjectTaskController.php</file>
+        <file>app/Http/Controllers/DashboardController.php</file>
+        <file>app/Models/User.php</file>
+        <file>app/Services/ProjectRequestService.php</file>
+      </affectedFiles>
+    </pattern>
+
+    <pattern id="SP06" name="no-raw-interpolation">
+      <rule>Never interpolate PHP variables into raw SQL strings</rule>
+      <forbidden><![CDATA[
+->whereRaw("column = '$var'")
+->selectRaw("SUM($field)")
+DB::raw("... $variable ...")
+      ]]></forbidden>
+      <correct><![CDATA[
+->whereRaw("column = ?", [$var])
+->selectRaw("SUM(??)", [$field])
+DB::raw("... ? ...", [$variable])
+      ]]></correct>
+    </pattern>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section name="logging-hygiene">
+    <description>
+      Sensitive data MUST NOT appear in logs. Bearer tokens, cookies, and passwords
+      must be masked or excluded.
+    </description>
+
+    <pattern id="SP07" name="bearer-token-masking">
+      <before><![CDATA[
+'bearer' => $request->bearerToken()
+      ]]></before>
+      <after><![CDATA[
+'bearer_present' => (bool) $request->bearerToken()
+      ]]></after>
+    </pattern>
+
+    <pattern id="SP08" name="header-filtering">
+      <rule>Filter sensitive headers before logging request context</rule>
+      <code language="php"><![CDATA[
+$filteredHeaders = collect($request->headers->all())
+    ->except(['authorization', 'cookie', 'php-auth-pw'])
+    ->all();
+      ]]></code>
+    </pattern>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section name="console-output-safety">
+    <description>
+      HTTP code paths must not write to ConsoleOutput (stdout pollution, info leak).
+      Use the SafeConsoleOutput helper.
+    </description>
+
+    <pattern id="SP09" name="safe-console-output">
+      <rule>In HTTP context, use NullOutput instead of ConsoleOutput</rule>
+      <code language="php"><![CDATA[
+use App\Helpers\SafeConsoleOutput;
+
+// Returns ConsoleOutput in CLI, NullOutput in HTTP
+$output = SafeConsoleOutput::make();
+      ]]></code>
+      <helperLocation>app/Helpers/SafeConsoleOutput.php</helperLocation>
+    </pattern>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section name="frontend-xss-prevention">
+    <description>
+      JavaScript in public/assets/js/ MUST NOT use innerHTML with dynamic data.
+      14 files were refactored from innerHTML to safe DOM construction.
+    </description>
+
+    <pattern id="SP10" name="toast-dom-construction">
+      <description>Pattern A: Simple text messages (11 files)</description>
+      <before><![CDATA[
+el.innerHTML = `<div class="toast">${msg}</div>`;
+      ]]></before>
+      <after><![CDATA[
+const toast = document.createElement('div');
+toast.className = 'toast';
+toast.textContent = msg;
+el.textContent = '';
+el.appendChild(toast);
+      ]]></after>
+    </pattern>
+
+    <pattern id="SP11" name="server-html-via-template">
+      <description>Pattern B: Server-rendered HTML that must be parsed (3 files)</description>
+      <code language="javascript"><![CDATA[
+const tpl = document.createElement('template');
+tpl.innerHTML = serverHtml; // parsed safely, not injected into live DOM
+const content = tpl.content;
+container.textContent = '';
+container.appendChild(content);
+      ]]></code>
+    </pattern>
+
+    <pattern id="SP12" name="form-action-validation">
+      <description>Dynamic form actions must be validated against safe URL patterns</description>
+      <code language="javascript"><![CDATA[
+function safeFormAction(url) {
+    if (/^(https?:\/\/|\/)/i.test(url) && !/^javascript:/i.test(url)) {
+        return url;
+    }
+    return '#';
+}
+      ]]></code>
+    </pattern>
+
+    <pattern id="SP13" name="no-document-write">
+      <rule>Replace document.write with DOM API methods</rule>
+      <before><![CDATA[
+var w = window.open('');
+w.document.write('<html>...' + content + '...</html>');
+      ]]></before>
+      <after><![CDATA[
+var w = window.open('');
+w.document.head.innerHTML = headHtml;
+w.document.body.innerHTML = bodyHtml;
+      ]]></after>
+    </pattern>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section name="code-review-checklist">
+    <description>Quick checklist for PR reviews</description>
+
+    <checklist>
+      <item area="uploads">Filename sanitized with preg_replace?</item>
+      <item area="uploads">mkdir uses 0755, not 0777?</item>
+      <item area="uploads">Extension validated against whitelist?</item>
+      <item area="sql">No variable interpolation in whereRaw/selectRaw/DB::raw?</item>
+      <item area="sql">FIND_IN_SET uses ? placeholder?</item>
+      <item area="logging">No bearerToken() value in log context?</item>
+      <item area="logging">Request headers filtered before logging?</item>
+      <item area="console">HTTP code uses SafeConsoleOutput::make(), not new ConsoleOutput()?</item>
+      <item area="frontend">No innerHTML with user/dynamic data?</item>
+      <item area="frontend">No document.write?</item>
+      <item area="frontend">No eval() or new Function()?</item>
+      <item area="frontend">Form actions use safeFormAction() helper?</item>
+      <item area="routes">Route names use MWC::/VW::/PMC:: constants?</item>
+      <item area="identity">User ID never cast to (int)?</item>
+      <item area="queries">N+1: Relationships eager-loaded with ->with()?</item>
+      <item area="naming">Methods use camelCase?</item>
+      <item area="naming">Model files are PascalCase singular?</item>
+    </checklist>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section name="deferred-security-items">
+    <description>
+      Known security items deferred for future work. Not blocking current deployment
+      but should be addressed before production exposure.
+    </description>
+
+    <deferred id="D1" severity="medium-high">
+      <title>Cross-controller IDOR / tenant scoping</title>
+      <detail>
+        UserController, EmployeeController, ClientController, RoleController,
+        JobCategoryController, CompanyPolicyController, ProjectController lack
+        tenant-scoped query guards. Needs a global scope or scoped query helper.
+      </detail>
+    </deferred>
+
+    <deferred id="D2" severity="medium">
+      <title>Shared-link base64 passwords</title>
+      <detail>
+        Shared links store passwords as base64 instead of Hash::make().
+        Migration required to invalidate existing links and re-hash.
+      </detail>
+    </deferred>
+
+    <deferred id="D3" severity="low">
+      <title>JobController::jobApplyData() auth ambiguity</title>
+      <detail>
+        Calls _checkLogin() on a route that appears to be a public guest endpoint.
+        Needs product decision: is account required for job applications?
+      </detail>
+    </deferred>
+  </section>
+
+</securityPatterns>
