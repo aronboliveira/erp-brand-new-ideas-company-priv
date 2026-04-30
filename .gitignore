@@ -191,3 +191,9 @@ _old/**
 .history/**
 **/.history/
 **/.history/**
+
+.claude/
+.claude/**
+.codex
+utils/
+utils/**
