@@ -724,6 +724,7 @@ class ContractController extends Controller
         }, [UC::COL_USER_ID => auth()->id(), 'id' => $id]);
     }
 
+    public const CL_WS_PRJ = 'clientWiseProject';
     public function clientWiseProject(Request $request, int|string $clientId): JsonResponse
     {
         $function = __FUNCTION__;

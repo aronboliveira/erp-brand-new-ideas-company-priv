@@ -2014,13 +2014,136 @@ class ProjectController extends Controller
     public const BUG_NB = 'bugNumber';
     private function bugNumber(): int|string|RedirectResponse
     {
-        if (
-            ($userOrRedirect = self::_checkLogin())
-            instanceof RedirectResponse
-        ) return $userOrRedirect;
-        $user = $userOrRedirect;
-        $max = Bug::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
-            ->max('bug_id');
-        return is_numeric($max) ? $max + 1 : $max;
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        $user ??= null;
+        $creatorId ??= null;
+        $max ??= null;
+        try {
+            if (
+                ($userOrRedirect = self::_checkLogin())
+                instanceof RedirectResponse
+            ) return $userOrRedirect;
+            $user ??= $userOrRedirect;
+            $creatorId ??= $user?->creatorId();
+            $max = $creatorId
+                ? Bug::where(DC::COL_TABLE_CREATOR, $creatorId)->max('bug_id')
+                : null;
+            if ($max === null) return 1;
+            return is_numeric($max) ? $max + 1 : $max;
+        } catch (QueryException $e) {
+            Log::error($method . ' query failed', [
+                'error' => $e->getMessage(),
+                'error_class' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'action' => $action,
+                'creator_id' => $creatorId,
+                'user_id' => $user?->id,
+            ]);
+            return 1;
+        } catch (\Exception $e) {
+            Log::error($method . ' failed', [
+                'error' => $e->getMessage(),
+                'error_class' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'action' => $action,
+                'creator_id' => $creatorId,
+                'user_id' => $user?->id,
+            ]);
+            return 1;
+        } catch (\Throwable $e) {
+            Log::error($method . ' throwable', [
+                'error' => $e->getMessage(),
+                'error_class' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'action' => $action,
+                'creator_id' => $creatorId,
+                'user_id' => $user?->id,
+            ]);
+            return 1;
+        }
+    }
+
+    /**
+     * Generate and return a copy link for a project.
+     */
+    public const PRJ_CPY_LNK = 'projectCopyLink';
+    public function projectCopyLink(Request $request, int|string $id): JsonResponse|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $method) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+                $user = $userOrRedirect;
+                if (($guard = self::guard($request, PMC::MNG_PRJ, VW::PRJ . '.index')) instanceof RedirectResponse) return $guard;
+                $project = Project::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->findOrFail($id);
+                $link = route(VW::PRJ . '.show', Crypt::encrypt($project->id));
+                Log::info("[{$action}] link generated", ['project_id' => $id]);
+                return response()->json(['success' => true, 'link' => $link]);
+            } catch (ModelNotFoundException $e) {
+                Log::notice($method . ' project not found', ['id' => $id]);
+                return response()->json(['error' => 'Project not found'], 404);
+            } catch (\Throwable $e) {
+                Log::error($method . ' failed', ['error' => $e->getMessage()]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
+    }
+
+    /**
+     * Share a project with additional users.
+     */
+    public function shareProject(Request $request, int|string $id): JsonResponse|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $method) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+                $user = $userOrRedirect;
+                if (($guard = self::guard($request, PMC::MNG_PRJ, VW::PRJ . '.index')) instanceof RedirectResponse) return $guard;
+                $project = Project::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->findOrFail($id);
+                $userIds = $request->input('user_ids', []);
+                foreach ($userIds as $userId) {
+                    ProjectUser::firstOrCreate(['project_id' => $project->id, 'user_id' => $userId]);
+                }
+                Log::info("[{$action}] project shared", ['project_id' => $id, 'shared_with' => $userIds]);
+                return response()->json(['success' => true, 'message' => __('Project shared successfully.')]);
+            } catch (\Throwable $e) {
+                Log::error($method . ' failed', ['error' => $e->getMessage()]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
+    }
+
+    /**
+     * Get or check user permissions for a project.
+     */
+    public function userPermission(Request $request, int|string $id): JsonResponse|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $method) {
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+                $user = $userOrRedirect;
+                $project = Project::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->findOrFail($id);
+                $projectUsers = ProjectUser::where('project_id', $project->id)->pluck('user_id');
+                $isAssigned = $projectUsers->contains($user?->id);
+                Log::info("[{$action}] permission checked", ['project_id' => $id, 'is_assigned' => $isAssigned]);
+                return response()->json([
+                    'success' => true,
+                    'is_assigned' => $isAssigned,
+                    'project_users' => $projectUsers,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error($method . ' failed', ['error' => $e->getMessage()]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
     }
 }

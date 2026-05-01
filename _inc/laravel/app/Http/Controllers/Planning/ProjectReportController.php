@@ -364,4 +364,225 @@ class ProjectReportController extends Controller
             }
         });
     }
+
+    private function buildProjectQuery(Request $request, $user): array
+    {
+        $creatorId = $user?->creatorId() ?: $user?->id;
+        $userType = $user[UC::COL_TP] ?? null;
+        $projQ = Project::query();
+        $projQ = match ($userType) {
+            PMC::CL => $projQ->where('client_id', $user?->id),
+            PMC::CPN => $projQ
+                ->when(
+                    $request->filled('all_users'),
+                    fn($q) => $q
+                        ->select(DC::TABLE_PROJECTS . '.*')
+                        ->leftJoin(
+                            'project_users',
+                            'project_users.' . PJC::COL_PJ_ID,
+                            DC::TABLE_PROJECTS . '.id'
+                        )
+                        ->where('project_users.' . UC::COL_USER_ID, $request->input('all_users'))
+                )
+                ->when(
+                    !$request->filled('all_users'),
+                    fn($q) => $q->where(DC::TABLE_PROJECTS . '.' . DC::COL_TABLE_CREATOR, $user?->id)
+                ),
+            default => $projQ
+                ->select(DC::TABLE_PROJECTS . '.*')
+                ->leftJoin(
+                    'project_users',
+                    'project_users.' . PJC::COL_PJ_ID,
+                    DC::TABLE_PROJECTS . '.id'
+                )
+                ->where('project_users.' . UC::COL_USER_ID, $user?->id),
+        };
+
+        return [$projQ, $creatorId];
+    }
+
+    private function buildProjectQueryForShow($user)
+    {
+        $projQ = Project::query();
+        $userType = $user[UC::COL_TP] ?? null;
+        return match ($userType) {
+            PMC::CL => $projQ->where('client_id', $user?->id),
+            'Employee' => $projQ
+                ->select(DC::TABLE_PROJECTS . '.*')
+                ->leftJoin(
+                    'project_users',
+                    'project_users.' . PJC::COL_PJ_ID,
+                    DC::TABLE_PROJECTS . '.id'
+                )
+                ->where('project_users.' . UC::COL_USER_ID, $user?->id),
+            default => $projQ->where(DC::COL_TABLE_CREATOR, $user?->id),
+        };
+    }
+
+    private function renderViewChecked(string $viewPath, array $data, string $action, string $method, int|string|null $userId): View|RedirectResponse
+    {
+        $t = microtime(true);
+        $exists = ViewFacade::exists($viewPath);
+        $this->logExecutionTime($t, $action . '::viewExistsCheck', 'completed');
+        if ($exists) return view($viewPath, $data);
+
+        $this->consoleOutput($method . ' view missing: ' . $viewPath, 'error');
+        Log::error($method . ' view not found', [
+            'error' => 'view_missing',
+            'error_class' => \RuntimeException::class,
+            'file' => __FILE__,
+            'line' => __LINE__,
+            'action' => $action,
+            'view' => $viewPath,
+            'user_id' => $userId,
+        ]);
+        return Redirect::back()->with('error', "HTTP 404: Page {$viewPath} not found!");
+    }
+
+    /**
+     * Create stub — project reports are generated from the index page.
+     */
+    public function create(Request $request): RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($r = self::guard($request, 'view project report', self::SINGULAR . '.index')) !== true) return $r;
+            return Redirect::route(self::SINGULAR . '.index')->with('info', __('Project reports are generated from the report index page.'));
+        });
+    }
+
+    /**
+     * Store stub — project reports are generated automatically, not manually stored.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $action, $method) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($r = self::guard($request, 'view project report', self::SINGULAR . '.index')) !== true) return $r;
+            return Redirect::route(self::SINGULAR . '.index')->with('info', __('Project reports cannot be created manually.'));
+        });
+    }
+
+    /**
+     * Edit stub — project reports are not directly editable.
+     */
+    public function edit(Request $request, int|string $id): RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $method) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($r = self::guard($request, 'view project report', self::SINGULAR . '.index')) !== true) return $r;
+            return Redirect::route(self::SINGULAR . '.index')->with('info', __('Project reports cannot be edited directly.'));
+        });
+    }
+
+    /**
+     * Update stub — project reports are not directly updatable.
+     */
+    public function update(Request $request, int|string $id): RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $method) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($r = self::guard($request, 'view project report', self::SINGULAR . '.index')) !== true) return $r;
+            return Redirect::route(self::SINGULAR . '.index')->with('info', __('Project reports cannot be updated directly.'));
+        });
+    }
+
+    /**
+     * Destroy stub — project reports are not directly deletable.
+     */
+    public function destroy(Request $request, int|string $id): RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $method) {
+            if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
+            if (($r = self::guard($request, 'view project report', self::SINGULAR . '.index')) !== true) return $r;
+            return Redirect::route(self::SINGULAR . '.index')->with('info', __('Project reports cannot be deleted directly.'));
+        });
+    }
+
+    /**
+     * Return project report AJAX data (task summary, milestones, timesheets).
+     */
+    public const AJX_DT = 'ajaxData';
+    public function ajaxData(Request $request): \Illuminate\Http\JsonResponse|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($request, $action, $cls) {
+            try {
+                if (($u = self::_checkLogin()) instanceof RedirectResponse)
+                    return response()->json(['error' => 'Unauthorized'], 403);
+                $user = $u;
+                $creatorId = $user?->creatorId() ?: $user?->id;
+
+                $projectId = $request->input(PJC::COL_PJ_ID) ?? $request->input('project_id');
+                $duration  = $request->input('duration', 'week');
+
+                $chartData = $this->getProjectChart([
+                    PJC::COL_PJ_ID => $projectId,
+                    'duration' => $duration,
+                ]);
+
+                $tasks = ProjectTask::where(PJC::COL_PJ_ID, $projectId)->get();
+
+                $totalTasks     = $tasks->count();
+                $completedTasks = $tasks->where('status', 'complete')->count();
+                $progress       = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 2) : 0;
+
+                return response()->json([
+                    'chart'           => $chartData,
+                    'total_tasks'     => $totalTasks,
+                    'completed_tasks' => $completedTasks,
+                    'progress'        => $progress,
+                ]);
+            } catch (\Throwable $e) {
+                Log::error("$cls::$action error", ['error' => $e->getMessage()]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
+    }
+
+    /**
+     * Return AJAX task listing for a specific project report.
+     */
+    public const AJX_TSK_RPT = 'ajaxTasksReport';
+    public function ajaxTasksReport(Request $request, int|string $id): \Illuminate\Http\JsonResponse|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $cls = __CLASS__;
+        return $this->measureProfile($action, function () use ($request, $id, $action, $cls) {
+            try {
+                if (($u = self::_checkLogin()) instanceof RedirectResponse)
+                    return response()->json(['error' => 'Unauthorized'], 403);
+                $user = $u;
+
+                $tasks = ProjectTask::where(PJC::COL_PJ_ID, $id)
+                    ->orderBy('priority', 'desc')
+                    ->orderBy('end_date', 'asc')
+                    ->get()
+                    ->map(fn($t) => [
+                        'id'         => $t->id,
+                        'name'       => $t->name,
+                        'status'     => $t->status,
+                        'priority'   => $t->priority,
+                        'start_date' => $t->start_date,
+                        'end_date'   => $t->end_date,
+                    ]);
+
+                return response()->json(['tasks' => $tasks]);
+            } catch (\Throwable $e) {
+                Log::error("$cls::$action error", ['error' => $e->getMessage()]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
+    }
 }

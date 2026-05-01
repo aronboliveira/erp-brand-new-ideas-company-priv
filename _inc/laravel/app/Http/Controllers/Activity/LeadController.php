@@ -105,6 +105,7 @@ class LeadController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class]);
     }
 
+    public const LD_LST = 'leadList';
     public function leadList(Request $request): View|RedirectResponse
     {
         $action = __FUNCTION__;
