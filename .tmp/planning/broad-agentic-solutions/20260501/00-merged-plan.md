@@ -396,7 +396,7 @@ artifacts also cleaned up.
 ## Recommended Execution Order
 
 ```
-✅ P0-1 (DB recovery verification) — done; stale snapshot drops still need explicit approval
+✅ P0-1 (DB recovery verification) — done
 ✅ P0-2 (BillProduct namespace) — done
 ✅ P1-1 (brand rename committed) — done; push pending GitHub repo creation
 ✅ P1-2 (clean rename_db.sh creds + /tmp litter) — done
@@ -407,7 +407,21 @@ artifacts also cleaned up.
 
 ✅ P1-3 (broken symlinks) — done (commit f31bf7c1)
 ✅ P1-4 (MessagesController stale flag) — done (commit bea84b24)
-P3-6 (drop stale DB snapshots) — approval pending; do not run without explicit sign-off
 
-P3 — deferred, schedule when P0/P1/P2 are clear
+✅ P3-1 (TS → IIFE production swap into public/assets/js/) — done (25f3cdabd, 94eae2b5b)
+⚠️ P3-2 (agent-prestech bug-fix cherry-picks) — re-scoped; conflicts logged; needs dedicated session
+⊘ P3-3 (TS-rollback file deletions review) — dropped (agent-prestech is read-only reference)
+⊘ P3-4 (Dashboard N+1 optimisation) — rejected (too dev-oriented for MVP prototype)
+✅ P3-5 (Security deferrals D1/D2/D3) — done (3be5ca5a5)
+✅ P3-6 (drop stale DB snapshots) — done after explicit user approval
 ```
+
+**Open follow-ups (not in any P3 ticket above):**
+
+- Core OOP singletons (`erp-guard.js`, `erp-utils.js`, `erp-bootstrap.js`, `index.js`)
+  carry leftover top-level `export function` keywords inside an IIFE wrap, which
+  parse as SyntaxError when loaded as classic `<script defer>` (admin.blade.php
+  L274-275, contract_header.blade.php L138-139). Pre-existing issue; needs either
+  `type="module"` on the script tags or a manual ESM-strip pass on the singletons.
+- P3-2 cherry-picks deferred to a dedicated merge session with PHPStan + PHPUnit
+  running between picks.
