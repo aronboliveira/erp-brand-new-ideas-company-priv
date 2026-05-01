@@ -228,21 +228,51 @@ p2_medium:
 p3_deferred:
 
   - id: P3-1
-    title: 1,097 route TS → IIFE production Blade swap
+    title: 1,097 route TS → IIFE production swap into public/assets/js/
     status: resolved
     resolved_at: "2026-05-01"
-    commit: 25f3cdabd
-    consented_by: claude
-    precondition: P0-1_complete + smoke_test_all_1542_routes
+    commits:
+      - 25f3cdabd  # initial deploy-ts.sh run (ESM-strip + rsync)
+      - 94eae2b5b  # esm-to-iife.cjs refresh + dist-iife sync (named-export fix)
+    consented_by: claude+user
     risk: high  # one wrong path breaks a live route
-    actual_deploy:
+    design_clarification: |
+      Client-side <script> tags can only resolve URLs under public/, so the goal
+      is "compiled artifacts end up at public/assets/js/...". The earlier
+      ts/dist*/ tree was a holding area while the conversion was in test phase.
+      User pre-staged a backup at .backup/{public,resources}/ before the swap.
+    deploy_step_1:
+      script: bash ts/scripts/deploy-ts.sh
+      commit: 25f3cdabd
       tsc_build: incremental_clean
-      esm_markers_stripped: 1090
+      esm_markers_stripped: 1090  # only "export {};" + vendor-libs imports
       files_deployed: 1134
       files_skipped_singletons: 4  # erp-guard.js, erp-utils.js, erp-bootstrap.js, index.js
       public_js_files_changed: 223
-      blade_template_changes: none_required  # already use asset('assets/js/routes/...')
-    note: Blade templates already reference public/assets/js/routes/ via asset() — no template edits needed
+    deploy_step_2:
+      script: node ts/scripts/esm-to-iife.cjs + rsync ts/dist-iife/public/assets/js → public/assets/js
+      commit: 94eae2b5b
+      reason: |
+        deploy-ts.sh's strip_esm() regex only handled "^export {};$" and a
+        single vendor-libs import pattern. It missed named exports
+        (e.g. "export { JournalEntryRepeater };" in
+        public/assets/js/routes/journalEntries/shared/repeater-utils.js)
+        which throw SyntaxError when loaded as a classic <script defer>.
+      iife_files_regenerated: 1101
+      public_js_files_changed: 1105
+    blade_template_changes: none_required  # already use asset('assets/js/routes/...')
+    final_state:
+      public_js_routes_esm_leftovers: 0
+      public_js_generic_esm_leftovers: 0
+      public_js_pages_esm_leftovers: 0
+    open_followup: |
+      Pre-existing core-singleton ESM bug — erp-guard.js, erp-utils.js,
+      erp-bootstrap.js, index.js have top-level "export function" keywords
+      inside an IIFE wrap; parse as SyntaxError when loaded as classic
+      <script defer> in admin.blade.php and contract_header.blade.php.
+      Deliberately not touched here (deploy contract preserves them).
+      Fix: either type="module" on the script tags, or manual ESM-strip on
+      the four singletons.
 
   - id: P3-2
     title: 3-way merge — agent-prestech bug-fix commits into main
@@ -273,14 +303,23 @@ p3_deferred:
 
   - id: P3-3
     title: Review 2,832 TS-rollback file deletions before accepting
+    status: dropped
+    decided_at: "2026-05-01"
     risk: potential_loss_of_active_harness_or_declaration_files
-    note: skipped per user instruction
+    rationale: |
+      User clarification: agent-prestech is treated as a read-only reference
+      branch for old versions. No salvage value beyond the bug-fix commits
+      already enumerated under P3-2. No further review planned.
 
   - id: P3-4
     title: Dashboard N+1 query optimisation
+    status: rejected
+    decided_at: "2026-05-01"
     tool: Laravel Debugbar or DB::listen
     action: add_eager_load_with_clauses_or_per_widget_cache
-    note: skipped per user instruction
+    rationale: |
+      User feedback — too development-oriented and likely to add noise vs.
+      perceived benefit on this MVP prototype. Not pursuing.
 
   - id: P3-5
     title: Security deferrals D1–D3
