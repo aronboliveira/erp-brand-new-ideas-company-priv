@@ -139,6 +139,9 @@ p2_medium:
 
   - id: P2-1
     title: ESLint scope too wide
+    status: resolved
+    resolved_at: "2026-05-01"
+    commit: 787b0e403
     consented_by: claude+open_claude
     file: _inc/laravel/eslint.config.mjs
     add_ignores:
@@ -151,6 +154,11 @@ p2_medium:
 
   - id: P2-2
     title: Migrate remaining live files from root .notes/ to _inc/laravel/.notes/
+    status: resolved
+    resolved_at: "2026-05-01"
+    commits:
+      - 7e0bf8a04
+      - 940b03a37
     consented_by: claude+open_claude
     precondition: P1-1_committed
     files_to_move:
@@ -211,7 +219,7 @@ p2_medium:
     advisory_continue_on_error:  # continue-on-error: true added with comment
       - "vendor/bin/phpstan analyse"
       - "vendor/bin/phpcs"
-      - "npx eslint"  # scope issue P2-1 still open
+      - "npx eslint"  # scope fixed in P2-1
       - "python3 -m flake8"
       - "python3 -m mypy"
       - "npm audit fix"

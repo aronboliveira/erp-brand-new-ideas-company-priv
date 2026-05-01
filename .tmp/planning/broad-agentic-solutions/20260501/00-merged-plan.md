@@ -199,6 +199,8 @@ ignores: [
 
 ### ✅ P2-2 · Documentation tree drift (dual `.notes/` hierarchy) [SOLVED 2026-05-01]
 
+**Resolved** — commits `7e0bf8a04`, `940b03a37` (2026-05-01)
+
 **Agents reporting:** claude, open-claude
 
 After the Apr 28 reorg, root `/.notes/` still contains live files (`KNOWN_ISSUES.md`,
@@ -245,8 +247,8 @@ All three language blocks (EN/ES/PT-BR) replaced with safe `composer run test:*`
 
 - **Hard-fail** (removed `|| true`): `tsc`, Jest CJS, Jest TS, pytest — known-clean or
   primary test gates.
-- **Advisory** (`continue-on-error: true` + comment): PHPStan, PHPCS, ESLint (scope still
-  wide per P2-1), Flake8, mypy, `npm audit fix`, `pip install -r requirements.txt`.
+- **Advisory** (`continue-on-error: true` + comment): PHPStan, PHPCS, ESLint (scope fixed
+  in P2-1), Flake8, mypy, `npm audit fix`, `pip install -r requirements.txt`.
 
 ---
 
@@ -322,6 +324,8 @@ DROP DATABASE erp_prestech_db_test_1;
 | P1-1 · Brand rename committed (405 files); push pending — remote repo not yet on GitHub         | `c28f9474e`              | 2026-05-01 |
 | P1-1 follow-up · active frontend ERPGo fallbacks and tracked storage pointer cleaned             | `da1cc6361`              | 2026-05-01 |
 | P1-2 · rename_db.sh secrets removed, destructive guard added, `/tmp` rename litter cleaned       | `107567fb5`              | 2026-05-01 |
+| P2-1 · ESLint scope narrowed through ignore globs                                                | `787b0e403`              | 2026-05-01 |
+| P2-2 · Documentation tree moved to `_inc/laravel/.notes/`; scope map updated                     | `7e0bf8a04`, `940b03a37` | 2026-05-01 |
 | P2-3 · PHPUnit forced DB aligned to isolated `erp_brand_new_ideas_company_test` schema           | `c3e4088f2`              | 2026-05-01 |
 | P2-4 · KNOWN_ISSUES.md date typo fixed; RESOLVED_ISSUES.md created at `.notes/`                 | `3f78574d3`              | 2026-05-01 |
 | P2-5 · README `php artisan test` examples replaced in all 3 language blocks                     | `3f78574d3`              | 2026-05-01 |
@@ -341,13 +345,13 @@ DROP DATABASE erp_prestech_db_test_1;
 ✅ P0-2 (BillProduct namespace) — done
 ✅ P1-1 (brand rename committed) — done; push pending GitHub repo creation
 ✅ P1-2 (clean rename_db.sh creds + /tmp litter) — done
+✅ P2-1 (ESLint scope) — done
+✅ P2-2 (docs tree drift) — done
 ✅ P2-3 (phpunit.xml/.env.testing) — done
 ✅ P2-4/5/6 (doc + CI quality) — done
 
 P1-3 (broken symlinks) — standalone, no deps
 P1-4 (MessagesController stale flag) — standalone
-P2-1 (ESLint scope) — standalone; also unblocks ESLint from continue-on-error
-✅ P2-2 (docs tree drift) — done (commit 7e0bf8a0, 940b03a3)
 P3-6 (drop stale DB snapshots) — approval pending; do not run without explicit sign-off
 
 P3 — deferred, schedule when P0/P1/P2 are clear
