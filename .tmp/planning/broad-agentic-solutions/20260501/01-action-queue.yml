@@ -323,10 +323,11 @@ p3_deferred:
 
   - id: P3-6
     title: Drop stale erp_prestech_db_test_* snapshots
-    status: approval_pending
+    status: resolved
+    resolved_at: "2026-05-01"
+    consented_by: user_explicit
     inventoried_at: "2026-05-01"
-    precondition: P0-1_verified_complete + explicit_user_approval
-    candidate_dbs_to_drop:
+    dropped_dbs:
       - erp_prestech           # 21 tables
       - erp_prestech_test      # 94 tables
       - erp_prestech_db        # 0 tables
@@ -347,5 +348,7 @@ p3_deferred:
       - erp_prestech_db_test_16  # 209 tables
       - erp_prestech_db_test_99  # 0 tables
     explicit_user_approval_required: true
-    drop_executed: false
-    note: Still waiting for explicit sign-off before executing any DROP DATABASE
+    drop_executed: true
+    verification:
+      prestech_dbs_remaining: 0
+      live_db_erp_brand_new_ideas_company_db_tables: 229  # unchanged

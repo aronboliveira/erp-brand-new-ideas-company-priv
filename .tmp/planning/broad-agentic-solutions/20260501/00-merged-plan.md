@@ -254,63 +254,115 @@ All three language blocks (EN/ES/PT-BR) replaced with safe `composer run test:*`
 
 ## P3 — Deferred (strategic, low urgency)
 
-### !!! P3-1 · 1,097 route TS → IIFE production swap
+### ✅ P3-1 · 1,097 route TS → IIFE production swap [SOLVED 2026-05-01]
 
-TypeScript migration is complete (tsc clean, 1,102 IIFE files in `ts/dist-iife/`). The
-final step — swapping Blade `<script>` tags from legacy `public/assets/js/` to
-`ts/dist-iife/` — is deferred until a smoke-test run on all 1,542 routes confirms no
-regressions. **Pre-condition:** P0-1 (DB) must be resolved first.
+TypeScript compilation artifacts now live at the public-asset path that Blade
+`<script>` tags actually load (`public/assets/js/…`), per the design clarification:
+client-side scripts can only resolve URLs under `public/`, so the working scenario
+is "compiled artifacts end up in some subpath of `public/`". The earlier `ts/dist*/`
+tree was a holding area while the conversion was in test phase.
 
-### P3-2 · 531-file 3-way merge (PHPStan annotations vs agent crash-prevention guards)
+Two-step deploy:
 
-The `agent-prestech` branch added crash-prevention try/catch guards to ~531 files that
-also received PHPStan `@property` annotations on `main`. A 3-way merge strategy is
-required. Recommended approach: run PHPStan after cherry-picking the guard blocks to
-confirm no annotation conflicts, then merge in a single atomic commit with a clear
-commit message listing the conflict resolution policy.
+1. `bash ts/scripts/deploy-ts.sh` — `tsc --build` (incremental, clean) → 1,134 files
+   stripped of `export {};` / vendor-libs imports → rsync'd from `ts/dist/` to
+   `public/assets/js/` (commit `25f3cdabd`).
+2. `node ts/scripts/esm-to-iife.cjs` — regenerated 1,101 routes fully IIFE-wrapped
+   (`(function(){"use strict";…})()`), then `rsync ts/dist-iife/public/assets/js/
+   → public/assets/js/` to fix 21+ files where the deploy script's narrow regex
+   missed named exports (e.g. `journalEntries/shared/repeater-utils.js` had
+   `export { JournalEntryRepeater };` which throws SyntaxError as a classic script)
+   (commit `94eae2b5b`).
 
-### P3-3 · 2,832 TS-rollback file deletions
+Final state of `public/assets/js/{routes,generic,pages}`: ZERO ESM markers.
+Blade templates were already using `asset('assets/js/routes/…')` — no template
+edits needed. The 4 OOP singletons (`erp-guard.js`, `erp-utils.js`,
+`erp-bootstrap.js`, `index.js`) are deliberately preserved per the deploy
+contract; they have a pre-existing ESM-leftover bug flagged for a separate
+follow-up. The user pre-staged a backup at `.backup/{public,resources}/` before
+the swap.
 
-Files on the `agent-prestech` branch delete 2,832 TypeScript source/test files.
-Review these against the current `ts/` tree before accepting the deletions to ensure
-no still-active harness or declaration file is lost.
+### ⚠️ P3-2 · 531-file 3-way merge (PHPStan annotations vs agent crash-prevention guards)
 
-### P3-4 · Dashboard N+1 query optimisation
+**Status: blocked / re-scoped** — 2026-05-01
 
-`DashboardController` uses `Cache::remember` as a mitigation but underlying Eloquent
-chains still generate N+1 on user-lists and summary widgets. Profile with Laravel
-Debugbar or `DB::listen` and add eager-load `with()` clauses or a dedicated caching
-layer per widget group.
+Re-investigation found the original framing was stale: the four "guard" commits
+(`cff71b6e7`, `85ea61c9d`, `69e3522c5`, `f31bf7c17`) are **already on `main`**, so
+the 531-file PHPStan-vs-guards conflict no longer exists. The remaining
+divergence between `main` and `agent-prestech` is 20 commits / ~10,110 files —
+overwhelmingly compiled `ts/dist*/` output and chore/refactor noise.
 
-### P3-5 · Security deferrals (D1–D3)
+The bug-fix commits worth potentially cherry-picking are:
 
-| ID  | Issue                                                                       | Action                                                                   |
-| --- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| D1  | Cross-controller IDOR / tenant scoping                                      | Add global Eloquent scope helper per domain                              |
-| D2  | Shared-link passwords stored as base64                                      | Migrate to `Hash::make` with a one-off seeder                            |
-| D3  | `JobController::jobApplyData()` login ambiguity on potential guest endpoint | Audit route middleware; add explicit guest guard or authentication check |
+| Commit       | Subject                                                                 |
+| ------------ | ----------------------------------------------------------------------- |
+| `810fbbf29`  | i18n locale bugs + 204 translation tests (Playwright 69 + Jest 135)     |
+| `fbe353d65`  | resolve expense create page failures (3 bugs)                           |
+| `3c8d79846`  | missing public consts + snake_case method renames                       |
+| `11b9690b3`  | DealController `ModelNotFoundException → 500` fixed                     |
+| `2af327294`  | resolve all 9 PHPStan level-5 errors                                    |
+| `66cafc92b`  | 3 orphan ProjectController routes; 35 missing consts; 12× 404 fixes     |
 
-### !!! P3-6 · Drop stale `erp_prestech_db_test_*` snapshots
+Attempted `git cherry-pick 11b9690b3` produced two conflicts:
 
-**Inventory complete; approval still required** — 2026-05-01
+1. `_inc/laravel/app/Http/Controllers/Activity/DealController.php` — content
+   conflict against `main`'s PHPStan annotations.
+2. `notes/KNOWN_ISSUES.md` — `modify/delete`; the file was moved to
+   `_inc/laravel/.notes/` in P2-2, so the right resolution is `git rm`.
 
-Read-only root inventory found:
-`erp_prestech` (21 tables), `erp_prestech_test` (94), `erp_prestech_db` (0),
-`erp_prestech_db_test_1` (0), `_2` (209), `_3` (91), `_4` (42), `_6` (120),
-`_7` (144), `_8` (0), `_9` (209), `_10` (209), `_11` (209), `_12` (209),
-`_13` (209), `_14` (209), `_15` (209), `_16` (209), and `_99` (0).
-No `DROP DATABASE` commands have been run.
+The leftover unresolved-merge state was cleaned up in commit `94eae2b5b`. A full
+sweep through the 6 commits above will need a dedicated merge session with
+PHPStan + PHPUnit running between cherry-picks; not attempted in this run.
 
-16 snapshots (`_test_{1..16}`) plus `erp_prestech`, `erp_prestech_test`,
-`erp_prestech_db` remain on the MySQL server. After P0-1 is fully resolved and the app
-is verified stable, get explicit user approval and drop them:
+### P3-3 · 2,832 TS-rollback file deletions — **dropped**
 
-```sql
-DROP DATABASE erp_prestech_db_test_1;
--- … repeat for each confirmed-obsolete snapshot
-```
+`agent-prestech` is treated as a read-only reference branch for old versions.
+No salvage value beyond the cherry-pick candidates already enumerated under
+P3-2, so no further review is planned.
 
-**Never execute without user sign-off** — snapshots may be intentional recovery points.
+### P3-4 · Dashboard N+1 query optimisation — **rejected**
+
+User feedback: too development-oriented and likely to add noise vs. perceived
+benefit on this MVP prototype. Not pursuing.
+
+### ✅ P3-5 · Security deferrals (D1–D3) [SOLVED 2026-05-01]
+
+| ID  | Issue                                                                       | Resolution                                                                                  | Commit       |
+| --- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------ |
+| D1  | Cross-controller IDOR / tenant scoping                                      | `app/Models/Scopes/CreatedByScope.php` helper created — admin/SA bypass built-in            | `3be5ca5a5`  |
+| D2  | Shared-link passwords stored as base64                                      | Already green — `ProjectController::1818` uses `Hash::make`; `Project` model has `'hashed'` | n/a          |
+| D3  | `JobController::jobApplyData()` login ambiguity on potential guest endpoint | `throttle:10,1` on POST route; dead `Auth::user()` removed; mime+size validation added      | `3be5ca5a5`  |
+
+D1 helper applies as `static::addGlobalScope(new CreatedByScope())` in a
+model's `booted()`, with `withoutGlobalScope(CreatedByScope::class)` as the
+admin-context bypass. D2 was a pre-emptive fix from a prior session; verified
+no base64 password storage remains on shared-link paths. D3 narrows the
+public job-application form to 10 req/min/IP with file-type whitelist:
+profile (jpeg/jpg/png/webp ≤5 MB) and resume (pdf/doc/docx ≤10 MB).
+
+### ✅ P3-6 · Drop stale `erp_prestech_db_test_*` snapshots [SOLVED 2026-05-01]
+
+User granted explicit approval. All 19 snapshots dropped via `sudo mysql`:
+
+| Database                       | Tables (pre-drop) | Status   |
+| ------------------------------ | ----------------: | -------- |
+| `erp_prestech`                 |                21 | dropped  |
+| `erp_prestech_test`            |                94 | dropped  |
+| `erp_prestech_db`              |                 0 | dropped  |
+| `erp_prestech_db_test_1`       |                 0 | dropped  |
+| `erp_prestech_db_test_2`       |               209 | dropped  |
+| `erp_prestech_db_test_3`       |                91 | dropped  |
+| `erp_prestech_db_test_4`       |                42 | dropped  |
+| `erp_prestech_db_test_6`       |               120 | dropped  |
+| `erp_prestech_db_test_7`       |               144 | dropped  |
+| `erp_prestech_db_test_8`       |                 0 | dropped  |
+| `erp_prestech_db_test_9`       |               209 | dropped  |
+| `erp_prestech_db_test_{10–16}` |       209 each ×7 | dropped  |
+| `erp_prestech_db_test_99`      |                 0 | dropped  |
+
+Final verification: `SHOW DATABASES LIKE '%prestech%'` → empty. Live
+`erp_brand_new_ideas_company_db` unchanged at 229 tables. `/tmp/rename_*`
+artifacts also cleaned up.
 
 ---
 
@@ -330,6 +382,9 @@ DROP DATABASE erp_prestech_db_test_1;
 | P2-4 · KNOWN_ISSUES.md date typo fixed; RESOLVED_ISSUES.md created at `.notes/`                 | `3f78574d3`              | 2026-05-01 |
 | P2-5 · README `php artisan test` examples replaced in all 3 language blocks                     | `3f78574d3`              | 2026-05-01 |
 | P2-6 · CI `\|\| true` replaced: hard-fail on tsc/jest/pytest; advisory on static-analysis steps | `3f78574d3`              | 2026-05-01 |
+| P3-1 · TS-compiled IIFE swap into `public/assets/js/` (1,134 deploy + 1,101 IIFE refresh)        | `25f3cdabd`, `94eae2b5b` | 2026-05-01 |
+| P3-5 · D1 `CreatedByScope` helper; D3 `throttle:10,1` + dead-code removal + mime validation     | `3be5ca5a5`              | 2026-05-01 |
+| P3-6 · 19 stale `erp_prestech*` snapshot DBs dropped after explicit user approval                | n/a (DDL only)           | 2026-05-01 |
 | C5 · Postman collection rename staged as `renamed:`                                             | pre-commit               | 2026-05-01 |
 | CompetenciesTest fillable assertion stale                                                       | `ac0da3f03`              | 2026-04-26 |
 | CI Node 24 action version warnings                                                              | `99c867344`, `3957967e0` | 2026-04-26 |

@@ -70,10 +70,21 @@ pyvenv.cfg
 **/test-results/
 **/.pytest_cache/
 **/nohup.out
+nohup.out
 *.png
 *.webm
 .mypy_cache/
 .mypy_cache/**
+**/.mypy_cache/
+**/.my_cache/**
+.history/
+.history/**
+.notes/
+.notes/**
+**/.history/
+**/.history/**
+**/.notes/
+**/.notes/**
 
 # ide helpers
 
