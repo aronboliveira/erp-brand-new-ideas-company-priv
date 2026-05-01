@@ -1,6 +1,6 @@
 # Known / Open Issues
 
-> Open issues only. Resolved issues are archived in `.notes/.llms/.history/RESOLVED_ISSUES.md`.
+> Open issues only. Resolved issues are archived in `.notes/RESOLVED_ISSUES.md`.
 > Last updated: 2026-04-01
 
 ---
@@ -147,7 +147,7 @@ cover structural validation of these pages but not live backend interaction.
 
 ---
 
-## OPEN — Baselines (as of 2026-07-24)
+## OPEN — Baselines (as of 2026-04-24)
 
 | Suite                   | Result                                                                     |
 | ----------------------- | -------------------------------------------------------------------------- |
@@ -178,7 +178,7 @@ cover structural validation of these pages but not live backend interaction.
 ## § Resolved Issues (moved from above)
 
 > Prior route failures from the 4xx audit that are now fully resolved.
-> See `.notes/.llms/.history/RESOLVED_ISSUES.md` for the full archive.
+> See `.notes/RESOLVED_ISSUES.md` for the full archive.
 
 ### Resolved — Route Health
 

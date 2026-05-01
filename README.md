@@ -155,8 +155,11 @@ See [\_inc/laravel/README.md](_inc/laravel/README.md) for the full project-speci
 
 ```bash
 cd _inc/laravel
-php artisan test                          # all suites
-php artisan test --filter=UserTest        # specific test
+composer run test:unit                    # unit suite (safe — uses test DB)
+composer run test:feature                 # feature suite (safe — uses test DB)
+php -d memory_limit=1G vendor/bin/phpunit --testsuite Unit --no-coverage
+php -d memory_limit=1G vendor/bin/phpunit --filter=UserTest --no-coverage
+# ⚠️  Never run `php artisan test` — it uses the live DB and may wipe data
 ```
 
 ### Frontend (Jest)
@@ -352,8 +355,11 @@ Consulte [\_inc/laravel/README.md](_inc/laravel/README.md) para la guía complet
 
 ```bash
 cd _inc/laravel
-php artisan test                          # todas las suites
-php artisan test --filter=UserTest        # test específico
+composer run test:unit                    # suite de unidad (seguro — usa DB de prueba)
+composer run test:feature                 # suite de features (seguro — usa DB de prueba)
+php -d memory_limit=1G vendor/bin/phpunit --testsuite Unit --no-coverage
+php -d memory_limit=1G vendor/bin/phpunit --filter=UserTest --no-coverage
+# ⚠️  Nunca usar `php artisan test` — usa la DB live y puede borrar datos
 ```
 
 ### Frontend (Jest)
@@ -560,8 +566,11 @@ Veja [\_inc/laravel/README.md](_inc/laravel/README.md) para o guia completo do p
 
 ```bash
 cd _inc/laravel
-php artisan test                          # todas as suites
-php artisan test --filter=UserTest        # teste específico
+composer run test:unit                    # suite de unidades (seguro — usa DB de teste)
+composer run test:feature                 # suite de features (seguro — usa DB de teste)
+php -d memory_limit=1G vendor/bin/phpunit --testsuite Unit --no-coverage
+php -d memory_limit=1G vendor/bin/phpunit --filter=UserTest --no-coverage
+# ⚠️  Nunca usar `php artisan test` — usa a DB live e pode apagar dados
 ```
 
 ### Frontend (Jest)

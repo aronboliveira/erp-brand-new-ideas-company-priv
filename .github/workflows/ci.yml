@@ -70,10 +70,12 @@ jobs:
               run: composer install --prefer-dist --no-interaction --no-scripts --optimize-autoloader
 
             - name: PHPStan
-              run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress || true
+              continue-on-error: true  # known issues tracked in KNOWN_ISSUES.md; non-blocking until resolved
+              run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress
 
             - name: PHP_CodeSniffer
-              run: vendor/bin/phpcs --standard=php_cs.xml --report=summary app/ || true
+              continue-on-error: true  # informational; non-blocking
+              run: vendor/bin/phpcs --standard=php_cs.xml --report=summary app/
 
             # ── Node.js ──────────────────────────────────────────────────────
             - name: Setup Node.js
@@ -87,13 +89,15 @@ jobs:
               run: npm ci --ignore-scripts
 
             - name: npm audit fix
-              run: npm audit fix --ignore-scripts || true
+              continue-on-error: true  # advisory; may have unfixable vulns
+              run: npm audit fix --ignore-scripts
 
             - name: ESLint
-              run: npx eslint public/assets/js/ --ext .js --max-warnings=50 || true
+              continue-on-error: true  # scope too wide (P2-1); non-blocking until eslint.config.mjs is fixed
+              run: npx eslint public/assets/js/ --ext .js --max-warnings=50
 
             - name: TypeScript check
-              run: npx tsc --noEmit || true
+              run: npx tsc --noEmit
 
             # ── Python ───────────────────────────────────────────────────────
             - name: Setup Python
@@ -105,10 +109,12 @@ jobs:
               run: pip install flake8 mypy
 
             - name: Flake8
-              run: python3 -m flake8 tests/python/ resources/python/ --max-line-length=120 || true
+              continue-on-error: true  # informational; non-blocking
+              run: python3 -m flake8 tests/python/ resources/python/ --max-line-length=120
 
             - name: mypy
-              run: python3 -m mypy tests/python/ resources/python/ --ignore-missing-imports || true
+              continue-on-error: true  # informational; non-blocking
+              run: python3 -m mypy tests/python/ resources/python/ --ignore-missing-imports
 
     # ════════════════════════════════════════════════════════════════════════
     # TEST-PHP — PHPUnit (requires MySQL)
@@ -208,12 +214,12 @@ jobs:
               run: npm ci
 
             - name: Jest (CJS)
-              run: npx jest --config jest.config.cjs --verbose || true
+              run: npx jest --config jest.config.cjs --verbose
 
             - name: Jest (TS)
               run: |
                   cd tests/frontend/js
-                  npx jest --verbose || true
+                  npx jest --verbose
 
             - name: Install Playwright browsers
               run: npx playwright install --with-deps chromium
@@ -244,10 +250,10 @@ jobs:
             - name: Install Python test deps
               run: |
                   pip install pytest pytest-cov flake8 mypy
-                  pip install -r requirements.txt 2>/dev/null || true
+                  pip install -r requirements.txt 2>/dev/null || true  # optional file; keep soft
 
             - name: pytest
-              run: python3 -m pytest tests/python/ -v || true
+              run: python3 -m pytest tests/python/ -v
 
     # ════════════════════════════════════════════════════════════════════════
     # BUILD — Docker image build (verificação de build)
