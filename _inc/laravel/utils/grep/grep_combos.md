@@ -8,7 +8,7 @@
 
 # Quick reference for common grep patterns when auditing the
 
-# erp_prestech Laravel codebase. Each section has the command,
+# erp_brand_new_ideas_company Laravel codebase. Each section has the command,
 
 # what it finds, and when to use it.
 

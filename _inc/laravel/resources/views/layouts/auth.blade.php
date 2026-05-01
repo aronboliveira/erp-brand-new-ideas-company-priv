@@ -95,7 +95,7 @@ $uri??='';
 		elseif($routeLang && !in_array($routeLang,['ar','he'],true))
 			$siteRtl=$data[SC::RTL]??'off';
 		$meta_title=$data[SC::MT_TTL_K]??
-			config('app.name','ERPNovaPrestech');
+			config('app.name','ERPNovaBrand New Ideas Company');
 		$meta_desc=$data[SC::MT_DESC_LONG]??
 			config('app.desc','A brand new ERP!');
 		$meta_image=$data[SC::MT_IMG_K]??
@@ -143,7 +143,7 @@ $uri??='';
 <html lang="{{ $lang }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
     <head>
         <title>
-            {{ Utility::getValByName('title_text') ? Utility::getValByName('title_text') : config('app.name', 'ERPNovaPrestech') }}
+            {{ Utility::getValByName('title_text') ? Utility::getValByName('title_text') : config('app.name', 'ERPNovaBrand New Ideas Company') }}
             - @yield(YieldingConstants::AUTH_PG_TTL)</title>
         @include('fragments.std', [
             'meta_title' => $meta_title,
@@ -195,7 +195,7 @@ $uri??='';
                     <nav class="{{ VC::NVB_DEF }}">
                         <div class="{{ VC::CT }}">
                             <div class="{{ VC::NVB_BR }}">
-                            <a class="{{ VC::NVB_BR }}" href="https://prestech.com.br/site/" rel="external" target="_blank" hreflang="pt-BR" title="Nova Prestech">
+                            <a class="{{ VC::NVB_BR }}" href="https://brandnewideascompany.com/site/" rel="external" target="_blank" hreflang="pt-BR" title="Brand New Ideas Company">
                                 @php
                                     $srcDark='';
                                     $srcLight='';
@@ -358,10 +358,10 @@ $uri??='';
                         <a class="{{ VC::NVB_BR }}" href="#">
                             @if ($colorSettings[SC::CST_DRK] && $colorSettings[SC::CST_DRK] ==='on')
                                 <img src="{{ $logo . '/' . (isset($company_logo_lt) && !empty($company_logo_lt) ? $company_logo_lt : SC::CPN_LG_DK_DEF) }}"
-                                    alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO }}" style="max-width: 10rem;">
+                                    alt="{{ config('app.name', 'ERPNovaBrand New Ideas Company') }}" class="{{ VC::LOGO }}" style="max-width: 10rem;">
                             @else
                                 <img src="{{ $logo . '/' . (isset($company_logo_dk) && !empty($company_logo_dk) ? $company_logo_dk : SC::CPN_LG_DK_DEF) }}"
-                                    alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO }}" style="max-width: 10rem;">
+                                    alt="{{ config('app.name', 'ERPNovaBrand New Ideas Company') }}" class="{{ VC::LOGO }}" style="max-width: 10rem;">
                             @endif
                         </a>
                         <button
@@ -419,7 +419,7 @@ $uri??='';
                         <div class="{{ VC::RW }}">
                             <div class="{{ VC::C6 }}">
                                 <p class="{{ VC::MB0 }}"> &copy;
-                                    {{ date('Y') }} {{ Utility::getValByName(SC::FT_TXT) ? Utility::getValByName(SC::FT_TXT) : config('app.name', 'ERPNovaPrestech') }}
+                                    {{ date('Y') }} {{ Utility::getValByName(SC::FT_TXT) ? Utility::getValByName(SC::FT_TXT) : config('app.name', 'ERPNovaBrand New Ideas Company') }}
                                 </p>
                             </div>
 

@@ -1,6 +1,6 @@
 # Relatório de Testes — 2026-04-16
 
-> Execução completa de todas as suítes de teste do projeto ERP Prestech.
+> Execução completa de todas as suítes de teste do projeto ERP Brand New Ideas Company.
 > Ambiente: PHP 8.4.5, Node v22.22.0, Python 3.13.3 (sem MySQL local ativo)
 
 ---

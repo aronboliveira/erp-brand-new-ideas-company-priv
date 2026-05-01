@@ -337,7 +337,7 @@ class ExpenseSeeder extends Seeder
 		$ccFlag = mt_rand(1, 100) <= 22 ? Arr::random(['Visa', 'Mastercard', 'Elo', 'Amex']) : null;
 		$ccNum  = $ccFlag ? (string) mt_rand(4000000000000000, 4999999999999999) : null;
 		$ccDig  = $ccFlag ? str_pad((string) mt_rand(0, 9999), 4, '0', STR_PAD_LEFT) : null;
-		$ccName = $ccFlag ? Arr::random(['ARON OLIVEIRA', 'NOVA PRESTECH', 'CLIENTE TESTE', 'FULANO DE TAL']) : null;
+		$ccName = $ccFlag ? Arr::random(['ARON OLIVEIRA', 'NOVA BRAND NEW IDEAS COMPANY', 'CLIENTE TESTE', 'FULANO DE TAL']) : null;
 
 		$expMonth = MonthName::values();
 		$ccExpM = $ccFlag && $expMonth ? $expMonth[array_rand($expMonth)] : null;

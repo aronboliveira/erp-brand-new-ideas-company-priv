@@ -72,7 +72,7 @@ $route??='';
     <head>
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>
-            {{ Utility::getValByName('title_text') ? Utility::getValByName('title_text') : config('app.name', 'ERPNovaPrestech') }}
+            {{ Utility::getValByName('title_text') ? Utility::getValByName('title_text') : config('app.name', 'ERPNovaBrand New Ideas Company') }}
             - @yield(YieldingConstants::SHR_PRJ_PG_TTL)</title>
         @include('fragments.std', [
             'meta_title' => $meta_title,

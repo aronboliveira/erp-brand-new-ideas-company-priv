@@ -1,5 +1,5 @@
 ###############################################################################
-# ERP Nova Prestech — GitHub Actions CI/CD
+# ERP Brand New Ideas Company — GitHub Actions CI/CD
 #
 # Pipeline:
 #   1. Lint (PHPStan, ESLint, Flake8, mypy, tsc)
@@ -9,7 +9,7 @@
 #
 # Triggers: push/PR em main e develop
 ###############################################################################
-name: ERP Prestech CI/CD
+name: ERP Brand New Ideas Company CI/CD
 
 on:
     push:
@@ -33,7 +33,7 @@ env:
     # AZURE_ACR_LOGIN: erpacr.azurecr.io
     # AZURE_RG: erp-rg
     # AZURE_AKS_CLUSTER: erp-aks
-    # IMAGE_NAME: erp-prestech-app
+    # IMAGE_NAME: erp-brand-new-ideas-company-app
 
 jobs:
     # ════════════════════════════════════════════════════════════════════════
@@ -125,7 +125,7 @@ jobs:
             mysql:
                 image: mysql:8.0
                 env:
-                    MYSQL_DATABASE: erp_prestech_db
+                    MYSQL_DATABASE: erp_brand_new_ideas_company_db
                     MYSQL_USER: test
                     MYSQL_PASSWORD: test
                     MYSQL_ROOT_PASSWORD: root
@@ -169,7 +169,7 @@ jobs:
                   sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
                   sed -i 's/DB_USERNAME=.*/DB_USERNAME=test/' .env
                   sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=test/' .env
-                  sed -i 's/DB_DATABASE=.*/DB_DATABASE=erp_prestech_db/' .env
+                  sed -i 's/DB_DATABASE=.*/DB_DATABASE=erp_brand_new_ideas_company_db/' .env
                   sed -i 's/REDIS_HOST=.*/REDIS_HOST=127.0.0.1/' .env
                   php artisan key:generate
 
@@ -273,7 +273,7 @@ jobs:
                   context: ${{ env.LARAVEL_DIR }}
                   file: ${{ env.LARAVEL_DIR }}/Dockerfile
                   push: false
-                  tags: erp-prestech-app:${{ github.sha }}
+                  tags: erp-brand-new-ideas-company-app:${{ github.sha }}
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
 
@@ -329,5 +329,5 @@ jobs:
     #         kubectl apply -f k8s/ingress.yaml
     #         kubectl set image deployment/erp-backend \
     #           php-fpm=${{ env.AZURE_ACR_LOGIN }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-    #           -n erp-prestech
-    #         kubectl rollout status deployment/erp-backend -n erp-prestech --timeout=300s
+    #           -n erp-brand-new-ideas-company
+    #         kubectl rollout status deployment/erp-backend -n erp-brand-new-ideas-company --timeout=300s

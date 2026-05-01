@@ -126,13 +126,13 @@ class LoginRequestTest extends TestCase
 	public function throttleKey_uses_lowercased_email(): void
 	{
 		$request = LoginRequest::create('https://localhost/login', 'POST', [
-			'email'    => 'ADMIN@PRESTECH.COM',
+			'email'    => 'ADMIN@BRANDNEWIDEASCOMPANY.COM',
 			'password' => 'password123',
 		]);
 
 		$key = $request->throttleKey();
 
-		$this->assertStringContainsString('admin@prestech.com', $key);
+		$this->assertStringContainsString('admin@brandnewideascompany.com', $key);
 		$this->assertStringNotContainsString('ADMIN', $key);
 	}
 

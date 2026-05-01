@@ -24,7 +24,7 @@ All tests were run against a local dev server (`http://127.0.0.1:8000`, PID 1879
    ```bash
    curl -sS -b /tmp/erp_cookies10.txt -c /tmp/erp_cookies10.txt \
      -X POST http://127.0.0.1:8000/login \
-     -d "_token=$CSRF&email=suporte@prestech.com.br&password=TestPass123!"
+     -d "_token=$CSRF&email=suporte@brandnewideascompany.com&password=TestPass123!"
    ```
 
 3. **All subsequent requests** used `-b /tmp/erp_cookies10.txt` for session persistence.

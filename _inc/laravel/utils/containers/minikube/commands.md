@@ -1,6 +1,6 @@
 # Minikube — Comandos utilizados
 
-> Registro de comandos minikube executados na gestão do cluster local ERP Prestech.
+> Registro de comandos minikube executados na gestão do cluster local ERP Brand New Ideas Company.
 > Atualizado conforme novos comandos são utilizados.
 
 ## 20260416

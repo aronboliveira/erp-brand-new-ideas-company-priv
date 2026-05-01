@@ -2,7 +2,7 @@
 # PHPStan per-file analysis for Controllers/Activity
 # Analyzes each file individually with 180s timeout
 
-LARAVEL_DIR="/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel"
+LARAVEL_DIR="/workspace/erp/_inc/laravel"
 cd "$LARAVEL_DIR"
 
 DIR="app/Http/Controllers/Activity"

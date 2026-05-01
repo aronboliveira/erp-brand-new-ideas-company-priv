@@ -1,5 +1,5 @@
 #!/bin/bash
-# Financial Module Test Script for ERP Prestech
+# Financial Module Test Script for ERP Brand New Ideas Company
 # Tests mission-critical financial routes with various curl flags
 # Outputs: JSON results for potential Playwright consumption
 
@@ -157,7 +157,7 @@ test_json_api() {
 }
 
 echo "=================================================="
-echo "  ERP Prestech Financial Module Tests"
+echo "  ERP Brand New Ideas Company Financial Module Tests"
 echo "  Started: $(date)"
 echo "=================================================="
 echo ""

@@ -236,7 +236,7 @@ export function createMockUser(
     base: MockUser = {
       id: "user-" + role + "-" + Date.now(),
       name: "Test " + tpl.name,
-      email: "test." + role.toLowerCase() + "@prestech.com.br",
+      email: "test." + role.toLowerCase() + "@brandnewideascompany.com",
       role: tpl,
       permissions: tpl.permissions,
       company_id: "company-1",

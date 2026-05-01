@@ -5,7 +5,7 @@
 ### Working Directory
 
 ```bash
-cd /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/tests/frontend/js
+cd /workspace/erp/_inc/laravel/tests/frontend/js
 ```
 
 ### Run all tests silently

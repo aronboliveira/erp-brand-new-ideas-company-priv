@@ -1,15 +1,15 @@
 ###############################################################################
-# ERP Nova Prestech — MySQL 8.0 para Kubernetes local (minikube)
+# ERP Brand New Ideas Company — MySQL 8.0 para Kubernetes local (minikube)
 # Uses emptyDir for ephemeral test data (fresh DB on every deploy).
 ###############################################################################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: mysql
-    namespace: erp-prestech
+    namespace: erp-brand-new-ideas-company
     labels:
         app: mysql
-        app.kubernetes.io/part-of: erp-prestech
+        app.kubernetes.io/part-of: erp-brand-new-ideas-company
 spec:
     replicas: 1
     strategy:
@@ -42,7 +42,7 @@ spec:
                         name: mysql
                   env:
                       - name: MYSQL_DATABASE
-                        value: "erp_prestech_db"
+                        value: "erp_brand_new_ideas_company_db"
                       - name: MYSQL_USER
                         value: "test"
                       - name: MYSQL_PASSWORD
@@ -99,7 +99,7 @@ apiVersion: v1
 kind: Service
 metadata:
     name: mysql-service
-    namespace: erp-prestech
+    namespace: erp-brand-new-ideas-company
     labels:
         app: mysql
 spec:

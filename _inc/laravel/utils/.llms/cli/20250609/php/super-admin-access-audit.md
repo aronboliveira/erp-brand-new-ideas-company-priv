@@ -11,7 +11,7 @@ Ensure super admin (SA) users always have full access to all modules the app can
 ## Syntax Checks (all modified files)
 
 ```bash
-cd /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel
+cd /workspace/erp/_inc/laravel
 
 # New files modified in this session
 php -l app/Http/Controllers/Activity/PerformanceTypeController.php
@@ -44,7 +44,7 @@ Result: **All 19 files — No syntax errors detected**
 ## PHPStan Static Analysis
 
 ```bash
-cd /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel
+cd /workspace/erp/_inc/laravel
 
 vendor/bin/phpstan analyse --memory-limit=2G --no-progress
 ```
@@ -65,7 +65,7 @@ Result: **No output (zero errors in modified files)**
 ## PHPUnit Tests
 
 ```bash
-cd /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel
+cd /workspace/erp/_inc/laravel
 
 vendor/bin/phpunit --no-coverage --filter="DealControllerTest|ProjectControllerTest|ProjectTaskControllerTest|ProjectReportControllerTest|PermissionControllerTest|AuthenticatedSessionControllerTest"
 ```
@@ -77,7 +77,7 @@ Result: **828 tests, 976 assertions, 0 failures** (51 pre-existing warnings abou
 ## Jest Tests
 
 ```bash
-cd /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel
+cd /workspace/erp/_inc/laravel
 
 npx jest --passWithNoTests
 ```

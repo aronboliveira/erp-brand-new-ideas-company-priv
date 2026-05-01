@@ -5,7 +5,7 @@
                       : 'user-scalable=0, minimal-ui';
         $meta_kw   = ! empty($meta_kw)
                       ? $meta_kw
-                      : 'ERP,PaaS,Prestech,B2B,AI,IA,Helpdesk,Suporte';
+                      : 'ERP,PaaS,Brand New Ideas Company,B2B,AI,IA,Helpdesk,Suporte';
         $meta_url  = ! empty($meta_url)
                       ? $meta_url
                       : url('');
@@ -29,7 +29,7 @@
     name="keywords"
     content="{{ $meta_kw }}"
 />
-<meta name="author" content="Desenvolvimento Nova Prestech" />
+<meta name="author" content="Desenvolvimento Brand New Ideas Company" />
 <meta name="title" content="{{ $meta_title }}" />
 <meta name="description" content="{{ $meta_desc }}" />
 <meta

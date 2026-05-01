@@ -1,16 +1,16 @@
 ###############################################################################
-# ERP Nova Prestech — Backend Deployment (PHP-FPM + Nginx sidecar)
-# Imagem local construída via: eval $(minikube docker-env) && docker build -t erp-prestech-app .
+# ERP Brand New Ideas Company — Backend Deployment (PHP-FPM + Nginx sidecar)
+# Imagem local construída via: eval $(minikube docker-env) && docker build -t erp-brand-new-ideas-company-app .
 # Para Azure (comentado): acr-name.azurecr.io/erp-backend:latest
 ###############################################################################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: erp-backend
-    namespace: erp-prestech
+    namespace: erp-brand-new-ideas-company
     labels:
         app: erp-backend
-        app.kubernetes.io/part-of: erp-prestech
+        app.kubernetes.io/part-of: erp-brand-new-ideas-company
 spec:
     replicas: 1
     selector:
@@ -24,7 +24,7 @@ spec:
             initContainers:
                 # Copia somente public/ (assets estáticos) para volume compartilhado com nginx
                 - name: copy-public
-                  image: erp-prestech-app:latest
+                  image: erp-brand-new-ideas-company-app:latest
                   imagePullPolicy: Never
                   command: ["/bin/sh", "-c", "cp -a /var/www/public/. /shared/public/"]
                   volumeMounts:
@@ -34,7 +34,7 @@ spec:
                 # ── PHP-FPM Application Container ──────────────────────────────────
                 - name: php-fpm
                   # image: acr-name.azurecr.io/erp-backend:latest  # Azure ACR (comentado)
-                  image: erp-prestech-app:latest
+                  image: erp-brand-new-ideas-company-app:latest
                   imagePullPolicy: Never # Usa imagem local do minikube Docker daemon
                   ports:
                       - containerPort: 9000
@@ -107,7 +107,7 @@ apiVersion: v1
 kind: Service
 metadata:
     name: erp-backend
-    namespace: erp-prestech
+    namespace: erp-brand-new-ideas-company
     labels:
         app: erp-backend
 spec:

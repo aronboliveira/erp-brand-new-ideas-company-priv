@@ -6,7 +6,7 @@
 ## ⛔ NEVER do these
 
 1. **NEVER run `php artisan test`** — PHPUnit uses the SAME database
-   (`erp_prestech_db`), `migrate:fresh` inside test setup wipes ALL production
+   (`erp_brand_new_ideas_company_db`), `migrate:fresh` inside test setup wipes ALL production
    data. There is no separate test DB configured.
 
 2. **NEVER run `php artisan migrate:fresh`** or `migrate:refresh` — same

@@ -1,4 +1,4 @@
-# ERP Nova Prestech — Server & DevOps Configuration
+# ERP Nova Brand New Ideas Company — Server & DevOps Configuration
 # Format: TOML (unix-service and deploy-config patterns)
 # Last updated: 2026-03-01
 # Purpose: Artisan commands, logging paths, git remotes, supervisor-style configs
@@ -12,7 +12,7 @@ working_dir = "_inc/laravel"
 login_url   = "/login"
 
 [server.credentials]
-email    = "suporte@prestech.com.br"
+email    = "suporte@brandnewideascompany.com"
 password = "test1234"
 
 # ─── Artisan Commands ──────────────────────────────────────────────────────────
@@ -71,7 +71,7 @@ tail_volatile  = "tail -f _inc/laravel/storage/logs/volatile-*.log"
 [git]
 branch           = "main"
 remote_name      = "origin"
-remote_url       = "https://github.com/aronboliveira/erp-prestech-priv"
+remote_url       = "https://github.com/aronboliveira/erp-brand-new-ideas-company-priv"
 old_remote_name  = "comp"
 old_remote_url   = "https://github.com/Desenvolvimento-Prestch/erp_unix"
 commit_convention = "type(scope): description\n\n- bullet points"

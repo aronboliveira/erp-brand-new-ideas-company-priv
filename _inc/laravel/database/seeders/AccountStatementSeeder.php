@@ -17,10 +17,10 @@ class AccountStatementSeeder extends Seeder
 {
 	public function run(): void
 	{
-		$user = User::where('email', 'suporte@prestech.com.br')->first();
+		$user = User::where('email', 'suporte@brandnewideascompany.com')->first();
 
 		if (!$user) {
-			$this->command?->error('Test user suporte@prestech.com.br not found.');
+			$this->command?->error('Test user suporte@brandnewideascompany.com not found.');
 			return;
 		}
 
@@ -28,7 +28,7 @@ class AccountStatementSeeder extends Seeder
 
 		// ── Customer ────────────────────────────────────────────────
 		$customer = Customer::firstOrCreate(
-			['email' => 'cliente.demo@prestech.com.br', 'created_by' => $creatorId],
+			['email' => 'cliente.demo@brandnewideascompany.com', 'created_by' => $creatorId],
 			[
 				'name'       => 'Cliente Demo Ltda',
 				'contact'    => '+55 11 98888-0001',
@@ -40,7 +40,7 @@ class AccountStatementSeeder extends Seeder
 
 		// ── Vendor ─────────────────────────────────────────────────────
 		$vendor = Vendor::firstOrCreate(
-			['email' => 'fornecedor.demo@prestech.com.br', 'created_by' => $creatorId],
+			['email' => 'fornecedor.demo@brandnewideascompany.com', 'created_by' => $creatorId],
 			[
 				'name'       => 'Fornecedor Demo SA',
 				'contact'    => '+55 11 97777-0001',
@@ -54,7 +54,7 @@ class AccountStatementSeeder extends Seeder
 
 		// ── Bank Account ───────────────────────────────────────────────
 		$bank = BankAccount::firstOrCreate(
-			['holder_name' => 'Nova Prestech Ltda', 'created_by' => $creatorId],
+			['holder_name' => 'Brand New Ideas Company Ltda', 'created_by' => $creatorId],
 			[
 				'account_number' => '00012345-6',
 				'bank_name'      => 'Banco do Brasil',

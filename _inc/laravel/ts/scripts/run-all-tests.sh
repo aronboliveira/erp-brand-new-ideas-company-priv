@@ -31,8 +31,8 @@ DB_HOST="${DB_HOST:-127.0.0.1}"
 DB_PORT="${DB_PORT:-3306}"
 DB_USER="${DB_USER:-test}"
 DB_PASS="${DB_PASS:-test}"
-TEST_DB="erp_prestech_ts_test"
-TEST_TABLE="erp_prestech_ts_test"
+TEST_DB="erp_brand_new_ideas_company_ts_test"
+TEST_TABLE="erp_brand_new_ideas_company_ts_test"
 
 # Contadores
 PASS=0

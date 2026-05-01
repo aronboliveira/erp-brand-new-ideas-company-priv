@@ -212,7 +212,7 @@ class SettingsConstants
 		self::JU_DESC_K => self::JU_DESC_DEF,
 	];
 	public const JU_USR_SETTINGS = [
-		'email' => 'comercial@prestech.com.br',
+		'email' => 'comercial@brandnewideascompany.com',
 	];
 	public const PG_SLG = 'page_slug';
 	public const LANDING_PAGE_SETTINGS = [
@@ -233,5 +233,5 @@ class SettingsConstants
 		...self::JU_USR_SETTINGS,
 	];
 	public const CPN_FAVICON_K = 'company_favicon';
-	public const URI_FAVICON = 'https://prestech.com.br/site/wp-content/uploads/2024/10/Favicon-Prestech-Fundo-Branco.svg';
+	public const URI_FAVICON = 'https://brandnewideascompany.com/site/wp-content/uploads/2024/10/Favicon-Brand-New-Ideas-Company-Fundo-Branco.svg';
 }

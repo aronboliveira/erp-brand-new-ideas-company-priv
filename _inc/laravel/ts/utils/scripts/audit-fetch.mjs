@@ -4,7 +4,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const BASE =
-  "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/ts/src";
+  "/workspace/erp/_inc/laravel/ts/src";
 
 function walk(dir) {
   let results = [];

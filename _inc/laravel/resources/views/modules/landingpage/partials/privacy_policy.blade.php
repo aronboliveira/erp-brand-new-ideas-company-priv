@@ -6,7 +6,7 @@
 
         <article>
             <h4>1. {{ __('Introduction') }}</h4>
-            <p>{!! __('This Privacy Policy describes how <strong>Nova Prestech.net Informática</strong> ("we", "Controller") collects, uses, stores, and shares personal data through the ERP Nova Prestech platform, in compliance with <a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm" target="_blank" rel="noopener noreferrer">Lei Geral de Proteção de Dados — LGPD (Law 13.709/2018)</a> and the <a href="https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm" target="_blank" rel="noopener noreferrer">Marco Civil da Internet (Law 12.965/2014)</a>.') !!}</p>
+            <p>{!! __('This Privacy Policy describes how <strong>Brand New Ideas Company.net Informática</strong> ("we", "Controller") collects, uses, stores, and shares personal data through the ERP Brand New Ideas Company platform, in compliance with <a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm" target="_blank" rel="noopener noreferrer">Lei Geral de Proteção de Dados — LGPD (Law 13.709/2018)</a> and the <a href="https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm" target="_blank" rel="noopener noreferrer">Marco Civil da Internet (Law 12.965/2014)</a>.') !!}</p>
         </article>
 
         <article>
@@ -113,9 +113,9 @@
             <h4>10. {{ __('Data Protection Officer (DPO)') }}</h4>
             <p>{{ __('For inquiries, requests, or complaints related to this Privacy Policy, contact our DPO:') }}</p>
             <address>
-                <strong>Nova Prestech.net Informática</strong><br>
+                <strong>Brand New Ideas Company.net Informática</strong><br>
                 {{ __('Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro — RJ, Brasil') }}<br>
-                <a href="mailto:comercial@prestech.com.br">comercial@prestech.com.br</a><br>
+                <a href="mailto:comercial@brandnewideascompany.com">comercial@brandnewideascompany.com</a><br>
                 <a href="tel:+552138607510">+55 (21) 3860-7510</a>
             </address>
         </article>

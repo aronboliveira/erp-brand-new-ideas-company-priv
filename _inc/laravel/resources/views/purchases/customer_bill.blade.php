@@ -83,7 +83,7 @@
 <!DOCTYPE html>
 <html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
     <head>
-        <title>{{__('ERPNovaPrestech')}}</title>
+        <title>{{__('ERPNovaBrand New Ideas Company')}}</title>
         @include('fragments.std', [
             'meta_title' => $meta_title,
             'meta_desc' => $meta_desc,

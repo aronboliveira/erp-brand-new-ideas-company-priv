@@ -2,7 +2,7 @@
 
 ## Pattern 1: SA type not handled (most common bug)
 
-The original ERPGo code was designed for multi-tenant SaaS where `company` is
+The original Brand New Ideas Company code was designed for multi-tenant SaaS where `company` is
 the owner. Our deployment has a single `super admin` user. The codebase checks
 `$userType === PMC::CPN` or `$userType !== PMC::CPN` in ~50+ places.
 

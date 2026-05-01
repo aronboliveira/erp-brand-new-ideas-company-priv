@@ -21,7 +21,7 @@ BASE_URL    = os.environ.get("SMOKE_TEST_URL", "http://127.0.0.1:8888")
 COOKIE_FILE = "/tmp/content_test_cookies.txt"
 ADMIN_EMAIL = os.environ.get("SMOKE_TEST_EMAIL",    "alexys87@example.org")
 ADMIN_PASS  = os.environ.get("SMOKE_TEST_PASSWORD", "Admin@1234")
-LARAVEL_DIR = "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel"
+LARAVEL_DIR = "/workspace/erp/_inc/laravel"
 RESULTS_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../"
 
 CPU_LIMIT   = 600  # sum-across-all-procs threshold (ps -A); VS Code+PHP-LS baseline ~250%

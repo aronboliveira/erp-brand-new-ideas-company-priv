@@ -1,6 +1,6 @@
 # Frontend Playwright Test Suite
 
-Comprehensive client-side testing for the ERP Prestech application using Playwright.
+Comprehensive client-side testing for the ERP Brand New Ideas Company application using Playwright.
 
 ## Overview
 

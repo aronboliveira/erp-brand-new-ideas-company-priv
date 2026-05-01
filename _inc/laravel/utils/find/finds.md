@@ -1,4 +1,4 @@
-# Finds — ERP Prestech Debugging
+# Finds — ERP Brand New Ideas Company Debugging
 
 ## Project structure
 

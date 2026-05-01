@@ -17,23 +17,23 @@
 <style>
     :root {
         /* Primary Blue Palette */
-        --prestech-blue-dark: #0a1628;
-        --prestech-blue: #1a365d;
-        --prestech-blue-medium: #2c5282;
-        --prestech-blue-light: #3182ce;
-        --prestech-blue-lighter: #63b3ed;
-        --prestech-blue-pale: #bee3f8;
+        --brand new ideas company-blue-dark: #0a1628;
+        --brand new ideas company-blue: #1a365d;
+        --brand new ideas company-blue-medium: #2c5282;
+        --brand new ideas company-blue-light: #3182ce;
+        --brand new ideas company-blue-lighter: #63b3ed;
+        --brand new ideas company-blue-pale: #bee3f8;
         
         /* Jade/Green Accents */
-        --prestech-jade-dark: #0d503c;
-        --prestech-jade: #10b981;
-        --prestech-jade-light: #34d399;
-        --prestech-jade-pale: #a7f3d0;
+        --brand new ideas company-jade-dark: #0d503c;
+        --brand new ideas company-jade: #10b981;
+        --brand new ideas company-jade-light: #34d399;
+        --brand new ideas company-jade-pale: #a7f3d0;
         
         /* Gradient combinations */
-        --gradient-blue: linear-gradient(135deg, var(--prestech-blue-dark) 0%, var(--prestech-blue) 50%, var(--prestech-blue-medium) 100%);
-        --gradient-blue-jade: linear-gradient(135deg, var(--prestech-blue) 0%, var(--prestech-blue-medium) 50%, var(--prestech-jade-dark) 100%);
-        --gradient-jade-accent: linear-gradient(135deg, var(--prestech-jade) 0%, var(--prestech-jade-light) 100%);
+        --gradient-blue: linear-gradient(135deg, var(--brand new ideas company-blue-dark) 0%, var(--brand new ideas company-blue) 50%, var(--brand new ideas company-blue-medium) 100%);
+        --gradient-blue-jade: linear-gradient(135deg, var(--brand new ideas company-blue) 0%, var(--brand new ideas company-blue-medium) 50%, var(--brand new ideas company-jade-dark) 100%);
+        --gradient-jade-accent: linear-gradient(135deg, var(--brand new ideas company-jade) 0%, var(--brand new ideas company-jade-light) 100%);
     }
 
     /* Base animation utilities */
@@ -107,11 +107,11 @@
     /* About page wrapper with blue gradient background */
     .about-page-wrapper {
         background: linear-gradient(180deg, 
-            var(--prestech-blue-dark) 0%, 
-            var(--prestech-blue) 15%,
-            var(--prestech-blue-medium) 40%,
+            var(--brand new ideas company-blue-dark) 0%, 
+            var(--brand new ideas company-blue) 15%,
+            var(--brand new ideas company-blue-medium) 40%,
             #1e3a5f 70%,
-            var(--prestech-blue-dark) 100%
+            var(--brand new ideas company-blue-dark) 100%
         );
         min-height: 100vh;
         padding: 2rem 0;
@@ -159,11 +159,11 @@
         right: 0;
         height: 5px;
         background: linear-gradient(90deg, 
-            var(--prestech-blue) 0%, 
-            var(--prestech-jade) 25%, 
-            var(--prestech-blue-light) 50%, 
-            var(--prestech-jade-light) 75%, 
-            var(--prestech-blue) 100%
+            var(--brand new ideas company-blue) 0%, 
+            var(--brand new ideas company-jade) 25%, 
+            var(--brand new ideas company-blue-light) 50%, 
+            var(--brand new ideas company-jade-light) 75%, 
+            var(--brand new ideas company-blue) 100%
         );
         background-size: 200% 100%;
         animation: gradientFlow 4s ease infinite;
@@ -171,7 +171,7 @@
 
     /* Animated heading with blue/jade gradient */
     .about-heading {
-        background: linear-gradient(135deg, var(--prestech-blue) 0%, var(--prestech-jade) 50%, var(--prestech-blue-light) 100%);
+        background: linear-gradient(135deg, var(--brand new ideas company-blue) 0%, var(--brand new ideas company-jade) 50%, var(--brand new ideas company-blue-light) 100%);
         background-size: 200% auto;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -182,7 +182,7 @@
     /* Lead paragraph animation */
     .about-lead {
         animation: fadeInUp 0.7s ease-out 0.3s both;
-        color: var(--prestech-blue-dark);
+        color: var(--brand new ideas company-blue-dark);
     }
 
     .about-intro {
@@ -233,8 +233,8 @@
         transform: translateY(-8px) scale(1.02);
         box-shadow: 
             0 20px 40px rgba(26, 54, 93, 0.2),
-            0 0 0 2px var(--prestech-jade);
-        border-color: var(--prestech-jade);
+            0 0 0 2px var(--brand new ideas company-jade);
+        border-color: var(--brand new ideas company-jade);
     }
 
     .feature-card:nth-child(1) { animation: slideInFromLeft 0.6s ease-out 0.5s both; }
@@ -253,20 +253,20 @@
     .feature-card:nth-child(3) .feature-icon { animation-delay: 1s; }
 
     .feature-card h5 {
-        color: var(--prestech-blue);
+        color: var(--brand new ideas company-blue);
         transition: color 0.3s ease;
     }
 
     .feature-card:hover h5 {
-        color: var(--prestech-jade);
+        color: var(--brand new ideas company-jade);
     }
 
     /* Commitment section with blue/jade gradient */
     .commitment-section {
         background: linear-gradient(135deg, 
-            var(--prestech-blue) 0%, 
-            var(--prestech-blue-medium) 40%,
-            var(--prestech-jade-dark) 100%
+            var(--brand new ideas company-blue) 0%, 
+            var(--brand new ideas company-blue-medium) 40%,
+            var(--brand new ideas company-jade-dark) 100%
         );
         border-radius: 1.5rem;
         padding: 2.5rem;
@@ -303,7 +303,7 @@
         content: '✓';
         position: absolute;
         left: 0;
-        color: var(--prestech-jade-light);
+        color: var(--brand new ideas company-jade-light);
         font-weight: bold;
         font-size: 1.2rem;
         text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
@@ -319,12 +319,12 @@
     .accordion-button {
         transition: all 0.3s ease;
         background: linear-gradient(145deg, #ffffff, #f0f9ff);
-        color: var(--prestech-blue);
+        color: var(--brand new ideas company-blue);
         font-weight: 500;
     }
 
     .accordion-button:not(.collapsed) {
-        background: linear-gradient(135deg, var(--prestech-blue) 0%, var(--prestech-jade-dark) 100%);
+        background: linear-gradient(135deg, var(--brand new ideas company-blue) 0%, var(--brand new ideas company-jade-dark) 100%);
         color: white;
         box-shadow: 0 4px 15px rgba(26, 54, 93, 0.3);
     }
@@ -338,7 +338,7 @@
     .accordion-body {
         background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
         animation: fadeInUp 0.3s ease-out;
-        border-left: 3px solid var(--prestech-jade);
+        border-left: 3px solid var(--brand new ideas company-jade);
     }
 
     /* Testimonial section with grid */
@@ -389,7 +389,7 @@
         transform: translateY(-10px);
         box-shadow: 
             0 25px 50px rgba(26, 54, 93, 0.15),
-            0 0 0 2px var(--prestech-jade);
+            0 0 0 2px var(--brand new ideas company-jade);
     }
 
     .testimonial-card:nth-child(1) { animation: slideInFromLeft 0.6s ease-out 1.5s both; }
@@ -402,7 +402,7 @@
         height: 70px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid var(--prestech-jade);
+        border: 3px solid var(--brand new ideas company-jade);
         box-shadow: 
             0 4px 15px rgba(16, 185, 129, 0.3),
             0 0 0 3px rgba(49, 130, 206, 0.1);
@@ -413,7 +413,7 @@
         transform: scale(1.1);
         box-shadow: 
             0 6px 20px rgba(16, 185, 129, 0.4),
-            0 0 0 4px var(--prestech-jade-light);
+            0 0 0 4px var(--brand new ideas company-jade-light);
         animation: glow 2s ease-in-out infinite;
     }
 
@@ -426,7 +426,7 @@
     }
 
     .testimonial-name {
-        background: linear-gradient(135deg, var(--prestech-blue) 0%, var(--prestech-jade) 100%);
+        background: linear-gradient(135deg, var(--brand new ideas company-blue) 0%, var(--brand new ideas company-jade) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -435,7 +435,7 @@
     }
 
     .testimonial-designation {
-        color: var(--prestech-jade);
+        color: var(--brand new ideas company-jade);
         font-size: 0.85rem;
         font-weight: 500;
     }
@@ -455,10 +455,10 @@
     /* CTA section with animated blue/jade gradient */
     .cta-section {
         background: linear-gradient(-45deg, 
-            var(--prestech-blue-dark), 
-            var(--prestech-blue), 
-            var(--prestech-jade-dark), 
-            var(--prestech-blue-medium)
+            var(--brand new ideas company-blue-dark), 
+            var(--brand new ideas company-blue), 
+            var(--brand new ideas company-jade-dark), 
+            var(--brand new ideas company-blue-medium)
         );
         background-size: 400% 400%;
         animation: gradientFlow 10s ease infinite, scaleIn 0.7s ease-out 1.8s both;
@@ -486,7 +486,7 @@
         transition: all 0.3s ease;
         overflow: hidden;
         background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
-        color: var(--prestech-blue);
+        color: var(--brand new ideas company-blue);
         font-weight: 600;
         border: 2px solid transparent;
     }
@@ -507,7 +507,7 @@
     .cta-btn:hover {
         transform: scale(1.05);
         box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
-        background: linear-gradient(135deg, var(--prestech-jade-light) 0%, var(--prestech-jade) 100%);
+        background: linear-gradient(135deg, var(--brand new ideas company-jade-light) 0%, var(--brand new ideas company-jade) 100%);
         color: white;
     }
 
@@ -516,7 +516,7 @@
         position: relative;
         display: inline-block;
         margin-bottom: 1.5rem;
-        color: var(--prestech-blue);
+        color: var(--brand new ideas company-blue);
     }
 
     .section-heading::after {
@@ -546,9 +546,9 @@
     <div class="container">
         <div class="about-card shadow-lg border-0">
             <div class="card-body p-4 p-md-5">
-                <h2 class="mb-4 about-heading fw-bold">{{ __('About Nova Prestech') }}</h2>
+                <h2 class="mb-4 about-heading fw-bold">{{ __('About Brand New Ideas Company') }}</h2>
 
-                <p class="lead about-lead">{!! __('With over <strong>30 years of experience</strong> in the IT industry, <strong>Nova Prestech.net Informática</strong> delivers comprehensive technology solutions — from infrastructure and cybersecurity to custom software development and digital transformation.') !!}</p>
+                <p class="lead about-lead">{!! __('With over <strong>30 years of experience</strong> in the IT industry, <strong>Brand New Ideas Company.net Informática</strong> delivers comprehensive technology solutions — from infrastructure and cybersecurity to custom software development and digital transformation.') !!}</p>
 
                 <p class="about-intro">{{ __('Headquartered in Rio de Janeiro, Brazil, we serve businesses of all sizes with a humanized approach, combining technical reliability with practical innovation to turn technology into real value for your operations.') }}</p>
 
@@ -599,7 +599,7 @@
                         <div class="accordion-item border-0 mb-2 rounded overflow-hidden shadow-sm">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                                    {{ __('What services does Nova Prestech offer?') }}
+                                    {{ __('What services does Brand New Ideas Company offer?') }}
                                 </button>
                             </h2>
                             <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#aboutFaq">
@@ -611,24 +611,24 @@
                         <div class="accordion-item border-0 mb-2 rounded overflow-hidden shadow-sm">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                                    {{ __('What is the ERP Nova Prestech platform?') }}
+                                    {{ __('What is the ERP Brand New Ideas Company platform?') }}
                                 </button>
                             </h2>
                             <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#aboutFaq">
                                 <div class="accordion-body">
-                                    {{ __('ERP Nova Prestech is a comprehensive enterprise resource planning platform that integrates financial management, HR, CRM, project tracking, invoicing, and more into a unified system accessible from any browser.') }}
+                                    {{ __('ERP Brand New Ideas Company is a comprehensive enterprise resource planning platform that integrates financial management, HR, CRM, project tracking, invoicing, and more into a unified system accessible from any browser.') }}
                                 </div>
                             </div>
                         </div>
                         <div class="accordion-item border-0 mb-2 rounded overflow-hidden shadow-sm">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed rounded" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                                    {{ __('How can I contact Nova Prestech?') }}
+                                    {{ __('How can I contact Brand New Ideas Company?') }}
                                 </button>
                             </h2>
                             <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#aboutFaq">
                                 <div class="accordion-body">
-                                    {!! __('You can reach us by email at <a href="mailto:comercial@prestech.com.br" class="text-decoration-none" style="color: var(--prestech-jade);">comercial@prestech.com.br</a>, by phone at <a href="tel:+552138607510" class="text-decoration-none" style="color: var(--prestech-jade);">+55 (21) 3860-7510</a>, or visit our office at Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro — RJ.') !!}
+                                    {!! __('You can reach us by email at <a href="mailto:comercial@brandnewideascompany.com" class="text-decoration-none" style="color: var(--brand new ideas company-jade);">comercial@brandnewideascompany.com</a>, by phone at <a href="tel:+552138607510" class="text-decoration-none" style="color: var(--brand new ideas company-jade);">+55 (21) 3860-7510</a>, or visit our office at Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro — RJ.') !!}
                                 </div>
                             </div>
                         </div>
@@ -678,7 +678,7 @@
                 <section class="cta-section text-white p-5 text-center mt-5">
                     <h4 class="mb-3 fw-bold position-relative" style="z-index: 1;">{{ __('Ready to transform your business with technology?') }}</h4>
                     <p class="mb-4 position-relative" style="z-index: 1; opacity: 0.95;">{{ __('Get in touch with our team for a free consultation and discover how we can help.') }}</p>
-                    <a href="https://prestech.com.br/site/contato/" target="_blank" rel="noopener noreferrer" class="btn btn-lg rounded-pill cta-btn px-5 py-3">
+                    <a href="https://brandnewideascompany.com/site/contato/" target="_blank" rel="noopener noreferrer" class="btn btn-lg rounded-pill cta-btn px-5 py-3">
                         {{ __('Contact Us') }} →
                     </a>
                 </section>

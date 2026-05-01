@@ -328,7 +328,7 @@ class AuthAndLandingPageTest extends TestCase
 	public static function landingPagePublicContentProvider(): array
 	{
 		return [
-			'about_us has heading'    => ['/pages/about_us', 'About Nova Prestech', 'About Us heading'],
+			'about_us has heading'    => ['/pages/about_us', 'About Brand New Ideas Company', 'About Us heading'],
 			'about_us has card'       => ['/pages/about_us', 'card-body', 'About Us card wrapper'],
 			'privacy_policy heading'  => ['/pages/privacy_policy', 'Privacy Policy', 'Privacy Policy heading'],
 			'privacy_policy lgpd'     => ['/pages/privacy_policy', 'LGPD', 'Privacy Policy LGPD reference'],

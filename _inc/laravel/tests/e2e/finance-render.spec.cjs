@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const path = require("path");
 
 /**
- * ERP Prestech – Finance Module Rendering E2E Tests
+ * ERP Brand New Ideas Company – Finance Module Rendering E2E Tests
  * Comprehensive rendering checks for all finance-related endpoints,
  * including the payslip_types routes (previously shadowed by payslips).
  *

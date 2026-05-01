@@ -750,7 +750,7 @@ class ModelLookupService
             ?? str_replace('_', '-', $locale)
             ?? DC::DEFAULT_LANG;
         $meta_title = $seo[SC::MT_TTL_K]
-            ?? config('app.name', 'ERPNovaPrestech');
+            ?? config('app.name', 'ERPNovaBrand New Ideas Company');
         $meta_desc = $seo[SC::MT_DESC_LONG]
             ?? config('app.desc', 'A brand new ERP!');
         $meta_image = $seo[SC::MT_IMG_K]

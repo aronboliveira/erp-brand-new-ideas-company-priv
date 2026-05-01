@@ -1,4 +1,4 @@
-# ERP Prestech — Subagent Context File
+# ERP Brand New Ideas Company — Subagent Context File
 
 # Last updated: 2026-02-28T21:30Z
 
@@ -6,23 +6,23 @@
 
 ## Project Location
 
-- Workspace root: `/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech`
+- Workspace root: `/workspace/erp`
 - Laravel root: `_inc/laravel/`
 - All paths below are relative to Laravel root unless noted
 
 ## Stack
 
-- Laravel 10.49.0, PHP 8.4.5, MySQL (erp_prestech_db)
+- Laravel 10.49.0, PHP 8.4.5, MySQL (erp_brand_new_ideas_company_db)
 - PHPUnit 10.5.55, Jest 29.7.0, Playwright 1.58.2, Pytest
 - Node.js 22.22.0 (for frontend tests), Python 3 (for utility scripts)
 
 ## Auth
 
-- SA user email: `suporte@prestech.com.br`
+- SA user email: `suporte@brandnewideascompany.com`
 - SA user UUID: `a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7`
 - SA user password: `test1234`
 - User type: `super admin` (bypasses permission checks in `ChecksPermissions::guard()`)
-- Session cookie name: `erp_nova_prestech_session`
+- Session cookie name: `erp_brand_new_ideas_company_session`
 - CSRF: `<meta name="csrf-token">` + `<input name="_token">`
 
 ## Key Constants Files
@@ -55,7 +55,7 @@
 - UUID primary keys on most tables
 - `created_by` column pattern for multi-tenancy
 - **Current state (2026-02-28):** Sparse — only 2 users, needs re-seeding
-- Key SA user: `suporte@prestech.com.br` / `a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7`
+- Key SA user: `suporte@brandnewideascompany.com` / `a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7`
 - Run `php artisan db:seed --class=ContentValidationSeeder` to repopulate
 
 ## Seeder Dependency Chains (verified 2026-02-18)

@@ -11,7 +11,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 const postmanRoot = path.resolve(__dirname, ".."),
-  collectionPath = path.join(postmanRoot, "erpgo-laravel.collection.json"),
+  collectionPath = path.join(postmanRoot, "brand-new-ideas-company.collection.json"),
   environmentPath = path.join(postmanRoot, "local.environment.json"),
   reportsDir = path.join(postmanRoot, "reports"),
   localBin = path.join(

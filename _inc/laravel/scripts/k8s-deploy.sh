@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ###############################################################################
-# ERP Nova Prestech — Kubernetes Local Deploy (minikube + kubectl)
+# ERP Nova Brand New Ideas Company — Kubernetes Local Deploy (minikube + kubectl)
 #
 # Uso interativo (padrão):
 #   ./scripts/k8s-deploy.sh
@@ -36,8 +36,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LARAVEL_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 K8S_DIR="${LARAVEL_DIR}/k8s"
-NAMESPACE="erp-prestech"
-APP_IMAGE="erp-prestech-app:latest"
+NAMESPACE="erp-brand-new-ideas-company"
+APP_IMAGE="erp-brand-new-ideas-company-app:latest"
 MINIKUBE_PROFILE="${MINIKUBE_PROFILE:-minikube}"
 
 # Flags de resposta automática
@@ -468,12 +468,12 @@ show_help() {
     echo "    --hard    Nuke namespace, rebuild total do zero, full seed"
     echo "    --status  Mostrar status do cluster"
     echo "    --stop    Parar minikube"
-    echo "    --destroy Remover namespace erp-prestech do cluster"
+    echo "    --destroy Remover namespace erp-brand-new-ideas-company do cluster"
 }
 
 main() {
     echo ""
-    log_info "ERP Nova Prestech — Kubernetes Local Deploy"
+    log_info "ERP Nova Brand New Ideas Company — Kubernetes Local Deploy"
     echo ""
 
     check_prerequisites

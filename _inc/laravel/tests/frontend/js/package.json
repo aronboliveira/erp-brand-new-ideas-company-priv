@@ -1,7 +1,7 @@
 {
-  "name": "erp-prestech-frontend-tests",
+  "name": "erp-brand-new-ideas-company-frontend-tests",
   "version": "1.0.0",
-  "description": "Frontend unit tests for ERP Prestech Laravel application",
+  "description": "Frontend unit tests for ERP Brand New Ideas Company Laravel application",
   "private": true,
   "scripts": {
     "test": "jest",

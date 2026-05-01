@@ -8,7 +8,7 @@
 vendor/bin/phpunit tests/Unit/app/Http/Controllers/activity/ tests/Unit/app/Http/Controllers/auth/ 2>&1 | grep -E "Tests:|OK"
 ```
 
-Working directory: `/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel`
+Working directory: `/workspace/erp/_inc/laravel`
 Exit code: 0
 
 ### PHP syntax check on test files
@@ -17,5 +17,5 @@ Exit code: 0
 find tests/Unit/app/Http/Controllers/activity tests/Unit/app/Http/Controllers/auth -name "*Test.php" -exec php -l {} \; 2>&1 | grep -v "^No syntax" | head -20
 ```
 
-Working directory: `/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel`
+Working directory: `/workspace/erp/_inc/laravel`
 Exit code: 0

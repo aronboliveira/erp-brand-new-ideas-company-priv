@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────
-# mysql_health.sh — MySQL health & diagnostics for erp_prestech
+# mysql_health.sh — MySQL health & diagnostics for erp_brand_new_ideas_company
 # Usage:  ./mysql_health.sh [--full|--quick|--seeds|--schema|--perf]
 # Env overrides: DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME
 # ──────────────────────────────────────────────────────────────
@@ -9,9 +9,9 @@ set -euo pipefail
 # ── Defaults ──────────────────────────────────────────────────
 DB_HOST="${DB_HOST:-127.0.0.1}"
 DB_PORT="${DB_PORT:-3306}"
-DB_USER="${DB_USER:-admin_prestech}"
-DB_PASS="${DB_PASS:-76562f3A*@prestech}"
-DB_NAME="${DB_NAME:-erp_prestech}"
+DB_USER="${DB_USER:-admin_brand_new_ideas_company}"
+DB_PASS="${DB_PASS:-76562f3A*@brandnewideascompany}"
+DB_NAME="${DB_NAME:-erp_brand_new_ideas_company}"
 
 MYSQL="mysql -u${DB_USER} -p${DB_PASS} -h${DB_HOST} -P${DB_PORT} --batch --skip-column-names"
 MYSQL_T="mysql -u${DB_USER} -p${DB_PASS} -h${DB_HOST} -P${DB_PORT}"

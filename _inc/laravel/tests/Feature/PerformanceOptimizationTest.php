@@ -46,7 +46,7 @@ class PerformanceOptimizationTest extends TestCase
         $this->companyUser = User::factory()->create([
             'type'       => 'company',
             'name'       => 'Performance Test Company',
-            'email'      => 'perf-test@prestech.test',
+            'email'      => 'perf-test@brandnewideascompany.test',
             'password'   => bcrypt('TestPass123!'),
             'created_by' => 0,
         ]);
@@ -66,7 +66,7 @@ class PerformanceOptimizationTest extends TestCase
 
     private function purgeTestFixtures(): void
     {
-        User::where('email', 'perf-test@prestech.test')->forceDelete();
+        User::where('email', 'perf-test@brandnewideascompany.test')->forceDelete();
         User::where('email', 'like', 'perf-employee-%@test.com')->forceDelete();
     }
 

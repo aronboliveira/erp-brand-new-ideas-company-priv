@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "description": "VSCode global search regexes for ERP Nova Prestech codebase auditing",
+    "description": "VSCode global search regexes for ERP Brand New Ideas Company codebase auditing",
     "usage": "Open VSCode Search (Ctrl+Shift+F), enable 'Use Regular Expression' (Alt+R), paste the regex value",
     "format": "Each entry: { 'regex': string, 'files': glob or null, 'purpose': string, 'flag': 'AUDIT'|'BUG'|'DEBUG'|'SECURITY'|'STYLE' }",
     "last_updated": "2026-03-02"

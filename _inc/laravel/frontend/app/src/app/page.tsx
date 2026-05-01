@@ -24,7 +24,7 @@ export default function LandingPage({ children }: Parent): JSX.Element {
           <Grid container alignItems='center' spacing={4}>
             <Grid item xs={12} sm={5}>
               <Typography variant='h2' component='h1' className={styles.title}>
-                ERP Nova Prestech
+                ERP Nova Brand New Ideas Company
               </Typography>
               <hr className={styles.separator} />
               <Typography

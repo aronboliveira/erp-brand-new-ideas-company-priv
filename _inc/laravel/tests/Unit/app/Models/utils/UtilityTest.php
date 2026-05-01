@@ -517,9 +517,9 @@ class UtilityTest extends TestCase
 		$inputs = ['user_name' => 'John'];
 		$output = Utility::replaceVariable($template, $inputs);
 
-		// {app_name} is overridden by settings()['company_name'] (default 'ERP Nova Prestech')
+		// {app_name} is overridden by settings()['company_name'] (default 'ERP Brand New Ideas Company')
 		// {company_name} is overridden by settings()['mail_from_name'] (default '')
-		$this->assertStringContainsString('ERP Nova Prestech', $output);
+		$this->assertStringContainsString('ERP Brand New Ideas Company', $output);
 		$this->assertStringContainsString('John', $output);
 	}
 

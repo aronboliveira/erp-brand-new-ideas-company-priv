@@ -2,7 +2,7 @@
 
 ## Overview
 
-The ERP Prestech TypeScript migration includes a comprehensive test harness infrastructure for validating compiled JavaScript artifacts against production-like HTML pages.
+The ERP Brand New Ideas Company TypeScript migration includes a comprehensive test harness infrastructure for validating compiled JavaScript artifacts against production-like HTML pages.
 
 ## Directory Structure
 

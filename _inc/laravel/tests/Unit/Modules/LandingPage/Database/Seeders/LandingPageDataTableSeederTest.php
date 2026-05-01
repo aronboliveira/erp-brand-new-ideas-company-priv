@@ -52,7 +52,7 @@ class LandingPageDataTableSeederTest extends TestCase
 		]);
 		$this->assertDatabaseHas('landing_page_settings', [
 			'name'  => SettingsConstants::TB_NTF_MSG_K,
-			'value' => 'Technology assistance and support with over 30 years of tradition. Talk to Nova Prestech and protect your data and devices today.',
+			'value' => 'Technology assistance and support with over 30 years of tradition. Talk to Brand New Ideas Company and protect your data and devices today.',
 		]);
 		$this->assertDatabaseHas('landing_page_settings', [
 			'name'  => SettingsConstants::SL_K,

@@ -80,7 +80,7 @@
                 'meta_desc' => $meta_desc,
                 'meta_vp' => 'shrink-to-fit=no',
                 ])
-            <title>{{(Utility::companyData($proposal[DatabaseConstants::COL_TABLE_CREATOR],'title_text')) ? Utility::companyData($proposal[DatabaseConstants::COL_TABLE_CREATOR],'title_text') : config('app.name', 'ERPNovaPrestech')}} - {{__('Proposal')}}</title>
+            <title>{{(Utility::companyData($proposal[DatabaseConstants::COL_TABLE_CREATOR],'title_text')) ? Utility::companyData($proposal[DatabaseConstants::COL_TABLE_CREATOR],'title_text') : config('app.name', 'ERPNovaBrand New Ideas Company')}} - {{__('Proposal')}}</title>
             <meta name="title" content="{{$meta_title}}">
             <meta name="description" content="{{$meta_desc}}">
             @include('fragments.og', [

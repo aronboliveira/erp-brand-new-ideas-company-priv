@@ -48,7 +48,7 @@ def get_routes():
         ["php", "artisan", "route:list"],
         capture_output=True,
         text=True,
-        cwd="/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel"
+        cwd="/workspace/erp/_inc/laravel"
     )
     
     routes = []

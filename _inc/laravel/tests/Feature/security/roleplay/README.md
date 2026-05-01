@@ -1,6 +1,6 @@
 # Security Roleplay Testing Framework
 
-Multi-language security testing framework with role-based actors simulating real-world attack and defense scenarios against the ERP Prestech application.
+Multi-language security testing framework with role-based actors simulating real-world attack and defense scenarios against the ERP Brand New Ideas Company application.
 
 ## Overview
 

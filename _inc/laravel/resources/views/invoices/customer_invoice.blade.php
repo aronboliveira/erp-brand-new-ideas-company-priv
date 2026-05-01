@@ -72,7 +72,7 @@ $invoice ??= null;
             $title = $creatorId && $companyDataAvailable && Utility::companyData($creatorId, 'title_text');
 @endphp
         <title>
-            {{ $title ?: config('app.name', 'ERPNovaPrestech') }}
+            {{ $title ?: config('app.name', 'ERPNovaBrand New Ideas Company') }}
             - {{ __('Invoice') }}</title>
         @include('fragments.std', [
             'meta_title' => $meta_title,

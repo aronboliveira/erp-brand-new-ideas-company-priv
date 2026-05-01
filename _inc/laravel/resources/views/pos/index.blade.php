@@ -46,7 +46,7 @@
 <html lang="{{ $lang ?? (str_replace('_','-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG)) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
     <head>
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>{{ data_get($companySettings,'header_text.value',config('app.name','ERP Nova Prestech')) }} - {{ __('POS') }}</title>
+        <title>{{ data_get($companySettings,'header_text.value',config('app.name','ERP Brand New Ideas Company')) }} - {{ __('POS') }}</title>
         @include('fragments.std', ['meta_title'=>$meta_title ?? '', 'meta_desc'=>$meta_desc ?? '', 'meta_vp'=>'shrink-to-fit-no'])
         @include('fragments.favicon', ['faviconUrl'=>$faviconUrl])
         @include('fragments.stylesheets', ['settings'=>$colorSettings])

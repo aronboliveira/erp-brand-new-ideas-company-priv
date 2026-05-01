@@ -29,7 +29,7 @@ class ViewRenderingHardeningTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-		$this->admin = User::where('email', 'suporte@prestech.com.br')->first();
+		$this->admin = User::where('email', 'suporte@brandnewideascompany.com')->first();
 		if ($this->admin) {
 			$this->actingAs($this->admin);
 		}

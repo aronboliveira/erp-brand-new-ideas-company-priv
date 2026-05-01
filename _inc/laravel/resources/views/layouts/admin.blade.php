@@ -70,7 +70,7 @@
 <html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG) }}" dir="{{$siteRtl == 'on' ? 'rtl' : '' }}">
     <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">
     <head>
-        <title>{{(($setting['title_text'] ?? null)) ? $setting['title_text'] : config('app.name', 'ERPNovaPrestech')}}
+        <title>{{(($setting['title_text'] ?? null)) ? $setting['title_text'] : config('app.name', 'ERPNovaBrand New Ideas Company')}}
             - @yield(YieldingConstants::ADM_PG_TTL)</title>
         @include('fragments.std', [
             'meta_title' => $meta_title,

@@ -94,7 +94,7 @@
 - **PHPUnit Feature (DashboardDataTest):** 26/26 tests, 88 assertions, 0 failures
 - **PHPStan Level 2:** 0 errors on BillController (down from 80 — @property annotations on 8 models)
 - **PHPStan Level 3:** Module-by-module runner created (`scripts/phpstan-modules.sh`)
-- **Test DB:** `erp_prestech_test` — 210 tables, 215 migrations, all passing
+- **Test DB:** `erp_brand_new_ideas_company_test` — 210 tables, 215 migrations, all passing
 - **Factory files:** 7 created (Bill, Customer, Vendor, Employee, Invoice, Revenue, BankAccount)
 - **Scripts:** Added PHPStan/PHPUnit/pytest/curl commands to `composer.json` and `package.json`
 

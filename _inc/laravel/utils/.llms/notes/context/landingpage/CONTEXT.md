@@ -1,7 +1,7 @@
 # LandingPage Module — Subagent Context & Operations Guide
 
 > **Purpose**: This document provides a complete operational context for an AI subagent
-> working exclusively on the LandingPage module of the ERP Nova Prestech application.
+> working exclusively on the LandingPage module of the ERP Brand New Ideas Company application.
 
 ---
 

@@ -75,8 +75,8 @@
   "important_constants_values": {
     "PMC::SA":              "super admin",
     "settings.default_language": "pt-br",
-    "settings.company_name":     "Nova Prestech",
-    "settings.company_email":    "contato@prestech.com.br",
+    "settings.company_name":     "Nova Brand New Ideas Company",
+    "settings.company_email":    "contato@brandnewideascompany.com",
     "settings.site_currency":    "BRL",
     "settings.site_date_format": "d/m/Y",
     "settings.site_time_format": "H:i"

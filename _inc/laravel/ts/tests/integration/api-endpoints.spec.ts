@@ -43,12 +43,12 @@ test.describe("Mock API — Auth", () => {
     expect(res.ok()).toBeTruthy();
     const json = await res.json();
     expect(json.data.id).toBe(1);
-    expect(json.data.email).toBe("test@erp-prestech.local");
+    expect(json.data.email).toBe("test@erp-brand-new-ideas-company.local");
   });
 
   test("POST /api/login with valid credentials returns token", async ({ request }) => {
     const res = await request.post(`${API}/api/login`, {
-      data: { email: "test@erp-prestech.local", password: "password" },
+      data: { email: "test@erp-brand-new-ideas-company.local", password: "password" },
     });
     expect(res.ok()).toBeTruthy();
     const json = await res.json();

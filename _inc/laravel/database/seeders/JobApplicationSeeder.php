@@ -518,7 +518,7 @@ class JobApplicationSeeder extends Seeder
 
 	private function makeCompanyName(): string
 	{
-		$pool = ['Prestech', 'NovaTech', 'Alfa Systems', 'Beta Logistics', 'Gamma Labs', 'Delta Finance'];
+		$pool = ['Brand New Ideas Company', 'NovaTech', 'Alfa Systems', 'Beta Logistics', 'Gamma Labs', 'Delta Finance'];
 		return $pool[array_rand($pool)];
 	}
 

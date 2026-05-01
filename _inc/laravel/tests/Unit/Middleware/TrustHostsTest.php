@@ -44,12 +44,12 @@ class TrustHostsTest extends TestCase
 	}
 
 	#[Test]
-	public function hosts_contains_prestech_domains(): void
+	public function hosts_contains_brand new ideas company_domains(): void
 	{
 		$hosts = $this->makeMiddleware()->hosts();
-		$this->assertContains('prestech.com.br', $hosts);
-		$this->assertContains('sistema.prestech.com.br', $hosts);
-		$this->assertContains('prestek.inf.br', $hosts);
+		$this->assertContains('brandnewideascompany.com', $hosts);
+		$this->assertContains('sistema.brandnewideascompany.com', $hosts);
+		$this->assertContains('brand new ideas company.inf.br', $hosts);
 	}
 
 	#[Test]

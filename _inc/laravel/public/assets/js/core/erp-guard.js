@@ -4,7 +4,7 @@
  *              and form validation guards across the ERP system.
  * @version 2.0.0
  * @license MIT
- * @author ERP Prestech Team
+ * @author ERP Brand New Ideas Company Team
  * @see https://getbootstrap.com/docs/5.3/components/toasts/
  * @see https://getbootstrap.com/docs/5.3/components/modal/
  *

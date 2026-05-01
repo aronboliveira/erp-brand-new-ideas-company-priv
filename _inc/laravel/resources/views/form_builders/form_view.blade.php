@@ -57,7 +57,7 @@ $lang = Utility::fetchUserLang();
 <html lang="{{ $lang ?? (str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DB::DEFAULT_LANG)) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
     <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">
     <head>
-        <title>{{ (Utility::getValByName('title_text') ?: config('app.name', 'ERPNovaPrestech')) }} - {{ __('Form Builder') ?: 'Form Builder' }}</title>
+        <title>{{ (Utility::getValByName('title_text') ?: config('app.name', 'ERPNovaBrand New Ideas Company')) }} - {{ __('Form Builder') ?: 'Form Builder' }}</title>
 
         @include('fragments.std', ['meta_title' => $meta_title, 'meta_desc' => $meta_desc])
         @include('fragments.og',  ['meta_title' => $meta_title, 'meta_desc' => $meta_desc, 'meta_image' => $meta_image, 'meta_logo' => $meta_logo])

@@ -1,7 +1,7 @@
 # LandingPage Module — Subagent Prompt Template
 
 You are a code assistant working exclusively on the **LandingPage** module of a Laravel 10
-ERP application (**Nova Prestech / ERPGo fork**).
+ERP application (**Brand New Ideas Company / Brand New Ideas Company fork**).
 
 ## Your Scope
 

@@ -13,7 +13,7 @@ import os
 import re
 import sys
 
-BASE = "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel"
+BASE = "/workspace/erp/_inc/laravel"
 
 DIRS = [
     "resources/views",  

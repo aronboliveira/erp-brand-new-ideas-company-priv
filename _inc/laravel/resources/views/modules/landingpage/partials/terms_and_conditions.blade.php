@@ -7,7 +7,7 @@
         <article>
             <h4>1. {{ __('Acceptance of Terms') }}</h4>
             <p>{!! __('terms.acceptance', [
-                'company' => '<strong>Nova Prestech.net Informática</strong>',
+                'company' => '<strong>Brand New Ideas Company.net Informática</strong>',
                 'cnpj' => '<abbr title="Cadastro Nacional da Pessoa Jurídica">CNPJ</abbr>',
             ]) !!}</p>
             <p>{{ __('By accessing or using this platform, you expressly agree to these Terms and Conditions. If you do not agree, please discontinue use immediately.') }}</p>
@@ -17,13 +17,13 @@
             <h4>2. {{ __('Definitions') }}</h4>
             <dl>
                 <dt><dfn>{{ __('Platform') }}</dfn></dt>
-                <dd>{{ __('The ERP Nova Prestech web application, including all modules, APIs, and related services.') }}</dd>
+                <dd>{{ __('The ERP Brand New Ideas Company web application, including all modules, APIs, and related services.') }}</dd>
                 <dt><dfn>{{ __('User') }}</dfn></dt>
                 <dd>{{ __('Any individual or legal entity that accesses or uses the Platform.') }}</dd>
                 <dt><dfn>{{ __('Personal Data') }}</dfn></dt>
                 <dd>{!! __('Information related to an identified or identifiable natural person, as defined in <a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm" target="_blank" rel="noopener noreferrer">Art. 5, I of Law 13.709/2018 (LGPD)</a>.') !!}</dd>
                 <dt><dfn>{{ __('Controller') }}</dfn></dt>
-                <dd>{!! __('Nova Prestech.net Informática, responsible for decisions regarding the processing of personal data, pursuant to <a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm" target="_blank" rel="noopener noreferrer">Art. 5, VI of the LGPD</a>.') !!}</dd>
+                <dd>{!! __('Brand New Ideas Company.net Informática, responsible for decisions regarding the processing of personal data, pursuant to <a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm" target="_blank" rel="noopener noreferrer">Art. 5, VI of the LGPD</a>.') !!}</dd>
             </dl>
         </article>
 
@@ -46,7 +46,7 @@
 
         <article>
             <h4>5. {{ __('Intellectual Property') }}</h4>
-            <p>{!! __('All content, source code, trademarks, and visual assets of the Platform are the exclusive property of <strong>Nova Prestech.net Informática</strong> or its licensors, protected under <a href="https://www.planalto.gov.br/ccivil_03/leis/l9609.htm" target="_blank" rel="noopener noreferrer">Law 9.609/1998</a> (Software Protection) and <a href="https://www.planalto.gov.br/ccivil_03/leis/l9610.htm" target="_blank" rel="noopener noreferrer">Law 9.610/1998</a> (Copyright).') !!}</p>
+            <p>{!! __('All content, source code, trademarks, and visual assets of the Platform are the exclusive property of <strong>Brand New Ideas Company.net Informática</strong> or its licensors, protected under <a href="https://www.planalto.gov.br/ccivil_03/leis/l9609.htm" target="_blank" rel="noopener noreferrer">Law 9.609/1998</a> (Software Protection) and <a href="https://www.planalto.gov.br/ccivil_03/leis/l9610.htm" target="_blank" rel="noopener noreferrer">Law 9.610/1998</a> (Copyright).') !!}</p>
         </article>
 
         <article>
@@ -75,9 +75,9 @@
             <h4>10. {{ __('Contact') }}</h4>
             <p>{{ __('For questions regarding these Terms, contact us at:') }}</p>
             <address>
-                <strong>Nova Prestech.net Informática</strong><br>
+                <strong>Brand New Ideas Company.net Informática</strong><br>
                 {{ __('Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro — RJ, Brasil') }}<br>
-                <a href="mailto:comercial@prestech.com.br">comercial@prestech.com.br</a><br>
+                <a href="mailto:comercial@brandnewideascompany.com">comercial@brandnewideascompany.com</a><br>
                 <a href="tel:+552138607510">+55 (21) 3860-7510</a>
             </address>
         </article>

@@ -1,5 +1,5 @@
 ###############################################################################
-# ERP Nova Prestech — PHPUnit Test Job
+# ERP Brand New Ideas Company — PHPUnit Test Job
 # Runs the test suite directly inside the test image.
 # Usage: kubectl apply -f k8s/backend/test-job.yaml
 ###############################################################################
@@ -7,10 +7,10 @@ apiVersion: batch/v1
 kind: Job
 metadata:
     name: erp-phpunit
-    namespace: erp-prestech
+    namespace: erp-brand-new-ideas-company
     labels:
         app: erp-test
-        app.kubernetes.io/part-of: erp-prestech
+        app.kubernetes.io/part-of: erp-brand-new-ideas-company
 spec:
     backoffLimit: 0
     ttlSecondsAfterFinished: 600
@@ -22,7 +22,7 @@ spec:
             restartPolicy: Never
             containers:
                 - name: phpunit
-                  image: erp-prestech-test:latest
+                  image: erp-brand-new-ideas-company-test:latest
                   imagePullPolicy: Never
                   command:
                       - /bin/sh
@@ -38,7 +38,7 @@ spec:
                       - name: DB_HOST
                         value: mysql-service
                       - name: DB_DATABASE
-                        value: erp_prestech_db
+                        value: erp_brand_new_ideas_company_db
                       - name: REDIS_HOST
                         value: redis-service
                   resources:

@@ -11,7 +11,7 @@ import re
 import os
 import sys
 
-BASE = "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel"
+BASE = "/workspace/erp/_inc/laravel"
 DIRS = [
     # Update this list before running
 ]

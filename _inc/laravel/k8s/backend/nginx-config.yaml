@@ -1,13 +1,13 @@
 ###############################################################################
-# ERP Nova Prestech — Nginx ConfigMap para sidecar no pod backend (K8s)
+# ERP Brand New Ideas Company — Nginx ConfigMap para sidecar no pod backend (K8s)
 ###############################################################################
 apiVersion: v1
 kind: ConfigMap
 metadata:
     name: nginx-config
-    namespace: erp-prestech
+    namespace: erp-brand-new-ideas-company
     labels:
-        app.kubernetes.io/part-of: erp-prestech
+        app.kubernetes.io/part-of: erp-brand-new-ideas-company
 data:
     default.conf: |
         upstream php_fpm {

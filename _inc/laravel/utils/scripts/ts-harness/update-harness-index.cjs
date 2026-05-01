@@ -57,7 +57,7 @@ const html = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test Harness Index - ERP Prestech</title>
+  <title>Test Harness Index - ERP Brand New Ideas Company</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
         rel="stylesheet" crossorigin="anonymous">
   <style>
@@ -68,7 +68,7 @@ const html = `<!DOCTYPE html>
 </head>
 <body>
   <div class="container-fluid py-3">
-    <h1 class="h3 mb-3">Test Harness - ERP Prestech</h1>
+    <h1 class="h3 mb-3">Test Harness - ERP Brand New Ideas Company</h1>
     
     <div class="search-box mb-3">
       <input type="text" class="form-control" id="search" placeholder="Filter pages...">

@@ -1,5 +1,5 @@
 ###############################################################################
-# ERP Nova Prestech — Ingress para Kubernetes local (minikube)
+# ERP Brand New Ideas Company — Ingress para Kubernetes local (minikube)
 # Requer: minikube addons enable ingress
 # Acesso: adicione "erp.local" ao /etc/hosts apontando para $(minikube ip)
 ###############################################################################
@@ -7,9 +7,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
     name: erp-ingress
-    namespace: erp-prestech
+    namespace: erp-brand-new-ideas-company
     labels:
-        app.kubernetes.io/part-of: erp-prestech
+        app.kubernetes.io/part-of: erp-brand-new-ideas-company
     annotations:
         nginx.ingress.kubernetes.io/ssl-redirect: "false"
         nginx.ingress.kubernetes.io/proxy-body-size: "100m"

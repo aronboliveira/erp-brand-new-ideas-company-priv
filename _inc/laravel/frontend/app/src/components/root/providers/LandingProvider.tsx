@@ -32,8 +32,8 @@ export default function LandingProvider({ children }: Parent): JSX.Element {
               <Link href='/' passHref>
                 <Box component='div' className={"brand"}>
                   <Image
-                    src='/logo-prestech-2.webp'
-                    alt='Nova Prestech Logo'
+                    src='/logo-brand new ideas company-2.webp'
+                    alt='Nova Brand New Ideas Company Logo'
                     className={"brandImage"}
                     width={92}
                     height={32}

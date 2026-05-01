@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # MySQL diagnostic queries with explicit IP
-MYSQL="mysql -uadmin_prestech -p76562f3A*@prestech -h127.0.0.1 -P3306 erp_prestech"
+MYSQL="mysql -uadmin_brand_new_ideas_company -p76562f3A*@brandnewideascompany -h127.0.0.1 -P3306 erp_brand_new_ideas_company"
 
 echo "═══ MySQL Diagnostics — $(date) ═══"
 echo ""
@@ -14,7 +14,7 @@ $MYSQL -e "
 SELECT 
   ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb
 FROM information_schema.TABLES 
-WHERE TABLE_SCHEMA='erp_prestech'
+WHERE TABLE_SCHEMA='erp_brand_new_ideas_company'
 " 2>/dev/null || echo "Query failed"
 
 echo ""
@@ -22,7 +22,7 @@ echo "── Table Counts ──"
 $MYSQL -e "
 SELECT TABLE_NAME, TABLE_ROWS 
 FROM information_schema.TABLES 
-WHERE TABLE_SCHEMA='erp_prestech' 
+WHERE TABLE_SCHEMA='erp_brand_new_ideas_company' 
 ORDER BY TABLE_ROWS DESC
 " 2>/dev/null || echo "Query failed"
 
@@ -31,7 +31,7 @@ echo "── Empty Tables ──"
 $MYSQL -e "
 SELECT TABLE_NAME 
 FROM information_schema.TABLES 
-WHERE TABLE_SCHEMA='erp_prestech' AND TABLE_ROWS = 0
+WHERE TABLE_SCHEMA='erp_brand_new_ideas_company' AND TABLE_ROWS = 0
 " 2>/dev/null || echo "Query failed"
 
 echo ""

@@ -4,7 +4,7 @@
 
 set -o pipefail
 
-LARAVEL_DIR="/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel"
+LARAVEL_DIR="/workspace/erp/_inc/laravel"
 cd "$LARAVEL_DIR"
 
 OUTDIR="storage/phpstan_results"

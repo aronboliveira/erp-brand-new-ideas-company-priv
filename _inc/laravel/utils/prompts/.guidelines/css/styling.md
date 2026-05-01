@@ -1,6 +1,6 @@
 # CSS & SCSS Styling
 
-Guidelines for styling across the ERP Prestech codebase using CSS, SCSS, Material UI, and Tailwind CSS.
+Guidelines for styling across the ERP Brand New Ideas Company codebase using CSS, SCSS, Material UI, and Tailwind CSS.
 
 ## Pseudo-Classes
 

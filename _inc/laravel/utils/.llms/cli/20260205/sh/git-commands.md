@@ -8,5 +8,5 @@
 git log | grep "erp-guard"
 ```
 
-Working directory: `/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech`
+Working directory: `/workspace/erp`
 Exit code: 1 (pattern not found in commit messages)

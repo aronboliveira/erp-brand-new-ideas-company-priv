@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
 const BASE =
-  "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/ts/";
+  "/workspace/erp/_inc/laravel/ts/";
 
 // 1. Fix "void if" patterns (invalid syntax) — remove "void " before if/for/while
 for (const rel of [

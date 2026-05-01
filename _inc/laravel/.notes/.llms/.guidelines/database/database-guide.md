@@ -4,7 +4,7 @@
 
 ## Visão Geral
 
-- **211 tabelas** no schema `erp_prestech_db`
+- **211 tabelas** no schema `erp_brand_new_ideas_company_db`
 - **215 migrations** em `database/migrations/`
 - **87 factories** em `database/factories/`
 - **160+ seeders** em `database/seeders/`

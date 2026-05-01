@@ -65,8 +65,8 @@
             ((n = i[p]), o.o(r, n) && r[n]?.[0](), (r[n] = 0));
           return o.O(v);
         },
-        t = (self.webpackChunkerp_nova_prestech =
-          self.webpackChunkerp_nova_prestech || []);
+        t = (self.webpackChunkerp_brand_new_ideas_company =
+          self.webpackChunkerp_brand_new_ideas_company || []);
       (t.forEach(e.bind(null, 0)), (t.push = e.bind(null, t.push.bind(t))));
     })(),
     o.O(void 0, [252], () => o(653)));

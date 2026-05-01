@@ -18,10 +18,10 @@ but all seeders used `DC::DEFAULT_UUID` for `created_by`. Dashboard queries filt
 
 ```bash
 # Verify SA user
-mysql -u test -ptest erp_prestech_db -e "SELECT id, email, type FROM users WHERE email='suporte@prestech.com.br';"
+mysql -u test -ptest erp_brand_new_ideas_company_db -e "SELECT id, email, type FROM users WHERE email='suporte@brandnewideascompany.com';"
 
 # Count SA-owned data
-mysql -u test -ptest erp_prestech_db -e "
+mysql -u test -ptest erp_brand_new_ideas_company_db -e "
 SELECT 'Goals' as e, COUNT(*) as c FROM goals WHERE created_by='a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7'
 UNION ALL SELECT 'Bills', COUNT(*) FROM bills WHERE created_by='a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7'
 UNION ALL SELECT 'Projects', COUNT(*) FROM projects WHERE created_by='a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7'

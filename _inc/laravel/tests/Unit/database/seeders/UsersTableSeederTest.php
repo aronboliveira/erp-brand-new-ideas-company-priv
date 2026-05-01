@@ -64,7 +64,7 @@ class UsersTableSeederTest extends TestCase
 		$this->assertDatabaseCount(DatabaseConstants::TABLE_USERS, 5);
 		$this->assertDatabaseHas(DatabaseConstants::TABLE_USERS, [
 			'type'  => PermissionsConstants::SA,
-			'email' => 'suporte@prestech.com.br',
+			'email' => 'suporte@brandnewideascompany.com',
 		]);
 		$this->assertDatabaseHas(DatabaseConstants::TABLE_USERS, [
 			'type'  => PermissionsConstants::ADM,

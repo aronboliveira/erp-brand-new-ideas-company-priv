@@ -1,10 +1,10 @@
-# ERP Nova Prestech — Project Configuration
+# ERP Nova Brand New Ideas Company — Project Configuration
 # Format: YAML (objective simple entry configurations)
 # Last updated: 2026-03-04
 # Purpose: Single-source-of-truth for stack versions, paths, auth, and env keys
 
 meta:
-    app_name: "ERP Nova Prestech"
+    app_name: "ERP Nova Brand New Ideas Company"
     branch: main
     head: 18ce525d
     last_updated: "2026-03-04"
@@ -14,14 +14,14 @@ stack:
     framework_version: "10.49.0"
     php: "8.4.5"
     database: mysql
-    database_name: erp_prestech
-    database_user: admin_prestech
-    database_password: "76562f3A*@prestech"
+    database_name: erp_brand_new_ideas_company
+    database_user: admin_brand_new_ideas_company
+    database_password: "76562f3A*@brandnewideascompany"
     database_host: 127.0.0.1
     database_port: 3306
-    test_database_name: erp_prestech_test
-    test_database_user: admin_prestech
-    test_database_password: "76562f3A*@prestech"
+    test_database_name: erp_brand_new_ideas_company_test
+    test_database_user: admin_brand_new_ideas_company
+    test_database_password: "76562f3A*@brandnewideascompany"
     node: "22.22.0"
     playwright: "1.52.0"
     jest: "30.1.3"
@@ -34,7 +34,7 @@ stack:
     bundler: laravel_mix
 
 paths:
-    repo_root: /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech
+    repo_root: /home/aronboliveira/Desktop/programming/Brand New Ideas Company/erp/erpgo-fork/erp_brand_new_ideas_company
     laravel: _inc/laravel
     app: _inc/laravel/app
     views: _inc/laravel/resources/views
@@ -56,18 +56,18 @@ paths:
         - .deprecated/
 
 auth:
-    sa_email: suporte@prestech.com.br
+    sa_email: suporte@brandnewideascompany.com
     sa_uuid: a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7
     sa_password: test1234
     sa_type: "super admin"
-    sa_name: "Suporte Prestech"
+    sa_name: "Suporte Brand New Ideas Company"
     sa_lang: pt-br
-    session_cookie: erp_nova_prestech_session
+    session_cookie: erp_brand_new_ideas_company_session
     login_url: /login
     post_login_redirect: /home
 
 env:
-    APP_NAME: "ERP Nova Prestech"
+    APP_NAME: "ERP Nova Brand New Ideas Company"
     APP_ENV: local
     APP_DEBUG: true
     APP_URL: "http://localhost/"
@@ -80,7 +80,7 @@ env:
 git:
     branch: main
     remote_name: origin
-    remote_url: "https://github.com/aronboliveira/erp-prestech-priv"
+    remote_url: "https://github.com/aronboliveira/erp-brand-new-ideas-company-priv"
     old_remote_name: comp
-    old_remote_url: "https://github.com/Desenvolvimento-Prestch/erp_unix"
+    old_remote_url: "https://github.com/Desenvolvimento-BrandNewIdeasCompany/erp_unix"
     convention: "type(scope): short description\n\n- bullet detail"

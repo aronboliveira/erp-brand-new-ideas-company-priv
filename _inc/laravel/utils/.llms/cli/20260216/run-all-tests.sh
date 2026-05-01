@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-# run-all-tests.sh — Master test runner for ERP Prestech
+# run-all-tests.sh — Master test runner for ERP Brand New Ideas Company
 # Runs PHPUnit, Jest, and Playwright tests with summary
 # Usage: bash run-all-tests.sh [--phpunit] [--jest] [--playwright] [--curl]
 # ============================================================================
@@ -35,7 +35,7 @@ for arg in "$@"; do
 done
 
 echo -e "${BLUE}╔══════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║     ERP Prestech — Test Runner v1.0.0           ║${NC}"
+echo -e "${BLUE}║     ERP Brand New Ideas Company — Test Runner v1.0.0           ║${NC}"
 echo -e "${BLUE}║     $(date '+%Y-%m-%d %H:%M:%S')                         ║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════════════════╝${NC}"
 

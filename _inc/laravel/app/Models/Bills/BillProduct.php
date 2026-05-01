@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Bills;
 
 use App\Config\Constants\{
     BanksConstants as BKC,

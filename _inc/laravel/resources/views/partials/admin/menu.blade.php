@@ -76,10 +76,10 @@
                 {{--                <img src="{{ asset(Storage::url('uploads/logo/'.$logo)) }}" alt="{{ env('APP_NAME') }}" class="{{ VC::LOGO_LG }}" /> --}}
                 @if (($colorSettings[SC::CST_DRK] ?? null) === 'on')
                     <img src="{{ (isset($company_logos) && !empty($company_logos) ? asset($company_logos) : asset(SC::CPN_LG_DK_DEF)) }}"
-                        alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO_LG }}">
+                        alt="{{ config('app.name', 'ERPNovaBrand New Ideas Company') }}" class="{{ VC::LOGO_LG }}">
                 @else
                     <img src="{{ (isset($company_logo) && !empty($company_logo) ? asset($company_logo) : asset(SC::CPN_LG_LT_DEF)) }}"
-                        alt="{{ config('app.name', 'ERPNovaPrestech') }}" class="{{ VC::LOGO_LG }}">
+                        alt="{{ config('app.name', 'ERPNovaBrand New Ideas Company') }}" class="{{ VC::LOGO_LG }}">
                 @endif
             </a>
         </div>

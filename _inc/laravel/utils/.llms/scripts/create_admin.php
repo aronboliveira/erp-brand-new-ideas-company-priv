@@ -18,11 +18,11 @@ try {
 	}
 
 	// Check if user already exists
-	$existing = User::where('email', 'suporte@prestech.com.br')->first();
+	$existing = User::where('email', 'suporte@brandnewideascompany.com')->first();
 	if ($existing) {
 		echo "Super Admin already exists: {$existing->email}\n";
 		echo "Updating password...\n";
-		$existing->password = Hash::make('Admin@Prestech2026!');
+		$existing->password = Hash::make('Admin@BrandNewIdeasCompany2026!');
 		$existing->save();
 		echo "Password updated successfully!\n";
 		exit(0);
@@ -32,8 +32,8 @@ try {
 	$user = User::create([
 		'id' => 'a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7',
 		'name' => 'Super Admin',
-		'email' => 'suporte@prestech.com.br',
-		'password' => Hash::make('Admin@Prestech2026!'),
+		'email' => 'suporte@brandnewideascompany.com',
+		'password' => Hash::make('Admin@BrandNewIdeasCompany2026!'),
 		'type' => 'super admin',
 		'lang' => $lang->code,
 		'mode' => 'light',
@@ -42,7 +42,7 @@ try {
 
 	echo "✓ Super Admin created successfully!\n";
 	echo "  Email: {$user->email}\n";
-	echo "  Password: Admin@Prestech2026!\n";
+	echo "  Password: Admin@BrandNewIdeasCompany2026!\n";
 	echo "  Type: {$user->type}\n";
 } catch (Exception $e) {
 	echo "ERROR: {$e->getMessage()}\n";

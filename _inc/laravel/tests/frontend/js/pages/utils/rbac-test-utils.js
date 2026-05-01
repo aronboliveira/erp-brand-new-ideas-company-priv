@@ -185,7 +185,7 @@ export function createMockUser(role, overrides) {
   var base = {
     id: "user-" + role + "-" + Date.now(),
     name: "Test " + tpl.name,
-    email: "test." + role.toLowerCase() + "@prestech.com.br",
+    email: "test." + role.toLowerCase() + "@brandnewideascompany.com",
     role: tpl,
     permissions: tpl.permissions,
     company_id: "company-1",

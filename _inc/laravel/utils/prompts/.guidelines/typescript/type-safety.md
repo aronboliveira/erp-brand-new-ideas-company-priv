@@ -2,7 +2,7 @@
 
 ## Overview
 
-These rules govern TypeScript-specific patterns in the ERP Prestech
+These rules govern TypeScript-specific patterns in the ERP Brand New Ideas Company
 codebase. They complement the general JavaScript coding rules and focus
 on type declarations, variable typing, and framework integration.
 

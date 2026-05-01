@@ -1,15 +1,15 @@
 ###############################################################################
-# ERP Nova Prestech — Redis 7 para Kubernetes local (minikube)
+# ERP Brand New Ideas Company — Redis 7 para Kubernetes local (minikube)
 # Cache, fila e sessão — configuração mínima para desenvolvimento/staging.
 ###############################################################################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: redis
-    namespace: erp-prestech
+    namespace: erp-brand-new-ideas-company
     labels:
         app: redis
-        app.kubernetes.io/part-of: erp-prestech
+        app.kubernetes.io/part-of: erp-brand-new-ideas-company
 spec:
     replicas: 1
     selector:
@@ -49,7 +49,7 @@ apiVersion: v1
 kind: Service
 metadata:
     name: redis-service
-    namespace: erp-prestech
+    namespace: erp-brand-new-ideas-company
     labels:
         app: redis
 spec:

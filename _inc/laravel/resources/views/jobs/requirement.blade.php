@@ -64,7 +64,7 @@ $data ??= [];
 <html lang="{{ $lang ?? (str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DatabaseConstants::DEFAULT_LANG)) }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
     <head>
         @include('fragments.std', ['meta_title'=>$meta_title,'meta_desc'=>$meta_desc,'meta_vp'=>'shrink-to-fit-no'])
-        <title>{{ data_get($companySettings,'header_text.value',config('app.name','ERP Nova Prestech')) }} - {{ __('Career') }}</title>
+        <title>{{ data_get($companySettings,'header_text.value',config('app.name','ERP Brand New Ideas Company')) }} - {{ __('Career') }}</title>
         @include('fragments.og', ['meta_title'=>$meta_title,'meta_desc'=>$meta_desc,'meta_image'=>$meta_image,'meta_logo'=>$meta_logo])
         @include('fragments.x', ['meta_title'=>$meta_title,'meta_desc'=>$meta_desc,'meta_image'=>$meta_image,'meta_logo'=>$meta_logo])
         @include('fragments.favicon', ['faviconUrl'=>$faviconUrl])

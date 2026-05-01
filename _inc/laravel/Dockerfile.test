@@ -1,5 +1,5 @@
 # Lightweight test layer on top of the production image
-FROM erp-prestech-app:latest
+FROM erp-brand-new-ideas-company-app:latest
 
 # Add test files and PHPUnit config
 COPY tests/ /var/www/tests/

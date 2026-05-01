@@ -2,7 +2,7 @@
 # PHPStan per-file analysis for remaining timed-out directories
 # Analyzes each file individually with 300s timeout per file
 
-LARAVEL_DIR="/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel"
+LARAVEL_DIR="/workspace/erp/_inc/laravel"
 cd "$LARAVEL_DIR"
 
 RESULTS_DIR="storage/phpstan_results"

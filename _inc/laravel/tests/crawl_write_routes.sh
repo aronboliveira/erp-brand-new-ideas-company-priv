@@ -134,7 +134,7 @@ log "  CSRF token: ${CSRF_TOKEN:0:12}..."
 LOGIN_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
   -b "$JAR" -c "$JAR" \
   -X POST \
-  -d "_token=${CSRF_TOKEN}&email=suporte@prestech.com.br&password=123456789qwe.*" \
+  -d "_token=${CSRF_TOKEN}&email=suporte@brandnewideascompany.com&password=123456789qwe.*" \
   -H "Accept: text/html" \
   "${BASE}/login" 2>/dev/null)
 
@@ -227,7 +227,7 @@ fire_form "POST" "leads" "Create lead" \
 
 # 3c. Company settings (POST, idempotent)
 fire_form "POST" "company-settings" "Save company settings" \
-  -d "companyName=PrestechERPTest"
+  -d "companyName=Brand New Ideas CompanyERPTest"
 
 # 3d. Business settings (POST, idempotent)
 fire_form "POST" "business-setting" "Save business settings" \

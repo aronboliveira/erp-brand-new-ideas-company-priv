@@ -21,7 +21,7 @@
       "sameSite": "Lax"
     },
     {
-      "name": "erp_nova_prestech_session",
+      "name": "erp_brand_new_ideas_company_session",
       "value": "eyJpdiI6ImZGWmI0N2x4R3lmclhVelhsOUM2SUE9PSIsInZhbHVlIjoiMysxbGwvV0JkelVCUUlDUEQ1YWlTUUo2R0M4N2ZmZithM0VlK2JhL1RSRkxPOWh1a3psMklFcFFKcWFvZ2JzblovbzQ5bTA3QkdIV0F1UkZVN1YyZk9qSWY4eXVkSDJESVJYcTBTNXVaNGltdGZFUTFqcERjQXRmV1ZSNjZDd1ciLCJtYWMiOiI5Mzk0MDI4NGIzMjBhNGU5ZjJmNGNmOWFmYjE0ODYwM2NkZmZjZTY2NWQzNGUwN2JkZjk5NWIyODlhZjE1ZDBlIiwidGFnIjoiIn0%3D",
       "domain": "localhost",
       "path": "/",

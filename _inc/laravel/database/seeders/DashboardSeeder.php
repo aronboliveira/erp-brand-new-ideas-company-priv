@@ -25,9 +25,9 @@ class DashboardSeeder extends Seeder
 {
 	public function run(): void
 	{
-		$userRow = DB::table('users')->where('email', 'suporte@prestech.com.br')->first();
+		$userRow = DB::table('users')->where('email', 'suporte@brandnewideascompany.com')->first();
 		if (!$userRow) {
-			$this->command?->error('Test user suporte@prestech.com.br not found.');
+			$this->command?->error('Test user suporte@brandnewideascompany.com not found.');
 			return;
 		}
 		// Super admin / company types use their own ID as creatorId
@@ -111,7 +111,7 @@ class DashboardSeeder extends Seeder
 			DB::table('customers')->insert([
 				'id'         => $custId,
 				'name'       => $customerNames[$existingCusts + $i] ?? "Cliente Demo " . ($existingCusts + $i + 1),
-				'email'      => 'cliente' . ($existingCusts + $i + 1) . '@demo.prestech.com.br',
+				'email'      => 'cliente' . ($existingCusts + $i + 1) . '@demo.brandnewideascompany.com',
 				'created_by' => $cid,
 				'created_at' => $now,
 				'updated_at' => $now,
@@ -141,7 +141,7 @@ class DashboardSeeder extends Seeder
 			DB::table('vendors')->insert([
 				'id'         => $vendId,
 				'name'       => $vendorNames[$existingVends + $i] ?? "Fornecedor Demo " . ($existingVends + $i + 1),
-				'email'      => 'fornecedor' . ($existingVends + $i + 1) . '@demo.prestech.com.br',
+				'email'      => 'fornecedor' . ($existingVends + $i + 1) . '@demo.brandnewideascompany.com',
 				'created_by' => $cid,
 				'created_at' => $now,
 				'updated_at' => $now,

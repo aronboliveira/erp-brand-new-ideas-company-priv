@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import path from "path";
 
 /**
- * ERP Prestech – Finance Module Rendering E2E Tests
+ * ERP Brand New Ideas Company – Finance Module Rendering E2E Tests
  * Comprehensive rendering checks for all finance-related endpoints,
  * including the payslip_types routes (previously shadowed by payslips).
  *

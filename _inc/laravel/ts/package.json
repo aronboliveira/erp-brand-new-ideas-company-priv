@@ -1,5 +1,5 @@
 {
-  "name": "@erp-prestech/ts-src",
+  "name": "@erp-brand-new-ideas-company/ts-src",
   "version": "1.0.0",
   "description": "TypeScript source files mirroring the app JS in public/, resources/, tests/",
   "private": true,

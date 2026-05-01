@@ -311,9 +311,9 @@ Full Playwright suite after this commit: **300 passed / 1 failed** (expense form
 
 ### Database Setup
 
-- MySQL 8.4.7 running, used `test`/`test` user on `erp_prestech_db` (211 tables, seeded)
+- MySQL 8.4.7 running, used `test`/`test` user on `erp_brand_new_ideas_company_db` (211 tables, seeded)
 - Created test admin user with UUID `1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c`
-- `phpunit.xml` updated to point to `erp_prestech_db`
+- `phpunit.xml` updated to point to `erp_brand_new_ideas_company_db`
 
 ### Full Test Suite Results (with seeded DB)
 

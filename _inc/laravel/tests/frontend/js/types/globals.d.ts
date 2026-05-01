@@ -1,5 +1,5 @@
 /**
- * Type declarations for ERP Prestech JavaScript globals
+ * Type declarations for ERP Brand New Ideas Company JavaScript globals
  */
 
 // Bootstrap types (simplified)

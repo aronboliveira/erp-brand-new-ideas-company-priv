@@ -1,4 +1,4 @@
-# ERP Nova Prestech
+# ERP Brand New Ideas Company
 
 <details>
 <summary>🇺🇸 English</summary>
@@ -43,7 +43,7 @@ php artisan key:generate
 Edit `.env` — at minimum set:
 
 ```dotenv
-DB_DATABASE=erp_prestech_db
+DB_DATABASE=erp_brand_new_ideas_company_db
 DB_USERNAME=test
 DB_PASSWORD=test
 ```
@@ -53,9 +53,9 @@ DB_PASSWORD=test
 Create the database and user in MySQL:
 
 ```sql
-CREATE DATABASE IF NOT EXISTS erp_prestech_db;
+CREATE DATABASE IF NOT EXISTS erp_brand_new_ideas_company_db;
 CREATE USER 'test'@'localhost' IDENTIFIED BY 'test';
-GRANT ALL PRIVILEGES ON erp_prestech_db.* TO 'test'@'localhost';
+GRANT ALL PRIVILEGES ON erp_brand_new_ideas_company_db.* TO 'test'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
@@ -98,10 +98,10 @@ Services started by `docker compose`:
 
 | Service | Container | Port |
 |---|---|---|
-| PHP-FPM | `erp-prestech-app` | 9000 (internal) |
-| Nginx | `erp-prestech-nginx` | 8080 → 80 |
-| MySQL 8.0 | `erp-prestech-db` | 3306 |
-| Redis 7 | `erp-prestech-redis` | 6379 |
+| PHP-FPM | `erp-brand-new-ideas-company-app` | 9000 (internal) |
+| Nginx | `erp-brand-new-ideas-company-nginx` | 8080 → 80 |
+| MySQL 8.0 | `erp-brand-new-ideas-company-db` | 3306 |
+| Redis 7 | `erp-brand-new-ideas-company-redis` | 6379 |
 
 To stop:
 
@@ -308,7 +308,7 @@ php artisan key:generate
 Editar `.env` — como mínimo configurar:
 
 ```dotenv
-DB_DATABASE=erp_prestech_db
+DB_DATABASE=erp_brand_new_ideas_company_db
 DB_USERNAME=test
 DB_PASSWORD=test
 ```
@@ -318,9 +318,9 @@ DB_PASSWORD=test
 Crear la base de datos y el usuario en MySQL:
 
 ```sql
-CREATE DATABASE IF NOT EXISTS erp_prestech_db;
+CREATE DATABASE IF NOT EXISTS erp_brand_new_ideas_company_db;
 CREATE USER 'test'@'localhost' IDENTIFIED BY 'test';
-GRANT ALL PRIVILEGES ON erp_prestech_db.* TO 'test'@'localhost';
+GRANT ALL PRIVILEGES ON erp_brand_new_ideas_company_db.* TO 'test'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
@@ -363,10 +363,10 @@ Servicios iniciados por `docker compose`:
 
 | Servicio | Contenedor | Puerto |
 |---|---|---|
-| PHP-FPM | `erp-prestech-app` | 9000 (interno) |
-| Nginx | `erp-prestech-nginx` | 8080 → 80 |
-| MySQL 8.0 | `erp-prestech-db` | 3306 |
-| Redis 7 | `erp-prestech-redis` | 6379 |
+| PHP-FPM | `erp-brand-new-ideas-company-app` | 9000 (interno) |
+| Nginx | `erp-brand-new-ideas-company-nginx` | 8080 → 80 |
+| MySQL 8.0 | `erp-brand-new-ideas-company-db` | 3306 |
+| Redis 7 | `erp-brand-new-ideas-company-redis` | 6379 |
 
 Para detener:
 
@@ -555,7 +555,7 @@ php artisan key:generate
 Editar `.env` — no mínimo configurar:
 
 ```dotenv
-DB_DATABASE=erp_prestech_db
+DB_DATABASE=erp_brand_new_ideas_company_db
 DB_USERNAME=test
 DB_PASSWORD=test
 ```
@@ -565,9 +565,9 @@ DB_PASSWORD=test
 Criar o banco de dados e o usuário no MySQL:
 
 ```sql
-CREATE DATABASE IF NOT EXISTS erp_prestech_db;
+CREATE DATABASE IF NOT EXISTS erp_brand_new_ideas_company_db;
 CREATE USER 'test'@'localhost' IDENTIFIED BY 'test';
-GRANT ALL PRIVILEGES ON erp_prestech_db.* TO 'test'@'localhost';
+GRANT ALL PRIVILEGES ON erp_brand_new_ideas_company_db.* TO 'test'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
@@ -610,10 +610,10 @@ Serviços iniciados pelo `docker compose`:
 
 | Serviço | Container | Porta |
 |---|---|---|
-| PHP-FPM | `erp-prestech-app` | 9000 (interno) |
-| Nginx | `erp-prestech-nginx` | 8080 → 80 |
-| MySQL 8.0 | `erp-prestech-db` | 3306 |
-| Redis 7 | `erp-prestech-redis` | 6379 |
+| PHP-FPM | `erp-brand-new-ideas-company-app` | 9000 (interno) |
+| Nginx | `erp-brand-new-ideas-company-nginx` | 8080 → 80 |
+| MySQL 8.0 | `erp-brand-new-ideas-company-db` | 3306 |
+| Redis 7 | `erp-brand-new-ideas-company-redis` | 6379 |
 
 Para parar:
 

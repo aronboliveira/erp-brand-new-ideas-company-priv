@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 ROUTES_FILE = "/tmp/routes_full.json"
-OUTPUT_DIR = "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/tests/frontend/js/pages/mocks"
+OUTPUT_DIR = "/workspace/erp/_inc/laravel/tests/frontend/js/pages/mocks"
 
 TIMESTAMP = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 

@@ -1,5 +1,5 @@
 <?php
-// System : ERPGo SaaS
+// System : Brand New Ideas Company SaaS
 // System Version : 6.2
 
 function getPhpVersionInfo()
@@ -59,11 +59,11 @@ if ($err != 1) {
     'meta_desc' => $meta_desc
     ])
     <title> Permissions | Installer</title>
-    <link rel="icon" href="https://prestech.com.br/site/wp-content/uploads/2024/10/Favicon-Prestech-Fundo-Branco.svg" sizes="16x16">
-    <link rel="icon" href="https://prestech.com.br/site/wp-content/uploads/2024/10/Favicon-Prestech-Fundo-Branco.svg" sizes="32x32">
-    <link rel="icon" href="https://prestech.com.br/site/wp-content/uploads/2024/10/Favicon-Prestech-Fundo-Branco.svg" sizes="192x192">
-    <link rel="apple-touch-icon" href="https://prestech.com.br/site/wp-content/uploads/2024/10/Favicon-Prestech-Fundo-Branco.svg">
-    <meta name="msapplication-TileImage" content="https://prestech.com.br/site/wp-content/uploads/2024/10/Favicon-Prestech-Fundo-Branco.svg">
+    <link rel="icon" href="https://brandnewideascompany.com/site/wp-content/uploads/2024/10/Favicon-Brand-New-Ideas-Company-Fundo-Branco.svg" sizes="16x16">
+    <link rel="icon" href="https://brandnewideascompany.com/site/wp-content/uploads/2024/10/Favicon-Brand-New-Ideas-Company-Fundo-Branco.svg" sizes="32x32">
+    <link rel="icon" href="https://brandnewideascompany.com/site/wp-content/uploads/2024/10/Favicon-Brand-New-Ideas-Company-Fundo-Branco.svg" sizes="192x192">
+    <link rel="apple-touch-icon" href="https://brandnewideascompany.com/site/wp-content/uploads/2024/10/Favicon-Brand-New-Ideas-Company-Fundo-Branco.svg">
+    <meta name="msapplication-TileImage" content="https://brandnewideascompany.com/site/wp-content/uploads/2024/10/Favicon-Brand-New-Ideas-Company-Fundo-Branco.svg">
     <link href="public/installer/css/style.min.css" rel="stylesheet">
 </head>
 

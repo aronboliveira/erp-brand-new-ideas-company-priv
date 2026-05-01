@@ -1,9 +1,9 @@
-# ERP Prestech — Monorepo
+# ERP Brand New Ideas Company — Monorepo
 
 <details>
 <summary>🇺🇸 English</summary>
 
-Enterprise Resource Planning system for **Nova Prestech**. This repository is the team-wide monorepo that holds the production Laravel application, original reference code, working notes, utility scripts and LLM prompts used during development.
+Enterprise Resource Planning system for **Nova Brand New Ideas Company**. This repository is the team-wide monorepo that holds the production Laravel application, original reference code, working notes, utility scripts and LLM prompts used during development.
 
 ---
 
@@ -52,7 +52,7 @@ Enterprise Resource Planning system for **Nova Prestech**. This repository is th
 └── README.md                      # ← You are here
 ```
 
-> **`._DEPRECATED_*` folders** (django, flutter, frontend, erp-prestech-frontend) are **git-ignored** and purged from history. They remain on disk for local reference only.
+> **`._DEPRECATED_*` folders** (django, flutter, frontend, erp-brand-new-ideas-company-frontend) are **git-ignored** and purged from history. They remain on disk for local reference only.
 
 ---
 
@@ -116,7 +116,7 @@ See [`where-to-update-and-read.yml`](where-to-update-and-read.yml) for the canon
 
 ```bash
 # 1. Clone
-git clone <repo-url> && cd erp_prestech
+git clone <repo-url> && cd erp_brand_new_ideas_company
 
 # 2. Enter the project
 cd _inc/laravel
@@ -221,7 +221,7 @@ See [LICENSE](LICENSE).
 <details>
 <summary>🇪🇸 Español</summary>
 
-Sistema de Planificación de Recursos Empresariales para **Nova Prestech**. Este repositorio es el monorepo del equipo que contiene la aplicación Laravel de producción, el código de referencia original, notas de trabajo, scripts utilitarios y prompts de LLM utilizados durante el desarrollo.
+Sistema de Planificación de Recursos Empresariales para **Nova Brand New Ideas Company**. Este repositorio es el monorepo del equipo que contiene la aplicación Laravel de producción, el código de referencia original, notas de trabajo, scripts utilitarios y prompts de LLM utilizados durante el desarrollo.
 
 ---
 
@@ -258,7 +258,7 @@ Sistema de Planificación de Recursos Empresariales para **Nova Prestech**. Este
 └── README.md                      # ← Estás aquí
 ```
 
-> **Las carpetas `._DEPRECATED_*`** (django, flutter, frontend, erp-prestech-frontend) están **git-ignored** y purgadas del historial. Permanecen en disco solo como referencia local.
+> **Las carpetas `._DEPRECATED_*`** (django, flutter, frontend, erp-brand-new-ideas-company-frontend) están **git-ignored** y purgadas del historial. Permanecen en disco solo como referencia local.
 
 ---
 
@@ -313,7 +313,7 @@ Consulte [`where-to-update-and-read.yml`](where-to-update-and-read.yml) para el 
 
 ```bash
 # 1. Clonar
-git clone <repo-url> && cd erp_prestech
+git clone <repo-url> && cd erp_brand_new_ideas_company
 
 # 2. Entrar al proyecto
 cd _inc/laravel
@@ -417,7 +417,7 @@ Ver [LICENSE](LICENSE).
 
 ---
 
-Sistema de Planejamento de Recursos Empresariais para **Nova Prestech**. Este repositório é o monorepo da equipe que contém a aplicação Laravel de produção, código de referência original, notas de trabalho, scripts utilitários e prompts de LLM utilizados durante o desenvolvimento.
+Sistema de Planejamento de Recursos Empresariais para **Nova Brand New Ideas Company**. Este repositório é o monorepo da equipe que contém a aplicação Laravel de produção, código de referência original, notas de trabalho, scripts utilitários e prompts de LLM utilizados durante o desenvolvimento.
 
 ---
 
@@ -466,7 +466,7 @@ Sistema de Planejamento de Recursos Empresariais para **Nova Prestech**. Este re
 └── README.md                      # ← Você está aqui
 ```
 
-> **As pastas `._DEPRECATED_*`** (django, flutter, frontend, erp-prestech-frontend) estão **git-ignored** e purgadas do histórico. Permanecem em disco apenas como referência local.
+> **As pastas `._DEPRECATED_*`** (django, flutter, frontend, erp-brand-new-ideas-company-frontend) estão **git-ignored** e purgadas do histórico. Permanecem em disco apenas como referência local.
 
 ---
 
@@ -521,7 +521,7 @@ Consulte [`where-to-update-and-read.yml`](where-to-update-and-read.yml) para o *
 
 ```bash
 # 1. Clonar
-git clone <repo-url> && cd erp_prestech
+git clone <repo-url> && cd erp_brand_new_ideas_company
 
 # 2. Entrar no projeto
 cd _inc/laravel

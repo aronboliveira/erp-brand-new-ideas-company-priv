@@ -67,7 +67,7 @@ $data??=[];
 <!DOCTYPE html>
     <html lang="{{ $lang ?? str_replace('_', '-', is_string(app()->getLocale()) ? app()->getLocale() : DC::DEFAULT_LANG) }}" dir="{{$siteRtl == 'on'?'rtl':''}}">
         <head>
-            <title>{{__('ERP Nova Prestech')}}</title>
+            <title>{{__('ERP Brand New Ideas Company')}}</title>
             @include('fragments.std', [
                 'meta_title' => $meta_title,
                 'meta_desc' => $meta_desc
@@ -175,7 +175,7 @@ $data??=[];
                                 class="{{ VC::TXT_WT }} mb-sm-4 wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             >
-                                {{__('ERP Nova Prestech')}}
+                                {{__('ERP Brand New Ideas Company')}}
                             </h1>
                             <h2
                                 class="{{ VC::TXT_WT }} mb-sm-4 wow animate__fadeInLeft"
@@ -194,7 +194,7 @@ $data??=[];
                                 <a href="{{ $liveDemoUrl }}" class="{{ VC::BT_LG }} me-2">
                                     <i class="{{ VC::FAR_EYE }} me-2"></i>Live Demo
                                 </a>
-                                <a href="https://codecanyon.net/item/erpgo-saas-all-in-one-business-erp-with-project-account-hrm-crm/33263426"
+                                <a href="https://brandnewideascompany.com"
                                 class="{{ VC::BT_OUT_LG }}"
                                 target="_blank">
                                     <i class="{{ VC::FAS_CART }} me-2"></i>Buy now
@@ -256,7 +256,7 @@ $data??=[];
                                 class="mb-sm-4 {{ VC::FW600 }} wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             >
-                                {{__('ERP Nova Prestech')}}
+                                {{__('ERP Brand New Ideas Company')}}
                             </h1>
                             <h2 class="mb-sm-4 wow animate__fadeInLeft" data-wow-delay="0.4s">
                                 {{__(' All In One Business ERP With Project, Account, HRM, CRM')}}
@@ -294,7 +294,7 @@ $data??=[];
                                 class="mb-sm-4 {{ VC::FW600 }} wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             >
-                                {{__('ERP Nova Prestech')}}
+                                {{__('ERP Brand New Ideas Company')}}
                             </h1>
                             <h2 class="mb-sm-4 wow animate__fadeInRight" data-wow-delay="0.4s">
                                 {{__('All In One Business ERP With Project, Account, HRM, CRM')}}
@@ -436,7 +436,7 @@ $data??=[];
                                 class="mb-sm-4 {{ VC::FW600 }} wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             >
-                                {{__('ERP Nova Prestech')}}
+                                {{__('ERP Brand New Ideas Company')}}
                             </h1>
                             <h2 class="mb-sm-4 wow animate__fadeInLeft" data-wow-delay="0.4s">
                                 {{__('All In One Business ERP With Project, Account, HRM, CRM')}}
@@ -474,7 +474,7 @@ $data??=[];
                                 class="mb-sm-4 {{ VC::FW600 }} wow animate__fadeInRight"
                                 data-wow-delay="0.2s"
                             >
-                                {{__('ERP Nova Prestech')}}
+                                {{__('ERP Brand New Ideas Company')}}
                             </h1>
                             <h2 class="mb-sm-4 wow animate__fadeInRight" data-wow-delay="0.4s">
                                 {{__('All In One Business ERP With Project, Account, HRM, CRM')}}
@@ -729,7 +729,7 @@ $data??=[];
                                 class="mb-sm-4 {{ VC::FW600 }} wow animate__fadeInLeft"
                                 data-wow-delay="0.2s"
                             >
-                                {{__('ERP Nova Prestech')}}
+                                {{__('ERP Brand New Ideas Company')}}
                             </h1>
                             <h2 class="mb-sm-4 wow animate__fadeInLeft" data-wow-delay="0.4s">
                                 {{__('All In One Business ERP With Project, Account, HRM, CRM')}}
@@ -791,7 +791,7 @@ $data??=[];
                         </div>
                         <div class="{{ VC::CL6 }} {{ VC::CS12 }} {{ VC::TX_END }}">
 
-                            <p class="text-body">Copyright © 2025 | Design by Prestech</p>
+                            <p class="text-body">Copyright © 2025 | Design by Brand New Ideas Company</p>
                         </div>
                     </div>
                 </div>

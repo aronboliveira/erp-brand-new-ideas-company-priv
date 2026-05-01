@@ -1,4 +1,4 @@
-# ERP Prestech — Complete Route Map
+# ERP Brand New Ideas Company — Complete Route Map
 
 > Generated from `routes/web.php` (1985 lines), `routes/api.php`, and `routes/auth.php`.
 > All constants resolved from `ViewsConstants`, `DatabaseConstants`, `MiddlewaresConstants`, `RoutesResourcesConstants`.

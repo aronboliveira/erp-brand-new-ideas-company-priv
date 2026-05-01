@@ -33,7 +33,7 @@ export const getProjectSettings = async (projectId: string) => {
   } catch (err) {
     console.error(`Failed to load settings for project ${projectId}: ${err}`);
     return {
-      title_text: "ERPGo",
+      title_text: "Brand New Ideas Company",
       company_favicon: "/uploads/logo/favicon.png",
     };
   }

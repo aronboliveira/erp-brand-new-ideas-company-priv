@@ -1,6 +1,6 @@
 # General Coding Conventions
 
-Cross-language standards applied across the entire ERP Prestech codebase (PHP, JS/TS, Python).
+Cross-language standards applied across the entire ERP Brand New Ideas Company codebase (PHP, JS/TS, Python).
 
 ## Comments Policy
 

@@ -9,7 +9,7 @@
     <div class="footer-wrapper">
         <div class="py-1 {{ VC::DFL }} flex-wrap {{ VC::ALC }} {{ VC::JCB }}">
             <p class="{{ VC::MB0 }} {{ VC::TXT_MT }}"> &copy;
-                {{ date('Y') }} {{ $settings[SC::FT_TXT] ? $settings[SC::FT_TXT] : config('app.name', 'ERPNovaPrestech') }}
+                {{ date('Y') }} {{ $settings[SC::FT_TXT] ? $settings[SC::FT_TXT] : config('app.name', 'ERPNovaBrand New Ideas Company') }}
             </p>
             <nav class="{{ VC::MB0 }}">
                 <a href="{{ route('terms_and_conditions') }}" class="{{ VC::TXT_MT }} small {{ VC::ME3 }}">{{ __('Terms and Conditions') }}</a>

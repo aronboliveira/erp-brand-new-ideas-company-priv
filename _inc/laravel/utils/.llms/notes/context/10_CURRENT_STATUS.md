@@ -10,7 +10,7 @@
 - ✅ All 1,542 route definitions compile and resolve correctly
 - ✅ PHP syntax clean — **PHPStan level 5: 0 errors**
 - ✅ ESLint flat config: 0 errors across all core & route JS
-- ✅ SA user `suporte@prestech.com.br` (id `a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7`) confirmed in DB
+- ✅ SA user `suporte@brandnewideascompany.com` (id `a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7`) confirmed in DB
 - ✅ 28 mock HTML+JS route test pages covering all 1,532 route groups
 - ✅ Singleton bootstrap architecture for frontend JS (27 route files refactored)
 - ✅ 7 security fixes applied (unserialize RCE, flash XSS, payment IPN, eval(), stored XSS, rich-text purifier, raw SQL injection)

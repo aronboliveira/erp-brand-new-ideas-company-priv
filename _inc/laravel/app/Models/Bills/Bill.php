@@ -35,7 +35,7 @@ use Illuminate\Support\Collection;
 // Same-namespace explicit imports (silences PHP Namespace Resolver)
 use App\Models\BillAccount;
 use App\Models\BillPayment;
-use App\Models\BillProduct;
+use App\Models\Bills\BillProduct;
 use App\Models\DebitNote;
 use App\Models\Order;
 use App\Models\Payment;

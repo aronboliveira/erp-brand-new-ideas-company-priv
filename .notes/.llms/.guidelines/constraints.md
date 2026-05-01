@@ -1,4 +1,4 @@
-# ERP Prestech — Project Constraints & Coding Standards
+# ERP Brand New Ideas Company — Project Constraints & Coding Standards
 
 > These are mandatory rules. Violating them causes data loss or CI failure.
 > Last updated: 2026-03-04
@@ -13,7 +13,7 @@
 - **NEVER** run `php artisan migrate:fresh` — same effect.
 - Use `php -l` for syntax checks.
 - Use `APP_ENV=testing php vendor/bin/phpunit --filter=TestName --no-coverage` for individual tests.
-- PHPUnit is configured with MySQL test DB (`erp_prestech_test`) via `phpunit.xml` and `.env.testing`.
+- PHPUnit is configured with MySQL test DB (`erp_brand_new_ideas_company_test`) via `phpunit.xml` and `.env.testing`.
 - Use `composer run test:feature` or `composer run test:unit` as safe shortcuts.
 
 ### UUID Identity
@@ -25,7 +25,7 @@
 ### Git Remotes
 
 - **NEVER** push to `comp` remote.
-- Push only to `origin` (`erp-prestech-priv`).
+- Push only to `origin` (`erp-brand-new-ideas-company-priv`).
 - The `.tmp/`, `.deprecated/`, and `.backup/` directories are in `.gitignore` — never track them.
 
 ### PHPStan

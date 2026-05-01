@@ -1,7 +1,7 @@
 ## ──────────────────────────────────────────────────────────────
 ## FILESYSTEM ARCHITECTURE MAP
 ## ──────────────────────────────────────────────────────────────
-## Root: erp_prestech/
+## Root: erp_brand_new_ideas_company/
 ##   ├── _inc/laravel/                     ⭐ Main application workspace
 ##   │   └── .notes/                        Durable team notes (issues, plans, work journal)
 ##   │       └── .llms/

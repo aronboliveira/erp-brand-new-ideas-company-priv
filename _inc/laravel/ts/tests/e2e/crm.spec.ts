@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import path from "path";
 
 /**
- * ERP Prestech – CRM Route Rendering E2E Tests
+ * ERP Brand New Ideas Company – CRM Route Rendering E2E Tests
  * Verifies every CRM index/create route renders
  * the expected table / card / form / breadcrumb / kanban elements correctly.
  *

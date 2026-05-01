@@ -9,7 +9,7 @@ CSRF=$(curl -sSc /tmp/erp_cookies10.txt http://127.0.0.1:8000/login \
 
 curl -sS -b /tmp/erp_cookies10.txt -c /tmp/erp_cookies10.txt \
   -X POST http://127.0.0.1:8000/login \
-  -d "_token=$CSRF&email=suporte@prestech.com.br&password=TestPass123!"
+  -d "_token=$CSRF&email=suporte@brandnewideascompany.com&password=TestPass123!"
 ```
 
 ## GET Route Testing
@@ -70,7 +70,7 @@ curl -sS -o /tmp/test_export.xlsx -w "%{http_code} %{size_download} %{content_ty
 
 ```bash
 # Encrypt an ID for PDF URLs (most PDF routes use Crypt::encrypt)
-cd /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel
+cd /workspace/erp/_inc/laravel
 
 # Invoice PDF
 ENC=$(php artisan tinker --execute="echo \Illuminate\Support\Facades\Crypt::encrypt('10b52a5d-5499-4aba-9eb8-1d83c61d5391');")

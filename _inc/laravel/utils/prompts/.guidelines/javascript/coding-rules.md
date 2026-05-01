@@ -1,7 +1,7 @@
 # JavaScript / TypeScript Coding Rules
 
 > Authoritative natural-language reference for the 19+ JS/TS coding rules
-> enforced across the ERP Prestech codebase.
+> enforced across the ERP Brand New Ideas Company codebase.
 
 ---
 

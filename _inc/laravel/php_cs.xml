@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ruleset name="ERP Prestech">
+<ruleset name="ERP Brand New Ideas Company">
     <description>PSR-12 base with Laravel conventions, all violations reported as info</description>
 
     <file>app/</file>

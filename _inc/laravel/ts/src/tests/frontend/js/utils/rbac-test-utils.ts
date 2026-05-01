@@ -389,7 +389,7 @@ export function createMockUser(
   const baseUser = {
     id: `user-${role}-${Date.now()}`,
     name: `Test ${roleTemplate.name}`,
-    email: `test.${role}@prestech.com.br`,
+    email: `test.${role}@brandnewideascompany.com`,
     role: roleTemplate,
     company_id: "company-1",
     is_active: true,

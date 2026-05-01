@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const path = require("path");
 
 /**
- * ERP Prestech — [SECOND] Client-Side UI Trigger Tests
+ * ERP Brand New Ideas Company — [SECOND] Client-Side UI Trigger Tests
  *
  * Validates that interactive triggers produce adequate DOM changes:
  *   • Modal popups open and contain expected form elements

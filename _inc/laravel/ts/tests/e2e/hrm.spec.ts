@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import path from "path";
 
 /**
- * ERP Prestech – HRM Route Rendering E2E Tests
+ * ERP Brand New Ideas Company – HRM Route Rendering E2E Tests
  * Verifies every HRM index/create route renders the expected
  * table / card / form / breadcrumb elements correctly.
  *

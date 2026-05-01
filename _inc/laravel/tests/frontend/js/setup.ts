@@ -1,6 +1,6 @@
 /**
  * @file setup.ts
- * @description Jest test setup for ERP Prestech frontend tests
+ * @description Jest test setup for ERP Brand New Ideas Company frontend tests
  */
 import path from "path";
 import fs from "fs";

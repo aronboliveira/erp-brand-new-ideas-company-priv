@@ -93,9 +93,9 @@ final class TrustHosts extends Middleware
             $this->allSubdomainsOfApplicationUrl(),
             '127.0.0.1',
             'localhost',
-            'prestech.com.br',
-            'sistema.prestech.com.br',
-            'prestek.inf.br',
+            'brandnewideascompany.com',
+            'sistema.brandnewideascompany.com',
+            'brand new ideas company.inf.br',
         ], fn($h) => $h !== null && $h !== ''));
         Log::debug('TrustHosts hosts()', ['hosts' => $patterns]);
         return $patterns;

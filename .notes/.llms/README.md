@@ -7,7 +7,7 @@
 
 Houses the **primary guidelines tree** (`.guidelines/`) that defines architecture
 decisions, backend/frontend/DB/module conventions, security patterns, testing
-strategies, and agent roles for the entire ERP Prestech monorepo. Also stores
+strategies, and agent roles for the entire ERP Brand New Ideas Company monorepo. Also stores
 resolved-issue logs, fix history, context snapshots, and session reports in
 `.history/`.
 

@@ -59,7 +59,7 @@ final class RedirectIfAuthenticated
                 $output->writeln("[{$class}] Checking host and referer for {$request->getRequestUri()}");
                 $appHost       = parse_url(config('app.url'), PHP_URL_HOST);
                 $host          = $request->getHost();
-                $patterns      = ['127.0.0.1', 'localhost', 'prestech.com.br', 'sistema.prestech.com.br', 'prestek.inf.br'];
+                $patterns      = ['127.0.0.1', 'localhost', 'brandnewideascompany.com', 'sistema.brandnewideascompany.com', 'brand new ideas company.inf.br'];
                 if ($appHost)
                     $patterns[] = '^(.+\.)?' . preg_quote($appHost) . '$';
                 $allowed = false;

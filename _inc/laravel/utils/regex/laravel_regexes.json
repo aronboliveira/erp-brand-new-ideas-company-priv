@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "description": "Laravel-specific regexes for ERP Prestech codebase auditing",
+    "description": "Laravel-specific regexes for ERP Brand New Ideas Company codebase auditing",
     "usage": "Use with grep -P or VSCode regex search (Ctrl+Shift+F, Alt+R)",
     "scope": "_inc/laravel/ directory tree",
     "last_updated": "2025-06-01"

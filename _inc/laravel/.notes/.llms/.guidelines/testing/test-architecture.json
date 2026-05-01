@@ -1,15 +1,15 @@
 {
   "meta": {
     "title": "Test Architecture Configuration",
-    "project": "erp-prestech",
+    "project": "erp-brand-new-ideas-company",
     "lastUpdated": "2026-03-04"
   },
   "phpunit": {
     "configFile": "phpunit.xml",
     "envFile": ".env.testing",
-    "database": "mysql (erp_prestech_test)",
+    "database": "mysql (erp_brand_new_ideas_company_test)",
     "databaseDriver": "mysql",
-    "databaseName": "erp_prestech_test",
+    "databaseName": "erp_brand_new_ideas_company_test",
     "databaseHost": "127.0.0.1",
     "databasePort": 3306,
     "trait": "DatabaseTransactions (auto-rollback, no data pollution)",

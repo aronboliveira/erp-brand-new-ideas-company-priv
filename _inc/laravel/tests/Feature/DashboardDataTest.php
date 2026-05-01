@@ -69,7 +69,7 @@ class DashboardDataTest extends TestCase
 		$this->companyUser = User::factory()->create([
 			'type'       => 'company',
 			'name'       => 'Dashboard Test Company',
-			'email'      => 'dashboard-test@prestech.test',
+			'email'      => 'dashboard-test@brandnewideascompany.test',
 			'password'   => bcrypt('TestPass123!'),
 			'created_by' => 0,
 		]);
@@ -146,7 +146,7 @@ class DashboardDataTest extends TestCase
 
 		// ── created_by-based cleanup (catches remaining rows when the user is known) ──
 		// Locate the test company user (may not exist yet on first setUp call)
-		$user = User::where('email', 'dashboard-test@prestech.test')->first();
+		$user = User::where('email', 'dashboard-test@brandnewideascompany.test')->first();
 		$cid  = $user ? (string) $user->id : null;
 
 		$byCreator = static function (string $table) use ($cid, $db): void {
@@ -177,7 +177,7 @@ class DashboardDataTest extends TestCase
 		}
 
 		// Finally delete the test company user itself
-		User::where('email', 'dashboard-test@prestech.test')->forceDelete();
+		User::where('email', 'dashboard-test@brandnewideascompany.test')->forceDelete();
 	}
 
 	// ─────────────────────────────────────────────────────────────────
@@ -377,7 +377,7 @@ class DashboardDataTest extends TestCase
 		$client = User::factory()->create([
 			'type'       => 'client',
 			'name'       => 'Test Client User',
-			'email'      => 'client-test@prestech.test',
+			'email'      => 'client-test@brandnewideascompany.test',
 			'password'   => bcrypt('TestPass123!'),
 			'created_by' => $this->creatorId,
 		]);

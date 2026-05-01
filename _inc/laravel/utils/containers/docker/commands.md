@@ -1,6 +1,6 @@
 # Docker — Comandos utilizados
 
-> Registro de comandos Docker executados no contexto do ERP Prestech.
+> Registro de comandos Docker executados no contexto do ERP Brand New Ideas Company.
 > Inclui builds locais, docker-compose e integração com minikube.
 
 ## 20260416
@@ -30,13 +30,13 @@ docker compose logs -f app
 eval $(minikube docker-env)
 
 # Build da imagem da aplicação para minikube (sem cache)
-docker build -t erp-prestech-app:latest . --no-cache
+docker build -t erp-brand-new-ideas-company-app:latest . --no-cache
 
 # Build da imagem da aplicação para minikube (com cache)
-docker build -t erp-prestech-app:latest .
+docker build -t erp-brand-new-ideas-company-app:latest .
 
 # Listar imagens no daemon do minikube
-docker images | grep erp-prestech
+docker images | grep erp-brand-new-ideas-company
 
 # Reverter Docker para daemon local
 eval $(minikube docker-env -u)

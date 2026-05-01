@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────
-# http_tests.sh — curl + wget HTTP smoke tests for erp_prestech
+# http_tests.sh — curl + wget HTTP smoke tests for erp_brand_new_ideas_company
 #
 # Tests all major routes for status codes, response content,
 # headers, timing, and basic security headers.

@@ -1069,7 +1069,7 @@
                     <div class="border-top border-dark text-center p-2">
                         <p class="mb-0"> &copy;
                             {{ date('Y') }}
-                            {{ Utility::getValByName(SettingsConstants::FT_TXT) ? Utility::getValByName(SettingsConstants::FT_TXT) : config('app.name', 'ERPNovaPrestech') }}
+                            {{ Utility::getValByName(SettingsConstants::FT_TXT) ? Utility::getValByName(SettingsConstants::FT_TXT) : config('app.name', 'ERPNovaBrand New Ideas Company') }}
                         </p>
 
                     </div>

@@ -28,7 +28,7 @@ use App\Config\Constants\{
 
 ### SA type check pattern (CRITICAL)
 
-The original ERPGo code only handled `PMC::CPN` as the "owner" type.
+The original Brand New Ideas Company code only handled `PMC::CPN` as the "owner" type.
 Our SA user (`type='super admin'`) is effectively the same as company owner.
 Whenever you see:
 

@@ -31,7 +31,7 @@ const PORT = parseInt(process.argv[2] || "3334", 10);
 const MOCK_USER = {
   id: 1,
   name: "Test User",
-  email: "test@erp-prestech.local",
+  email: "test@erp-brand-new-ideas-company.local",
   role: "admin",
 };
 
@@ -83,7 +83,7 @@ const ROUTES = {
   "GET:/api/user": () => ({ body: { data: MOCK_USER } }),
   "POST:/api/login": (_url, body) => {
     const b = /** @type {Record<string, unknown>} */ (body || {});
-    if (b.email === "test@erp-prestech.local" && b.password === "password") {
+    if (b.email === "test@erp-brand-new-ideas-company.local" && b.password === "password") {
       return { body: { token: "mock-jwt-token-12345", user: MOCK_USER } };
     }
     return { status: 401, body: { error: "Invalid credentials" } };

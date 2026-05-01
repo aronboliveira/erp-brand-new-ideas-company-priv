@@ -30,7 +30,7 @@ class SuperAdminSeeder extends Seeder
 
 		// Standard SA UUID from documentation
 		$saUuid = DC::DEFAULT_UUID ?? 'a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7';
-		$saEmail = 'suporte@prestech.com.br';
+		$saEmail = 'suporte@brandnewideascompany.com';
 
 		// Check if SA user already exists
 		$existingUser = DB::table(DC::TABLE_USERS)
@@ -51,7 +51,7 @@ class SuperAdminSeeder extends Seeder
 				'id'          => $saUuid,
 				UC::COL_NM    => 'Super Admin',
 				UC::COL_EM    => $saEmail,
-				UC::COL_PW    => Hash::make('Admin@Prestech2026!'),
+				UC::COL_PW    => Hash::make('Admin@BrandNewIdeasCompany2026!'),
 				UC::COL_TP    => PMC::SA, // 'super admin'
 				UC::COL_LG    => 'pt-br',
 				UC::COL_SL    => 0,
@@ -69,7 +69,7 @@ class SuperAdminSeeder extends Seeder
 
 			$this->command?->info("Super admin user created successfully!");
 			$this->command?->line("  Email: {$saEmail}");
-			$this->command?->line("  Password: Admin@Prestech2026!");
+			$this->command?->line("  Password: Admin@BrandNewIdeasCompany2026!");
 			$this->command?->line("  UUID: {$saUuid}");
 
 			Log::info('SuperAdminSeeder: Created SA user', [

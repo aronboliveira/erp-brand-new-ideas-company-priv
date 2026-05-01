@@ -1,6 +1,6 @@
 # ci.yml
 # Format: YAML (simple configuration / key-value sets)
-# Purpose: CI/CD and test run configuration reference for ERP Nova Prestech
+# Purpose: CI/CD and test run configuration reference for ERP Brand New Ideas Company
 # Last updated: 2026-03-04
 
 # IMPORTANT: NEVER use `php artisan test` — it uses the .env database (production).
@@ -13,7 +13,7 @@ test_commands:
         feature_only: "cd _inc/laravel && composer run test:feature"
         feature_filter: "cd _inc/laravel && composer run test:feature:filter -- ClassName"
         safe_single: "cd _inc/laravel && APP_ENV=testing php vendor/bin/phpunit --filter=TestName --no-coverage"
-        note: "Uses MySQL test DB (erp_prestech_test) via phpunit.xml/.env.testing"
+        note: "Uses MySQL test DB (erp_brand_new_ideas_company_test) via phpunit.xml/.env.testing"
 
     phpstan:
         base: "cd _inc/laravel && composer run phpstan"
@@ -80,7 +80,7 @@ seed_before_e2e:
     command: "cd _inc/laravel && php artisan migrate --database=mysql_test --seed"
     sa_user:
         uuid: "a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7"
-        email: "suporte@prestech.com.br"
+        email: "suporte@brandnewideascompany.com"
         password: "test1234"
 
 server_for_e2e:

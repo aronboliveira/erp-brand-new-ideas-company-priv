@@ -1,7 +1,7 @@
 ###############################################################################
-# ERP Nova Prestech — PHP-FPM application image
+# ERP Nova Brand New Ideas Company — PHP-FPM application image
 # Build:  docker compose build app
-#         eval $(minikube docker-env) && docker build -t erp-prestech-app .
+#         eval $(minikube docker-env) && docker build -t erp-brand-new-ideas-company-app .
 # Run:    docker compose up -d
 #         kubectl apply -f k8s/
 ###############################################################################
@@ -20,7 +20,7 @@ RUN npx mix --production || npm run production || true
 # ── Stage 2: PHP application ────────────────────────────────────────────────
 FROM php:8.3-fpm
 
-LABEL maintainer="Nova Prestech <suporte@prestech.com.br>"
+LABEL maintainer="Nova Brand New Ideas Company <suporte@brandnewideascompany.com>"
 
 # System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -312,7 +312,7 @@ class UsersTableSeeder extends Seeder
                 // Ghost user already exists from EnsuresSystemUser; upgrade it to SA
                 $existingGhost->forceFill([
                     UC::COL_NM => $faker->name,
-                    UC::COL_EM => 'suporte@prestech.com.br',
+                    UC::COL_EM => 'suporte@brandnewideascompany.com',
                     UC::COL_PW => Hash::make('123456789qwe.*'),
                     UC::COL_TP => UserType::SuperAdmin->value,
                     UC::COL_LG => DC::DEFAULT_LANG,
@@ -327,7 +327,7 @@ class UsersTableSeeder extends Seeder
                 $superAdmin = new User(
                     [
                         UC::COL_NM => $faker->name,
-                        UC::COL_EM => 'suporte@prestech.com.br',
+                        UC::COL_EM => 'suporte@brandnewideascompany.com',
                         UC::COL_PW => Hash::make('123456789qwe.*'),
                         UC::COL_TP => UserType::SuperAdmin->value,
                         UC::COL_LG => DC::DEFAULT_LANG,
@@ -615,7 +615,7 @@ class UsersTableSeeder extends Seeder
                 BankAccount::create([
                     'id'              => $baId,
                     BKC::COL_HNM      => 'cash',
-                    BKC::COL_NM       => 'Nova Prestech Teste',
+                    BKC::COL_NM       => 'Brand New Ideas Company Teste',
                     BKC::COL_ACC_N    => $baAcc,
                     BKC::COL_OB       => '0.00',
                     BKC::COL_CT       => '+55 21 9000-000',

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import path from "path";
 
 /**
- * ERP Prestech - Financial Module E2E Tests
+ * ERP Brand New Ideas Company - Financial Module E2E Tests
  * Tests mission-critical financial routes for data accuracy and UI consistency
  * Run auth.setup.cjs first to create authentication state
  */

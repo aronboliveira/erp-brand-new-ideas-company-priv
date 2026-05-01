@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Playwright configuration for ERP Prestech E2E tests
+ * Playwright configuration for ERP Brand New Ideas Company E2E tests
  * Run with: npx playwright test
  */
 export default defineConfig({

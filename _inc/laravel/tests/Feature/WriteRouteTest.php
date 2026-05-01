@@ -38,7 +38,7 @@ class WriteRouteTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-		$this->admin = User::where('email', 'suporte@prestech.com.br')->first();
+		$this->admin = User::where('email', 'suporte@brandnewideascompany.com')->first();
 		if ($this->admin) {
 			$this->actingAs($this->admin);
 		}
@@ -94,7 +94,7 @@ class WriteRouteTest extends TestCase
 			$this->markTestSkipped('No admin user seeded');
 		}
 		$r = $this->post('/company-settings', [
-			'companyName' => 'PrestechERP_PHPUnit',
+			'companyName' => 'Brand New Ideas Company ERP_PHPUnit',
 		]);
 		$this->assertNot500($r, 'POST /company-settings');
 	}

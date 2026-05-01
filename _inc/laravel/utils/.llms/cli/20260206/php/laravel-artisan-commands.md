@@ -1,4 +1,4 @@
-# Laravel Artisan Commands - ERP Prestech
+# Laravel Artisan Commands - ERP Brand New Ideas Company
 
 ## Development Server
 
@@ -361,7 +361,7 @@ php artisan tinker
 php artisan storage:link
 ```
 
-## Custom Commands (ERP Prestech)
+## Custom Commands (ERP Brand New Ideas Company)
 
 ### Clear Logs
 

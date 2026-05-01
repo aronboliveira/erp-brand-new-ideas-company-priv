@@ -87,9 +87,9 @@ When tests require a MySQL database, follow this pattern:
 ```bash
 # Create
 mysql -u test -ptest -e "
-CREATE DATABASE IF NOT EXISTS \`erp-prestech-ts-test\`;
-USE \`erp-prestech-ts-test\`;
-CREATE TABLE IF NOT EXISTS \`erp-prestech-ts-test\` (
+CREATE DATABASE IF NOT EXISTS \`erp-brand-new-ideas-company-ts-test\`;
+USE \`erp-brand-new-ideas-company-ts-test\`;
+CREATE TABLE IF NOT EXISTS \`erp-brand-new-ideas-company-ts-test\` (
   id INT AUTO_INCREMENT PRIMARY KEY,
   test_name VARCHAR(255) NOT NULL,
   status ENUM('pass','fail','skip') NOT NULL DEFAULT 'pass',
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS \`erp-prestech-ts-test\` (
 "
 
 # Destroy after tests
-mysql -u test -ptest -e "DROP DATABASE IF EXISTS \`erp-prestech-ts-test\`;"
+mysql -u test -ptest -e "DROP DATABASE IF EXISTS \`erp-brand-new-ideas-company-ts-test\`;"
 ```
 
 Credentials from `.env`: `DB_USERNAME=test`, `DB_PASSWORD=test`, `DB_HOST=127.0.0.1:3306`.

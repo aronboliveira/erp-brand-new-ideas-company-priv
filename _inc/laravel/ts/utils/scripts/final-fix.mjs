@@ -105,7 +105,7 @@ for (const vf of [
   "src/public/assets/js/vendor-all.ts",
 ]) {
   const base =
-    "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel/ts/";
+    "/workspace/erp/_inc/laravel/ts/";
   const fp = base + vf;
   try {
     let content = readFileSync(fp, "utf8");

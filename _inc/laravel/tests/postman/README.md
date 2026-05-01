@@ -4,7 +4,7 @@ This folder covers the routed Laravel HTTP surface with Postman/Newman assets an
 
 ## What is here
 
-- `erpgo-laravel.collection.json`: anonymous security probes and authenticated API checks
+- `brand-new-ideas-company.collection.json`: anonymous security probes and authenticated API checks
 - `local.environment.json`: local defaults for `http://127.0.0.1:18081`
 - `run-postman.sh`: shell wrapper for Newman
 - `package.json`: local Newman toolchain pinned for this folder

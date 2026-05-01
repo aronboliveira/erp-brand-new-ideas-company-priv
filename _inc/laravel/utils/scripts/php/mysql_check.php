@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /**
- * mysql_check.php — PHP-native MySQL health check for erp_prestech.
+ * mysql_check.php — PHP-native MySQL health check for erp_brand_new_ideas_company.
  *
  * Can be run standalone or integrated into artisan via:
  *   php utils/scripts/php/mysql_check.php [--seeds|--tables|--full]
@@ -13,9 +13,9 @@
 
 $host   = getenv('DB_HOST') ?: '127.0.0.1';
 $port   = (int)(getenv('DB_PORT') ?: 3306);
-$user   = getenv('DB_USER') ?: 'admin_prestech';
-$pass   = getenv('DB_PASS') ?: '76562f3A*@prestech';
-$dbname = getenv('DB_NAME') ?: 'erp_prestech';
+$user   = getenv('DB_USER') ?: 'admin_brand_new_ideas_company';
+$pass   = getenv('DB_PASS') ?: '76562f3A*@brandnewideascompany';
+$dbname = getenv('DB_NAME') ?: 'erp_brand_new_ideas_company';
 
 $mode = $argv[1] ?? '--full';
 

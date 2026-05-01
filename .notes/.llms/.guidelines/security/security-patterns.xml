@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ERP Prestech — Security Patterns & Code Review Checklist
+  ERP Brand New Ideas Company — Security Patterns & Code Review Checklist
   Format: XML (complex, heavily structured instruction set)
   Use this as a reference when reviewing PRs or adding new code.
 -->
-<securityPatterns project="erp-prestech" lastUpdated="2026-03-04">
+<securityPatterns project="erp-brand-new-ideas-company" lastUpdated="2026-03-04">
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <section name="file-upload-sanitization">

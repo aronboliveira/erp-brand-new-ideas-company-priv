@@ -2,7 +2,7 @@
 
 ## Overview
 
-These rules govern React component development in the ERP Prestech
+These rules govern React component development in the ERP Brand New Ideas Company
 codebase, covering hooks, naming conventions, performance patterns,
 and framework integration.
 

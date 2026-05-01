@@ -1,5 +1,5 @@
 ###############################################################################
-# ERP Nova Prestech — Docker Compose stack
+# ERP Brand New Ideas Company — Docker Compose stack
 #
 # Usage:
 #   cp .env.example .env            # adjust DB_*, REDIS_*, APP_KEY, etc.
@@ -19,8 +19,8 @@ services:
         build:
             context: .
             dockerfile: Dockerfile
-        image: erp-prestech-app
-        container_name: erp-prestech-app
+        image: erp-brand-new-ideas-company-app
+        container_name: erp-brand-new-ideas-company-app
         restart: unless-stopped
         working_dir: /var/www
         volumes:
@@ -49,7 +49,7 @@ services:
     # ── Nginx ────────────────────────────────────────────────────────────────
     nginx:
         image: nginx:1-alpine
-        container_name: erp-prestech-nginx
+        container_name: erp-brand-new-ideas-company-nginx
         restart: unless-stopped
         ports:
             - "${NGINX_PORT:-8080}:80"
@@ -64,12 +64,12 @@ services:
     # ── MySQL ────────────────────────────────────────────────────────────────
     db:
         image: mysql:8.0
-        container_name: erp-prestech-db
+        container_name: erp-brand-new-ideas-company-db
         restart: unless-stopped
         ports:
             - "${DB_PORT:-3306}:3306"
         environment:
-            MYSQL_DATABASE: ${DB_DATABASE:-erp_prestech_db}
+            MYSQL_DATABASE: ${DB_DATABASE:-erp_brand_new_ideas_company_db}
             MYSQL_USER: ${DB_USERNAME:-test}
             MYSQL_PASSWORD: ${DB_PASSWORD:-test}
             MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
@@ -87,7 +87,7 @@ services:
     # ── Redis ────────────────────────────────────────────────────────────────
     redis:
         image: redis:7-alpine
-        container_name: erp-prestech-redis
+        container_name: erp-brand-new-ideas-company-redis
         restart: unless-stopped
         ports:
             - "${REDIS_PORT:-6379}:6379"

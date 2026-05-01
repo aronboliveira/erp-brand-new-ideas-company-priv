@@ -73,7 +73,7 @@ use Illuminate\Filesystem\FilesystemAdapter;
 use App\Models\BankAccount;
 use App\Models\BillAccount;
 use App\Models\BillPayment;
-use App\Models\BillProduct;
+use App\Models\Bills\BillProduct;
 use App\Models\Budget;
 use App\Models\BugStatus;
 use App\Models\Customer;

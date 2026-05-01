@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const path = require("path");
 
 /**
- * ERP Prestech – Report Rendering E2E Tests
+ * ERP Brand New Ideas Company – Report Rendering E2E Tests
  * Verifies every report route renders its tables / cards / grids correctly.
  * Some pages are 100 % SSR (server-rendered <table>), others use DataTables /
  * Chart.js / ApexCharts loaded client-side – hence we wait for dynamic content.

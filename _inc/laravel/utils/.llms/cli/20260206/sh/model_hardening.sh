@@ -7,7 +7,7 @@
 #  Modules/LandingPage/Entities)
 # ─────────────────────────────────────────────────────────────
 set -euo pipefail
-LARAVEL="/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel"
+LARAVEL="/workspace/erp/_inc/laravel"
 
 # ── 1. Mechanical hardening ────────────────────────────────
 #    (sorts imports w/ {} spreading, removes comments,

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import path from "path";
 
 /**
- * ERP Prestech – Report Rendering E2E Tests
+ * ERP Brand New Ideas Company – Report Rendering E2E Tests
  * Verifies every report route renders its tables / cards / grids correctly.
  * Some pages are 100 % SSR (server-rendered <table>), others use DataTables /
  * Chart.js / ApexCharts loaded client-side – hence we wait for dynamic content.

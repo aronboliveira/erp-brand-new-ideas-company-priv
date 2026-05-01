@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ###############################################################################
-# ERP Nova Prestech — Build & Test Runner
+# ERP Nova Brand New Ideas Company — Build & Test Runner
 #
 # Interactive script to build services and run the test suite.
 # Supports three build backends:
@@ -29,7 +29,7 @@ BACKEND=""
 MODE=""
 SKIP_BUILD=false
 TEST_FILTER=""
-NAMESPACE="erp-prestech"
+NAMESPACE="erp-brand-new-ideas-company"
 
 # ── Colors ──────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -116,7 +116,7 @@ run_tests_k8s() {
 
     # Prefer running the test image via Docker with host networking for speed.
     # K8s pod exec is very slow on minikube due to overlay filesystem I/O.
-    local test_img="erp-prestech-test:latest"
+    local test_img="erp-brand-new-ideas-company-test:latest"
     if docker image inspect "$test_img" &>/dev/null; then
         log_info "Using Docker host-network with image ${test_img}"
         _run_tests_docker_standalone
@@ -223,7 +223,7 @@ run_tests_docker() {
 
 # Standalone Docker run — uses host network to reach host MySQL/Redis
 _run_tests_docker_standalone() {
-    local test_img="erp-prestech-test:latest"
+    local test_img="erp-brand-new-ideas-company-test:latest"
     if ! docker image inspect "$test_img" &>/dev/null; then
         log_info "Building test image..."
         docker build -f Dockerfile.test -t "$test_img" . 2>&1
@@ -238,12 +238,12 @@ _run_tests_docker_standalone() {
     docker run --rm --network=host \
         -e APP_KEY="${APP_KEY:-base64:PzVFLmnibiIC5Xk0rDrp0zzHXI8YQD5FKRuzrU+banw=}" \
         -e APP_ENV=testing \
-        -e APP_NAME="${APP_NAME:-ERP Nova Prestech}" \
+        -e APP_NAME="${APP_NAME:-ERP Nova Brand New Ideas Company}" \
         -e APP_URL="${APP_URL:-http://localhost/}" \
         -e DB_CONNECTION=mysql \
         -e DB_HOST=127.0.0.1 \
         -e DB_PORT=3306 \
-        -e DB_DATABASE="${DB_DATABASE:-erp_prestech_db}" \
+        -e DB_DATABASE="${DB_DATABASE:-erp_brand_new_ideas_company_db}" \
         -e DB_USERNAME="${DB_USERNAME:-test}" \
         -e DB_PASSWORD="${DB_PASSWORD:-test}" \
         -e CACHE_DRIVER=array \
@@ -317,7 +317,7 @@ run_tests_artisan() {
 # ── Main ────────────────────────────────────────────────────────────────────
 main() {
     echo -e "\n${BOLD}${CYAN}╔══════════════════════════════════════════════╗${NC}"
-    echo -e "${BOLD}${CYAN}║   ERP Nova Prestech — Build & Test Runner   ║${NC}"
+    echo -e "${BOLD}${CYAN}║   ERP Nova Brand New Ideas Company — Build & Test Runner   ║${NC}"
     echo -e "${BOLD}${CYAN}╚══════════════════════════════════════════════╝${NC}"
 
     prompt_backend

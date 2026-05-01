@@ -1,4 +1,4 @@
-# ERP Prestech — Subagent Context File
+# ERP Brand New Ideas Company — Subagent Context File
 
 # Last updated: 2026-03-02T00:00Z
 
@@ -6,23 +6,23 @@
 
 ## Project Location
 
-- Workspace root: `/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech`
+- Workspace root: `/home/aronboliveira/Desktop/programming/Brand New Ideas Company/erp/erpgo-fork/erp_brand_new_ideas_company`
 - Laravel root: `_inc/laravel/`
 - All paths below are relative to Laravel root unless noted
 
 ## Stack
 
-- Laravel 10.49.0, PHP 8.4.5, MySQL (erp_prestech_db)
+- Laravel 10.49.0, PHP 8.4.5, MySQL (erp_brand_new_ideas_company_db)
 - PHPUnit 10.5.55, Jest 29.7.0, Playwright 1.58.2, Pytest
 - Node.js 22.22.0 (for frontend tests), Python 3 (for utility scripts)
 
 ## Auth
 
-- SA user email: `suporte@prestech.com.br`
+- SA user email: `suporte@brandnewideascompany.com`
 - SA user UUID: `a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7`
 - SA user password: `test1234`
 - User type: `super admin` (bypasses permission checks in `ChecksPermissions::guard()`)
-- Session cookie name: `erp_nova_prestech_session`
+- Session cookie name: `erp_brand_new_ideas_company_session`
 - CSRF: `<meta name="csrf-token">` + `<input name="_token">`
 
 ## Key Constants Files
@@ -57,7 +57,7 @@
 - **Current state (2026-03-02):** Full migrate:fresh --seed running (PID 974072)
 - **Migration ordering fix:** users table renamed to `0001_01_01_000000_create_users_table.php` to run before Chatify vendor migrations (2019-dated)
 - **Duplicate removed:** `Modules/LandingPage/Database/Migrations/2025_06_03_000000_create_users_table.php` deleted (duplicate `CreateUsersTable` class)
-- Key SA user: `suporte@prestech.com.br` / `a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7`
+- Key SA user: `suporte@brandnewideascompany.com` / `a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7`
 - Run `php artisan db:seed --class=ContentValidationSeeder` to repopulate
 
 ## Seeder Dependency Chains (verified 2026-02-18)

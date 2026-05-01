@@ -1783,7 +1783,7 @@ interface Window {
   Pusher?: unknown;
   get_data?: (url: string, callback: (data: unknown) => void) => void;
   dataTabelLang?: Record<string, unknown>;
-  webpackChunkerp_nova_prestech?: unknown[];
+  webpackChunkerp_brand_new_ideas_company?: unknown[];
   showDatabaseSettings?: () => void;
   showApplicationSettings?: () => void;
   date_picker_locale?: string;

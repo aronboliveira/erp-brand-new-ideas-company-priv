@@ -523,7 +523,7 @@ test.describe("Footer Navigation", () => {
 
     if (count > 0) {
       const footerText = await footer.textContent();
-      expect(footerText?.toLowerCase()).toContain("prestech");
+      expect(footerText?.toLowerCase()).toContain("brand new ideas company");
     }
   });
 });

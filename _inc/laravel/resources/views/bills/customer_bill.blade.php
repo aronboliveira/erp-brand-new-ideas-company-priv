@@ -80,7 +80,7 @@
 <html lang="{{ $lang ? str_replace('_', '-', is_string(app()->getLocale()) ? (app()->getLocale() : DatabaseConstants::DEFAULT_LANG) : '') : '' }}" dir="{{ $siteRtl === 'on' ? 'rtl' : 'ltr' }}">
     <head>
         <title>{{(Utility::getValByName('title_text')) ? Utility::getValByName('title_text') : 
-        config('app.name', 'ERPNovaPrestech')}} - @yield('page-title')</title>
+        config('app.name', 'ERPNovaBrand New Ideas Company')}} - @yield('page-title')</title>
         @include('fragments.std', [
             'meta_title' => $meta_title,
             'meta_desc' => $meta_desc

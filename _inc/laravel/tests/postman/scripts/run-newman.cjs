@@ -4,7 +4,7 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
 const postmanRoot = path.resolve(__dirname, "..");
-const collectionPath = path.join(postmanRoot, "erpgo-laravel.collection.json");
+const collectionPath = path.join(postmanRoot, "brand-new-ideas-company.collection.json");
 const environmentPath = path.join(postmanRoot, "local.environment.json");
 const reportsDir = path.join(postmanRoot, "reports");
 const localBin = path.join(postmanRoot, "node_modules", ".bin", process.platform === "win32" ? "newman.cmd" : "newman");

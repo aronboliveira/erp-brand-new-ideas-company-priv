@@ -1,5 +1,5 @@
 ###############################################################################
-# ERP Nova Prestech — Azure DevOps Pipeline (DESATIVADO)
+# ERP Brand New Ideas Company — Azure DevOps Pipeline (DESATIVADO)
 # CI/CD agora usa GitHub Actions (.github/workflows/ci.yml) + minikube local.
 # Este arquivo é mantido como referência para futura migração para Azure AKS.
 # Para reativar, descomente os triggers e stages abaixo.

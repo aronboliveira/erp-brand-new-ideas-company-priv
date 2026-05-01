@@ -2,11 +2,11 @@
 <!--
   middleware_pipeline.xml
   Format: XML — complex nested/procedural instruction set
-  Purpose: Full Laravel HTTP middleware pipeline for ERP Nova Prestech
+  Purpose: Full Laravel HTTP middleware pipeline for ERP Brand New Ideas Company
   Last updated: 2026-03-01
   Source: _inc/laravel/app/Http/Kernel.php, app/Http/Middleware/, app/Traits/
 -->
-<middleware-pipeline app="erp-nova-prestech" laravel="10.x">
+<middleware-pipeline app="erp-brand-new-ideas-company" laravel="10.x">
 
   <!-- ============================================================
        GLOBAL MIDDLEWARE (run on every request)
