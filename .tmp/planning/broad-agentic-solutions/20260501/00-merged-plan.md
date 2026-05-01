@@ -158,7 +158,7 @@ NOTE_infra_i18n_migrations_auth.md → 20260208_infra_i18n_migrations_auth.md
 The targets were reorganised into dated subdirectories. Either update each symlink to the
 new path or replace them with relative `../notes/YYYYMMDD/filename.md` symlinks.
 
-### P1-4 · MessagesController namespace — verify or remove stale KNOWN_ISSUES flag
+### ✅ P1-4 · MessagesController namespace — verify or remove stale KNOWN_ISSUES flag [SOLVED 2026-05-01]
 
 **Agents reporting:** codex (stale flag noted), gemini, open-claude
 
@@ -351,7 +351,7 @@ DROP DATABASE erp_prestech_db_test_1;
 ✅ P2-4/5/6 (doc + CI quality) — done
 
 ✅ P1-3 (broken symlinks) — done (commit f31bf7c1)
-P1-4 (MessagesController stale flag) — standalone
+✅ P1-4 (MessagesController stale flag) — done (commit bea84b24)
 P3-6 (drop stale DB snapshots) — approval pending; do not run without explicit sign-off
 
 P3 — deferred, schedule when P0/P1/P2 are clear
