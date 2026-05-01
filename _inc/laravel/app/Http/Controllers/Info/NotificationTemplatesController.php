@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Info;
 
 use App\Http\Controllers\Abstracts\Controller;
+use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Config\Constants\{
     DatabaseConstants,
     MiddlewaresConstants,

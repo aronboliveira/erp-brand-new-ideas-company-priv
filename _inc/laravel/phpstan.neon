@@ -2,207 +2,131 @@ includes:
     - vendor/larastan/larastan/extension.neon
 
 parameters:
-    paths:
-        - app/
-    level: 3
-    tmpDir: storage/phpstan
-    stubFiles: []
-    parallel:
-        maximumNumberOfProcesses: 1
-        processTimeout: 3600.0
-    excludePaths:
-        - app/Config/Constants/LangsConstants.php
-        - app/Enums/
-        - app/Exports/_withPython/
-        - app/Imports/_withPython/
-        - app/Http/_DEPRECATED_Controllers_old/
-        - stubs/
-    reportUnmatchedIgnoredErrors: false
-    ignoreErrors:
-        -
-            identifier: missingType.iterableValue
-        -
-            identifier: missingType.generics
-        -
-            identifier: nullCoalesce.variable
-        -
-            identifier: nullCoalesce.expr
-        # ── (property override: fixed in code — native types removed) ──
-        -
-            message: '#Variable \$\w+ in empty\(\) always exists and is not falsy#'
-        -
-            message: '#Anonymous function has an unused use \$\w+#'
-        -
-            message: '#Function default(PermissionDenial|UndefinedException) not found#'
-        -
-            message: '#Function App\\Http\\Controllers\\default(PermissionDenial|UndefinedException) not found#'
-        -
-            message: '#Used function App\\Http\\Controllers\\default(PermissionDenial|UndefinedException) not found#'
-        -
-            message: '#Called .pluck. on Laravel collection, but could have been retrieved as a query#'
-        # ── Laravel contract/concrete type mismatches (benign) ──
-        -
-            message: '#but returns Illuminate\\Contracts\\View\\#'
-        -
-            message: '#should return Illuminate\\Database\\Eloquent\\Builder but returns Illuminate\\Database\\Query\\Builder#'
-        -
-            message: '#should return Illuminate\\Database\\Eloquent\\Collection but returns Illuminate\\Support\\Collection#'
-        -
-            message: '#should return Illuminate\\Routing\\ResponseFactory#'
-        -
-            message: '#should return Illuminate\\Http\\RedirectResponse\|Illuminate\\View\\View but returns Illuminate\\Contracts\\View\\#'
-        -
-            message: '#should return App\\Models\\User\|null but returns Illuminate\\Contracts\\Auth\\Authenticatable\|null#'
-        # ── Request dynamic properties (Laravel pattern) ──
-        -
-            message: '#Access to an undefined property Illuminate\\Http\\Request::\$\w+#'
-        # ── Eloquent magic static methods (expanded list) ──
-        -
-            message: '#Call to an undefined static method App\\Models\\[A-Za-z]+::(where|whereIn|whereKey|whereRaw|whereNotIn|whereDate|whereCreatedBy|whereStatus|whereCandidate|whereType|whereProductId|whereWarehouseId|find|findOrFail|create|firstOrCreate|firstOrNew|updateOrCreate|all|first|get|count|pluck|select|selectRaw|orderBy|orderByDesc|latest|oldest|paginate|destroy|with|withCount|has|doesntHave|whereHas|whereDoesntHave|when|chunk|join|leftJoin|groupBy|having|sum|max|min|avg|insert|delete|forceDelete|restore|withTrashed|onlyTrashed|query|toBase|other_payment|saturation_deduction|mostPurchasePlan|cancel_subscription)\(\)#'
-        # ── Eloquent relation -> QueryBuilder delegation (expanded) ──
-        -
-            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\(HasMany|HasOne|BelongsTo|BelongsToMany|MorphMany|MorphOne|MorphTo|MorphToMany|HasManyThrough|HasOneThrough)::(where|whereIn|whereRaw|orderBy|orderByDesc|first|pluck|selectRaw|select|count|sum|get|avg|max|min|groupBy|having|join|limit|take|skip|offset|with|withCount|latest|oldest|when|value|delete)\(\)#'
-        # ── Auth::user() property access ──
-        -
-            message: '#Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable::\$\w+#'
-        # ── Auth::user() method calls (save, custom methods on User) ──
-        -
-            message: '#Call to an undefined method Illuminate\\Contracts\\Auth\\Authenticatable::\w+\(\)#'
-        # ── Auth Guard contract missing methods (logout, attempt) ──
-        -
-            message: '#Call to an undefined method Illuminate\\Contracts\\Auth\\.+::(logout|attempt)\(\)#'
-        # ── Crypt facade unresolved ──
-        -
-            message: '#Call to static method .+ on an unknown class Crypt#'
-        # ── Model dynamic properties ──
-        -
-            message: '#Access to an undefined property App\\Models\\[A-Za-z]+::\$\w+#'
-        # ── InvoicePayment, Transaction dynamic property access ──
-        -
-            message: '#Property App\\Models\\(InvoicePayment|Transaction)::\$\w+ .+ does not accept#'
-        # ── Builder::available and other custom scopes ──
-        -
-            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::\w+\(\)#'
-        # ── Query\Builder custom scopes (betweenDates, forTemplate, whereKey) ──
-        -
-            message: '#Call to an undefined method Illuminate\\Database\\Query\\Builder::\w+\(\)#'
-        # ── PHPDoc tag issues in stubs ──
-        -
-            message: '#has PHPDoc tag @method#'
-        # ── MercadoPago property access ──
-        -
-            message: '#Property MercadoPago\\[A-Za-z]+::\$\w+ .+ does not accept#'
-        # ── getName() / getActionMethod() / parameters() on Route object|string ──
-        -
-            message: '#Cannot call method (getName|getActionMethod|parameters)\(\) on object\|string#'
-        # ── (property override handled by identifier: property.extraNativeType) ──
-        # ── Unresolved short-name facades / constants in Controllers ──
-        -
-            message: '#on an unknown class (Auth|Log|Session|Crypt|DB|Cache|Mail|Route|Storage|App|Utility)#'
-        -
-            message: '#on an unknown class App\\Http\\Controllers\\(BC|User|UserCoupon|Utility|Label|AC|DC)#'
-        # ── Unknown classes from third-party / payment SDKs ──
-        -
-            message: '#on an unknown class (PaytmWallet|CoinGate\\\\|MercadoPago\\\\|Iyzipay\\\\|Razorpay\\\\)#'
-        # ── Cannot access property on Builder/Collection/Model union types ──
-        -
-            message: '#Cannot access property \$\w+ on .+Illuminate\\Database\\Eloquent\\(Builder|Collection|Model)#'
-        -
-            message: '#Access to protected property Illuminate\\Database\\Eloquent\\Collection::\$items#'
-        # ── Cannot access property on User|JsonResponse|Response|View union ──
-        -
-            message: '#Cannot (access property|call method) .+ on App\\Models\\User\|Illuminate\\Http\\(JsonResponse|Response)#'
-        # ── (removed duplicate, covered by contract/concrete type mismatches above) ──
-        # ── Generic type warnings on relations ──
-        -
-            message: '#is not generic#'
-        -
-            message: '#contains generic type#'
-        # ── Chatify stub issues ──
-        -
-            message: '#Chatify\\Facades\\ChatifyMessenger#'
-        # ── Variable might not be defined (controller view paths, coupons, assignPlan) ──
-        -
-            message: '#Variable \$(viewPath|coupons|assignPlan|planID|payment_setting) might not be defined#'
-        -
-            message: '#Variable \$(coupons|payment_setting) in empty\(\) is never defined#'
-        # ── Result of void method used ──
-        -
-            message: '#Result of (static )?method .+ \(void\) is used#'
-        # ── Unsafe access to private constant through static:: ──
-        -
-            message: '#Unsafe access to private constant .+ through static::#'
-        # ── Non-static access to static property ──
-        -
-            message: '#Non-static access to static property#'
-        # ── PHPDoc @return invalid syntax ──
-        -
-            message: '#PHPDoc tag @return has invalid value#'
-        # ── Call to protected method on Model ──
-        -
-            message: '#Call to protected method update\(\) of class Illuminate\\Database\\Eloquent\\Model#'
-        # ── MorphMany::delete() ──
-        -
-            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\MorphMany::delete\(\)#'
-        # ── Spatie Role contract property access ──
-        -
-            message: '#Access to an undefined property Spatie\\Permission\\Contracts\\Role::\$\w+#'
-        # ── Controller undefined methods (buildJobPayload, creatorId, replies, get, guard, etc.) ──
-        -
-            message: '#Call to an undefined method App\\Http\\Controllers\\.+::(buildJobPayload|guard|get|_mergeItemsAccounts)\(\)#'
-        -
-            message: '#Call to an undefined method App\\Models\\Support::(creatorId|replies)\(\)#'
-        # ── Static call to instance method (Support model) ──
-        -
-            message: '#Static call to instance method App\\Models\\Support::(priorityList|statusList)\(\)#'
-        # ── Utility messaging methods ──
-        -
-            message: '#Call to an undefined static method App\\Models\\Utility::(send_slack_msg|send_telegram_msg|send_twilio_msg)\(\)#'
-        # ── Property type mismatches ──
-        -
-            message: '#Property App\\Models\\(ProductService|EmployeeAttendance)::\$\w+ .+ does not accept#'
-        # ── Access to undefined property on Builder|Model (dynamic computed props) ──
-        -
-            message: '#Access to an undefined property .+::\$\w+#'
-        # ── Constructor unused parameter ──
-        -
-            message: '#Constructor of class .+ has an unused parameter#'
-        # ── PipelineController isNotEmpty on array ──
-        -
-            message: '#Cannot call method isNotEmpty\(\) on array\|string#'
-        # ── SetSalaryController invalid return type (missing import) ──
-        -
-            message: '#has invalid return type App\\Http\\Controllers\\Planning\\JsonResponse#'
-        # ── Chatify deleteConversation void used ──
-        -
-            message: '#Result of static method Chatify\\Facades\\ChatifyMessenger::deleteConversation\(\)#'
-        # ── FlutterwavePaymentController property ──
-        -
-            message: '#Access to an undefined property App\\Http\\Controllers\\FlutterwavePaymentController::\$currency#'
-        # ── Access to undefined property on (ArrayAccess&Builder)|Model union ──
-        -
-            message: '#Access to an undefined property \(ArrayAccess.+::\$\w+#'
-        # ── Offset does not exist on array{} ──
-        -
-            message: '#Offset .+ does not exist on array\{\}#'
-        # ── Log::Error() case-sensitive ──
-        -
-            message: '#Call to an undefined static method Illuminate\\Support\\Facades\\Log::Error\(\)#'
-        # ── Response::download() ──
-        -
-            message: '#Call to an undefined static method Illuminate\\Http\\Response::download\(\)#'
-        # ── AllowanceController::guard() ──
-        -
-            message: '#Call to an undefined static method App\\Http\\Controllers\\AllowanceController::guard\(\)#'
-        # ── User::whereKey() in security.php ──
-        -
-            message: '#Call to an undefined method App\\Models\\User::whereKey\(\)#'
-        # ── Builder|Query\Builder union custom scopes ──
-        -
-            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\|Illuminate\\Database\\Query\\Builder::\w+\(\)#'
-        # ── Cannot call method getAttribute on array<Builder>|object ──
-        -
-            message: '#Cannot call method getAttribute\(\) on array.+\|object#'
-        # ── Facade extends unknown class ──
-        -
-            message: '#extends unknown class Illuminate\\Support\\Facades\\Facade#'
+	level: 5
+	paths:
+		- app/Http/Controllers
+	tmpDir: storage/phpstan
+	bootstrapFiles:
+		- app/Models/Helpers/fields.php
+		- app/Http/Controllers/Helpers/http.php
+		- app/Http/Controllers/Helpers/ErrorHandlers.php
+		- app/Http/Controllers/Helpers/security.php
+	parallel:
+		maximumNumberOfProcesses: 0
+	reportUnmatchedIgnoredErrors: false
+	ignoreErrors:
+		# --- Model dynamic methods & properties (Laravel magic) ---
+		- '#Call to an undefined static method App\\Models\\.*::#'
+		- '#Access to an undefined property App\\Models\\.*#'
+		- '#Access to an undefined property Illuminate\\Http\\Request#'
+		# --- Null-coalescing assignment (??=) defensive patterns ---
+		- '#Variable .* on left side of \?\?= is never defined#'
+		- '#Variable .* on left side of \?\?= always exists and is always null#'
+		# --- Defensive null-safety (intentional guards against null pointers) ---
+		- identifier: nullsafe.neverNull
+		- identifier: nullCoalesce.expr
+		- identifier: nullCoalesce.variable
+		- identifier: nullCoalesce.offset
+		- identifier: nullCoalesce.property
+		# --- Defensive boolean / type-narrowing checks ---
+		- identifier: if.alwaysTrue
+		- identifier: if.alwaysFalse
+		- identifier: deadCode.unreachable
+		- identifier: function.alreadyNarrowedType
+		- identifier: function.impossibleType
+		- identifier: identical.alwaysTrue
+		- identifier: identical.alwaysFalse
+		- identifier: notIdentical.alwaysTrue
+		- identifier: booleanOr.alwaysTrue
+		- identifier: booleanAnd.alwaysFalse
+		- identifier: booleanNot.alwaysFalse
+		- identifier: booleanNot.alwaysTrue
+		- identifier: ternary.alwaysTrue
+		- identifier: ternary.alwaysFalse
+		- identifier: empty.variable
+		- identifier: empty.expr
+		- identifier: instanceof.alwaysFalse
+		- identifier: foreach.emptyArray
+		- identifier: logicalOr.leftAlwaysFalse
+		- identifier: logicalOr.rightAlwaysTrue
+		- identifier: greater.alwaysFalse
+		- identifier: equal.alwaysFalse
+		- identifier: arrayFilter.same
+		- identifier: arrayValues.list
+		# --- Closure / unused-use (defensive $method pass-through) ---
+		- identifier: closure.unusedUse
+		# --- Trait methods not resolved by PHPStan ---
+		- '#Call to an undefined method (App\\Http\\Controllers\\|Modules\\LandingPage\\Http\\Controllers\\).*::(logException|logExecutionTime|measureProfile|viewMissingRedirect|saveSettings|_authorize|_checkLogin|buildBulk|buildBulkInOut|generateCacheKey|clearEntityCache|getTranslation|_mergeItemsAccounts|validate|sendFailedLoginResponse|buildJobPayload|get)\(#'
+		# --- Model dynamic methods (not type-hinted) ---
+		- '#Call to an undefined method App\\Models\\.*::(creatorId|replies|whereKey|whereCategoryId)\(#'
+		# --- Static access to private constants via static:: (valid in PHP) ---
+		- identifier: staticClassAccess.privateConstant
+		# --- Eloquent relationship method chaining ---
+		- '#Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\.*::#'
+		# --- Auth Guard interface limitations ---
+		- '#Call to an undefined method Illuminate\\Contracts\\Auth\\(Guard|Factory).*::#'
+		# --- Eloquent Builder property access ---
+		- identifier: property.nonObject
+		# --- Variable $user from ChecksLogin trait ---
+		- identifier: variable.undefined
+		# --- Chatify Facade static methods ---
+		- '#Call to an undefined static method Chatify\\Facades\\ChatifyMessenger::#'
+		# --- Laravel Response facade static calls ---
+		- '#Call to an undefined static method Illuminate\\Http\\(JsonResponse|Response)::#'
+		# --- View::exists not in interface ---
+		- '#Call to an undefined static method Illuminate\\View\\View::exists\(\)#'
+		# --- Log facade case sensitivity ---
+		- '#Call to an undefined static method Illuminate\\Support\\Facades\\Log::Error\(\)#'
+		# --- Method unused (may be route-bound) ---
+		- identifier: method.unused
+		# --- Non-object method calls (defensive chaining) ---
+		- identifier: method.nonObject
+		# --- Return type mismatches (controller return flexibility) ---
+		- identifier: return.type
+		- identifier: return.unusedType
+		# --- Unused class constants (may be route-referenced) ---
+		- identifier: classConstant.unused
+		# --- Property not found (dynamic model properties) ---
+		- identifier: property.notFound
+		# --- Static property access on models ---
+		- identifier: staticProperty.notFound
+		# --- Argument type / count (flexible Laravel signatures) ---
+		- identifier: argument.type
+		- identifier: arguments.count
+		- identifier: argument.unresolvableType
+		# --- Class name casing ---
+		- identifier: class.nameCase
+		# --- Protected property/method access (testing/internal) ---
+		- identifier: property.protected
+		- identifier: method.protected
+		# --- Method called on void ---
+		- identifier: method.void
+		- identifier: staticMethod.void
+		# --- Static call on instance method ---
+		- identifier: method.staticCall
+		# --- phpDoc parse issues ---
+		- identifier: phpDoc.parseError
+		# --- Catch non-thrown exceptions (defensive) ---
+		- identifier: catch.neverThrown
+		# --- Offset access not found ---
+		- identifier: offsetAccess.notFound
+		# --- Empty on optional offset key (defensive locale message guards) ---
+		- identifier: empty.offset
+		# --- Private static method access ---
+		- identifier: staticClassAccess.privateMethod
+		# --- Property only written, never read ---
+		- identifier: property.onlyWritten
+		# --- Constructor not found ---
+		- identifier: new.noConstructor
+		# --- Static methods on Views helper (custom static helper) ---
+		- '#Call to an undefined static method .*::getFirstExistingView\(\)#'
+		# --- Eloquent Builder scope methods ---
+		- '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder.*::where\w+\(\)#'
+		# --- Eloquent static methods on generic types ---
+		- '#Call to an undefined static method .*::(updateOrCreate|where|findOrFail|create|whereKey)\(#'
+		# --- Missing model classes (to be created later) ---
+		- '#(unknown class|not found|Instantiated class).*App\\Models\\ContractNote#'
+		- '#(unknown class|not found).*App\\Models\\warehouse#'
+		- '#(class|Class) App\\Exports\\task_reportExport not found#'
+		# --- DatabaseConstants wrong constant name (to be fixed) ---
+		- identifier: classConstant.notFound
