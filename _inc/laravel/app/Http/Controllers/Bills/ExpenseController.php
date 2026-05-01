@@ -162,7 +162,7 @@ final class ExpenseController extends Controller
                 $accounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')->where(DC::COL_TABLE_CREATOR, $uid)->pluck('code_name', 'id')->prepend('Select Account', '');
                 $this->logExecutionTime($accStart, $action, 'loadChartAccounts');
                 $bnkStart = microtime(true);
-                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
+                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
                 $this->logExecutionTime($bnkStart, $action, 'loadBanks');
                 $data = ['employees' => $employees, 'customers' => $customers, 'vendors' => $vendors, 'num' => $num, 'items' => $items, 'categories' => $categories, 'customFields' => $customFields, 'accounts' => $accounts, 'banks' => $banks, 'id' => $refId];
                 $viewPath = ViewsConstants::EXP . '.create';
@@ -352,7 +352,7 @@ final class ExpenseController extends Controller
                 $accounts = ChartOfAccount::selectRaw('CONCAT(code," - ",name) AS code_name,id')->where(DC::COL_TABLE_CREATOR, $uid)->pluck('code_name', 'id')->prepend('Select Account', '');
                 $this->logExecutionTime($accStart, $action, 'loadChartAccounts');
                 $bnkStart = microtime(true);
-                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name", 'id')->where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
+                $banks = BankAccount::selectRaw("CONCAT(bank_name,' ',holder_name) AS name, id")->where(DC::COL_TABLE_CREATOR, $uid)->pluck('name', 'id');
                 $this->logExecutionTime($bnkStart, $action, 'loadBanks');
                 $data = ['exp' => $exp, 'num' => $num, 'employees' => $employees, 'customers' => $customers, 'vendors' => $vendors, 'products' => $products, 'categories' => $categories, 'customFields' => $customFields, 'accounts' => $accounts, 'banks' => $banks];
                 Log::info("[{$base}::{$action}] loaded", ['bill_id' => $id]);
