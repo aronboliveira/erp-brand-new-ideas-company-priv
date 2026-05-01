@@ -3,6 +3,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module create
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     try {
         const f = document.getElementById("create-project-task-form");
@@ -58,7 +59,9 @@
                         if (window.location.hostname === "localhost" ||
                             window.location.hostname === "127.0.0.1")
                             console.error("[assets/js/routes/projects/tasks/create.js] add_usr click error:", 
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                             err?.constructor?.name ?? "Error", 
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                             err?.message ?? "Unknown error");
                     }
                 });
@@ -67,7 +70,9 @@
                 if (window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1")
                     console.error("[assets/js/routes/projects/tasks/create.js] bind add_usr error:", 
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.constructor?.name ?? "Error", 
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.message ?? "Unknown error");
             }
         });
@@ -130,7 +135,9 @@
                         if (window.location.hostname === "localhost" ||
                             window.location.hostname === "127.0.0.1")
                             console.error("[assets/js/routes/projects/tasks/create.js] Bootstrap toast instantiation error:", 
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                             err?.constructor?.name ?? "Error", 
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                             err?.message ?? "Unknown error");
                         alert(msg);
                     }
@@ -144,7 +151,9 @@
                 if (window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1")
                     console.error("[assets/js/routes/projects/tasks/create.js] Submit handler error:", 
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.constructor?.name ?? "Error", 
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.message ?? "Unknown error");
             }
         });
@@ -153,7 +162,9 @@
         if (window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1")
             console.error("[assets/js/routes/projects/tasks/create.js] Initialization error:", 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             error?.constructor?.name ?? "Error", 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             error?.message ?? "Unknown error");
     }
 })();

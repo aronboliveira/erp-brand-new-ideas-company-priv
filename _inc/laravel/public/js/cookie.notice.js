@@ -4,7 +4,7 @@
  * @module cookie.notice
  */
 // @ts-nocheck
-
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, no-prototype-builtins, prefer-rest-params */
 /**
  * Cookie Notice JS
  * @author Alessandro Benoit

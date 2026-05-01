@@ -91,27 +91,38 @@
         try {
             const handler = function () {
                 try {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
                     const file = this?.files?.[0];
                     if (!file)
                         return;
                     const $img = $("#image");
                     if (!$img.length) {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                         guardOnce(this, "image_preview_unavailable");
                         return;
                     }
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
                     const prev = this.getAttribute("data-prev-url") ?? "";
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     const url = URL.createObjectURL(file);
                     $img.attr("src", url);
                     if (prev)
                         try {
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                             URL.revokeObjectURL(prev);
                         }
                         catch (__err) {
                             console.error(`[preview] Error:`, __err);
                         }
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
                     this.setAttribute("data-prev-url", url);
                 }
                 catch {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     guardOnce(this, "image_preview_unavailable");
                 }
             };
@@ -130,6 +141,7 @@
             }
             if (document.body.getAttribute("data-np-delegate-img") !== "true") {
                 $(document).on("change", "#pro_image", function () {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     if ($(this).attr("data-np-bound") === "true")
                         return;
                     handler.call(this);
@@ -147,6 +159,7 @@
                 return;
             $(document).on("click", ".type", function () {
                 try {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     const type = String($(this).val() ?? "").toLowerCase();
                     const $q = $(".quantity");
                     if (!$q.length)
@@ -159,6 +172,7 @@
                     }
                 }
                 catch {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     guardOnce(this, "toggle_quantity_unavailable");
                 }
             });

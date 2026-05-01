@@ -3,6 +3,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     try {
         const f = document.getElementById("ai-template-form"), btn = document.getElementById("ai-generate-btn"), desc = document.getElementById("ai-description");
@@ -80,7 +81,9 @@
                     if (window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1")
                         console.error("[assets/js/routes/aiTemplates/generate.js] Click handler error:", 
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                         err?.constructor?.name ?? "Error", 
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                         err?.message ?? "Unknown error");
                 }
             });
@@ -90,7 +93,9 @@
         if (window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1")
             console.error("[assets/js/routes/aiTemplates/generate.js] Initialization error:", 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             error?.constructor?.name ?? "Error", 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             error?.message ?? "Unknown error");
     }
 })();

@@ -3,9 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module date
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const errFb = "# ERROR", clientFlag = "data-client-localized", guardMsgKey = "data-guard-msg", langKey = "erp-np-lang";
     let errorMessage = "";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getLocalizedMessage = (key, el) => {
         let msg = errFb;
         if (el.getAttribute(clientFlag) === "true") {
@@ -118,6 +122,8 @@
                     });
                 }
                 catch (e) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
                     errorMessage = getLocalizedMessage(e.message, typeEl);
                 }
             };

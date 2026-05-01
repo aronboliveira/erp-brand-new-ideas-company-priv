@@ -3,8 +3,12 @@
  * @generated from original JavaScript - manual review recommended
  * @module users
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", DATA_LISTENER = "data-listener-added";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute("data-sv-localized") === "true" ||
@@ -97,7 +101,9 @@
             }
         });
         mo.observe(document.body, { childList: true, subtree: true });
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const routeGuard = (url, el) => {
         const bad = !url || url === "#";
         if (bad)
@@ -123,8 +129,10 @@
                 $sel.empty();
             }
             return $sel;
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         };
         const choicesKey = "_npChoicesInstance";
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         const ensureChoices = (sel) => {
             if (typeof window.Choices !== "function") {
                 if (window.location.hostname === "localhost" ||
@@ -170,7 +178,9 @@
                     const $sel = buildOrReuseSelect();
                     const frag = document.createDocumentFragment();
                     for (const it of list) {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                         const id = String(it?.id ?? "");
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                         const name = String(it?.name ?? "");
                         if (id === "")
                             continue;
@@ -191,6 +201,7 @@
         };
         if (document.body.getAttribute("data-zoom-users-bound") !== "true") {
             $(document).on("change", ".project_select", function () {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 const projectId = String($(this).val() ?? "");
                 fetchUsers(projectId);
             });

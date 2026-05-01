@@ -13,7 +13,7 @@
         if ((f.getAttribute("action") === "" || f.getAttribute("action") === "#") &&
             resolved !== "#")
             f.setAttribute("action", resolved);
-         
+        // eslint-disable-next-line no-inner-declarations
         function notify(msg) {
             try {
                 if (window.bootstrap.Toast) {

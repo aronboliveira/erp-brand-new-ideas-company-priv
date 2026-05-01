@@ -61,7 +61,10 @@
             .querySelectorAll("a[data-guard-msg], a[data-url]")
             .forEach(el => bindGuard(el));
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const els = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             els.forEach((el) => {
                 try {
                     bootstrap.Tooltip.getOrCreateInstance(el);

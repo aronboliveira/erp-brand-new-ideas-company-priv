@@ -4,7 +4,7 @@
  * @module demo
  */
 // @ts-nocheck
-
+/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, no-duplicate-case */
 /* global bootstrap, $, jQuery */
 "use strict";
 $(document).ready(function () {

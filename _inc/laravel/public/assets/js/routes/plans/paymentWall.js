@@ -3,10 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module paymentWall
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", _dataSvLocalized = "data-sv-localized", dataErrGuard = "data-pw-error", dataBindGuard = "data-pw-bound";
     const qs = (s, r = document) => r.querySelector(s);
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBS = () => !!(
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]'))) && !!window.bootstrap.Toast;
     const ensureToastContainer = () => {
@@ -77,7 +81,9 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const localize = (el, key) => {
         const err = errFb, dataClient = dataClientLocalized, dataGuard = dataGuardMsg;
         if (el.getAttribute("data-sv-localized") === "true" ||
@@ -98,8 +104,10 @@
             el.setAttribute(dataGuard, msg);
             el.setAttribute(dataClient, "true");
         }
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         return msg;
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const verifyRoute = (candidate) => {
         const a = document.createElement("a");
         a.setAttribute("data-url", candidate ?? "");

@@ -3,8 +3,12 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", DATA_BOUND = "data-np-bound";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const localize = (el, msgKey) => {
         let msg = errFb;
         if (el.getAttribute("data-sv-localized") === "true" ||

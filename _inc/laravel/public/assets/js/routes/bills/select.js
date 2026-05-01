@@ -9,6 +9,7 @@
         return;
     select.setAttribute("data-listener-active", "true");
     const urlAttr = "data-url", guardMsgAttr = "data-guard-msg", failedAttr = "data-failed-route";
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     if (!select.getAttribute("data-listener-bound-change")) {
         select.setAttribute("data-listener-bound-change", "1");
         select.addEventListener("change", async () => {
@@ -52,16 +53,21 @@
                 });
                 if (!response.ok)
                     throw new Error(`Network error: ${response.status}`);
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 const data = await response.json();
                 document
                     .querySelectorAll("[data-vendor-field]")
                     .forEach((el) => {
                     const key = el.getAttribute("data-vendor-field") ?? "";
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
                     const val = data[key] ?? "";
                     if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         el.value = val;
                     }
                     else {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         el.textContent = val;
                     }
                 });

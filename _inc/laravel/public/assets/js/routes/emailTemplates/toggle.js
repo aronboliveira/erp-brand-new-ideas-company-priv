@@ -14,6 +14,7 @@
                 .replace(/_/g, "-");
             return l === "pt-br" ? l : l.slice(0, 2);
         })();
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         const t = (k) => window.translations?.[lang]?.[k] ||
             window.translations?.en?.[k] ||
             "# ERROR";

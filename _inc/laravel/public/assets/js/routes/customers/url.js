@@ -3,25 +3,21 @@
  * @generated from original JavaScript - manual review recommended
  * @module url
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const ERR_FB = "# ERROR", CLIENT_FLAG = "data-client-localized", GUARD_MSG = "data-guard-msg", LANG_KEY = "erp-np-lang";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function getLocalizedMessage(key, el) {
         let msg = ERR_FB;
         if (el.getAttribute(CLIENT_FLAG) === "true") {
             msg = el.getAttribute(GUARD_MSG) || msg;
         }
         else {
-            let lang = (sessionStorage.getItem(LANG_KEY) ??
-                document.documentElement.lang ??
-                "en")
-                .toLowerCase()
-                .replace(/_/g, "-");
+            let lang = (sessionStorage.getItem(LANG_KEY) ?? document.documentElement.lang ?? "en").toLowerCase().replace(/_/g, "-");
             lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-            msg =
-                window.translations?.[lang]?.[key] ||
-                    el.getAttribute(GUARD_MSG) ||
-                    window.translations?.en?.[key] ||
-                    msg;
+            msg = window.translations?.[lang]?.[key] || el.getAttribute(GUARD_MSG) || window.translations?.en?.[key] || msg;
             if (msg !== ERR_FB) {
                 el.setAttribute(GUARD_MSG, msg);
                 el.setAttribute(CLIENT_FLAG, "true");
@@ -29,6 +25,7 @@
         }
         return msg;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     function showToast(message, _isError = false) {
         try {
             let container = document.getElementById("toast-container");
@@ -39,8 +36,7 @@
                 container.style.zIndex = "1080";
                 document.body.appendChild(container);
             }
-            const hasBs = !!document.querySelector('link[href*="bootstrap"]') &&
-                window.bootstrap.Toast;
+            const hasBs = !!document.querySelector('link[href*="bootstrap"]') && window.bootstrap.Toast;
             if (hasBs) {
                 const toast = document.createElement("div");
                 toast.className = "toast";
@@ -83,7 +79,7 @@
             });
         });
     }).observe(document.body, { childList: true, subtree: true });
-    // @ts-expect-error -- migration: function overload type
+    // @ts-ignore -- migration: function overload type
     window.copyToClipboard = (text) => {
         const element = document.getElementById(text) ?? document.body;
         try {

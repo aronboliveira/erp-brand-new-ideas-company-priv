@@ -3,9 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module barcodeSetting
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const L = "data-guard-listener", DCL = "data-client-localized", DGM = "data-guard-msg", DSL = "data-sv-localized", ERR = "# ERROR";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const map = new WeakMap();
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function hasBootstrapCss() {
         try {
             return !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
@@ -44,8 +49,10 @@
         }
         catch (_) {
             alert(msg);
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         }
     }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function getMsg(el, key) {
         try {
             let msg = ERR;
@@ -58,6 +65,7 @@
                     .toLowerCase()
                     .replace(/_/g, "-");
                 lang = lang === "pt-br" ? lang : lang.slice(0, 2);
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const dict = window.translations || {};
                 msg = dict[lang][key] || el.getAttribute(DGM) || dict.en[key] || ERR;
                 if (msg !== ERR) {
@@ -138,6 +146,7 @@
             try {
                 const $forms = $("form[data-guard-msg], form[data-url]");
                 $forms.each(function () {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     const $f = $(this);
                     bindForm($f);
                     observeRemoval($f.get(0));

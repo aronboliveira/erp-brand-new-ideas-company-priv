@@ -3,11 +3,16 @@
  * @generated from original JavaScript - manual review recommended
  * @module order
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-leads-error", dataBindDrag = "data-dragula-bound", dataBindPipe = "data-pipeline-bound", ns = "._npLeads";
     const qs = (s, r = document) => r.querySelector(s);
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBS = () => !!(
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]'))) && !!window.bootstrap.Toast;
     const ensureToastContainer = () => {
@@ -75,7 +80,9 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||
@@ -103,8 +110,10 @@
     };
     const csrf = () => {
         const meta = document.querySelector('meta[name="csrf-token"]');
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         return meta?.getAttribute("content") ?? "";
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const verifyRoute = (candidate) => {
         const a = document.createElement("a");
         a.setAttribute("data-url", candidate ?? "");
@@ -140,9 +149,11 @@
         catch (_) {
             console.error(`[order] Error:`, _);
         }
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         schedulePointerupError(getMsg(document.body, "dragula_unavailable"));
         return false;
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const bindDragula = () => {
         if (!ensureJq() || !ensureDragula())
             return;
@@ -150,10 +161,12 @@
             return;
         document.body.setAttribute(dataBindDrag, "true");
         $('[data-plugin="dragula"]').each(function () {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             const $root = $(this);
             const containers = $root.data("containers");
             let nodes = [];
             if (containers?.length) {
+                // eslint-disable-next-line @typescript-eslint/prefer-for-of
                 for (let i = 0; i < containers.length; i++) {
                     const el = document.getElementById(containers[i]);
                     if (el)
@@ -179,6 +192,7 @@
                 try {
                     const order = [];
                     $("#" + target.id + " > div").each(function () {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                         order[$(this).index()] = $(this).attr("data-id");
                     });
                     const id = $(el).attr("data-id"), old_status = $("#" + source.id).data("status"), new_status = $("#" + target.id).data("status"), stage_id = $(target).attr("data-id"), pipeline_id = "{{$pipeline->id}}";

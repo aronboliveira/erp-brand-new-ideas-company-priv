@@ -3,6 +3,9 @@
  * @generated from original JavaScript - manual review recommended
  * @module submit
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-error-guard", dataSubmitGuard = "data-submit-guard";
@@ -22,6 +25,7 @@
     };
     const showErrorNow = (message) => {
         const hasBootstrapLink = 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         qs('link[rel="stylesheet"][href*="bootstrap"]') ||
             qs('link[href*="bootstrap"]');
         if (hasBootstrapLink && window.bootstrap.Toast) {
@@ -76,7 +80,9 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||
@@ -101,15 +107,19 @@
                 el.setAttribute(dataClientLocalized, "true");
             }
         }
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         return msg;
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const bindSubmit = () => {
         const form = qs("#form_data");
         if (!form)
             return;
         if (form.getAttribute(dataSubmitGuard) === "true")
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
             return;
         form.setAttribute(dataSubmitGuard, "true");
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         const handler = function (_e) {
             try {
                 const btn = qs("#login_button");

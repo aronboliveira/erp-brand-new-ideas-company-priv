@@ -3,8 +3,12 @@
  * @generated from original JavaScript - manual review recommended
  * @module editSelect
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", langKey = "erp-np-lang", errFb = "# ERROR";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (key, el) => {
         let msg = errFb;
         if (el.getAttribute("data-sv-localized") === "true" ||

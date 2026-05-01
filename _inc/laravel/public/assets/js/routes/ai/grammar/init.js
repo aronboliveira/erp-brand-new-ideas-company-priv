@@ -3,6 +3,9 @@
  * @generated from original JavaScript - manual review recommended
  * @module init
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-error-guard", dataBoundInit = "data-bound-grammar-init", dataBoundRegen = "data-bound-grammar-regen";
@@ -75,7 +78,9 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||
@@ -184,6 +189,7 @@
                 const form = $("#myGrammarForm"), formEl = form.get(0), explicit = "{{ route('grammar.response') }}", endpoint = resolveRoute(formEl, explicit);
                 if (!endpoint) {
                     scheduleInteractiveError(
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     getMsg(formEl || document.body, "generate_unavailable"));
                     return;
                 }

@@ -3,10 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module dismiss
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataBindGuard = "data-dismiss-bound", dataErrGuard = "data-dismiss-error";
     const qs = (s, r = document) => r.querySelector(s);
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBS = () => !!(
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]'))) && !!window.bootstrap.Toast;
     const toastContainer = () => {
@@ -74,7 +78,9 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const localize = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||

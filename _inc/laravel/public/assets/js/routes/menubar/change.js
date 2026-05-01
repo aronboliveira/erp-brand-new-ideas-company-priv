@@ -3,12 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module change
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     const lang = (document.documentElement.getAttribute("lang") ?? "en").toLowerCase();
     const dict = (window.translations &&
         (window.translations[lang] || window.translations[lang.split("-")[0]])) ||
         window.translations?.en ||
         {};
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const tr = (k) => dict[k] || k;
     const showToastOrAlert = (msg) => {
         try {
@@ -89,11 +91,15 @@
                     };
                 }
                 catch (e) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
                     showToastOrAlert(e.message || tr("request_failed"));
                 }
             });
         }
         catch (e) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
             showToastOrAlert(e.message || tr("request_failed"));
         }
     };

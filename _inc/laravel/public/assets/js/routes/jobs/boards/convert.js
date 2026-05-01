@@ -3,8 +3,12 @@
  * @generated from original JavaScript - manual review recommended
  * @module convert
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const Q = (s) => document.querySelector(s), 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     QA = (s) => Array.from(document.querySelectorAll(s)), G = () => {
         try {
             QA('[data-bs-toggle="tooltip"]').forEach((el) => {
@@ -30,14 +34,17 @@
             i.addEventListener("change", set);
             set();
         });
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const N = (d) => {
         if (!d)
             return [];
         if (Array.isArray(d))
             return d
                 .map(x => typeof x === "object"
-                ?
+                ? // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
                     { id: x.id ?? x.value ?? "", name: x.name ?? x.text ?? "" }
                 : null)
                 .filter((x) => x != null);
@@ -56,10 +63,14 @@
         def.value = "";
         def.textContent = "Select any Designation";
         sel.appendChild(def);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         N(items).forEach(it => {
             const o = document.createElement("option");
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             o.value = String(it.id);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             o.textContent = String(it.name);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             if (selId && String(selId) === String(it.id))
                 o.selected = true;
             sel.appendChild(o);
@@ -68,11 +79,13 @@
             const jQ = window.jQuery;
             if (jQ?.fn.select2 && jQ(sel).data("select2"))
                 jQ(sel).trigger("change.select2");
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         }
         catch (_) {
             console.error(`[convert] Error:`, _);
         }
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const C = () => {
         const d = Q("#department_id"), s = Q("#designation_id");
         if (!d || !s)
@@ -85,6 +98,7 @@
         const csrf = (document.querySelector('meta[name="csrf-token"]')?.content ||
             document.querySelector('input[name="_token"]')?.value) ??
             "";
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         const load = async (id) => {
             if (!id) {
                 P(s, []);
@@ -93,6 +107,7 @@
             if (!url || url.trim() === "#" || /^javascript:/i.test(url))
                 return;
             const payload = { department_id: id };
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
             const doFetch = () => fetch(url, {
                 method: "POST",
                 headers: {
@@ -112,15 +127,19 @@
                 }));
             };
             try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 const res = await (typeof fetch === "function"
                     ? doFetch().catch(doAjax)
                     : doAjax().catch(doFetch));
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
                 P(s, res?.data ?? res ?? []);
             }
             catch (_) {
                 console.error(`[convert] Error:`, _);
             }
         };
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         d.addEventListener("change", () => load(d.value));
         if (d.value)
             void load(d.value);

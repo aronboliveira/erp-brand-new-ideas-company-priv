@@ -3,9 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module print
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const guardListener = "data-guard-listener";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el) => {
         let msg = errFb;
         if (!el)
@@ -34,6 +38,7 @@
         }
         return msg;
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBootstrapCss = () => !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
     const showError = (el) => {
         const message = getMsg(el);

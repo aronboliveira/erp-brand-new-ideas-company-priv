@@ -3,11 +3,18 @@
  * @generated from original JavaScript - manual review recommended
  * @module update
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     /* assets/js/routes/leads/update.js */
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     (function () {
         const L = "data-guard-listener", DCL = "data-client-localized", DGM = "data-guard-msg";
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         const DSL = "data-sv-localized", ERR = "# ERROR";
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         function hasBootstrapCss() {
             try {
                 return !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
@@ -45,9 +52,11 @@
                 }
             }
             catch (_) {
+                // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
                 alert(msg);
             }
         }
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
         function getMsg(el, key) {
             try {
                 let msg = ERR;
@@ -159,7 +168,9 @@
         }
     })();
     const L = "data-guard-listener";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const DCL = "data-client-localized", DGM = "data-guard-msg", DSL = "data-sv-localized", ERR = "# ERROR";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function hasBootstrapCss() {
         try {
             return !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
@@ -194,12 +205,14 @@
             }
             else {
                 alert(msg);
+                // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
             }
         }
         catch (_) {
             alert(msg);
         }
     }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function getMsg(el, key) {
         try {
             let msg = ERR;

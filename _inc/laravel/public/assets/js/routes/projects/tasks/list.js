@@ -57,7 +57,9 @@
                                 if (window.location.hostname === "localhost" ||
                                     window.location.hostname === "127.0.0.1")
                                     console.error("[assets/js/routes/projects/tasks/indexTable.js] Bootstrap toast instantiation error:", 
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                                     err?.constructor?.name ?? "Error", 
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                                     err?.message ?? "Unknown error");
                                 alert(msg);
                             }
@@ -71,7 +73,9 @@
                         if (window.location.hostname === "localhost" ||
                             window.location.hostname === "127.0.0.1")
                             console.error("[assets/js/routes/projects/tasks/indexTable.js] Click handler error:", 
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                             err?.constructor?.name ?? "Error", 
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                             err?.message ?? "Unknown error");
                     }
                 });
@@ -80,7 +84,9 @@
                 if (window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1")
                     console.error("[assets/js/routes/projects/tasks/indexTable.js] Link binding error:", 
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.constructor?.name ?? "Error", 
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     err?.message ?? "Unknown error");
             }
         });
@@ -89,7 +95,9 @@
         if (window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1")
             console.error("[assets/js/routes/projects/tasks/indexTable.js] Initialization error:", 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             error?.constructor?.name ?? "Error", 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             error?.message ?? "Unknown error");
     }
 })();

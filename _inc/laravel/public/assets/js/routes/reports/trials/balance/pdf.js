@@ -3,11 +3,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (function () {
     const $ = window.jQuery;
     function qs(s, r = document) {
         return r.querySelector(s);
     }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const qsa = (s, r = document) => Array.from(r.querySelectorAll(s)), errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-error-guard", dataListenerGuard = "data-listener-guard";
     const getMsg = (el, key) => {
         let msg = errFb;

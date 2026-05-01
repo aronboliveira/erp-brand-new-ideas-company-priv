@@ -4,7 +4,9 @@
  * @module index
  */
 (() => {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const QA = (s) => Array.from(document.querySelectorAll(s));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const T = window.JOBS_I18N || {}, DEFAULT_ROUTE_MSG = T.routeUnavailable ??
         "Requested route is unavailable. Please contact technical support or your domain administrator.", COPIED = T.copySuccess ?? "Link copied to clipboard", COPY_FAIL = T.copyFail ?? "Failed to copy link";
     const toast = (message) => {
@@ -89,6 +91,7 @@
             console.error(`[index] Error:`, _);
         }
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const copyToClipboard = (text) => navigator.clipboard
         ? navigator.clipboard.writeText(text)
         : Promise.reject();

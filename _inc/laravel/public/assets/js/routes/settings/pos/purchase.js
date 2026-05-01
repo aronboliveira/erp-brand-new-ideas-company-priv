@@ -3,10 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module purchase
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const $ = window.jQuery;
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const DATA_LISTENER_ADDED = "data-listener-added";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, msgKey) => {
         let msg = errFb;
         if (el.getAttribute("data-sv-localized") === "true" ||
@@ -103,6 +107,7 @@
         mo.observe(document.body, { childList: true, subtree: true });
     };
     const routeGuard = (
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     element, alt) => {
         const url = element?.getAttribute("data-url");
         const href = element?.action ??

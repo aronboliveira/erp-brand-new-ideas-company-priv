@@ -34,6 +34,7 @@ const devError = (ctx, err) => {
             init: () => void 0,
             showToast: (msg, type) => {
                 // Shim de compatibilidade — tipo string da API legada mapeado para ToastType
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 guard.showToast(msg, type);
             },
             scheduleInteractiveError: (msg) => guard.scheduleInteractiveError(msg),

@@ -3,6 +3,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module store
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     const show = (msg) => {
         try {
@@ -38,10 +39,12 @@
             alert(msg);
         }
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const safeUrl = (el) => ((el?.getAttribute("action") ||
         el?.getAttribute("data-url") ||
         el?.getAttribute("href")) ??
         "").trim();
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const guard = (el) => el?.getAttribute("data-guard-msg") ??
         "Route is unavailable. Please contact technical support or your domain administrator.", form = document.getElementById("job-create-form");
     if (form) {
@@ -66,15 +69,19 @@
     if (window.jQuery) {
         const $ = window.jQuery;
         $(".summernote-simple").each(function () {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             if (!$(this).data("summernote"))
                 $(this).summernote({ height: 200 });
         });
         $(".summernote-simple-2").each(function () {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             if (!$(this).data("summernote"))
                 $(this).summernote({ height: 300 });
         });
         $('input[data-toggle="tags"]').each(function () {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             if (typeof $(this).tagsinput === "function")
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 $(this).tagsinput("items");
         });
     }

@@ -3,8 +3,12 @@
  * @generated from original JavaScript - manual review recommended
  * @module editRepeater
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", langSessionKey = "erp-np-lang", errFb = "# ERROR";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function getMsg(key, el) {
         let msg = errFb;
         if (el.getAttribute("data-sv-localized") === "true" ||
@@ -29,7 +33,9 @@
             }
         }
         return msg;
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     function showError(message) {
         try {
             const hasBs = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).some(l => /bootstrap/i.test(l.href)) && window.bootstrap.Toast;

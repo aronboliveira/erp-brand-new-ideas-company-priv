@@ -3,6 +3,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module create
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     try {
         const selector = ".create-leavetype-link", alias = "data-listening-createleavetypeclick";

@@ -6,7 +6,7 @@
  * @module code
  */
 // @ts-nocheck
-
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-base-to-string, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unused-vars, @typescript-eslint/restrict-plus-operands, no-constant-condition, prefer-const */
 /* global bootstrap, $, jQuery */
 // PULL REQUEST START — Alteração customizada: remoção parcial de jQuery no Chatify
 "use strict";

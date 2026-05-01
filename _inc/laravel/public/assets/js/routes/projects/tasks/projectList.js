@@ -8,6 +8,7 @@
         const anchors = document.querySelectorAll('a[id^="task-index-link-"]');
         if (anchors.length === 0)
             return;
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < anchors.length; i++) {
             try {
                 const el = anchors[i], flag = "data-listener-active";

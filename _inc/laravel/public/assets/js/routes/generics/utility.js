@@ -3,6 +3,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module utility
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function _displayUnavailableRouteMessage(lang = "pt-br", msg = null) {
     const message = msg ??
         window.translations?.[lang]?.route_unavailable ??

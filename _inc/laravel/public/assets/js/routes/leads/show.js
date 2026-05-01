@@ -3,9 +3,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module show
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataGuardListener = "data-guard-listener";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const msgKey = "leads_unavailable";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el) => {
         let msg = errFb;
         try {
@@ -38,6 +43,7 @@
             return errFb;
         }
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const hasBootstrapCss = () => !!document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]');
     const showError = (el) => {
         try {

@@ -3,8 +3,12 @@
  * @generated from original JavaScript - manual review recommended
  * @module editPicker
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const ERR_FB = "# ERROR", CLIENT_FLAG = "data-client-localized", GUARD_MSG = "data-guard-msg", LANG_KEY = "erp-np-lang";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (key, el) => {
         let msg = ERR_FB;
         if (el.getAttribute(CLIENT_FLAG) === "true") {
@@ -83,6 +87,7 @@
         }
         catch (e) {
             const key = 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             e.message === "datepicker_plugin_unavailable"
                 ? "datepicker_plugin_unavailable"
                 : "datepicker_init_failed";

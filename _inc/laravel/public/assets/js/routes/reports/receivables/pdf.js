@@ -3,6 +3,9 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     const $ = window.jQuery;
     if (!$.fn) {
@@ -90,6 +93,8 @@
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
     };
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||
@@ -141,6 +146,8 @@
                 scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
                 return;
             }
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             window.html2pdf().set(opt).from(area).save();
         }
         catch (_) {

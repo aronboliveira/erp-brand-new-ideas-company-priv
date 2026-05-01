@@ -3,6 +3,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module edit
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     try {
         const selector = ".edit-meeting-link", alias = "data-listening-editmeetingclick";

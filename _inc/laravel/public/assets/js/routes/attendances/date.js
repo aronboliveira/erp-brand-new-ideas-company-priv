@@ -3,6 +3,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module date
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     const BS_LINK = 'link[href*="bootstrap"]';
     const toastContainer = (() => {

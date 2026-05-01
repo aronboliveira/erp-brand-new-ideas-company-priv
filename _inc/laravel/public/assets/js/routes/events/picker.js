@@ -3,8 +3,12 @@
  * @generated from original JavaScript - manual review recommended
  * @module picker
  */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {
     const errFb = "# ERROR", _dataClient = "data-client-localized", _dataGuard = "data-guard-msg", langKey = "erp-np-lang", toastId = "toast-box";
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (key) => {
         let lang = (sessionStorage.getItem(langKey) ??
             (document.documentElement.lang || "en"))

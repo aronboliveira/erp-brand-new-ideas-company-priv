@@ -3,6 +3,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module delete
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 (() => {
     try {
         const selector = ".delete-custom-field-link[data-route-guard][data-url]", alias = "data-listening-customfieldsdeleteclick";

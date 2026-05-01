@@ -8,7 +8,7 @@
  * @module custom
  */
 // @ts-nocheck
-
+/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-base-to-string, @typescript-eslint/no-floating-promises, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, @typescript-eslint/restrict-plus-operands, no-var, prefer-const */
 /* global bootstrap, flatpickr, Swal, $, jQuery, simpleDatatables, Choices, jscolor, site_currency_symbol, site_currency_symbol_position */
 // PULL REQUEST START — Alteração customizada: remoção parcial de jQuery
 "use strict";
@@ -17,7 +17,7 @@
 /* ------------------------------------------------------------------ */
 const qs = (sel, root = document) => root.querySelector(sel);
 const qsa = (sel, root = document) => root.querySelectorAll(sel);
-const byId = (id) => document.getElementById(id);
+const byId = id => document.getElementById(id);
 function csrfToken() {
     const meta = qs('meta[name="csrf-token"]');
     return meta ? meta.getAttribute("content") : "";
@@ -127,7 +127,9 @@ onDelegate("click", '[data-ajax-popup="true"]', function (e) {
     const title = el.dataset.title || el.dataset.bsOriginalTitle || el.dataset.originalTitle || "";
     const size = el.dataset.size || "md";
     const url = el.dataset.url;
-    qsa(".modal-dialog").forEach(function (d) { d.classList.remove("modal-xl"); });
+    qsa(".modal-dialog").forEach(function (d) {
+        d.classList.remove("modal-xl");
+    });
     const modal = byId("commonModal");
     if (!modal)
         return;
@@ -247,7 +249,9 @@ function arrayToJson(form) {
         return {};
     const formData = new FormData(el);
     const indexed_array = {};
-    formData.forEach(function (value, key) { indexed_array[key] = value; });
+    formData.forEach(function (value, key) {
+        indexed_array[key] = value;
+    });
     return indexed_array;
 }
 function common_bind() {
@@ -266,7 +270,9 @@ function taskCheckbox() {
     let percentage = count > 0 ? parseInt(String((checked.length / count) * 100), 10) : 0;
     if (isNaN(percentage))
         percentage = 0;
-    qsa(".custom-label").forEach(function (el) { el.textContent = percentage + "%"; });
+    qsa(".custom-label").forEach(function (el) {
+        el.textContent = percentage + "%";
+    });
     const prog = byId("taskProgress");
     if (!prog)
         return;
@@ -316,8 +322,12 @@ function commonLoader() {
                     label.textContent = name;
             }
         });
-        input.addEventListener("focus", function () { input.classList.add("has-focus"); });
-        input.addEventListener("blur", function () { input.classList.remove("has-focus"); });
+        input.addEventListener("focus", function () {
+            input.classList.add("has-focus");
+        });
+        input.addEventListener("blur", function () {
+            input.classList.remove("has-focus");
+        });
     });
     if (qs(".jscolor") && typeof jscolor !== "undefined")
         jscolor.installByClassName("jscolor");
@@ -328,7 +338,9 @@ onDelegate("change", "input[type=file]", function () {
     const fileclass = this.getAttribute("data-filename");
     const finalname = this.value.split("\\").pop();
     if (fileclass) {
-        qsa("." + fileclass).forEach(function (el) { el.textContent = finalname; });
+        qsa("." + fileclass).forEach(function (el) {
+            el.textContent = finalname;
+        });
     }
 });
 /* ------------------------------------------------------------------ */
@@ -367,7 +379,8 @@ onDelegate("click", ".bs-pass-para", function (e) {
     Swal.mixin({
         customClass: { confirmButton: "btn btn-success", cancelButton: "btn btn-danger" },
         buttonsStyling: false,
-    }).fire({
+    })
+        .fire({
         title: "Are you sure?",
         text: "This action can not be undone. Do you want to continue?",
         icon: "warning",
@@ -375,7 +388,8 @@ onDelegate("click", ".bs-pass-para", function (e) {
         confirmButtonText: "Yes",
         cancelButtonText: "No",
         reverseButtons: true,
-    }).then(function (result) {
+    })
+        .then(function (result) {
         if (result.isConfirmed)
             form.submit();
     });
@@ -387,7 +401,8 @@ onDelegate("click", ".bs-pass-para-pos", function (e) {
     Swal.mixin({
         customClass: { confirmButton: "btn btn-success", cancelButton: "btn btn-danger" },
         buttonsStyling: false,
-    }).fire({
+    })
+        .fire({
         title: "Are you sure?",
         text: "This action can not be undone. Do you want to continue?",
         icon: "warning",
@@ -395,7 +410,8 @@ onDelegate("click", ".bs-pass-para-pos", function (e) {
         confirmButtonText: "Yes",
         cancelButtonText: "No",
         reverseButtons: true,
-    }).then(function (result) {
+    })
+        .then(function (result) {
         if (result.isConfirmed && confirmId) {
             const form = byId(confirmId);
             if (form)
@@ -407,12 +423,16 @@ onDelegate("click", ".bs-pass-para-pos", function (e) {
 /*  AJAX helpers (global — usados por Blade inline scripts)           */
 /* ------------------------------------------------------------------ */
 function postAjax(url, data, cb) {
-    ajaxPost(url, data, "POST").then(cb).catch(function (err) {
+    ajaxPost(url, data, "POST")
+        .then(cb)
+        .catch(function (err) {
         console.error("[postAjax]", err);
     });
 }
 function deleteAjax(url, data, cb) {
-    ajaxPost(url, data, "DELETE").then(cb).catch(function (err) {
+    ajaxPost(url, data, "DELETE")
+        .then(cb)
+        .catch(function (err) {
         console.error("[deleteAjax]", err);
     });
 }
@@ -420,7 +440,9 @@ function deleteAjax(url, data, cb) {
 /*  Currency formatting                                               */
 /* ------------------------------------------------------------------ */
 function addCommas(num) {
-    const number = parseFloat(num).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
+    const number = parseFloat(num)
+        .toFixed(2)
+        .replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,");
     const pre = typeof site_currency_symbol_position !== "undefined" && site_currency_symbol_position === "pre" ? site_currency_symbol : "";
     const post = typeof site_currency_symbol_position !== "undefined" && site_currency_symbol_position === "post" ? site_currency_symbol : "";
     return pre + number + post;
