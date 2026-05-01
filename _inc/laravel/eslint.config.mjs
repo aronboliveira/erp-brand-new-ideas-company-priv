@@ -227,11 +227,7 @@ export default [
 
   /* ── page scripts and generic helpers (browser IIFE) ──────────── */
   {
-    files: [
-      "public/assets/js/pages/**/*.js",
-      "public/assets/js/generic/**/*.js",
-      "public/assets/js/dash.js",
-    ],
+    files: ["public/assets/js/pages/**/*.js", "public/assets/js/generic/**/*.js", "public/assets/js/dash.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "script",
@@ -255,13 +251,7 @@ export default [
 
   /* ── Node.js config files at project root ─────────────────────── */
   {
-    files: [
-      "*.cjs",
-      "*.config.js",
-      "*.config.cjs",
-      "public/assets/js/**/*.cjs",
-      "scripts/**/*.cjs",
-    ],
+    files: ["*.cjs", "*.config.js", "*.config.cjs", "public/assets/js/**/*.cjs", "scripts/**/*.cjs"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "commonjs",
@@ -341,9 +331,7 @@ export default [
 
   /* ── route JS module files (ES import/export) ──────────────────── */
   {
-    files: [
-      "public/assets/js/routes/**/shared/*.js",
-    ],
+    files: ["public/assets/js/routes/**/shared/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
@@ -401,6 +389,11 @@ export default [
       "public/assets/js/routes/pos/lang/view.js",
       "public/assets/js/routes/reports/balances/horizontal/index/index.js",
       "public/assets/js/routes/users/apply.js",
+      ".backup/**",
+      "public/**",
+      "Modules/**",
+      "node_modules/**",
+      "vendor/**",
     ],
   },
 ];
