@@ -41,7 +41,8 @@ starters:
         - infra-os-utils: _inc/laravel/utils/*
     documentation:
         - README.md
-        - _inc/laravel/.notes/{.llms/.guidelines/*,*.md}
+        - .notes/*.md                             # Monorepo-wide notes (architecture, general infra)
+        - _inc/laravel/.notes/{.llms/.guidelines/*,*.md} # App-specific notes (Laravel logic, bugs, tasks)
         - _inc/laravel/utils/{.llms/*,prompts/.guidelines/*,*.md}
     guidelines:
         # ── MANDATORY READS ─────────────────────────────────────
