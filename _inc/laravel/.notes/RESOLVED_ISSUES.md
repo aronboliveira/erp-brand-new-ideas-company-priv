@@ -5,6 +5,13 @@
 
 ---
 
+## [2026-05-01] MessagesController Missing (STALE FLAG)
+
+Verified that `MessagesController` is correctly recognized by `php artisan route:list`.
+The class exists at `app/Http/Controllers/Contact/MessagesController.php` and is loaded
+correctly despite the PSR-4 subdirectory mismatch (likely via classmap).
+Commit: `[current-session]`
+
 ## [2026-05-01] BillProduct wrong namespace (App\Models → App\Models\Bills)
 
 Fixed namespace declaration in `app/Models/Bills/BillProduct.php` and updated callers

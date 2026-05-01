@@ -14,12 +14,6 @@
 **Impact:** All PHPUnit Feature tests are blocked.
 **Fix:** Change namespace to `App\Models\Bills` and update all imports, OR move file to `app/Models/BillProduct.php`.
 
-### MessagesController Missing
-
-**Issue:** `Class "MessagesController" does not exist` when running `php artisan route:list`.
-**Impact:** Cannot list/audit routes via artisan.
-**Fix:** Remove the route referencing it, or create the controller.
-
 ### 7 PHPUnit Failures
 
 - `MassAssignmentTest` — model fillable/guarded assertion
