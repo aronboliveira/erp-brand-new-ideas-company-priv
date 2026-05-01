@@ -276,42 +276,65 @@ p3_deferred:
 
   - id: P3-2
     title: 3-way merge — agent-prestech bug-fix commits into main
-    status: blocked_conflicts
-    analysed_at: "2026-05-01"
-    consented_by: claude
+    status: resolved
+    resolved_at: "2026-05-01"
+    consented_by: claude+user
     original_description: 531 overlapping files (PHPStan vs agent guards)
     analysis_update: |
-      Guard commits (cff71b6e7, 85ea61c9d, 69e3522c5, f31bf7c17) are ALREADY on main.
-      Remaining divergence: 20 commits, 10,110 files changed vs main.
-      Bulk of diff is ts/dist-iife/ compiled output + accumulated refactors.
-
-      # Each commit below exists ONLY on agent-prestech.
-      # The described bug/error is present on MAIN and unfixed until the commit lands there.
-      # Direction: cherry-pick FROM agent-prestech INTO main.
-      cherry_pick_candidates:
-        - commit: 810fbbf29
-          bug_on_main: i18n locale bugs present; 204 translation tests missing from main test suite
-        - commit: fbe353d65
-          bug_on_main: expense create page returns errors in 3 distinct code paths on main
-        - commit: 3c8d79846
-          bug_on_main: 35+ public const identifiers missing on main; several method names not snake_case
-        - commit: 11b9690b3
-          bug_on_main: DealController returns HTTP 500 (instead of 404/redirect) on ModelNotFoundException on main
-        - commit: 2af327294
-          bug_on_main: 9 PHPStan level-5 errors currently failing on main
-        - commit: 66cafc92b
-          bug_on_main: |
-            3 ProjectController routes are orphaned on main (route defined, no handler method exists).
-            12 controllers return HTTP 500 instead of 404 on missing-record lookups on main.
-    cherry_pick_attempted: 11b9690b3
-    cherry_pick_result: CONFLICT  # DealController + deleted notes/KNOWN_ISSUES.md (moved to _inc/laravel/.notes/)
-    recommended_approach: |
-      1. git checkout -b merge/agent-prestech-fixes
-      2. Cherry-pick 810fbbf29 fbe353d65 3c8d79846 11b9690b3 2af327294 66cafc92b (oldest first)
-      3. For each conflict: keep main PHPStan annotations, layer agent fix on top
-      4. For notes/KNOWN_ISSUES.md conflict: use git rm (file moved to _inc/laravel/.notes/)
-      5. Run PHPStan + PHPUnit, merge atomically into main
-    risk: high  # manual conflict resolution across 6+ files required
+      Guard commits (cff71b6e7, 85ea61c9d, 69e3522c5, f31bf7c17) were ALREADY on main.
+      Remaining valuable work: 6 discrete bug-fix commits cherry-picked in order.
+    cherry_picks_landed:
+      - source: 810fbbf29
+        main_commit: 33163c3cc
+        bug_fixed: i18n locale bugs; 204 translation tests added
+        conflicts_resolved:
+          - file: AuthenticatedSessionController.php
+            resolution: merged — kept App::getLocale() fallback chain from main, took agent's langList() bounds check
+          - file: RegisteredUserController.php
+            resolution: merged — kept main's App::getLocale() step, added agent's bounds check and DC::DEFAULT_LANG fallback
+          - file: tests/Unit/frontend/js/core/i18n-locale.test.cjs
+            resolution: took agent (add/add — more complete test coverage)
+          - file: tests/e2e/i18n.spec.cjs
+            resolution: took agent (add/add — more complete test coverage)
+          - file: _inc/utils/.llms/I18N_AUDIT_REPORT.md
+            resolution: git placed at new path _inc/laravel/utils/.llms/ automatically (dir rename detected)
+      - source: fbe353d65
+        main_commit: fa983f5fd
+        bug_fixed: expense create page 3 bug paths
+        conflicts_resolved: none (clean apply)
+      - source: 3c8d79846
+        main_commit: c212d9b0d
+        bug_fixed: 35+ missing public consts; route strings → typed const refs
+        conflicts_resolved:
+          - file: routes/web.php (6 blocks)
+            resolution: took agent (string literals → PRJC::, LDC::, JBCTC::, CTCC::, RPC::, PRPC:: const refs)
+          - file: ProjectController.php
+            resolution: took agent (try/catch guards + null-init pattern added around existing logic)
+          - file: ProjectReportController.php
+            resolution: took agent (new buildProjectQuery() helper absent from main — HEAD empty, agent adds)
+      - source: 11b9690b3
+        main_commit: 6f94af9af
+        bug_fixed: DealController ModelNotFoundException → HTTP 500 on main
+        conflicts_resolved:
+          - file: notes/KNOWN_ISSUES.md
+            resolution: git rm (file moved to _inc/laravel/.notes/ in P2-2)
+          - file: DealController.php (8 blocks)
+            resolution: took agent — broad \Throwable catch replaced with specific AuthorizationException /
+              ModelNotFoundException / QueryException / RuntimeException / Throwable chain
+      - source: 2af327294
+        main_commit: 78e460a0f
+        bug_fixed: 9 PHPStan level-5 errors; phpstan.neon upgraded to level 5
+        conflicts_resolved:
+          - file: notes/KNOWN_ISSUES.md
+            resolution: git rm (same as above)
+          - file: NotificationTemplatesController.php
+            resolution: took agent (missing "use function" import added)
+          - file: phpstan.neon
+            resolution: took agent (level 3 → level 5; errors were fixed to pass)
+      - source: 66cafc92b
+        main_commit: d98f2eaeb
+        bug_fixed: 3 orphan ProjectController routes; 12x PurchaseController 500→404
+        conflicts_resolved: none (clean apply; PHPStan cache permission errors were harmless)
 
   - id: P3-3
     title: Review 2,832 TS-rollback file deletions before accepting

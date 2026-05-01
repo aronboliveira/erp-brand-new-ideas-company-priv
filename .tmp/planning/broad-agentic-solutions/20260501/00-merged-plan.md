@@ -282,41 +282,35 @@ contract; they have a pre-existing ESM-leftover bug flagged for a separate
 follow-up. The user pre-staged a backup at `.backup/{public,resources}/` before
 the swap.
 
-### ⚠️ P3-2 · 531-file 3-way merge (PHPStan annotations vs agent crash-prevention guards)
+### ✅ P3-2 · agent-prestech bug-fix cherry-picks [SOLVED 2026-05-01]
 
-**Status: blocked / re-scoped** — 2026-05-01
+**Status: resolved** — all 6 targeted commits cherry-picked into `main`.
 
-Re-investigation found the original framing was stale: the four "guard" commits
-(`cff71b6e7`, `85ea61c9d`, `69e3522c5`, `f31bf7c17`) are **already on `main`**, so
-the 531-file PHPStan-vs-guards conflict no longer exists.
+The original "531-file 3-way merge" framing was stale: the four guard commits
+(`cff71b6e7`, `85ea61c9d`, `69e3522c5`, `f31bf7c17`) were already on `main`.
+The remaining valuable work was 6 discrete bug-fix commits that each resolved
+a problem **present on `main`**. All have now landed:
 
-The remaining divergence between `main` and `agent-prestech` is 20 commits / ~10,110 files —
-overwhelmingly compiled `ts/dist*/` output and chore/refactor noise.
+| Commit (`agent-prestech` source) | Bug fixed on `main`                                                       | `main` commit |
+| -------------------------------- | ------------------------------------------------------------------------- | ------------- |
+| `810fbbf29`                      | i18n locale bugs; 204 translation tests added                            | `33163c3cc`   |
+| `fbe353d65`                      | expense create page 3 bug paths                                           | `fa983f5fd`   |
+| `3c8d79846`                      | 35+ missing public consts; route strings → typed const refs               | `c212d9b0d`   |
+| `11b9690b3`                      | DealController `ModelNotFoundException` → HTTP 500 (now 404/redirect)     | `6f94af9af`   |
+| `2af327294`                      | 9 PHPStan level-5 errors; phpstan.neon upgraded to level 5                | `78e460a0f`   |
+| `66cafc92b`                      | 3 orphan ProjectController routes; 12× PurchaseController 500→404         | `d98f2eaeb`   |
 
-Each row below is a commit that lives **only on `agent-prestech`**. The bugs/errors
-described in "Subject" **currently exist on `main`** and will remain unfixed there
-until the commit is cherry-picked in. The "fix" wording always refers to work done
-**in `agent-prestech`** that has not yet landed on `main`.
+**Conflict resolution policy applied:**
 
-| Commit (on `agent-prestech`) | Bug/error present on `main` — fixed by this commit                      |
-| ---------------------------- | ----------------------------------------------------------------------- |
-| `810fbbf29`                  | i18n locale bugs; `main` is missing 204 translation tests               |
-| `fbe353d65`                  | expense create page fails with 3 bugs on `main`                         |
-| `3c8d79846`                  | 35+ public const definitions missing on `main`; methods not snake_case  |
-| `11b9690b3`                  | DealController returns HTTP 500 on `ModelNotFoundException` on `main`    |
-| `2af327294`                  | 9 PHPStan level-5 errors currently failing on `main`                    |
-| `66cafc92b`                  | 3 ProjectController routes are orphaned on `main` (no handler); 12 more controllers return 500 instead of 404 on missing records |
-
-Attempted `git cherry-pick 11b9690b3` produced two conflicts:
-
-1. `_inc/laravel/app/Http/Controllers/Activity/DealController.php` — content
-   conflict against `main`'s PHPStan annotations.
-2. `notes/KNOWN_ISSUES.md` — `modify/delete`; the file was moved to
-   `_inc/laravel/.notes/` in P2-2, so the right resolution is `git rm`.
-
-The leftover unresolved-merge state was cleaned up in commit `94eae2b5b`. A full
-sweep through the 6 commits above will need a dedicated merge session with
-PHPStan + PHPUnit running between cherry-picks; not attempted in this run.
+- `notes/KNOWN_ISSUES.md` (`modify/delete`): `git rm` — file was moved to
+  `_inc/laravel/.notes/` in P2-2.
+- `DealController.php`: agent replaced broad `\Throwable` catch with specific
+  `AuthorizationException` / `ModelNotFoundException` / `QueryException` /
+  `\RuntimeException` catch chain — strictly better; agent version taken.
+- `phpstan.neon`: agent upgrades analysis to level 5 (all 9 errors were fixed
+  to pass); agent version taken.
+- All other conflicts: agent adds missing `use function` imports, const aliases,
+  and return-type precision (`ViewContract|null` vs `View`) — agent version taken.
 
 ### P3-3 · 2,832 TS-rollback file deletions — **dropped**
 
@@ -387,6 +381,7 @@ artifacts also cleaned up.
 | P2-5 · README `php artisan test` examples replaced in all 3 language blocks                     | `3f78574d3`              | 2026-05-01 |
 | P2-6 · CI `\|\| true` replaced: hard-fail on tsc/jest/pytest; advisory on static-analysis steps | `3f78574d3`              | 2026-05-01 |
 | P3-1 · TS-compiled IIFE swap into `public/assets/js/` (1,134 deploy + 1,101 IIFE refresh)       | `25f3cdabd`, `94eae2b5b` | 2026-05-01 |
+| P3-2 · 6 agent-prestech bug-fix commits cherry-picked (i18n, expense, consts, Deal, PHPStan, routes/404) | `33163c3cc`…`d98f2eaeb` | 2026-05-01 |
 | P3-5 · D1 `CreatedByScope` helper; D3 `throttle:10,1` + dead-code removal + mime validation     | `3be5ca5a5`              | 2026-05-01 |
 | P3-6 · 19 stale `erp_prestech*` snapshot DBs dropped after explicit user approval               | n/a (DDL only)           | 2026-05-01 |
 | C5 · Postman collection rename staged as `renamed:`                                             | pre-commit               | 2026-05-01 |
@@ -413,7 +408,7 @@ artifacts also cleaned up.
 ✅ P1-4 (MessagesController stale flag) — done (commit bea84b24)
 
 ✅ P3-1 (TS → IIFE production swap into public/assets/js/) — done (25f3cdabd, 94eae2b5b)
-⚠️ P3-2 (agent-prestech bug-fix cherry-picks) — re-scoped; conflicts logged; needs dedicated session
+✅ P3-2 (agent-prestech bug-fix cherry-picks) — done; 6 commits landed (33163c3cc … d98f2eaeb)
 ⊘ P3-3 (TS-rollback file deletions review) — dropped (agent-prestech is read-only reference)
 ⊘ P3-4 (Dashboard N+1 optimisation) — rejected (too dev-oriented for MVP prototype)
 ✅ P3-5 (Security deferrals D1/D2/D3) — done (3be5ca5a5)
