@@ -1,1 +1,1 @@
-../../../../notes/20260207_chatify_bugs.md
+../../../../notes/20250207/20260207_chatify_bugs.md
