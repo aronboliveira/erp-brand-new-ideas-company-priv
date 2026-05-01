@@ -31,7 +31,6 @@ use Illuminate\Http\{
 };
 use Illuminate\Support\Facades\{
     App,
-    Auth,
     DB,
     File,
     Log,
@@ -360,13 +359,14 @@ final class JobController extends Controller
         $class = static::class;
         $base = class_basename($class);
         return $this->measureProfile($action, function () use ($req, $code, $action, $class, $base) {
-            $user = Auth::user(); // Public form — auth optional
             $v = Validator::make($req->all(), [
-                'name'  => 'required|string|max:255',
-                'email' => 'required|email|max:255',
-                'phone' => 'required|string|max:50',
-                'question' => 'nullable|array',
+                'name'       => 'required|string|max:255',
+                'email'      => 'required|email|max:255',
+                'phone'      => 'required|string|max:50',
+                'question'   => 'nullable|array',
                 'question.*' => 'nullable|string|max:1000',
+                'profile'    => 'nullable|file|mimes:jpeg,jpg,png,webp|max:5120',
+                'resume'     => 'nullable|file|mimes:pdf,doc,docx|max:10240',
             ]);
             if ($v->fails()) return back()->with('error', $v->errors()->first());
             $job = Job::where('code', $code)->firstOrFail();

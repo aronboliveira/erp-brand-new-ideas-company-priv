@@ -193,7 +193,7 @@ R::get(VW::CRR . '/{id}/{lang}', [JobController::class, 'career'])->name(VW::CRR
 R::get(VW::JB . '/requirement/{code}/{lang}', [JobController::class, JobController::JB_RQ])->name(VW::JB . '.requirement')
     ->middleware([MWC::XSS]);
 R::get(VW::JB . '/apply/{code}/{lang}', [JobController::class, JobController::JB_AP])->name(VW::JB . '.apply')->middleware([MWC::XSS]);
-R::post(VW::JB . '/apply/data/{code}', [JobController::class, JobController::JB_AP_DT])->name(VW::JB . '.apply.data')->middleware([MWC::XSS]);
+R::post(VW::JB . '/apply/data/{code}', [JobController::class, JobController::JB_AP_DT])->name(VW::JB . '.apply.data')->middleware([MWC::XSS, MWC::TRT . ':10,1']);
 #endregion
 //================================= Project Copy Module  ====================================//
 #region
