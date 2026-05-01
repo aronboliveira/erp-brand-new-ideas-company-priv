@@ -33,7 +33,7 @@
 
 ### ✅ P0-1 · Database rename: split/inconsistent state
 
-**Resolved/verified** — commit `PLAN_COMMIT_TBD` (2026-05-01)
+**Resolved/verified** — commit `f0520dd8d` (2026-05-01)
 
 Current verification shows `erp_brand_new_ideas_company_db` is no longer in the split
 state described below. The target DB has 229 base tables; all critical tables listed in
@@ -318,7 +318,7 @@ DROP DATABASE erp_prestech_db_test_1;
 
 | Item                                                                                            | Commit                   | Date       |
 | ----------------------------------------------------------------------------------------------- | ------------------------ | ---------- |
-| P0-1 · DB rename target verified healthy: 229 tables, critical tables present, no DB brand hits | `PLAN_COMMIT_TBD`        | 2026-05-01 |
+| P0-1 · DB rename target verified healthy: 229 tables, critical tables present, no DB brand hits | `f0520dd8d`              | 2026-05-01 |
 | P0-2 · BillProduct namespace `App\Models` → `App\Models\Bills`; callers updated                 | `c28f9474e`              | 2026-05-01 |
 | P0-2 follow-up · stale BillProduct test references and tracked backup references updated         | `7f206bff3`              | 2026-05-01 |
 | P1-1 · Brand rename committed (405 files); push pending — remote repo not yet on GitHub         | `c28f9474e`              | 2026-05-01 |

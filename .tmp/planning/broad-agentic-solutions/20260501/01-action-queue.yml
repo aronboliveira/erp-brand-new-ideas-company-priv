@@ -19,7 +19,7 @@ p0_blocking:
     title: Complete DB rename — fill missing tables
     status: resolved
     resolved_at: "2026-05-01"
-    commit: PLAN_COMMIT_TBD
+    commit: f0520dd8d
     owner: codex
     consented_by: 4_of_5_agents
     file: _inc/laravel/scripts/rename_db.sh
