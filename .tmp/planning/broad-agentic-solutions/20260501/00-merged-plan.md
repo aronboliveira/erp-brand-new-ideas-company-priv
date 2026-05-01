@@ -139,7 +139,7 @@ rm -f /tmp/rename_batch.sql /tmp/rename_current_batch.sql /tmp/rename_errors.log
 
 Do this only after the DB recovery (P0-1) is verified complete.
 
-### P1-3 · Fix 7 broken symlinks in agent context directory
+### ✅ P1-3 · Fix 7 broken symlinks in agent context directory [SOLVED 2026-05-01]
 
 **Agents reporting:** open-claude (detailed list)
 
@@ -350,7 +350,7 @@ DROP DATABASE erp_prestech_db_test_1;
 ✅ P2-3 (phpunit.xml/.env.testing) — done
 ✅ P2-4/5/6 (doc + CI quality) — done
 
-P1-3 (broken symlinks) — standalone, no deps
+✅ P1-3 (broken symlinks) — done (commit f31bf7c1)
 P1-4 (MessagesController stale flag) — standalone
 P3-6 (drop stale DB snapshots) — approval pending; do not run without explicit sign-off
 
