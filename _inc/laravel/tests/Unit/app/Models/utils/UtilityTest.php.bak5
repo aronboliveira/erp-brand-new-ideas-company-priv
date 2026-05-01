@@ -147,7 +147,7 @@ class UtilityTest extends TestCase
 		// the initialized flag so the 'saved' handler returns early.
 		foreach ([
 			\App\Models\InvoiceProduct::class,
-			\App\Models\BillProduct::class,
+			\App\Models\Bills\BillProduct::class,
 		] as $cls) {
 			new $cls(); // triggers boot
 			(new \ReflectionProperty($cls, 'extendsProductServiceInitialized'))
@@ -2783,7 +2783,7 @@ class UtilityTest extends TestCase
 		$bank = \App\Models\BankAccount::create(['chart_account_id' => 2, 'created_by' => $user?->id]);
 		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
 		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => now()]);
-		\App\Models\BillProduct::create(['product_id' => $prod->id, 'total' => 4, 'quantity' => 1, 'created_at' => now()]);
+		\App\Models\Bills\BillProduct::create(['product_id' => $prod->id, 'total' => 4, 'quantity' => 1, 'created_at' => now()]);
 		\App\Models\BillAccount::create(['chart_account_id' => 3, 'total' => 3, 'created_at' => now()]);
 		\App\Models\BillPayment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now()]);
 		\App\Models\Payment::create(['account_id' => $bank->id, 'amount' => 1, 'date' => now()]);
@@ -2843,7 +2843,7 @@ class UtilityTest extends TestCase
 		$credit = Utility::getBalanceSheetCredit($coaCredit->id, null, null);
 		$this->assertEquals((5 * 2) + 3 + 4, $credit);
 
-		\App\Models\BillProduct::create(['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
+		\App\Models\Bills\BillProduct::create(['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
 		\App\Models\BillAccount::create(['chart_account_id' => $coaDebit->id, 'price' => 1, 'created_at' => now()]);
 		$bank2 = \App\Models\BankAccount::create(['chart_account_id' => $coaDebit->id, 'created_by' => $user->creatorId()]);
 		\App\Models\BillPayment::create(['account_id' => $bank2->id, 'amount' => 1, 'date' => now()]);
@@ -2887,7 +2887,7 @@ class UtilityTest extends TestCase
 		$bank = \App\Models\BankAccount::create(['chart_account_id' => $chart->id, 'created_by' => $user?->creatorId()]);
 		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 3, 'created_at' => now()]);
 		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 4, 'created_at' => now()]);
-		\App\Models\BillProduct::create(['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
+		\App\Models\Bills\BillProduct::create(['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
 		\App\Models\BillAccount::create(['chart_account_id' => $chart->id, 'price' => 1, 'created_at' => now()]);
 		\App\Models\BillPayment::create(['account_id' => $bank->id, 'amount' => 1, 'created_at' => now()]);
 		\App\Models\Payment::create(['account_id' => $bank->id, 'amount' => 2, 'created_at' => now()]);
