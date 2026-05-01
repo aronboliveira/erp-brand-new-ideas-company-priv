@@ -24,7 +24,11 @@ export default function LandingPage({ children }: Parent): JSX.Element {
           <Grid container alignItems='center' spacing={4}>
             <Grid item xs={12} sm={5}>
               <Typography variant='h2' component='h1' className={styles.title}>
+<<<<<<< HEAD
                 ERP Nova Brand New Ideas Company
+=======
+                ERP Nova Prestech
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
               </Typography>
               <hr className={styles.separator} />
               <Typography

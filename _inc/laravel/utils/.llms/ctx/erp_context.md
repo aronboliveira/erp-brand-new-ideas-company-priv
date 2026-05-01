@@ -1,28 +1,27 @@
-# ERP Brand New Ideas Company — Subagent Context File
+# ERP Prestech — Subagent Context File
 
-# Last updated: 2026-02-28T21:30Z
+# Last updated: 2026-02-18T21:30Z
 
 # Purpose: Structured context for AI subagent coordination
 
 ## Project Location
 
-- Workspace root: `/workspace/erp`
+- Workspace root: `/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech`
 - Laravel root: `_inc/laravel/`
 - All paths below are relative to Laravel root unless noted
 
 ## Stack
 
-- Laravel 10.49.0, PHP 8.4.5, MySQL (erp_brand_new_ideas_company_db)
+- Laravel 11.x, PHP 8.3.6, MySQL (erp_prestech_db)
 - PHPUnit 10.5.55, Jest 29.7.0, Playwright 1.58.2, Pytest
-- Node.js 22.22.0 (for frontend tests), Python 3 (for utility scripts)
+- Node.js (for frontend tests), Python 3 (for utility scripts)
 
 ## Auth
 
-- SA user email: `suporte@brandnewideascompany.com`
-- SA user UUID: `a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7`
-- SA user password: `test1234`
+- Test user email: `u_1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c@test.local`
+- Test user password: `Admin@1234`
 - User type: `super admin` (bypasses permission checks in `ChecksPermissions::guard()`)
-- Session cookie name: `erp_brand_new_ideas_company_session`
+- Session cookie name: `erp_nova_prestech_session`
 - CSRF: `<meta name="csrf-token">` + `<input name="_token">`
 
 ## Key Constants Files
@@ -35,7 +34,7 @@
 
 ## Route Architecture
 
-- 1,542 total routes
+- 1,515 total routes (846 GET, 409 POST, 155 PUT, 143 PATCH, 188 DELETE, 29 OPTIONS)
 - 67 LandingPage module routes (Modules/LandingPage/)
 - Routes defined in `routes/web.php` using class constants (VW::_, R::, MWC::_)
 - Resource routes: `R::resource(VW::CONST, Controller::class)->middleware([...])`
@@ -51,12 +50,11 @@
 
 ## Database
 
-- 211 tables total
+- 212 tables total, ~145 with data (67 empty — all system/log/activity tables)
 - UUID primary keys on most tables
 - `created_by` column pattern for multi-tenancy
-- **Current state (2026-02-28):** Sparse — only 2 users, needs re-seeding
-- Key SA user: `suporte@brandnewideascompany.com` / `a3e8f4b2-7c1d-4f5a-9b0c-82d6e1f3a5b7`
-- Run `php artisan db:seed --class=ContentValidationSeeder` to repopulate
+- User types: super admin (122), company (364), admin (1), client, customer, hr, vendor, unnamed (113)
+- Key row counts: users 612, employees 107, customers 160, leads 104, deals 60, projects ~50+, invoices ~50+
 
 ## Seeder Dependency Chains (verified 2026-02-18)
 
@@ -120,7 +118,7 @@ All chains populated and functional:
 
 ## File Organization
 
-- Utility/moment-routine scripts moved to `_inc/laravel/utils/.llms/scripts/20260218/`
-- CLI references in `_inc/laravel/utils/.llms/cli/` (by date)
-- Session notes in `_inc/laravel/utils/.llms/notes/` (by date)
-- Subagent context in `_inc/laravel/utils/.llms/ctx/` (this file)
+- Utility/moment-routine scripts moved to `_inc/utils/.llms/scripts/20260218/`
+- CLI references in `_inc/utils/.llms/cli/` (by date)
+- Session notes in `_inc/utils/.llms/notes/` (by date)
+- Subagent context in `_inc/utils/.llms/ctx/` (this file)

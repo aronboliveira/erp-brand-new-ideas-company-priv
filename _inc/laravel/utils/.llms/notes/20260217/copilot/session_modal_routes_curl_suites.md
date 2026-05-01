@@ -103,7 +103,7 @@ bash tests/sh/06_timing_report.sh
 
 ### 5. Documentation Updated
 
-- `_inc/laravel/utils/.llms/notes/context/10_CURRENT_STATUS.md` — full rewrite with current test counts, route inventory, middleware details, known issues
+- `_inc/utils/.llms/notes/context/10_CURRENT_STATUS.md` — full rewrite with current test counts, route inventory, middleware details, known issues
 - This session notes file
 - CLI reference for curl test suite commands
 

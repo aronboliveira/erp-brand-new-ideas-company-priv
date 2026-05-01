@@ -15,11 +15,15 @@ export default function AdminLayout({ title, settings }: AdminLayoutProps) {
   }, [themeColor]);
   return (
     <head>
+<<<<<<< HEAD
       <title>
         {(settings.title_text || "ERP Brand New Ideas Company") +
           " - " +
           (title || "")}
       </title>
+=======
+      <title>{(settings.title_text || "ERPGO") + " - " + (title || "")}</title>
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
       <meta name='title' content={settings.meta_title || ""} />
       <meta name='description' content={settings.meta_desc || ""} />
       <meta property='og:type' content='website' />

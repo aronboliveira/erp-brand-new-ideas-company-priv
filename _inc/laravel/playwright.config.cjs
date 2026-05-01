@@ -22,7 +22,11 @@ module.exports = defineConfig({
   /* Shared settings for all the projects below. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
+<<<<<<< HEAD
     baseURL: process.env.APP_URL || "http://localhost:8000",
+=======
+    baseURL: "http://localhost:8888",
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 
     /* Collect trace when retrying the failed test. */
     trace: "on-first-retry",

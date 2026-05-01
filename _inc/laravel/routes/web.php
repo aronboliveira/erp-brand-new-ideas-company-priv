@@ -728,6 +728,7 @@ R::group(['middleware' => [MWC::VF]], function () {
     //================================= Deals ====================================//
     // Main Deal Routes
     #region
+<<<<<<< HEAD
     R::post(VW::DL . '/user', [DealController::class, 'jsonUser'])->name(VW::DL . '.user.json');
     R::post(VW::DL . '/order', [DealController::class, 'order'])->name(VW::DL . '.order')->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::DL . '/change-pipeline', [DealController::class, 'changePipeline'])->name(VW::DL . '.change.pipeline')->middleware([MWC::AUTH, MWC::XSS]);
@@ -776,6 +777,56 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::get(VW::DL . '/{id}/email', [DealController::class, 'emailCreate'])->name(VW::DL . '.emails.create')->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::DL . '/{id}/email', [DealController::class, 'emailStore'])->name(VW::DL . '.emails.store')->middleware([MWC::AUTH, MWC::XSS]);
     R::resource(VW::DL, DealController::class)->middleware([MWC::AUTH, MWC::XSS]);
+=======
+    R::post(VW::DL . '/user', [DLC::class, DLC::USR_JSON])->name(VW::DL . '.user.json');
+    R::post(VW::DL . '/order', [DLC::class, DLC::ORD])->name(VW::DL . '.order')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::DL . '/change-pipeline', [DLC::class, DLC::PPL_CHG])->name(VW::DL . '.change.pipeline')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::DL . '/change-deal-status/{id}', [DLC::class, DLC::STT_CHG])->name(VW::DL . '.change.status')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::DL . '/{id}/labels', [DLC::class, DLC::LBL])->name(VW::DL . '.labels')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::DL . '/{id}/labels', [DLC::class, DLC::LB_STR])->name(VW::DL . '.labels.store')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::DL . '/{id}/users', [DLC::class, DLC::USR_EDT])->name(VW::DL . '.users.edit')->middleware([MWC::AUTH, MWC::XSS]);
+    R::put(VW::DL . '/{id}/users', [DLC::class, DLC::USR_UPD])->name(VW::DL . '.users.update')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::DL . '/{id}/users/{uid}', [DLC::class, DLC::USR_DST])->name(VW::DL . '.users.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::DL . '/{id}/clients', [DLC::class, DLC::CL_EDT])->name(VW::DL . '.clients.edit')->middleware([MWC::AUTH, MWC::XSS]);
+    R::put(VW::DL . '/{id}/clients', [DLC::class, DLC::CL_UPD])->name(VW::DL . '.clients.update')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::DL . '/{id}/clients/{uid}', [DLC::class, DLC::CL_DST])->name(VW::DL . '.clients.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::DL . '/{id}/products', [DLC::class, DLC::PRD_EDT])->name(VW::DL . '.products.edit')->middleware([MWC::AUTH, MWC::XSS]);
+    R::put(VW::DL . '/{id}/products', [DLC::class, DLC::PRD_UPD])->name(VW::DL . '.products.update')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::DL . '/{id}/products/{uid}', [DLC::class, DLC::PRD_DST])->name(VW::DL . '.products.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::DL . '/{id}/sources', [DLC::class, DLC::SRC_EDT])->name(VW::DL . '.sources.edit')->middleware([MWC::AUTH, MWC::XSS]);
+    R::put(VW::DL . '/{id}/sources', [DLC::class, DLC::SRC_UPD])->name(VW::DL . '.sources.update')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::DL . '/{id}/sources/{uid}', [DLC::class, DLC::SRC_DST])->name(VW::DL . '.sources.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::DL . '/{id}/file', [DLC::class, DLC::FL_UPL])->name(VW::DL . '.file.upload')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::DL . '/{id}/file/{fid}', [DLC::class, DLC::FL_DWN])->name(VW::DL . '.file.download')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::DL . '/{id}/file/delete/{fid}', [DLC::class, DLC::FL_DEL])->name(VW::DL . '.file.delete')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::DL . '/{id}/note', [DLC::class, DLC::NT_STR])->name(VW::DL . '.note.store')->middleware([MWC::AUTH]);
+    R::get(VW::DL . '/{id}/' . VW::TSK, [DLC::class, DLC::TSK_CRT])->name(VW::DL . '.tasks.create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::DL . '/{id}/' . VW::TSK, [DLC::class, DLC::TSK_STR])->name(VW::DL . '.tasks.store')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::DL . '/{id}/' . VW::TSK . '/{tid}/show', [DLC::class, DLC::TSK_SHW])->name(VW::DL . '.tasks.show')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::DL . '/{id}/' . VW::TSK . '/{tid}/edit', [DLC::class, DLC::TSK_EDT])->name(VW::DL . '.tasks.edit')->middleware([MWC::AUTH, MWC::XSS]);
+    R::put(VW::DL . '/{id}/' . VW::TSK . '/{tid}', [DLC::class, DLC::TSK_UPD])->name(VW::DL . '.tasks.update')->middleware([MWC::AUTH, MWC::XSS]);
+    R::put(VW::DL . '/{id}/task_status/{tid}', [DLC::class, DLC::TSK_UPD_STT])->name(VW::DL . '.tasks.update_status')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::DL . '/{id}/' . VW::TSK . '/{tid}', [DLC::class, DLC::TSK_DST])->name(VW::DL . '.tasks.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::DL . '/{id}/discussions', [DLC::class, DLC::DSC_CRT])->name(VW::DL . '.discussions.create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::DL . '/{id}/discussions', [DLC::class, DLC::DSC_STR])->name(VW::DL . '.discussion.store')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::DL . '/{id}/permission/{cid}', [DLC::class, DLC::PRM])->name(VW::DL . '.client.permission')->middleware([MWC::AUTH, MWC::XSS]);
+    R::put(VW::DL . '/{id}/permission/{cid}', [DLC::class, DLC::PRM_STR])->name(VW::DL . '.client.permissions.store')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::DL . '/list', [DLC::class, DLC::DL_LST])->name(VW::DL . '.list')->middleware([MWC::AUTH, MWC::XSS]);
+    #endregion
+    // Deal Calls
+    #region
+    R::get(VW::DL . '/{id}/call', [DLC::class, DLC::CAL_CRT])->name(VW::DL . '.calls.create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::DL . '/{id}/call', [DLC::class, DLC::CAL_STR])->name(VW::DL . '.calls.store')->middleware([MWC::AUTH]);
+    R::get(VW::DL . '/{id}/call/{cid}/edit', [DLC::class, DLC::CAL_EDT])->name(VW::DL . '.calls.edit')->middleware([MWC::AUTH]);
+    R::put(VW::DL . '/{id}/call/{cid}', [DLC::class, DLC::CAL_UPD])->name(VW::DL . '.calls.update')->middleware([MWC::AUTH]);
+    R::delete(VW::DL . '/{id}/call/{cid}', [DLC::class, DLC::CAL_DST])->name(VW::DL . '.calls.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    #endregion
+    // Deal Email
+    #region
+    R::get(VW::DL . '/{id}/email', [DLC::class, DLC::EML_CRT])->name(VW::DL . '.emails.create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::DL . '/{id}/email', [DLC::class, DLC::EML_STR])->name(VW::DL . '.emails.store')->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource(VW::DL, DLC::class)->middleware([MWC::AUTH, MWC::XSS]);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     #endregion
     #endregion
 
@@ -835,10 +886,17 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     // end Leads Module
 
+<<<<<<< HEAD
     R::get(VW::USR . '/{id}/plan', [UserController::class, UserController::UPG_PLN])->name(VW::PLN . '.upgrade')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::USR . '/{id}/plan/{pid}', [UserController::class, UserController::ACT_PLN])->name(VW::PLN . '.active')->middleware([MWC::AUTH, MWC::XSS]);
     // TODO METHOD NOT IMPLEMENTED
     R::get('/{uid}/notifications/seen', [UserController::class, 'notificationSeen'])->name('notifications.seen');
+=======
+    R::get(VW::USR . '/{id}/plan', [USRC::class, USRC::UPG_PLN])->name(VW::PLN . '.upgrade')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::USR . '/{id}/plan/{pid}', [USRC::class, USRC::ACT_PLN])->name(VW::PLN . '.active')->middleware([MWC::AUTH, MWC::XSS]);
+
+    R::get('/{uid}/notifications/seen', [USRC::class, USRC::NTF_SN])->name(VW::NTF_SEEN);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     // Email Templates
     R::get('email_template_lang/{id}/{lang?}', [EmailTemplateController::class, EmailTemplateController::MNG_EM_LNG])->name(VW::EMLS . '.manage.language')->middleware([MWC::AUTH, MWC::XSS]);
     R::any('email_template_store', [EmailTemplateController::class, EmailTemplateController::UPD_STT])->name(VW::EMLS . '.status.language')->middleware([MWC::AUTH]);
@@ -1018,6 +1076,7 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     // User Module
 
+<<<<<<< HEAD
     R::get('users/{view?}', [UserController::class, 'index'])->name(VW::USR)->middleware([MWC::AUTH, MWC::XSS]);
     // TODO METHOD NOT IMPLEMENTED
     R::get('users-view', [UserController::class, 'filterUserView'])->name('filter.user.view')->middleware([MWC::AUTH, MWC::XSS]);
@@ -1035,16 +1094,44 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     // Search
     R::get('/search', [UserController::class, 'search'])->name('search.json');
+=======
+    R::get('users/{view?}', [USRC::class, USRC::IDX])->name(VW::USR)->middleware([MWC::AUTH, MWC::XSS]);
+
+    R::get('users-view', [USRC::class, USRC::FLT_USR_VW])->name(VW::FLT_USR_VW)->middleware([MWC::AUTH, MWC::XSS]);
+
+    R::get('checkuserexists', [USRC::class, USRC::CHK_USR_EXT])->name(VW::USR . '.exists')->middleware([MWC::AUTH, MWC::XSS]);
+    // Duplicate removed — primary profile route is at user.profile (line ~326)
+
+    R::post('/profile', [USRC::class, USRC::UPD_PRF])->name(VW::UPD_PRF)->middleware([MWC::AUTH, MWC::XSS]);
+
+    R::get(VW::USR . '/info/{id}', [USRC::class, USRC::USR_INF])->name(VW::USR . '.info')->middleware([MWC::AUTH, MWC::XSS]);
+
+    R::get(VW::USR . '/{id}/info/{type}', [USRC::class, USRC::GT_PRJ_TSK])->name(VW::USR . '.info.popup')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete('users/{id}', [USRC::class, USRC::DEL])->name(VW::USR . '.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    // End User Module
+
+    // Search
+    R::get('/search', [USRC::class, USRC::SRC])->name(VW::SRCH_JSN);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     // end
 
     //================================= Project Milestones  ====================================//
     #region
+<<<<<<< HEAD
     R::get(VW::PRJ . '/{id}/' . VW::MLS, [ProjectController::class, 'milestone'])->name(VW::ML)->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::PRJ . '/{id}/' . VW::MLS, [ProjectController::class, ProjectController::ML_STR])->name(VW::ML . '.store')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::PRJ . '/' . VW::MLS . '/{id}/edit', [ProjectController::class, ProjectController::ML_ED])->name(VW::ML . '.edit')->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::PRJ . '/' . VW::MLS . '/{id}', [ProjectController::class, ProjectController::ML_UPD])->name(VW::ML . '.update')->middleware([MWC::AUTH, MWC::XSS]);
     R::delete(VW::PRJ . '/' . VW::MLS . '/{id}', [ProjectController::class, ProjectController::ML_DST])->name(VW::ML . '.destroy')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::PRJ . '/' . VW::MLS . '/{id}/show', [ProjectController::class, ProjectController::ML_SHW])->name(VW::ML . '.show')->middleware([MWC::AUTH, MWC::XSS]);
+=======
+    R::get(VW::PRJ . '/{id}/' . VW::MLS, [PRJC::class, PRJC::MLST])->name(VW::ML)->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PRJ . '/{id}/' . VW::MLS, [PRJC::class, PRJC::ML_STR])->name(VW::ML . '.store')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PRJ . '/' . VW::MLS . '/{id}/edit', [PRJC::class, PRJC::ML_ED])->name(VW::ML . '.edit')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PRJ . '/' . VW::MLS . '/{id}', [PRJC::class, PRJC::ML_UPD])->name(VW::ML . '.update')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::PRJ . '/' . VW::MLS . '/{id}', [PRJC::class, PRJC::ML_DST])->name(VW::ML . '.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PRJ . '/' . VW::MLS . '/{id}/show', [PRJC::class, PRJC::ML_SHW])->name(VW::ML . '.show')->middleware([MWC::AUTH, MWC::XSS]);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     //R::delete(
     //    '/'.VW::PRJ.'/{id}/users/{uid}', [
     //                                    'as' => VW::PRJ.'.'.VW::USR.'s.destroy',
@@ -1061,6 +1148,7 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     // Project Module
 
+<<<<<<< HEAD
     R::get('invite-project-member/{id}', [ProjectController::class, 'inviteMemberView'])->name(VW::PRJ . '.invite.member.view')->middleware([MWC::AUTH, MWC::XSS]);
     R::post('invite-project-user-member', [ProjectController::class, 'inviteProjectUserMember'])->name(VW::PRJ . '.invite.user.member')->middleware([MWC::AUTH, MWC::XSS]);
 
@@ -1073,12 +1161,31 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::get('projects-users', [ProjectController::class, 'loadUser'])->name(VW::PRJ . '.user')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::PRJ . '/{id}/gantt/{duration?}', [ProjectController::class, 'gantt'])->name(VW::PRJ . '.gantt')->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::PRJ . '/{id}/gantt', [ProjectController::class, 'ganttPost'])->name(VW::PRJ . '.gantt.post')->middleware([MWC::AUTH, MWC::XSS]);
+=======
+    R::get('invite-project-member/{id}', [PRJC::class, PRJC::INV_MB_VW])->name(VW::PRJ . '.invite.member.view')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('invite-project-user-member', [PRJC::class, PRJC::INV_PRJ_USR_MB])->name(VW::PRJ . '.invite.user.member')->middleware([MWC::AUTH, MWC::XSS]);
+
+    R::delete(VW::PRJ . '/{id}/users/{uid}', [PRJC::class, PRJC::DST_PRJ_USR])->name(VW::PRJ . '.' . VW::USR . '.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('project/{view?}', [PRJC::class, PRJC::IDX])->name(VW::PRJ . '.list')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('projects-view', [PRJC::class, PRJC::FT_PRJ])->name(VW::FLT_PRJ_VW)->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PRJ . '/{id}/store-stages/{slug}', [PRJC::class, PRJC::STR_PRJ_TSK_STG])->name(VW::PRJ . '.stages.store')->middleware([MWC::AUTH, MWC::XSS]);
+
+    R::patch('remove-user-from-project/{project_id}/{user_id}', [PRJC::class, PRJC::RM_USR_PRJ])->name(VW::RM_USR_PRJ)->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('projects-users', [PRJC::class, PRJC::LD_USR])->name(VW::PRJ . '.user')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PRJ . '/{id}/gantt/{duration?}', [PRJC::class, PRJC::GT])->name(VW::PRJ . '.gantt')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PRJ . '/{id}/gantt', [PRJC::class, PRJC::GT_PT])->name(VW::PRJ . '.gantt.post')->middleware([MWC::AUTH, MWC::XSS]);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 
     R::resource('projects', ProjectController::class)->middleware([MWC::AUTH, MWC::XSS]);
 
     // User Permission
+<<<<<<< HEAD
     R::get(VW::PRJ . '/{id}/' . VW::USR . '/{uid}/permission', [ProjectController::class, 'userPermission'])->name(VW::PRJ . '.' . VW::USR . '.permission')->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::PRJ . '/{id}/' . VW::USR . '/{uid}/permission', [ProjectController::class, 'userPermissionStore'])->name(VW::PRJ . '.' . VW::USR . '.' . VW::PMS . '.store')->middleware([MWC::AUTH, MWC::XSS]);
+=======
+    R::get(VW::PRJ . '/{id}/' . VW::USR . '/{uid}/permission', [PRJC::class, PRJC::USR_PRM])->name(VW::PRJ . '.' . VW::USR . '.permission')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PRJ . '/{id}/' . VW::USR . '/{uid}/permission', [PRJC::class, PRJC::USR_PRM_STR])->name(VW::PRJ . '.' . VW::USR . '.' . VW::PMS . '.store')->middleware([MWC::AUTH, MWC::XSS]);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 
     // End Project Module
 
@@ -1115,13 +1222,20 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     //================================= Project Task Stages ====================================//
     #region
+<<<<<<< HEAD
     R::post(VW::PRJ_TSK_STG . '/order', [TaskStageController::class, 'order'])->name(VW::PRJ_TSK_STG . '.order');
     R::post(VW::PRJ_TSK_STG . '-new', [TaskStageController::class, TaskStageController::STR_V])->name(VW::PRJ_TSK_STG . '.new')->middleware([MWC::AUTH, MWC::XSS]);
     R::resource(VW::PRJ_TSK_STG, TaskStageController::class)->middleware([MWC::AUTH, MWC::XSS]);
+=======
+    R::post(VW::PRJ_TSK_STG . '/order', [TSSTC::class, TSSTC::ORD])->name(VW::PRJ_TSK_STG . '.order');
+    R::post(VW::PRJ_TSK_STG . '-new', [TSSTC::class, TSSTC::STR_V])->name(VW::PRJ_TSK_STG . '.new')->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource(VW::PRJ_TSK_STG, TSSTC::class)->middleware([MWC::AUTH, MWC::XSS]);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     #endregion
 
     //================================= Project Expenses ====================================//
     #region
+<<<<<<< HEAD
     R::get(VW::PRJ . '/{id}/expenses', [ExpenseController::class, 'index'])->name(VW::PRJ_EXP . '.index')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::PRJ . '/{pid}/' . VW::EXP . '/create', [ExpenseController::class, 'create'])->name(VW::PRJ_EXP . '.create')->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::PRJ . '/{pid}/' . VW::EXP . '/store', [ExpenseController::class, 'store'])->name(VW::PRJ_EXP . '.store')->middleware([MWC::AUTH, MWC::XSS]);
@@ -1130,6 +1244,15 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::delete(VW::PRJ . '/{eid}/' . VW::EXP . '/', [ExpenseController::class, 'destroy'])->name(VW::PRJ_EXP . '.destroy')->middleware([MWC::AUTH, MWC::XSS]);
     // TODO missing method
     R::get('/expense-list', [ExpenseController::class, 'expenseList'])->name(VW::EXP . '.list')->middleware([MWC::AUTH, MWC::XSS]);
+=======
+    R::get(VW::PRJ . '/{id}/expenses', [EXPC::class, EXPC::IDX])->name(VW::PRJ_EXP . '.index')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PRJ . '/{pid}/' . VW::EXP . '/create', [EXPC::class, EXPC::CRT])->name(VW::PRJ_EXP . '.create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PRJ . '/{pid}/' . VW::EXP . '/store', [EXPC::class, EXPC::STR])->name(VW::PRJ_EXP . '.store')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PRJ . '/{id}/' . VW::EXP . '/{eid}/edit', [EXPC::class, EXPC::EDT])->name(VW::PRJ_EXP . '.edit')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PRJ . '/{id}/' . VW::EXP . '/{eid}', [EXPC::class, EXPC::UPD])->name(VW::PRJ_EXP . '.update')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::PRJ . '/{eid}/' . VW::EXP . '/', [EXPC::class, EXPC::DEL])->name(VW::PRJ_EXP . '.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('/expense-list', [EXPC::class, EXPC::EXP_LST])->name(VW::EXP . '.list')->middleware([MWC::AUTH, MWC::XSS]);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     #endregion
 
     //================================= Contract Types ====================================//
@@ -1173,6 +1296,7 @@ R::group(['middleware' => [MWC::VF]], function () {
             ],
         ],
         function () {
+<<<<<<< HEAD
             R::post(VW::PRJ_STG . '/order', [ProjectStagesController::class, 'order'])->name(VW::PRJ_STG . '.order')->middleware([MWC::AUTH, MWC::XSS]);
             R::post(VW::PRJ . '/' . VW::BUG . '/kanban/order', [ProjectController::class, ProjectController::BUG_KB_OD])->name(VW::PRJ_BUG . '.kanban.order');
             R::get(VW::PRJ . '/{id}/' . VW::BUG . '/kanban', [ProjectController::class, ProjectController::BUG_KB])->name(VW::PRJ_TSK_BUG . '.kanban');
@@ -1191,6 +1315,26 @@ R::group(['middleware' => [MWC::VF]], function () {
             R::get(VW::BUG_RPT . '/{view?}', [ProjectTaskController::class, ProjectTaskController::ALL_BUG])->name(VW::PRJ_BUG . '.view')->middleware([MWC::AUTH, MWC::XSS]);
             R::resource(VW::PRJ_STG, ProjectStagesController::class);
             R::resource(VW::BUG_STT, BugStatusController::class);
+=======
+            R::post(VW::PRJ_STG . '/order', [PRJSTC::class, PRJSTC::ORD])->name(VW::PRJ_STG . '.order')->middleware([MWC::AUTH, MWC::XSS]);
+            R::post(VW::PRJ . '/' . VW::BUG . '/kanban/order', [PRJC::class, PRJC::BUG_KB_OD])->name(VW::PRJ_BUG . '.kanban.order');
+            R::get(VW::PRJ . '/{id}/' . VW::BUG . '/kanban', [PRJC::class, PRJC::BUG_KB])->name(VW::PRJ_TSK_BUG . '.kanban');
+            R::get(VW::PRJ . '/{id}/' . VW::BUG, [PRJC::class, PRJC::BG])->name(VW::PRJ_TSK_BUG);
+            R::get(VW::PRJ . '/{id}/' . VW::BUG . '/create', [PRJC::class, PRJC::BUG_CRT])->name(VW::PRJ_TSK_BUG . '.create');
+            R::post(VW::PRJ . '/{id}/' . VW::BUG . '/store', [PRJC::class, PRJC::BUG_ST])->name(VW::PRJ_TSK_BUG . '.store');
+            R::get(VW::PRJ . '/{id}/' . VW::BUG . '/{bid}/edit', [PRJC::class, PRJC::BUG_EDT])->name(VW::PRJ_TSK_BUG . '.edit');
+            R::post(VW::PRJ . '/{id}/' . VW::BUG . '/{bid}/update', [PRJC::class, PRJC::BUG_UPD])->name(VW::PRJ_TSK_BUG . '.update');
+            R::delete(VW::PRJ . '/{id}/' . VW::BUG . '/{bid}/destroy', [PRJC::class, PRJC::BUG_DST])->name(VW::PRJ_TSK_BUG . '.destroy');
+            R::get(VW::PRJ . '/{id}/' . VW::BUG . '/{bid}/show', [PRJC::class, PRJC::BUG_SHW])->name(VW::PRJ_TSK_BUG . '.show');
+            R::post(VW::PRJ . '/{id}/' . VW::BUG . '/{bid}/comment', [PRJC::class, PRJC::BUG_CMT_STR])->name(VW::PRJ_BUG_CM . '.store');
+            R::post(VW::PRJ . '/' . VW::BUG . '/{bid}/file', [PRJC::class, PRJC::BUG_CMT_STR_F])->name(VW::PRJ_BUG_CM . '.file.store');
+            R::delete(VW::PRJ . '/' . VW::BUG . '/comment/{id}', [PRJC::class, PRJC::BUG_CMT_DST])->name(VW::PRJ_BUG_CM . '.destroy');
+            R::post(VW::PRJ . '/' . VW::BUG . '/file/{id}', [PRJC::class, PRJC::BUG_CMT_DST_F])->name(VW::PRJ_BUG_CM . '.file.destroy');
+            R::post(VW::BUG_STT . '/order', [BGSTC::class, BGSTC::ORD])->name(VW::BUG_STT . '.order');
+            R::get(VW::BUG_RPT . '/{view?}', [PRJTC::class, PRJTC::ALL_BUG])->name(VW::PRJ_BUG . '.view')->middleware([MWC::AUTH, MWC::XSS]);
+            R::resource(VW::PRJ_STG, PRJSTC::class);
+            R::resource(VW::BUG_STT, BGSTC::class);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
         }
     );
     #endregion
@@ -1413,12 +1557,21 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::post(VW::PY_SLP . '/export', [PYSC::class, 'export'])->name(VW::PY_SLP . '.export');
 
     // Time-Tracker
+<<<<<<< HEAD
     R::post('stop-tracker', [DSBC::class, DSBC::STP_TRK])->name('stop.tracker')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::TMT, [TimeTrackerController::class, 'index'])->name('time.tracker')->middleware([MWC::AUTH, MWC::XSS]);
     R::delete('tracker/{tid}/destroy', [TimeTrackerController::class, 'destroy'])->name(VW::TMT . '.destroy');
     R::post('tracker/image-view', [TimeTrackerController::class, TimeTrackerController::GET_TRT_IMG])->name(VW::TMT . '.image.view');
     R::delete('tracker/image-remove', [TimeTrackerController::class, TimeTrackerController::RM_TRT_IMG])->name(VW::TMT . '.image.remove');
     R::get(VW::PRJ . '/time-tracker/{id}', [ProjectController::class, 'tracker'])->name(VW::PRJ . '.time.tracker')->middleware([MWC::AUTH, MWC::XSS]);
+=======
+    R::post('stop-tracker', [DSBC::class, DSBC::STP_TRK])->name(VW::STP_TRK)->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::TMT, [TMTC::class, 'index'])->name(VW::TM_TRK)->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete('tracker/{tid}/destroy', [TMTC::class, 'destroy'])->name(VW::TMT . '.destroy');
+    R::post('tracker/image-view', [TMTC::class, TMTC::GET_TRT_IMG])->name(VW::TMT . '.image.view');
+    R::delete('tracker/image-remove', [TMTC::class, TMTC::RM_TRT_IMG])->name(VW::TMT . '.image.remove');
+    R::get(VW::PRJ . '/time-tracker/{id}', [PRJC::class, PRJC::TRK])->name(VW::PRJ . '.time.tracker')->middleware([MWC::AUTH, MWC::XSS]);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 
     // Zoom Meeting
     R::any(VW::ZMM . '/projects/select/{bid}', [ZoomMeetingController::class, ZoomMeetingController::PRJ_W_USR])->name(VW::ZMM . '.projects.select');
@@ -1441,6 +1594,7 @@ R::group(['middleware' => [MWC::VF]], function () {
             ],
         ],
         function () {
+<<<<<<< HEAD
             R::get(DatabaseConstants::TABLE_PURCHASES . '/items', [PurchaseController::class, 'items'])->name(VW::PRC . '.items');
 
             //    R::get('/'.VW::BIL.'{id}/', 'PurchaseController@purchaseLink')->name(VW::PRC.'.link.copy');
@@ -1465,6 +1619,32 @@ R::group(['middleware' => [MWC::VF]], function () {
             R::get(DatabaseConstants::TABLE_PURCHASES . '/{id}/sent', [PurchaseController::class, 'sent'])
                 ->name(VW::PRC . '.sent');
             R::get(DatabaseConstants::TABLE_PURCHASES . '/{id}/resent', [PurchaseController::class, 'resent'])
+=======
+            R::get(DBC::TABLE_PURCHASES . '/items', [PRCC::class, PRCC::ITM])->name(VW::PRC . '.items');
+
+            //    R::get('/'.VW::BIL.'{id}/', 'PurchaseController@purchaseLink')->name(VW::PRC.'.link.copy');
+            R::get(DBC::TABLE_PURCHASES . '/{id}/payment', [PRCC::class, PRCC::PAY])
+                ->name(VW::PRC . '.payment');
+            R::post(DBC::TABLE_PURCHASES . '/{id}/payment', [PRCC::class, PRCC::CRT_PAY])
+                ->name(VW::PRC . '.payment');
+            R::post(DBC::TABLE_PURCHASES . '/{id}/payment/{pid}/destroy', [
+                PRCC::class,
+                PRCC::DST_PAY
+            ])->name(VW::PRC . '.payment.destroy');
+            R::post(DBC::TABLE_PURCHASES . '/product/destroy', [
+                PRCC::class,
+                PRCC::DST_PRD
+            ])->name(VW::PRC . '.product.destroy');
+            R::post(DBC::TABLE_PURCHASES . '/vendor', [PRCC::class, PRCC::VND])
+                ->name(VW::PRC . '.vendor');
+            R::post(DBC::TABLE_PURCHASES . '/product', [PRCC::class, PRCC::PRD])
+                ->name(VW::PRC . '.product');
+            R::get(DBC::TABLE_PURCHASES . '/create/{cid}', [PRCC::class, PRCC::CRT])
+                ->name(VW::PRC . '.create');
+            R::get(DBC::TABLE_PURCHASES . '/{id}/sent', [PRCC::class, PRCC::SNT])
+                ->name(VW::PRC . '.sent');
+            R::get(DBC::TABLE_PURCHASES . '/{id}/resent', [PRCC::class, PRCC::RSNT])
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
                 ->name(VW::PRC . '.resent');
             R::resource(DatabaseConstants::TABLE_PURCHASES, PurchaseController::class);
         }
@@ -1482,8 +1662,13 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::post(VW::POS . '/template/setting', [PosController::class, PosController::SV_POS_TMP])
         ->name(VW::PRC_TMP . 'settings');
 
+<<<<<<< HEAD
     R::get(DatabaseConstants::TABLE_PURCHASES . '/pdf/{id}', [PurchaseController::class, 'purchase'])
         ->name(DatabaseConstants::TABLE_PURCHASES . '.pdf')
+=======
+    R::get(DBC::TABLE_PURCHASES . '/pdf/{id}', [PRCC::class, PRCC::PRC])
+        ->name(DBC::TABLE_PURCHASES . '.pdf')
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
         ->middleware([MWC::AUTH, MWC::XSS, MWC::REV]);
     R::get(VW::POS . '/pdf/{id}', [PosController::class, 'pos'])->name(VW::POS . '.pdf')->middleware([
         MWC::AUTH,
@@ -1609,13 +1794,19 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     R::post(VW::PRJ_RPT . '/tasks/{id}', [PRPC::class, PRPC::AJX_TSK_RPT])->name(VW::PRJ_RPT . '.tasks.ajaxdata')
         ->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PRJ_RPT . '/export/{id}', [PRPC::class, 'export'])->name(VW::PRJ_RPT . '.export');
+    R::get(VW::PRJ_RPT . '/export/{id}', [PRPC::class, PRPC::EXP])->name(VW::PRJ_RPT . '.export');
     R::resource(VW::PRJ_RPT, PRPC::class)->middleware([MWC::AUTH, MWC::XSS]);
 
     //project copy module
+<<<<<<< HEAD
     R::get('/project/copy/{id}', [ProjectController::class, 'copyproject'])->name(VW::PRJ . '.copy')
         ->middleware([MWC::AUTH, MWC::XSS]);
     R::post('/project/copy/store/{id}', [ProjectController::class, 'copyprojectstore'])->name(VW::PRJ . '.copy.store')
+=======
+    R::get('/project/copy/{id}', [PRJC::class, PRJC::CP_PRJ])->name(VW::PRJ . '.copy')
+        ->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('/project/copy/store/{id}', [PRJC::class, PRJC::CP_PRJ_ST])->name(VW::PRJ . '.copy.store')
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
         ->middleware([MWC::AUTH, MWC::XSS]);
 
     //Google Calendar
@@ -1648,7 +1839,13 @@ R::group(['middleware' => [MWC::VF]], function () {
     // TODO missing method
     R::get('share-project/{lang?}', [ProjectController::class, 'shareProject'])->name('share.project');
 
+<<<<<<< HEAD
     //================================= User Logs ====================================//
+=======
+    R::get('share-project/{lang?}', [PRJC::class, PRJC::SHR_PRJ])->name(VW::SHR_PRJ);
+
+    //================================= Notification Templates ====================================//
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     #region
     R::get(VW::USR . '/logs', [UserController::class, UserController::USR_LOG])->name(VW::USR . '.log')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::USR . '/logs/{id}', [UserController::class, UserController::USR_LOG_VIEW])->name(VW::USR . '.log.view')->middleware([MWC::AUTH, MWC::XSS]);
@@ -1693,7 +1890,11 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     //================================= Expenses ====================================//
     #region
+<<<<<<< HEAD
     R::get(VW::EXP . '/pdf/{id}', [ExpenseController::class, 'expense'])->name(VW::EXP . '.pdf')->middleware([MWC::XSS, MWC::REV]);
+=======
+    R::get(VW::EXP . '/pdf/{id}', [EXPC::class, EXPC::EXP])->name(VW::EXP . '.pdf')->middleware([MWC::XSS, MWC::REV]);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     R::group(
         [
             'middleware' => [
@@ -1703,6 +1904,7 @@ R::group(['middleware' => [MWC::VF]], function () {
             ],
         ],
         function () {
+<<<<<<< HEAD
             R::get(VW::EXP . '/index', [ExpenseController::class, 'index'])->name(VW::EXP . '.index');
             R::any(VW::EXP . '/customer', [ExpenseController::class, 'customer'])->name(VW::EXP . '.customer');
             R::post(VW::EXP . '/vendor', [ExpenseController::class, 'vendor'])->name(VW::EXP . '.vendor');
@@ -1713,6 +1915,18 @@ R::group(['middleware' => [MWC::VF]], function () {
             R::get(VW::EXP . '/items', [ExpenseController::class, 'items'])->name(VW::EXP . '.items');
             R::get(VW::EXP . '/create/{cid}', [ExpenseController::class, 'create'])->name(VW::EXP . '.create');
             R::resource(VW::EXP, ExpenseController::class);
+=======
+            R::get(VW::EXP . '/index', [EXPC::class, EXPC::IDX])->name(VW::EXP . '.index');
+            R::any(VW::EXP . '/customer', [EXPC::class, EXPC::CST])->name(VW::EXP . '.customer');
+            R::post(VW::EXP . '/vendor', [EXPC::class, EXPC::VND])->name(VW::EXP . '.vendor');
+            R::post(VW::EXP . '/employee', [EXPC::class, EXPC::EMP])->name(VW::EXP . '.employee');
+            R::post(VW::EXP . '/product/destroy', [EXPC::class, EXPC::PRD_DST])->name(VW::EXP . '.product.destroy');
+            R::post(VW::EXP . '/product', [EXPC::class, EXPC::PRD])->name(VW::EXP . '.product');
+            R::get(VW::EXP . '/{id}/payment', [EXPC::class, EXPC::PAY])->name(VW::EXP . '.payment');
+            R::get(VW::EXP . '/items', [EXPC::class, EXPC::ITM])->name(VW::EXP . '.items');
+            R::get(VW::EXP . '/create/{cid}', [EXPC::class, EXPC::CRT])->name(VW::EXP . '.create');
+            R::resource(VW::EXP, EXPC::class);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
         }
     );
     #endregion

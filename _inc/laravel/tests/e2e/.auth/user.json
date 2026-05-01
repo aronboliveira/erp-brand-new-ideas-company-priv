@@ -5,27 +5,46 @@
       "value": "en",
       "domain": "localhost",
       "path": "/",
+<<<<<<< HEAD
       "expires": 1804697052.095409,
+=======
+      "expires": 1803599101.324145,
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "XSRF-TOKEN",
+<<<<<<< HEAD
       "value": "eyJpdiI6IkVqRzRaZVZzeWM0ekE5UzlvYlEwT2c9PSIsInZhbHVlIjoiNjRLRk11ZXhEa0pPN0lNNElyRTJPZUZuemxHbWJCRWZaLzNGb2dwQnVqZU9DeGZrSFBqNEl2UWFQVjRSUVdHU0Z4RmEzTEZwQnJGQUcxbDc1bHBTZjhUQitzaXN2VFlMSXcrNmtqQmY2R2pYNmk2OURCREdDMUE0SEpiMnQ0MnMiLCJtYWMiOiI4ZmMzZWQ1NGUyYjk4MWFmYzM5NWQ0MzYyNDc2MDNjMWI4ZWFmNzcwZTRhYjk2OTU5ZGI3NDAzNmVjZTE4MDk0IiwidGFnIjoiIn0%3D",
       "domain": "localhost",
       "path": "/",
       "expires": 1773168253.824898,
+=======
+      "value": "eyJpdiI6IjROb1V1YitTZG9JYzM3SEtDN0tQaEE9PSIsInZhbHVlIjoiaEVvQ2hrdXg3NWNyMVZXTnQzbEdPcHJ4RHRUZXRubmFPUjQ3NG0rTlZZanBBaTE3bDJXYkovZ3d6emhjbXc1UENQNVBXNjlFQmhBYTAyUWZGb1JHWnJ0dXBPNUJEZkRRTFdibm16OVlWK3Q3ZmVmdExmcmlJRXJvV1JQeFdYNXgiLCJtYWMiOiIxYjczODNkODVmOWZiYjA4OTFhMzgyMDgyZmRiNTQ1Y2FiYmE0NzJjNzIwNjRmZmU1OTMwMGExMWUzMDcxNjZmIiwidGFnIjoiIn0%3D",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1772070301.324031,
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
+<<<<<<< HEAD
       "name": "erp_brand_new_ideas_company_session",
       "value": "eyJpdiI6ImZGWmI0N2x4R3lmclhVelhsOUM2SUE9PSIsInZhbHVlIjoiMysxbGwvV0JkelVCUUlDUEQ1YWlTUUo2R0M4N2ZmZithM0VlK2JhL1RSRkxPOWh1a3psMklFcFFKcWFvZ2JzblovbzQ5bTA3QkdIV0F1UkZVN1YyZk9qSWY4eXVkSDJESVJYcTBTNXVaNGltdGZFUTFqcERjQXRmV1ZSNjZDd1ciLCJtYWMiOiI5Mzk0MDI4NGIzMjBhNGU5ZjJmNGNmOWFmYjE0ODYwM2NkZmZjZTY2NWQzNGUwN2JkZjk5NWIyODlhZjE1ZDBlIiwidGFnIjoiIn0%3D",
       "domain": "localhost",
       "path": "/",
       "expires": 1773168253.824993,
+=======
+      "name": "erp_nova_prestech_session",
+      "value": "eyJpdiI6IktaVU14ZkVueG9NV3B2L2RQMC9XSEE9PSIsInZhbHVlIjoiU3FQYStodmtuVm94RDFKdUFJY1JaTmZhblNkWFpseWp3TWlrM1kwNHIwanMrT21zZHkyQndNTEw4T09xcVBEN0tvcURUS0dpNWpDalkvWDhtYmNXUk1RN2VnRXYxVkNRNFpyY2ZEY2ZOYlRVNkQ2NWcwRjhPS2xOOEZCdWNFOXciLCJtYWMiOiJhOGViYjNmY2M3ODA0NWM0Njg3NzVjNzA3OTNiNTcwODliOWFkN2I2NTNhZTY5NzM1NDNjYTJlYTA4NzA1N2M4IiwidGFnIjoiIn0%3D",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1772070301.324185,
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"
@@ -33,7 +52,11 @@
   ],
   "origins": [
     {
+<<<<<<< HEAD
       "origin": "http://localhost:8000",
+=======
+      "origin": "http://localhost:8888",
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
       "localStorage": [
         {
           "name": "phpdebugbar-height",

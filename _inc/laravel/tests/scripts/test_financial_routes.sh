@@ -1,5 +1,9 @@
 #!/bin/bash
+<<<<<<< HEAD
 # Financial Module Test Script for ERP Brand New Ideas Company
+=======
+# Financial Module Test Script for ERP Prestech
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 # Tests mission-critical financial routes with various curl flags
 # Outputs: JSON results for potential Playwright consumption
 
@@ -157,7 +161,11 @@ test_json_api() {
 }
 
 echo "=================================================="
+<<<<<<< HEAD
 echo "  ERP Brand New Ideas Company Financial Module Tests"
+=======
+echo "  ERP Prestech Financial Module Tests"
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 echo "  Started: $(date)"
 echo "=================================================="
 echo ""

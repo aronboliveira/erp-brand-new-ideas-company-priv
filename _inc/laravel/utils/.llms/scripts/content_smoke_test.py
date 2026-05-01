@@ -21,7 +21,11 @@ BASE_URL    = os.environ.get("SMOKE_TEST_URL", "http://127.0.0.1:8888")
 COOKIE_FILE = "/tmp/content_test_cookies.txt"
 ADMIN_EMAIL = os.environ.get("SMOKE_TEST_EMAIL",    "alexys87@example.org")
 ADMIN_PASS  = os.environ.get("SMOKE_TEST_PASSWORD", "Admin@1234")
+<<<<<<< HEAD:_inc/laravel/utils/.llms/scripts/content_smoke_test.py
 LARAVEL_DIR = "/workspace/erp/_inc/laravel"
+=======
+LARAVEL_DIR = "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel"
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected):_inc/utils/.llms/scripts/content_smoke_test.py
 RESULTS_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../"
 
 CPU_LIMIT   = 600  # sum-across-all-procs threshold (ps -A); VS Code+PHP-LS baseline ~250%

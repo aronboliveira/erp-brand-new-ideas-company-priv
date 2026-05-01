@@ -70,7 +70,11 @@ class HrmRouteReturnTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+<<<<<<< HEAD
 		$this->admin = User::where('email', 'suporte@brandnewideascompany.com')->first();
+=======
+		$this->admin = User::where('email', 'suporte@prestech.com.br')->first();
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 		if ($this->admin) {
 			$this->actingAs($this->admin);
 		}

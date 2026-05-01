@@ -96,4 +96,8 @@ Applied **Critical**, **High**, and **Medium** fixes from the audit report.
 ## CLI Commands
 
 All `sed` commands saved to:  
+<<<<<<< HEAD:_inc/laravel/utils/.llms/notes/archive/CONSTANTS_AUDIT_FIX_LOG.md
 `_inc/laravel/utils/.llms/cli/20260206/sh/constants_audit_fix.sh`
+=======
+`_inc/utils/.llms/cli/20260206/sh/constants_audit_fix.sh`
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected):_inc/utils/.llms/notes/archive/CONSTANTS_AUDIT_FIX_LOG.md

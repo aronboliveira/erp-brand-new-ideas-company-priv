@@ -306,6 +306,7 @@ class ProjectReportController extends Controller
         return ['labels' => $labels, 'datasets' => array_values($datasets)];
     }
 
+<<<<<<< HEAD
     public function create(Request $request): View|RedirectResponse
     {
         if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
@@ -346,6 +347,9 @@ class ProjectReportController extends Controller
         return response()->json(['data' => []]);
     }
 
+=======
+    public const EXP = 'export';
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     public function export(string|int $id): mixed
     {
         $action = __FUNCTION__;
@@ -442,6 +446,7 @@ class ProjectReportController extends Controller
     /**
      * Create stub — project reports are generated from the index page.
      */
+    public const CRT = 'create';
     public function create(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
@@ -456,6 +461,7 @@ class ProjectReportController extends Controller
     /**
      * Store stub — project reports are generated automatically, not manually stored.
      */
+    public const STR = 'store';
     public function store(Request $request): RedirectResponse
     {
         $action = __FUNCTION__;
@@ -470,6 +476,7 @@ class ProjectReportController extends Controller
     /**
      * Edit stub — project reports are not directly editable.
      */
+    public const EDT = 'edit';
     public function edit(Request $request, int|string $id): RedirectResponse
     {
         $action = __FUNCTION__;
@@ -484,6 +491,7 @@ class ProjectReportController extends Controller
     /**
      * Update stub — project reports are not directly updatable.
      */
+    public const UPD = 'update';
     public function update(Request $request, int|string $id): RedirectResponse
     {
         $action = __FUNCTION__;
@@ -498,6 +506,7 @@ class ProjectReportController extends Controller
     /**
      * Destroy stub — project reports are not directly deletable.
      */
+    public const DEL = 'destroy';
     public function destroy(Request $request, int|string $id): RedirectResponse
     {
         $action = __FUNCTION__;

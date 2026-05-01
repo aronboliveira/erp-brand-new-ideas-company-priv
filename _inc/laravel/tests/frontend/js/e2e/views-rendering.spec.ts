@@ -7,6 +7,7 @@ import { test, expect } from "@playwright/test";
 
 const BASE = process.env.APP_URL || "http://127.0.0.1:8000";
 
+<<<<<<< HEAD
 // Skip in CI unless a live server URL is provided via APP_URL
 test.beforeEach(async ({}, testInfo) => {
   testInfo.skip(
@@ -15,6 +16,8 @@ test.beforeEach(async ({}, testInfo) => {
   );
 });
 
+=======
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 async function loginAsAdmin(page: any) {
   await page.goto(`${BASE}/login`);
   const emailInput = page.locator('input[name="email"], input[type="email"]');

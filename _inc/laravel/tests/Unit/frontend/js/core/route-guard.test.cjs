@@ -16,9 +16,21 @@ const path = require("path");
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
+<<<<<<< HEAD
 const GUARD_SRC_PATH = path.resolve(__dirname, "../../../../../public/assets/js/core/erp-guard.js");
 
 const ROUTE_SRC_PATH = path.resolve(__dirname, "../../../../../public/assets/js/core/route-guard.js");
+=======
+const GUARD_SRC_PATH = path.resolve(
+  __dirname,
+  "../../../../../public/assets/js/core/erp-guard.js",
+);
+
+const ROUTE_SRC_PATH = path.resolve(
+  __dirname,
+  "../../../../../public/assets/js/core/route-guard.js",
+);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 
 function stubBootstrap() {
   global.bootstrap = {
@@ -50,7 +62,13 @@ describe("route-guard.js — proxy mode (ERPGuard loaded first)", () => {
     document.documentElement.lang = "en";
 
     const store = {};
+<<<<<<< HEAD
     jest.spyOn(Storage.prototype, "getItem").mockImplementation(k => store[k] ?? null);
+=======
+    jest
+      .spyOn(Storage.prototype, "getItem")
+      .mockImplementation(k => store[k] ?? null);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     jest.spyOn(Storage.prototype, "setItem").mockImplementation((k, v) => {
       store[k] = String(v);
     });
@@ -102,6 +120,7 @@ describe("route-guard.js — proxy mode (ERPGuard loaded first)", () => {
     expect(() => window.RouteGuard.init()).not.toThrow();
   });
 
+<<<<<<< HEAD
   test("RouteGuard.animations are no-op functions (return Promise for null el)", async () => {
     // Animations return Promise.resolve() when called without valid element
     await expect(window.RouteGuard.animations.fadeIn()).resolves.toBeUndefined();
@@ -109,6 +128,14 @@ describe("route-guard.js — proxy mode (ERPGuard loaded first)", () => {
     await expect(window.RouteGuard.animations.slideDown()).resolves.toBeUndefined();
     await expect(window.RouteGuard.animations.slideUp()).resolves.toBeUndefined();
     expect(() => window.RouteGuard.animations.addAnimation()).not.toThrow();
+=======
+  test("RouteGuard.animations are no-op functions", () => {
+    expect(window.RouteGuard.animations.fadeIn()).toBeUndefined();
+    expect(window.RouteGuard.animations.fadeOut()).toBeUndefined();
+    expect(window.RouteGuard.animations.slideDown()).toBeUndefined();
+    expect(window.RouteGuard.animations.slideUp()).toBeUndefined();
+    expect(window.RouteGuard.animations.addAnimation()).toBeUndefined();
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
   });
 
   test("RouteGuard exposes expected constants", () => {
@@ -132,7 +159,13 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
     document.documentElement.lang = "en";
 
     const store = {};
+<<<<<<< HEAD
     jest.spyOn(Storage.prototype, "getItem").mockImplementation(k => store[k] ?? null);
+=======
+    jest
+      .spyOn(Storage.prototype, "getItem")
+      .mockImplementation(k => store[k] ?? null);
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     jest.spyOn(Storage.prototype, "setItem").mockImplementation((k, v) => {
       store[k] = String(v);
     });
@@ -180,7 +213,12 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
 
   test("showToast creates a toast element when bootstrap available", () => {
     // Standalone hasBootstrap() checks for a bootstrap CSS link tag
+<<<<<<< HEAD
     document.head.innerHTML = '<link rel="stylesheet" href="/css/bootstrap.min.css">';
+=======
+    document.head.innerHTML =
+      '<link rel="stylesheet" href="/css/bootstrap.min.css">';
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     window.RouteGuard.showToast("Alert!", "error");
     const container = document.getElementById("np-toast-container");
     expect(container).not.toBeNull();
@@ -218,7 +256,14 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
   /* ---- guardById ---- */
 
   test("guardById attaches listener to element", () => {
+<<<<<<< HEAD
     document.body.insertAdjacentHTML("beforeend", '<a id="test-link" href="#">Link</a>');
+=======
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<a id="test-link" href="#">Link</a>',
+    );
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     window.RouteGuard.guardById("test-link");
     const el = document.getElementById("test-link");
     expect(el.getAttribute("data-listener-active")).toBe("true");
@@ -231,10 +276,24 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
   /* ---- guardMultiple ---- */
 
   test("guardMultiple guards multiple elements", () => {
+<<<<<<< HEAD
     document.body.insertAdjacentHTML("beforeend", '<a id="lnk1" href="#">L1</a><a id="lnk2" href="#">L2</a>');
     window.RouteGuard.guardMultiple("lnk1", "lnk2");
     expect(document.getElementById("lnk1").getAttribute("data-listener-active")).toBe("true");
     expect(document.getElementById("lnk2").getAttribute("data-listener-active")).toBe("true");
+=======
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      '<a id="lnk1" href="#">L1</a><a id="lnk2" href="#">L2</a>',
+    );
+    window.RouteGuard.guardMultiple("lnk1", "lnk2");
+    expect(
+      document.getElementById("lnk1").getAttribute("data-listener-active"),
+    ).toBe("true");
+    expect(
+      document.getElementById("lnk2").getAttribute("data-listener-active"),
+    ).toBe("true");
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
   });
 
   /* ---- getMsg standalone ---- */
@@ -257,7 +316,14 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
 
   test("logError logs to console.error", () => {
     window.RouteGuard.logError("test-context", new Error("test err"));
+<<<<<<< HEAD
     expect(console.error).toHaveBeenCalledWith("[RouteGuard:test-context]", "test err");
+=======
+    expect(console.error).toHaveBeenCalledWith(
+      "[RouteGuard:test-context]",
+      "test err",
+    );
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
   });
 
   /* ---- animations ---- */
@@ -283,8 +349,17 @@ describe("route-guard.js — standalone mode (no ERPGuard)", () => {
     test("slideDown and slideUp return promises", () => {
       const el = document.createElement("div");
       document.body.appendChild(el);
+<<<<<<< HEAD
       expect(window.RouteGuard.animations.slideDown(el, 10)).toBeInstanceOf(Promise);
       expect(window.RouteGuard.animations.slideUp(el, 10)).toBeInstanceOf(Promise);
+=======
+      expect(window.RouteGuard.animations.slideDown(el, 10)).toBeInstanceOf(
+        Promise,
+      );
+      expect(window.RouteGuard.animations.slideUp(el, 10)).toBeInstanceOf(
+        Promise,
+      );
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     });
   });
 

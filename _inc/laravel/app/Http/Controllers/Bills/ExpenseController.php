@@ -526,6 +526,7 @@ final class ExpenseController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'bill_id' => $id]);
     }
 
+    public const EMP = 'employee';
     public function employee(Request $request): View|RedirectResponse
     {
         $action = __FUNCTION__;
@@ -562,6 +563,7 @@ final class ExpenseController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'employee_id' => $request->id]);
     }
 
+    public const PRD = 'product';
     public function product(Request $request): JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
@@ -603,6 +605,7 @@ final class ExpenseController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'product_id' => $request->input('product_id')]);
     }
 
+    public const VND = 'vendor';
     public function vendor(Request $request): View|RedirectResponse
     {
         $action = __FUNCTION__;
@@ -639,6 +642,7 @@ final class ExpenseController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'vendor_id' => $request->id]);
     }
 
+    public const CST = 'customer';
     public function customer(Request $request): View|RedirectResponse
     {
         $action = __FUNCTION__;
@@ -675,6 +679,7 @@ final class ExpenseController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'customer_id' => $request->id]);
     }
 
+    public const ITM = 'items';
     public function items(Request $request): JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
@@ -701,6 +706,7 @@ final class ExpenseController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'bill_id' => $request->bill_id, 'product_id' => $request->product_id]);
     }
 
+    public const EXP = 'expense';
     public function expense(Request $request, string $encId): View|RedirectResponse|JsonResponse
     {
         $action = __FUNCTION__;
@@ -897,4 +903,29 @@ final class ExpenseController extends Controller
         Log::info(__METHOD__, ['creatorId' => $creatorId, 'nextBill' => $next]);
         return $next;
     }
+<<<<<<< HEAD
+=======
+
+    /**
+     * Stub: Show expense payment view.
+     * TODO: Implement full payment flow.
+     */
+    public const PAY = 'payment';
+    public function payment(Request $r, int|string $id): View|RedirectResponse
+    {
+        if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+        if (($g = self::_authorize($r, PMC::MNG_BIL)) !== true) return $g;
+        return redirect()->route(VW::EXP . '.show', $id)
+            ->with('info', __('Payment feature is not yet implemented.'));
+    }
+
+    /**
+     * Alias for index — expense list.
+     */
+    public const EXP_LST = 'expenseList';
+    public function expenseList(Request $r): Response|RedirectResponse|View
+    {
+        return $this->index($r);
+    }
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 }

@@ -324,6 +324,7 @@ class TaskStageController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'stage_id' => $id]);
     }
 
+<<<<<<< HEAD
     public function destroy(Request $request, int|string $id): RedirectResponse|null
     {
         $action = __FUNCTION__;
@@ -356,6 +357,58 @@ class TaskStageController extends Controller
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'stage_id' => $id]);
     }
+=======
+	public const ORD = 'order';
+	public function order(Request $request): JsonResponse|RedirectResponse|null
+	{
+		$action ??= __FUNCTION__;
+		$method ??= __METHOD__;
+		$class ??= static::class;
+		$base ??= class_basename($class);
+		$req ??= $request;
+		return $this->measureProfile($action, function () use ($req, $action, $method, $class, $base) {
+			$transactionStarted ??= false;
+			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse)
+				return $userOrRedirect;
+			$user = $userOrRedirect;
+			if (($redirect = self::guard($req, PMC::MNG_PRJ_TSK_STG, self::REDIRECT_INDEX)) !== true)
+				return $redirect;
+			$orderInput = $req->input('order', []);
+			$orderInput = is_array($orderInput) ? $orderInput : [];
+			Log::info("[{$base}::{$action}] called", ['user_id' => $user?->id, 'order_count' => count($orderInput), 'method' => $method]);
+			try {
+				DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+				DB::beginTransaction();
+				$transactionStarted = true;
+				$loopStart = microtime(true);
+				foreach ($orderInput as $pos => $id)
+					TaskStage::where('id', $id)->update(['order' => $pos]);
+				$this->logExecutionTime($loopStart, $action, 'reorderStages');
+				DB::commit();
+				Log::info("[{$base}::{$action}] completed", ['count' => count($orderInput)]);
+				return response()->json(['success' => true]);
+			} catch (QueryException $e) {
+				if ($transactionStarted)
+					DB::rollBack();
+				$this->logException("{$class}::{$action}", $e, ['order_count' => count($orderInput), 'method' => $method]);
+				$this->consoleOutput("{$action} query failed", 'error');
+				return response()->json(['error' => __('Server error')], 500);
+			} catch (\RuntimeException $e) {
+				if ($transactionStarted)
+					DB::rollBack();
+				$this->logException("{$class}::{$action}", $e, ['order_count' => count($orderInput), 'method' => $method]);
+				$this->consoleOutput("{$action} runtime failure", 'error');
+				return response()->json(['error' => __('Server error')], 500);
+			} catch (\Throwable $e) {
+				if ($transactionStarted)
+					DB::rollBack();
+				$this->logException("{$class}::{$action}", $e, ['order_count' => count($orderInput), 'method' => $method]);
+				$this->consoleOutput("{$action} failed", 'error');
+				return response()->json(['error' => __('Server error')], 500);
+			}
+		}, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
+	}
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 
     public function order(Request $request): JsonResponse|RedirectResponse|null
     {

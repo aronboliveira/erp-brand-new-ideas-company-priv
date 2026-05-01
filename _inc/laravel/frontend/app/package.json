@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "name": "erp-brand-new-ideas-company",
+=======
+  "name": "erp-nova-prestech",
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
   "author": "Aron Barbosa de Oliveira & Douglas Silva",
   "version": "1.0.0",
   "private": true,

@@ -33,7 +33,11 @@ export const getProjectSettings = async (projectId: string) => {
   } catch (err) {
     console.error(`Failed to load settings for project ${projectId}: ${err}`);
     return {
+<<<<<<< HEAD
       title_text: "Brand New Ideas Company",
+=======
+      title_text: "ERPGo",
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
       company_favicon: "/uploads/logo/favicon.png",
     };
   }

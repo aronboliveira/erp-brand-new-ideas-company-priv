@@ -7,7 +7,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { ContractLayoutProps } from "../../definitions/components";
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
+<<<<<<< HEAD
   title: "ERP Brand New Ideas Company - Contract",
+=======
+  title: "ERPGo - Contract",
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
   description: "Dashboard Template Description",
 };
 export default function ContractLayout({ children }: ContractLayoutProps) {

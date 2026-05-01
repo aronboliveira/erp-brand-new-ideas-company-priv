@@ -674,6 +674,7 @@ class ProjectController extends Controller
         }, ['project_id' => $request->project_id]);
     }
 
+    public const MLST = 'milestone';
     public function milestone(Request $request, int|string $projectId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
@@ -945,6 +946,7 @@ class ProjectController extends Controller
         }, ['view' => $request->view, 'sort' => $request->sort]);
     }
 
+    public const GT = 'gantt';
     public function gantt(Request $request, int|string $projectId, string $duration = 'Week'): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
@@ -1021,6 +1023,7 @@ class ProjectController extends Controller
         }, ['projectId' => $projectId]);
     }
 
+    public const BG = 'bug';
     public function bug(Request $request, int|string $projectId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
@@ -1468,6 +1471,7 @@ class ProjectController extends Controller
         }, ['fileId' => $fileId]);
     }
 
+    public const TRK = 'tracker';
     public function tracker(Request $request, int $projectId): View|RedirectResponse|null
     {
         $action = __FUNCTION__;
@@ -2097,6 +2101,7 @@ class ProjectController extends Controller
     /**
      * Share a project with additional users.
      */
+    public const SHR_PRJ = 'shareProject';
     public function shareProject(Request $request, int|string $id): JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
@@ -2123,6 +2128,7 @@ class ProjectController extends Controller
     /**
      * Get or check user permissions for a project.
      */
+    public const USR_PRM = 'userPermission';
     public function userPermission(Request $request, int|string $id): JsonResponse|RedirectResponse
     {
         $action = __FUNCTION__;
@@ -2142,6 +2148,294 @@ class ProjectController extends Controller
                 ]);
             } catch (\Throwable $e) {
                 Log::error($method . ' failed', ['error' => $e->getMessage()]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
+    }
+
+    public const USR_PRM_STR = 'userPermissionStore';
+    public function userPermissionStore(Request $request, int|string $id, int|string $uid): JsonResponse|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $uid, $action, $method) {
+            $inTransaction ??= false;
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+                $user ??= $userOrRedirect;
+                if (($guard = self::guard($request, PMC::MNG_PRJ, VW::PRJ . '.index')) instanceof RedirectResponse) return $guard;
+                $project ??= Project::where(DC::COL_TABLE_CREATOR, $user?->creatorId())->findOrFail($id);
+                $projectUser ??= ProjectUser::where(PJC::COL_PJ_ID, $project->id)
+                    ->where(UC::COL_USER_ID, $uid)
+                    ->firstOrFail();
+                $validated ??= $request->validate([
+                    PJC::COL_CAN_WRT_OWN => 'sometimes|boolean',
+                    PJC::COL_CAN_WRT_OTH => 'sometimes|boolean',
+                    PJC::COL_CAN_RD_OTH => 'sometimes|boolean',
+                    PJC::COL_IS_PRJ_LD => 'sometimes|boolean',
+                    'role' => 'sometimes|string',
+                ]);
+                if (empty($validated)) {
+                    return response()->json(['error' => 'No permission data provided'], 422);
+                }
+                DB::beginTransaction();
+                $inTransaction = true;
+                $projectUser->update($validated);
+                DB::commit();
+                $inTransaction = false;
+                Log::info("[{$action}] permissions updated", [
+                    'project_id' => $id,
+                    'target_user_id' => $uid,
+                ]);
+                return response()->json(['success' => true, 'message' => __('Permissions updated successfully.')]);
+            } catch (ModelNotFoundException $e) {
+                Log::notice($method . ' not found', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'project_id' => $id,
+                    'target_user_id' => $uid,
+                ]);
+                return response()->json(['error' => 'Project or user not found'], 404);
+            } catch (ValidationException $e) {
+                Log::warning($method . ' validation failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'project_id' => $id,
+                    'target_user_id' => $uid,
+                ]);
+                return response()->json(['error' => $e->errors()], 422);
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'project_id' => $id,
+                    'target_user_id' => $uid,
+                ]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'project_id' => $id,
+                    'target_user_id' => $uid,
+                ]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            } catch (\Throwable $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'project_id' => $id,
+                    'target_user_id' => $uid,
+                ]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        });
+    }
+
+    public const RM_USR_PRJ = 'removeUserFromProject';
+    public function removeUserFromProject(Request $request, int|string $project_id, int|string $user_id): RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $project_id, $user_id, $action, $method) {
+            $inTransaction ??= false;
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+                $user ??= $userOrRedirect;
+                $creatorId ??= $user?->ownerId() ?? $user?->creatorId() ?? $user?->id;
+                if (($guard = self::guard($request, 'delete project', VW::PRJ . '.index')) instanceof RedirectResponse) return $guard;
+                $project ??= Project::findOrFail($project_id);
+                if (($project->{DC::COL_TABLE_CREATOR} ?? null) !== $creatorId) {
+                    return defaultPermissionDenial($request, new \Exception, $method, VW::PRJ . '.index');
+                }
+                DB::beginTransaction();
+                $inTransaction = true;
+                $deleted ??= ProjectUser::where(PJC::COL_PJ_ID, $project_id)
+                    ->where(UC::COL_USER_ID, $user_id)
+                    ->delete();
+                DB::commit();
+                $inTransaction = false;
+                if (empty($deleted)) {
+                    Log::notice("[{$action}] no matching user found to remove", [
+                        'project_id' => $project_id,
+                        'target_user_id' => $user_id,
+                    ]);
+                    return Redirect::back()->with('error', __('User not found in project.'));
+                }
+                Log::info("[{$action}] user removed from project", [
+                    'project_id' => $project_id,
+                    'target_user_id' => $user_id,
+                ]);
+                return Redirect::back()->with('success', __('User successfully removed from project!'));
+            } catch (ModelNotFoundException $e) {
+                Log::warning($method . ' project not found', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'project_id' => $project_id,
+                    'target_user_id' => $user_id,
+                ]);
+                return Redirect::back()->with('error', __('Project not found.'));
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'project_id' => $project_id,
+                    'target_user_id' => $user_id,
+                ]);
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'project_id' => $project_id,
+                    'target_user_id' => $user_id,
+                ]);
+                return defaultUndefinedException($request, $e, $method);
+            } catch (\Throwable $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'project_id' => $project_id,
+                    'target_user_id' => $user_id,
+                ]);
+                return defaultUndefinedException($request, $e, $method);
+            }
+        }, ['project_id' => $project_id, 'user_id' => $user_id]);
+    }
+
+    public const STR_PRJ_TSK_STG = 'storeProjectTaskStages';
+    public function storeProjectTaskStages(Request $request, int|string $id, string $slug): JsonResponse|RedirectResponse
+    {
+        $action = __FUNCTION__;
+        $method = __METHOD__;
+        return $this->measureProfile($action, function () use ($request, $id, $slug, $action, $method) {
+            $inTransaction ??= false;
+            try {
+                if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
+                $user ??= $userOrRedirect;
+                $creatorId ??= $user?->creatorId();
+                if (($guard = self::guard($request, PMC::MNG_PRJ, VW::PRJ . '.index')) instanceof RedirectResponse) return $guard;
+                $project ??= Project::where(DC::COL_TABLE_CREATOR, $creatorId)->findOrFail($id);
+                $stages ??= $request->input('stages', []);
+                if (!is_array($stages)) {
+                    $stages = [];
+                }
+                DB::beginTransaction();
+                $inTransaction = true;
+                $order ??= 0;
+                foreach ($stages as $stageData) {
+                    if (!is_array($stageData)) continue;
+                    $order++;
+                    TaskStage::updateOrCreate(
+                        [
+                            AC::COL_PJ => $project->id,
+                            'name' => $stageData['name'] ?? $slug,
+                            DC::COL_TABLE_CREATOR => $creatorId,
+                        ],
+                        [
+                            'order' => $stageData['order'] ?? $order,
+                            'color' => $stageData['color'] ?? null,
+                        ]
+                    );
+                }
+                if (empty($stages)) {
+                    TaskStage::updateOrCreate(
+                        [
+                            AC::COL_PJ => $project->id,
+                            'name' => $slug,
+                            DC::COL_TABLE_CREATOR => $creatorId,
+                        ],
+                        [
+                            'order' => 0,
+                        ]
+                    );
+                }
+                DB::commit();
+                $inTransaction = false;
+                Log::info("[{$action}] stages stored", [
+                    'project_id' => $id,
+                    'slug' => $slug,
+                    'stages_count' => max(count($stages), 1),
+                ]);
+                return response()->json(['success' => true, 'message' => __('Stages stored successfully.')]);
+            } catch (ModelNotFoundException $e) {
+                Log::notice($method . ' project not found', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'project_id' => $id,
+                    'slug' => $slug,
+                ]);
+                return response()->json(['error' => 'Project not found'], 404);
+            } catch (ValidationException $e) {
+                Log::warning($method . ' validation failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'project_id' => $id,
+                    'slug' => $slug,
+                ]);
+                return response()->json(['error' => $e->errors()], 422);
+            } catch (QueryException $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' query failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'project_id' => $id,
+                    'slug' => $slug,
+                ]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            } catch (\Exception $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' failed', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'project_id' => $id,
+                    'slug' => $slug,
+                ]);
+                return response()->json(['error' => $e->getMessage()], 500);
+            } catch (\Throwable $e) {
+                if ($inTransaction) DB::rollBack();
+                Log::error($method . ' throwable', [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'action' => $action,
+                    'project_id' => $id,
+                    'slug' => $slug,
+                ]);
                 return response()->json(['error' => $e->getMessage()], 500);
             }
         });

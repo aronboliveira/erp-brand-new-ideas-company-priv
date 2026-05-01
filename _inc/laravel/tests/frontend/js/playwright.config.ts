@@ -1,7 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
+<<<<<<< HEAD
  * Playwright configuration for ERP Brand New Ideas Company E2E tests
+=======
+ * Playwright configuration for ERP Prestech E2E tests
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
  * Run with: npx playwright test
  */
 export default defineConfig({

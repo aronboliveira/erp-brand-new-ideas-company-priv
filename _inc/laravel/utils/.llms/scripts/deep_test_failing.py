@@ -158,7 +158,11 @@ def test_route(uri, label=""):
 # Rate-limit bypass: clear throttle via artisan cache
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD:_inc/laravel/utils/.llms/scripts/deep_test_failing.py
 LARAVEL_DIR = "/workspace/erp/_inc/laravel"
+=======
+LARAVEL_DIR = "/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel"
+>>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected):_inc/utils/.llms/scripts/deep_test_failing.py
 
 def clear_rate_limits():
     """Clear Laravel rate-limit entries from the cache driver."""

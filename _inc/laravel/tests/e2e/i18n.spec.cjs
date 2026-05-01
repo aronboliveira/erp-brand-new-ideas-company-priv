@@ -81,7 +81,7 @@ const RTL_LOCALES = ["ar", "he"];
 /*  Helper: dismiss cookie / consent popups                           */
 /* ------------------------------------------------------------------ */
 function setupDialogAndConsent(page) {
-  page.on("dialog", (d) => d.accept());
+  page.on("dialog", d => d.accept());
   page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async () => {
     const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
     if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
@@ -200,7 +200,7 @@ test.describe("SetGuestLocale middleware – cookie behaviour", () => {
       });
 
       const cookies = await context.cookies();
-      const erpCookie = cookies.find((c) => c.name === "erp_locale");
+      const erpCookie = cookies.find(c => c.name === "erp_locale");
       expect(erpCookie, "erp_locale cookie should exist").toBeTruthy();
       expect(erpCookie?.value).toBe(locale);
     });
@@ -217,7 +217,7 @@ test.describe("SetGuestLocale middleware – cookie behaviour", () => {
     });
 
     let cookies = await context.cookies();
-    let erpCookie = cookies.find((c) => c.name === "erp_locale");
+    let erpCookie = cookies.find(c => c.name === "erp_locale");
     expect(erpCookie?.value).toBe("fr");
 
     // Navigate to login without lang — cookie should persist
@@ -227,8 +227,11 @@ test.describe("SetGuestLocale middleware – cookie behaviour", () => {
     });
 
     cookies = await context.cookies();
-    erpCookie = cookies.find((c) => c.name === "erp_locale");
-    expect(erpCookie, "erp_locale should still exist after /login").toBeTruthy();
+    erpCookie = cookies.find(c => c.name === "erp_locale");
+    expect(
+      erpCookie,
+      "erp_locale should still exist after /login",
+    ).toBeTruthy();
     expect(erpCookie?.value).toBe("fr");
   });
 
@@ -366,10 +369,9 @@ test.describe("Language dropdown – login page", () => {
 
     // Every supported locale should be represented
     for (const expected of SUPPORTED_LOCALES) {
-      expect(
-        codes,
-        `dropdown should include ${expected}`,
-      ).toContainEqual(expected);
+      expect(codes, `dropdown should include ${expected}`).toContainEqual(
+        expected,
+      );
     }
   });
 
@@ -458,9 +460,7 @@ test.describe("Client-side locale state sync", () => {
 
     await page.waitForTimeout(500);
 
-    const lang = await page.evaluate(() =>
-      localStorage.getItem("erp-np-lang"),
-    );
+    const lang = await page.evaluate(() => localStorage.getItem("erp-np-lang"));
     expect(lang).toBe("fr");
   });
 
@@ -476,7 +476,7 @@ test.describe("Client-side locale state sync", () => {
     await page.waitForTimeout(500);
 
     const cookies = await context.cookies();
-    const erpJsCookie = cookies.find((c) => c.name === "erp_locale");
+    const erpJsCookie = cookies.find(c => c.name === "erp_locale");
     expect(erpJsCookie, "JS-set erp_locale cookie should exist").toBeTruthy();
     // Could be set by either middleware or JS — both target the same cookie
     expect(erpJsCookie?.value).toBe("de");
@@ -503,16 +503,13 @@ test.describe("Authenticated – change-language endpoint", () => {
     });
 
     // Should redirect (302) or return success
-    expect(
-      resp?.status(),
-      "change-languages should not 500",
-    ).toBeLessThan(500);
+    expect(resp?.status(), "change-languages should not 500").toBeLessThan(500);
 
     // After redirect, check the LANGUAGE cookie exists
     // Note: LANGUAGE cookie is encrypted by EncryptCookies middleware,
     // so we cannot read the plain-text value from the browser.
     const cookies = await context.cookies();
-    const langCookie = cookies.find((c) => c.name === "LANGUAGE");
+    const langCookie = cookies.find(c => c.name === "LANGUAGE");
     // The cookie should exist (even if encrypted)
     expect(langCookie, "LANGUAGE cookie should be set").toBeTruthy();
   });
@@ -537,10 +534,7 @@ test.describe("Authenticated – change-language endpoint", () => {
     expect(["pt-br", "pt"]).toContain(htmlLang);
   });
 
-  test("change-languages/fr persists cookies", async ({
-    page,
-    context,
-  }) => {
+  test("change-languages/fr persists cookies", async ({ page, context }) => {
     await page.goto(`${BASE_URL}/change-languages/fr`, {
       waitUntil: "domcontentloaded",
       timeout: 30000,
@@ -548,7 +542,7 @@ test.describe("Authenticated – change-language endpoint", () => {
 
     const cookies = await context.cookies();
     // LANGUAGE cookie is encrypted — just verify it exists
-    const langCookie = cookies.find((c) => c.name === "LANGUAGE");
+    const langCookie = cookies.find(c => c.name === "LANGUAGE");
     expect(langCookie, "LANGUAGE cookie should be set").toBeTruthy();
 
     // erp_locale is set by SetGuestLocale middleware on the redirect response.
@@ -560,7 +554,7 @@ test.describe("Authenticated – change-language endpoint", () => {
       timeout: 30000,
     });
     const cookies2 = await context.cookies();
-    const erpCookie = cookies2.find((c) => c.name === "erp_locale");
+    const erpCookie = cookies2.find(c => c.name === "erp_locale");
     if (erpCookie) {
       expect(erpCookie.value).toBe("fr");
     }
@@ -622,10 +616,9 @@ test.describe("All supported locales – smoke test", () => {
         timeout: 30000,
       });
 
-      expect(
-        resp?.status(),
-        `HTTP status for /login/${locale}`,
-      ).toBeLessThan(500);
+      expect(resp?.status(), `HTTP status for /login/${locale}`).toBeLessThan(
+        500,
+      );
 
       // Page should render a login form
       const form = page.locator("#loginForm, .login-form, form");
@@ -666,7 +659,7 @@ test.describe("Translation JSON files – integrity", () => {
       const localeData = JSON.parse(localeRaw);
       const localeKeys = new Set(Object.keys(localeData));
 
-      const covered = enKeys.filter((k) => localeKeys.has(k)).length;
+      const covered = enKeys.filter(k => localeKeys.has(k)).length;
       const coverage = covered / enKeys.length;
 
       expect(
