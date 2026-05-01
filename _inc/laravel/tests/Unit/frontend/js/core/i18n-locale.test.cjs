@@ -26,29 +26,18 @@ const UTILS_PATH = path.resolve(
   "../../../../../public/assets/js/core/erp-utils.js",
 );
 
-const LANG_DIR = path.resolve(__dirname, "../../../../../resources/lang");
+const LANG_DIR = path.resolve(
+  __dirname,
+  "../../../../../resources/lang",
+);
 
 /* ------------------------------------------------------------------ */
 /*  Supported locales (must match SetGuestLocale::SUPPORTED)           */
 /* ------------------------------------------------------------------ */
 
 const SUPPORTED_LOCALES = [
-  "ar",
-  "da",
-  "de",
-  "en",
-  "es",
-  "fr",
-  "he",
-  "it",
-  "ja",
-  "nl",
-  "pl",
-  "pt",
-  "pt-br",
-  "ru",
-  "tr",
-  "zh",
+  "ar", "da", "de", "en", "es", "fr", "he",
+  "it", "ja", "nl", "pl", "pt", "pt-br", "ru", "tr", "zh",
 ];
 
 const RTL_LOCALES = ["ar", "he"];
@@ -243,21 +232,8 @@ describe("ERPGuard – DEFAULT_MESSAGES completeness", () => {
 
   // Locales that should have messages in ERPGuard (2-letter codes)
   const GUARD_LOCALES = [
-    "en",
-    "pt",
-    "es",
-    "fr",
-    "de",
-    "it",
-    "ja",
-    "ru",
-    "zh",
-    "ar",
-    "tr",
-    "nl",
-    "pl",
-    "da",
-    "he",
+    "en", "pt", "es", "fr", "de", "it", "ja",
+    "ru", "zh", "ar", "tr", "nl", "pl", "da", "he",
   ];
 
   for (const locale of GUARD_LOCALES) {
@@ -290,7 +266,7 @@ describe("Login page inline locale sync scripts", () => {
     localStorage.clear();
     sessionStorage.clear();
     // Clear cookies
-    document.cookie.split(";").forEach(c => {
+    document.cookie.split(";").forEach((c) => {
       const eqPos = c.indexOf("=");
       const name = eqPos > -1 ? c.substr(0, eqPos).trim() : c.trim();
       document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
@@ -328,9 +304,7 @@ describe("Login page inline locale sync scripts", () => {
 
     test(`locale sync for "${locale}" sets erp_locale cookie`, () => {
       simulateLoginPageLocaleScript(locale);
-      expect(document.cookie).toContain(
-        `erp_locale=${encodeURIComponent(locale)}`,
-      );
+      expect(document.cookie).toContain(`erp_locale=${encodeURIComponent(locale)}`);
     });
   }
 
@@ -377,7 +351,7 @@ describe("Language dropdown link click – locale state update", () => {
       a.setAttribute("href", `/login/${code}`);
       a.textContent = code.toUpperCase();
       // Wire the click handler (simplified from Blade template)
-      a.addEventListener("click", e => {
+      a.addEventListener("click", (e) => {
         e.preventDefault();
         const c = a.getAttribute("data-lang-code");
         if (c) {
@@ -456,7 +430,7 @@ describe("Translation JSON files – integrity", () => {
     expect(Object.keys(data).length).toBeGreaterThan(1000);
   });
 
-  for (const locale of SUPPORTED_LOCALES.filter(l => l !== "en")) {
+  for (const locale of SUPPORTED_LOCALES.filter((l) => l !== "en")) {
     const filePath = path.join(LANG_DIR, `${locale}.json`);
 
     test(`${locale}.json exists`, () => {
@@ -497,7 +471,7 @@ describe("Translation JSON – coverage vs en.json", () => {
 
       const raw = fs.readFileSync(filePath, "utf-8");
       const localeKeys = new Set(Object.keys(JSON.parse(raw)));
-      const covered = enKeys.filter(k => localeKeys.has(k)).length;
+      const covered = enKeys.filter((k) => localeKeys.has(k)).length;
       const coverage = covered / enKeys.length;
 
       expect(coverage).toBeGreaterThanOrEqual(0.9);
@@ -593,7 +567,7 @@ describe("RTL locale identification", () => {
   });
 
   test("non-RTL locales are not in RTL list", () => {
-    const nonRtl = SUPPORTED_LOCALES.filter(l => !RTL_LOCALES.includes(l));
+    const nonRtl = SUPPORTED_LOCALES.filter((l) => !RTL_LOCALES.includes(l));
     for (const locale of nonRtl) {
       expect(RTL_LOCALES).not.toContain(locale);
     }

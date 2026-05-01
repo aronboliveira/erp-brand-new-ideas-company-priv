@@ -1077,12 +1077,10 @@ class AuthenticatedSessionController extends Controller
 
   private static function _setLocale(?string $lang = null): string
   {
-    // When no explicit $lang, respect the locale already set by SetGuestLocale
-    // middleware (from cookie or route param) before falling back to DB/default.
-    $lang ??= App::getLocale() ?: Utility::getValByName(SettingsConstants::DEF_LNG);
-    $supported = array_keys(Utility::langList());
-    if (!in_array($lang, $supported, true)) {
-      $lang = DatabaseConstants::DEFAULT_LANG;
+    // Respect the locale already set by SetGuestLocale middleware before falling back to DB/default.
+    $lang ??= App::getLocale() ?: Utility::getValByName(SC::DEF_LNG) ?: DC::DEFAULT_LANG;
+    if (!in_array($lang, array_keys(Utility::langList()), true)) {
+      $lang = DC::DEFAULT_LANG;
     }
     App::setLocale($lang);
     return $lang;

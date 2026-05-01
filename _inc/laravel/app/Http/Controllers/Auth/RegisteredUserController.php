@@ -136,7 +136,10 @@ class RegisteredUserController extends Controller
         return redirect('login');
       }
       $localeStart = microtime(true);
-      $lang = $lang ?: App::getLocale() ?: Utility::getValByName(SettingsConstants::DEF_LNG);
+      $lang = $lang ?: App::getLocale() ?: Utility::getValByName(SC::DEF_LNG) ?: DC::DEFAULT_LANG;
+      if (!in_array($lang, array_keys(Utility::langList()), true)) {
+        $lang = DC::DEFAULT_LANG;
+      }
       App::setLocale($lang);
       $this->logExecutionTime($localeStart, $action . '::setLocale', 'completed');
       return view(ViewsConstants::AUT . '.register', compact('lang'));

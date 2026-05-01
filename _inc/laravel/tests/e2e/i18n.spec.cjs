@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs");
 
 /**
- * ERP Brand New Ideas Company – i18n / Translation E2E Tests
+ * ERP Prestech – i18n / Translation E2E Tests
  *
  * Validates that the server-side translation pipeline works correctly:
  *   1. Login page renders translated content via {lang} route parameter.
@@ -19,7 +19,7 @@ const fs = require("fs");
  * Requires auth.setup.cjs to have been run first (for authenticated tests).
  */
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "http://localhost:8888";
 const STORAGE_STATE = path.join(__dirname, ".auth/user.json");
 
 /* ------------------------------------------------------------------ */
@@ -56,7 +56,24 @@ const TRANSLATIONS = {
   },
 };
 
-const SUPPORTED_LOCALES = ["ar", "da", "de", "en", "es", "fr", "he", "it", "ja", "nl", "pl", "pt", "pt-br", "ru", "tr", "zh"];
+const SUPPORTED_LOCALES = [
+  "ar",
+  "da",
+  "de",
+  "en",
+  "es",
+  "fr",
+  "he",
+  "it",
+  "ja",
+  "nl",
+  "pl",
+  "pt",
+  "pt-br",
+  "ru",
+  "tr",
+  "zh",
+];
 
 const RTL_LOCALES = ["ar", "he"];
 
@@ -64,10 +81,11 @@ const RTL_LOCALES = ["ar", "he"];
 /*  Helper: dismiss cookie / consent popups                           */
 /* ------------------------------------------------------------------ */
 function setupDialogAndConsent(page) {
-  page.on("dialog", d => d.accept());
+  page.on("dialog", (d) => d.accept());
   page.addLocatorHandler(page.locator("#cc--main, .c--anim"), async () => {
     const btn = page.locator('#c-p-bn, .c-bn, [data-cc="accept-all"]').first();
-    if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) await btn.click({ force: true });
+    if (await btn.isVisible({ timeout: 1000 }).catch(() => false))
+      await btn.click({ force: true });
   });
 }
 
@@ -84,18 +102,24 @@ test.describe("Guest locale – login page with {lang} route param", () => {
   for (const locale of ["en", "pt-br", "es", "fr"]) {
     const t = TRANSLATIONS[locale];
 
-    test(`/login/${locale} renders page with correct <html lang> attribute`, async ({ page }) => {
+    test(`/login/${locale} renders page with correct <html lang> attribute`, async ({
+      page,
+    }) => {
       const resp = await page.goto(`${BASE_URL}/login/${locale}`, {
         waitUntil: "domcontentloaded",
         timeout: 30000,
       });
-      expect(resp?.status(), `HTTP status for /login/${locale}`).toBeLessThan(500);
+      expect(resp?.status(), `HTTP status for /login/${locale}`).toBeLessThan(
+        500,
+      );
 
       const htmlLang = await page.getAttribute("html", "lang");
       expect(htmlLang).toBe(locale);
     });
 
-    test(`/login/${locale} renders translated heading "${t.login}"`, async ({ page }) => {
+    test(`/login/${locale} renders translated heading "${t.login}"`, async ({
+      page,
+    }) => {
       await page.goto(`${BASE_URL}/login/${locale}`, {
         waitUntil: "domcontentloaded",
         timeout: 30000,
@@ -108,7 +132,9 @@ test.describe("Guest locale – login page with {lang} route param", () => {
       expect(text.trim()).toContain(t.login.trim());
     });
 
-    test(`/login/${locale} translates Email label to "${t.email}"`, async ({ page }) => {
+    test(`/login/${locale} translates Email label to "${t.email}"`, async ({
+      page,
+    }) => {
       await page.goto(`${BASE_URL}/login/${locale}`, {
         waitUntil: "domcontentloaded",
         timeout: 30000,
@@ -120,7 +146,9 @@ test.describe("Guest locale – login page with {lang} route param", () => {
       expect(text.trim()).toContain(t.email.trim());
     });
 
-    test(`/login/${locale} translates Password label to "${t.password}"`, async ({ page }) => {
+    test(`/login/${locale} translates Password label to "${t.password}"`, async ({
+      page,
+    }) => {
       await page.goto(`${BASE_URL}/login/${locale}`, {
         waitUntil: "domcontentloaded",
         timeout: 30000,
@@ -132,7 +160,9 @@ test.describe("Guest locale – login page with {lang} route param", () => {
       expect(text.trim()).toContain(t.password.trim());
     });
 
-    test(`/login/${locale} translates submit button to "${t.login}"`, async ({ page }) => {
+    test(`/login/${locale} translates submit button to "${t.login}"`, async ({
+      page,
+    }) => {
       await page.goto(`${BASE_URL}/login/${locale}`, {
         waitUntil: "domcontentloaded",
         timeout: 30000,
@@ -140,7 +170,10 @@ test.describe("Guest locale – login page with {lang} route param", () => {
 
       const submitBtn = page.locator("#saveBtn").first();
       await expect(submitBtn).toBeVisible({ timeout: 10000 });
-      const val = (await submitBtn.getAttribute("value")) || (await submitBtn.textContent()) || "";
+      const val =
+        (await submitBtn.getAttribute("value")) ||
+        (await submitBtn.textContent()) ||
+        "";
       expect(val.trim()).toContain(t.login.trim());
     });
   }
@@ -157,20 +190,26 @@ test.describe("SetGuestLocale middleware – cookie behaviour", () => {
   });
 
   for (const locale of ["pt-br", "es", "fr", "de"]) {
-    test(`visiting /login/${locale} sets erp_locale cookie to "${locale}"`, async ({ context, page }) => {
+    test(`visiting /login/${locale} sets erp_locale cookie to "${locale}"`, async ({
+      context,
+      page,
+    }) => {
       await page.goto(`${BASE_URL}/login/${locale}`, {
         waitUntil: "domcontentloaded",
         timeout: 30000,
       });
 
       const cookies = await context.cookies();
-      const erpCookie = cookies.find(c => c.name === "erp_locale");
+      const erpCookie = cookies.find((c) => c.name === "erp_locale");
       expect(erpCookie, "erp_locale cookie should exist").toBeTruthy();
       expect(erpCookie?.value).toBe(locale);
     });
   }
 
-  test("erp_locale cookie persists across navigation", async ({ context, page }) => {
+  test("erp_locale cookie persists across navigation", async ({
+    context,
+    page,
+  }) => {
     // Set locale to fr
     await page.goto(`${BASE_URL}/login/fr`, {
       waitUntil: "domcontentloaded",
@@ -178,7 +217,7 @@ test.describe("SetGuestLocale middleware – cookie behaviour", () => {
     });
 
     let cookies = await context.cookies();
-    let erpCookie = cookies.find(c => c.name === "erp_locale");
+    let erpCookie = cookies.find((c) => c.name === "erp_locale");
     expect(erpCookie?.value).toBe("fr");
 
     // Navigate to login without lang — cookie should persist
@@ -188,12 +227,15 @@ test.describe("SetGuestLocale middleware – cookie behaviour", () => {
     });
 
     cookies = await context.cookies();
-    erpCookie = cookies.find(c => c.name === "erp_locale");
+    erpCookie = cookies.find((c) => c.name === "erp_locale");
     expect(erpCookie, "erp_locale should still exist after /login").toBeTruthy();
     expect(erpCookie?.value).toBe("fr");
   });
 
-  test("cookie-based locale renders translated content on reload", async ({ context, page }) => {
+  test("cookie-based locale renders translated content on reload", async ({
+    context,
+    page,
+  }) => {
     // First visit sets cookie to es
     await page.goto(`${BASE_URL}/login/es`, {
       waitUntil: "domcontentloaded",
@@ -301,7 +343,9 @@ test.describe("Language dropdown – login page", () => {
     setupDialogAndConsent(page);
   });
 
-  test("language dropdown contains links with data-lang-code for all supported locales", async ({ page }) => {
+  test("language dropdown contains links with data-lang-code for all supported locales", async ({
+    page,
+  }) => {
     await page.goto(`${BASE_URL}/login/en`, {
       waitUntil: "domcontentloaded",
       timeout: 30000,
@@ -322,11 +366,16 @@ test.describe("Language dropdown – login page", () => {
 
     // Every supported locale should be represented
     for (const expected of SUPPORTED_LOCALES) {
-      expect(codes, `dropdown should include ${expected}`).toContainEqual(expected);
+      expect(
+        codes,
+        `dropdown should include ${expected}`,
+      ).toContainEqual(expected);
     }
   });
 
-  test("each language link has href pointing to /login/{code}", async ({ page }) => {
+  test("each language link has href pointing to /login/{code}", async ({
+    page,
+  }) => {
     await page.goto(`${BASE_URL}/login/en`, {
       waitUntil: "domcontentloaded",
       timeout: 30000,
@@ -340,12 +389,17 @@ test.describe("Language dropdown – login page", () => {
       const href = await langLinks.nth(i).getAttribute("href");
       if (code && href && href !== "#") {
         // href should contain the locale code
-        expect(href, `Link for ${code} should contain the locale code`).toContain(code);
+        expect(
+          href,
+          `Link for ${code} should contain the locale code`,
+        ).toContain(code);
       }
     }
   });
 
-  test("clicking a language link navigates and changes page locale", async ({ page }) => {
+  test("clicking a language link navigates and changes page locale", async ({
+    page,
+  }) => {
     await page.goto(`${BASE_URL}/login/en`, {
       waitUntil: "domcontentloaded",
       timeout: 30000,
@@ -379,7 +433,9 @@ test.describe("Client-side locale state sync", () => {
     setupDialogAndConsent(page);
   });
 
-  test("page scripts set localStorage 'locale' matching the route lang", async ({ page }) => {
+  test("page scripts set localStorage 'locale' matching the route lang", async ({
+    page,
+  }) => {
     await page.goto(`${BASE_URL}/login/es`, {
       waitUntil: "domcontentloaded",
       timeout: 30000,
@@ -392,7 +448,9 @@ test.describe("Client-side locale state sync", () => {
     expect(locale).toBe("es");
   });
 
-  test("page scripts set localStorage 'erp-np-lang' matching the route lang", async ({ page }) => {
+  test("page scripts set localStorage 'erp-np-lang' matching the route lang", async ({
+    page,
+  }) => {
     await page.goto(`${BASE_URL}/login/fr`, {
       waitUntil: "domcontentloaded",
       timeout: 30000,
@@ -400,11 +458,16 @@ test.describe("Client-side locale state sync", () => {
 
     await page.waitForTimeout(500);
 
-    const lang = await page.evaluate(() => localStorage.getItem("erp-np-lang"));
+    const lang = await page.evaluate(() =>
+      localStorage.getItem("erp-np-lang"),
+    );
     expect(lang).toBe("fr");
   });
 
-  test("page scripts set erp_locale cookie via JS matching the route lang", async ({ context, page }) => {
+  test("page scripts set erp_locale cookie via JS matching the route lang", async ({
+    context,
+    page,
+  }) => {
     await page.goto(`${BASE_URL}/login/de`, {
       waitUntil: "domcontentloaded",
       timeout: 30000,
@@ -413,7 +476,7 @@ test.describe("Client-side locale state sync", () => {
     await page.waitForTimeout(500);
 
     const cookies = await context.cookies();
-    const erpJsCookie = cookies.find(c => c.name === "erp_locale");
+    const erpJsCookie = cookies.find((c) => c.name === "erp_locale");
     expect(erpJsCookie, "JS-set erp_locale cookie should exist").toBeTruthy();
     // Could be set by either middleware or JS — both target the same cookie
     expect(erpJsCookie?.value).toBe("de");
@@ -430,25 +493,33 @@ test.describe("Authenticated – change-language endpoint", () => {
     setupDialogAndConsent(page);
   });
 
-  test("GET /change-languages/es redirects and sets locale", async ({ page, context }) => {
+  test("GET /change-languages/es redirects and sets locale", async ({
+    page,
+    context,
+  }) => {
     const resp = await page.goto(`${BASE_URL}/change-languages/es`, {
       waitUntil: "domcontentloaded",
       timeout: 30000,
     });
 
     // Should redirect (302) or return success
-    expect(resp?.status(), "change-languages should not 500").toBeLessThan(500);
+    expect(
+      resp?.status(),
+      "change-languages should not 500",
+    ).toBeLessThan(500);
 
     // After redirect, check the LANGUAGE cookie exists
     // Note: LANGUAGE cookie is encrypted by EncryptCookies middleware,
     // so we cannot read the plain-text value from the browser.
     const cookies = await context.cookies();
-    const langCookie = cookies.find(c => c.name === "LANGUAGE");
+    const langCookie = cookies.find((c) => c.name === "LANGUAGE");
     // The cookie should exist (even if encrypted)
     expect(langCookie, "LANGUAGE cookie should be set").toBeTruthy();
   });
 
-  test("change-languages/pt-br then navigate — page renders in Portuguese", async ({ page }) => {
+  test("change-languages/pt-br then navigate — page renders in Portuguese", async ({
+    page,
+  }) => {
     await page.goto(`${BASE_URL}/change-languages/pt-br`, {
       waitUntil: "domcontentloaded",
       timeout: 30000,
@@ -466,16 +537,18 @@ test.describe("Authenticated – change-language endpoint", () => {
     expect(["pt-br", "pt"]).toContain(htmlLang);
   });
 
-  test("change-languages/fr persists cookies", async ({ page, context }) => {
+  test("change-languages/fr persists cookies", async ({
+    page,
+    context,
+  }) => {
     await page.goto(`${BASE_URL}/change-languages/fr`, {
-      waitUntil: "commit",
-      timeout: 45000,
+      waitUntil: "domcontentloaded",
+      timeout: 30000,
     });
-    await page.waitForLoadState("domcontentloaded", { timeout: 30000 }).catch(() => {});
 
     const cookies = await context.cookies();
     // LANGUAGE cookie is encrypted — just verify it exists
-    const langCookie = cookies.find(c => c.name === "LANGUAGE");
+    const langCookie = cookies.find((c) => c.name === "LANGUAGE");
     expect(langCookie, "LANGUAGE cookie should be set").toBeTruthy();
 
     // erp_locale is set by SetGuestLocale middleware on the redirect response.
@@ -487,13 +560,15 @@ test.describe("Authenticated – change-language endpoint", () => {
       timeout: 30000,
     });
     const cookies2 = await context.cookies();
-    const erpCookie = cookies2.find(c => c.name === "erp_locale");
+    const erpCookie = cookies2.find((c) => c.name === "erp_locale");
     if (erpCookie) {
       expect(erpCookie.value).toBe("fr");
     }
   });
 
-  test("change-languages/ar activates RTL for authenticated user", async ({ page }) => {
+  test("change-languages/ar activates RTL for authenticated user", async ({
+    page,
+  }) => {
     await page.goto(`${BASE_URL}/change-languages/ar`, {
       waitUntil: "domcontentloaded",
       timeout: 30000,
@@ -539,13 +614,18 @@ test.describe("All supported locales – smoke test", () => {
   });
 
   for (const locale of SUPPORTED_LOCALES) {
-    test(`/login/${locale} loads without 500 and sets correct html lang`, async ({ page }) => {
+    test(`/login/${locale} loads without 500 and sets correct html lang`, async ({
+      page,
+    }) => {
       const resp = await page.goto(`${BASE_URL}/login/${locale}`, {
         waitUntil: "domcontentloaded",
         timeout: 30000,
       });
 
-      expect(resp?.status(), `HTTP status for /login/${locale}`).toBeLessThan(500);
+      expect(
+        resp?.status(),
+        `HTTP status for /login/${locale}`,
+      ).toBeLessThan(500);
 
       // Page should render a login form
       const form = page.locator("#loginForm, .login-form, form");
@@ -586,10 +666,13 @@ test.describe("Translation JSON files – integrity", () => {
       const localeData = JSON.parse(localeRaw);
       const localeKeys = new Set(Object.keys(localeData));
 
-      const covered = enKeys.filter(k => localeKeys.has(k)).length;
+      const covered = enKeys.filter((k) => localeKeys.has(k)).length;
       const coverage = covered / enKeys.length;
 
-      expect(coverage, `${locale}.json should cover ≥90% of en.json keys (got ${(coverage * 100).toFixed(1)}%)`).toBeGreaterThanOrEqual(0.9);
+      expect(
+        coverage,
+        `${locale}.json should cover ≥90% of en.json keys (got ${(coverage * 100).toFixed(1)}%)`,
+      ).toBeGreaterThanOrEqual(0.9);
     });
 
     test(`${locale}.json — no empty-string translations`, () => {
@@ -606,7 +689,10 @@ test.describe("Translation JSON files – integrity", () => {
         .filter(([, v]) => typeof v === "string" && v.trim() === "")
         .map(([k]) => k);
 
-      expect(emptyKeys.length, `${locale}.json has ${emptyKeys.length} empty translations: ${emptyKeys.slice(0, 5).join(", ")}`).toBe(0);
+      expect(
+        emptyKeys.length,
+        `${locale}.json has ${emptyKeys.length} empty translations: ${emptyKeys.slice(0, 5).join(", ")}`,
+      ).toBe(0);
     });
   }
 });
