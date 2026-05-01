@@ -1006,7 +1006,7 @@ class DealController extends Controller
   }
 
   public const TSK_CRT = 'taskCreate';
-  public function taskCreate(Request $request, int|string $id): View|JsonResponse|RedirectResponse
+  public function taskCreate(Request $request, int|string $id): ViewContract|JsonResponse|RedirectResponse|null
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1024,10 +1024,18 @@ class DealController extends Controller
         $response = view($viewPath, ['deal' => $deal, 'priorities' => DealTask::$priorities, 'status' => DealTask::$status]);
         $this->logExecutionTime($renderStart, $action, 'renderTaskCreate');
         return $response;
-      } catch (\Throwable $e) {
-        Log::error("[{$class}::{$action}] failed", ['err' => $e->getMessage(), 'deal_id' => $id]);
-        Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
+      } catch (AuthorizationException $e) {
+        $this->logFailure($class, $action, $e, ['deal_id' => $id]);
+        $this->consoleOutput("{$action} authorization failed", 'error');
         return response()->json(['error' => __('Permission Denied.')], 401);
+      } catch (ModelNotFoundException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id]);
+      } catch (QueryException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id]);
+      } catch (\RuntimeException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id]);
+      } catch (\Throwable $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id]);
       }
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'deal_id' => $id]);
   }
@@ -1060,6 +1068,22 @@ class DealController extends Controller
         });
         $this->logExecutionTime($txnStart, $action, 'taskStoreTransaction');
         return redirect()->back()->with('success', __('Task successfully created!'))->with('status', 'tasks');
+      } catch (ModelNotFoundException $e) {
+        if ($transactionStarted)
+          DB::rollBack();
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id], null, 404);
+      } catch (QueryException $e) {
+        if ($transactionStarted)
+          DB::rollBack();
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id], null, 500);
+      } catch (ValidationException $e) {
+        if ($transactionStarted)
+          DB::rollBack();
+        return redirect()->back()->with('error', $e->getMessage())->with('status', 'tasks');
+      } catch (\RuntimeException $e) {
+        if ($transactionStarted)
+          DB::rollBack();
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id], null, 500);
       } catch (\Throwable $e) {
         Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'deal_id' => $id]);
         Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -1069,7 +1093,7 @@ class DealController extends Controller
   }
 
   public const TSK_SHW = 'taskShow';
-  public function taskShow(Request $request, int|string $id, int|string $taskId): View|JsonResponse|RedirectResponse
+  public function taskShow(Request $request, int|string $id, int|string $taskId): ViewContract|JsonResponse|RedirectResponse|null
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1090,16 +1114,24 @@ class DealController extends Controller
         $response = view($viewPath, compact('deal', 'task'));
         $this->logExecutionTime($renderStart, $action, 'renderTaskShow');
         return $response;
-      } catch (\Throwable $e) {
-        Log::error("[{$class}::{$action}] failed", ['err' => $e->getMessage(), 'deal_id' => $id, 'task_id' => $taskId]);
-        Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
+      } catch (AuthorizationException $e) {
+        $this->logFailure($class, $action, $e, ['deal_id' => $id, 'task_id' => $taskId]);
+        $this->consoleOutput("{$action} authorization failed", 'error');
         return response()->json(['error' => __('Permission Denied.')], 401);
+      } catch (ModelNotFoundException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id, 'task_id' => $taskId]);
+      } catch (QueryException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id, 'task_id' => $taskId]);
+      } catch (\RuntimeException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id, 'task_id' => $taskId]);
+      } catch (\Throwable $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id, 'task_id' => $taskId]);
       }
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'deal_id' => $id, 'task_id' => $taskId]);
   }
 
   public const TSK_EDT = 'taskEdit';
-  public function taskEdit(Request $request, int|string $id, int|string $taskId): View|JsonResponse|RedirectResponse
+  public function taskEdit(Request $request, int|string $id, int|string $taskId): ViewContract|JsonResponse|RedirectResponse|null
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1120,10 +1152,18 @@ class DealController extends Controller
         $response = view($viewPath, ['deal' => $deal, 'task' => $task, 'priorities' => DealTask::$priorities, 'status' => DealTask::$status]);
         $this->logExecutionTime($renderStart, $action, 'renderTaskEdit');
         return $response;
-      } catch (\Throwable $e) {
-        Log::error("[{$class}::{$action}] failed", ['err' => $e->getMessage(), 'deal_id' => $id, 'task_id' => $taskId]);
-        Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
+      } catch (AuthorizationException $e) {
+        $this->logFailure($class, $action, $e, ['deal_id' => $id, 'task_id' => $taskId]);
+        $this->consoleOutput("{$action} authorization failed", 'error');
         return response()->json(['error' => __('Permission Denied.')], 401);
+      } catch (ModelNotFoundException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id, 'task_id' => $taskId]);
+      } catch (QueryException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id, 'task_id' => $taskId]);
+      } catch (\RuntimeException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id, 'task_id' => $taskId]);
+      } catch (\Throwable $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $id, 'task_id' => $taskId]);
       }
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'deal_id' => $id, 'task_id' => $taskId]);
   }
@@ -1416,10 +1456,14 @@ class DealController extends Controller
         $users = Deal::findOrFail($id)->users->pluck('name', 'id');
         $this->logExecutionTime($loadStart, $action, 'loadDealUsers');
         return response()->json($users, 200);
+      } catch (ModelNotFoundException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $input['deal_id'] ?? null], null, 404);
+      } catch (QueryException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $input['deal_id'] ?? null]);
+      } catch (\RuntimeException $e) {
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $input['deal_id'] ?? null]);
       } catch (\Throwable $e) {
-        Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'deal_id' => $request->input('deal_id')]);
-        Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
-        return response()->json([], 500);
+        return $this->handleFailure($request, $e, $class, $action, $method, ['deal_id' => $input['deal_id'] ?? null]);
       }
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class]);
   }
