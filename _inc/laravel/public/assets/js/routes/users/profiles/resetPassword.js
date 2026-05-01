@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/users/profiles/resetPassword.js
  * @generated from original JavaScript - manual review recommended
@@ -63,4 +65,4 @@
         console.error(`[resetPassword] Error:`, __err);
     }
 })();
-//# sourceMappingURL=resetPassword.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/taxes/summaries/pdf.js
  * @generated from original JavaScript - manual review recommended
@@ -146,4 +148,4 @@
     };
     window.saveAsPDF = saveAsPDF;
 })();
-//# sourceMappingURL=pdf.js.map
+})();

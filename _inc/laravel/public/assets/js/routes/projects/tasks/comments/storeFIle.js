@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projects/tasks/comments/storeFIle.js
  * @generated from original JavaScript - manual review recommended
@@ -69,4 +71,4 @@
         console.error(`[storeFIle] Error:`, _);
     }
 })();
-//# sourceMappingURL=storeFIle.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/menu/info.js
  * @generated from original JavaScript - manual review recommended
@@ -71,4 +73,4 @@
         "holidays-index-link",
     ].forEach(bindGuard);
 })();
-//# sourceMappingURL=info.js.map
+})();

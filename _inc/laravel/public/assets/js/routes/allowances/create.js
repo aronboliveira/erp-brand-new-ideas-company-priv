@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/allowances/create.js
  * @generated from original JavaScript - manual review recommended
@@ -61,4 +63,4 @@
     });
     observer.observe(document.body, { childList: true, subtree: true });
 })();
-//# sourceMappingURL=create.js.map
+})();

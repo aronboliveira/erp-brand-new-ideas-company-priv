@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leaves/generate.js
  * @generated from original JavaScript - manual review recommended
@@ -82,4 +84,4 @@
         console.error(`[generate] Error:`, error);
     }
 })();
-//# sourceMappingURL=generate.js.map
+})();

@@ -79,7 +79,7 @@
                 toast(localizeGuard(btn));
             });
         }
-        catch (e) {
+        catch (_e) {
             toast(localizeGuard(btn));
             try {
                 if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")

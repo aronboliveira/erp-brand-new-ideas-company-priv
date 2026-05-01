@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/formBuilders/responses.js
  * @generated from original JavaScript - manual review recommended
@@ -81,4 +83,4 @@
         console.error(`[responses] Error:`, err);
     }
 })();
-//# sourceMappingURL=responses.js.map
+})();

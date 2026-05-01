@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/profits/index/loss/summaries/apply.js
  * @generated from original JavaScript - manual review recommended
@@ -69,4 +71,4 @@
         console.error(`[apply] Error:`, err);
     }
 })();
-//# sourceMappingURL=apply.js.map
+})();

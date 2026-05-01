@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/menubar/change.js
  * @generated from original JavaScript - manual review recommended
@@ -111,4 +113,4 @@
         ? document.addEventListener("DOMContentLoaded", start, { once: true })
         : start();
 })();
-//# sourceMappingURL=change.js.map
+})();

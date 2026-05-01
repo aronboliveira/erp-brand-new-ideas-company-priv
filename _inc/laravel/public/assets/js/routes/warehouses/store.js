@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/warehouses/store.js
  * @generated from original JavaScript - manual review recommended
@@ -66,4 +68,4 @@
         console.error(`[store] Error:`, __err);
     }
 })();
-//# sourceMappingURL=store.js.map
+})();

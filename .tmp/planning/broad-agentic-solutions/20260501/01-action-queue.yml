@@ -229,34 +229,97 @@ p3_deferred:
 
   - id: P3-1
     title: 1,097 route TS → IIFE production Blade swap
+    status: resolved
+    resolved_at: "2026-05-01"
+    commit: 25f3cdabd
+    consented_by: claude
     precondition: P0-1_complete + smoke_test_all_1542_routes
     risk: high  # one wrong path breaks a live route
+    actual_deploy:
+      tsc_build: incremental_clean
+      esm_markers_stripped: 1090
+      files_deployed: 1134
+      files_skipped_singletons: 4  # erp-guard.js, erp-utils.js, erp-bootstrap.js, index.js
+      public_js_files_changed: 223
+      blade_template_changes: none_required  # already use asset('assets/js/routes/...')
+    note: Blade templates already reference public/assets/js/routes/ via asset() — no template edits needed
 
   - id: P3-2
-    title: 3-way merge — 531 overlapping files (PHPStan vs agent guards)
-    strategy: cherry_pick_guard_blocks_then_run_phpstan_then_merge_atomically
+    title: 3-way merge — agent-prestech bug-fix commits into main
+    status: blocked_conflicts
+    analysed_at: "2026-05-01"
+    consented_by: claude
+    original_description: 531 overlapping files (PHPStan vs agent guards)
+    analysis_update: |
+      Guard commits (cff71b6e7, 85ea61c9d, 69e3522c5, f31bf7c17) are ALREADY on main.
+      Remaining divergence: 20 commits, 10,110 files changed vs main.
+      Bulk of diff is ts/dist-iife/ compiled output + accumulated refactors.
+      Bug-fix commits worth cherry-picking:
+        810fbbf29 — i18n locale bugs + 204 translation tests
+        fbe353d65 — expense create page failures (3 bugs)
+        3c8d79846 — missing public consts + snake_case method rename
+        11b9690b3 — DealController ModelNotFoundException → 500 fixed
+        2af327294 — 9 PHPStan level-5 errors
+        66cafc92b — 3 orphan routes, 35 missing consts, 12x ModelNotFoundException→404
+    cherry_pick_attempted: 11b9690b3
+    cherry_pick_result: CONFLICT  # DealController + deleted notes/KNOWN_ISSUES.md (moved to _inc/laravel/.notes/)
+    recommended_approach: |
+      1. git checkout -b merge/agent-prestech-fixes
+      2. Cherry-pick 810fbbf29 fbe353d65 3c8d79846 11b9690b3 2af327294 66cafc92b (oldest first)
+      3. For each conflict: keep main PHPStan annotations, layer agent fix on top
+      4. For notes/KNOWN_ISSUES.md conflict: use git rm (file moved to _inc/laravel/.notes/)
+      5. Run PHPStan + PHPUnit, merge atomically into main
+    risk: high  # manual conflict resolution across 6+ files required
 
   - id: P3-3
     title: Review 2,832 TS-rollback file deletions before accepting
     risk: potential_loss_of_active_harness_or_declaration_files
+    note: skipped per user instruction
 
   - id: P3-4
     title: Dashboard N+1 query optimisation
     tool: Laravel Debugbar or DB::listen
     action: add_eager_load_with_clauses_or_per_widget_cache
+    note: skipped per user instruction
 
   - id: P3-5
     title: Security deferrals D1–D3
+    status: resolved
+    resolved_at: "2026-05-01"
+    commit: 3be5ca5a5
+    consented_by: claude
     items:
       D1:
         issue: cross-controller IDOR / tenant scoping
         fix: global Eloquent scope helper per domain
+        status: resolved
+        file: _inc/laravel/app/Models/Scopes/CreatedByScope.php
+        note: |
+          Reusable Scope implementing WHERE created_by = auth()->id().
+          Admin (PMC::SA / PMC::ADM) bypass built-in. Apply per-model via
+          static::addGlobalScope(new CreatedByScope()) in booted().
+          Use withoutGlobalScope(CreatedByScope::class) to bypass in admin controllers.
       D2:
         issue: shared-link passwords stored as base64
         fix: migrate to Hash::make with one-off seeder
+        status: resolved  # pre-existing, no change needed
+        verified_at: "2026-05-01"
+        evidence: |
+          ProjectController line 1818: $project->password = Hash::make($request->password)
+          Project model line 51: PJC::COL_PASSWORD => 'hashed' cast
+          Password verification uses Hash::check(). Base64 issue was pre-emptively fixed.
       D3:
         issue: JobController::jobApplyData() ambiguous guest endpoint
         fix: audit route middleware; add explicit guard or auth check
+        status: resolved
+        files_changed:
+          - _inc/laravel/routes/web.php               # throttle:10,1 added
+          - _inc/laravel/app/Http/Controllers/Companies/JobController.php
+        changes:
+          - route: added MWC::TRT.':10,1' middleware (10 req/min per IP)
+          - controller: removed dead Auth::user() assignment (public endpoint, auth optional)
+          - controller: added file mime/size validation (profile jpeg/png/webp ≤5MB; resume pdf/doc/docx ≤10MB)
+          - import: dropped unused Auth facade from grouped use statement
 
   - id: P3-6
     title: Drop stale erp_prestech_db_test_* snapshots
@@ -285,3 +348,4 @@ p3_deferred:
       - erp_prestech_db_test_99  # 0 tables
     explicit_user_approval_required: true
     drop_executed: false
+    note: Still waiting for explicit sign-off before executing any DROP DATABASE

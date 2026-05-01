@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/saturationDeductions/storeSalary.js
  * @generated from original JavaScript - manual review recommended
@@ -64,4 +66,4 @@
         attachGuard(el, "click");
     });
 })();
-//# sourceMappingURL=storeSalary.js.map
+})();

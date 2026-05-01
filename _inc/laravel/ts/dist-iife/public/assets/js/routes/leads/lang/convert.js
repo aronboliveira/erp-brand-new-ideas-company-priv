@@ -104,7 +104,7 @@
         window.translations[k] = { ...(window.translations[k] || {}), ...t[k] };
     });
     (function () {
-        let t = {
+        const t = {
             ar: {
                 action_unavailable: "الإجراء غير متاح.",
                 convert_to_deal_unavailable: "تحويل العميل المحتمل إلى صفقة غير متاح.",

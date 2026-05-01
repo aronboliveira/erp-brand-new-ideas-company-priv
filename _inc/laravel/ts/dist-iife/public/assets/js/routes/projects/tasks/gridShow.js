@@ -9,8 +9,7 @@
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (function () {
     function toast(msg) {
-        const m = msg ??
-            "Requested route is unavailable. Please contact technical support or your domain administrator.", hasBootstrap = typeof window.bootstrap.Toast !== "undefined";
+        const m = msg ?? "Requested route is unavailable. Please contact technical support or your domain administrator.", hasBootstrap = typeof window.bootstrap.Toast !== "undefined";
         if (hasBootstrap) {
             let box = document.getElementById("toast-container");
             if (!box) {
@@ -53,7 +52,7 @@
             new URL(url, window.location.origin);
             return false;
         }
-        catch (e) {
+        catch (_e) {
             return true;
         }
     }
@@ -80,9 +79,7 @@
     }
     function bind() {
         document.querySelectorAll("a.project-task-index-link").forEach(guard);
-        document
-            .querySelectorAll(".card-progress")
-            .forEach(function (card) {
+        document.querySelectorAll(".card-progress").forEach(function (card) {
             if (card.dataset.cardBound === "1")
                 return;
             card.dataset.cardBound = "1";
@@ -98,15 +95,12 @@
                     toast(link.getAttribute("data-guard-msg"));
                     return;
                 }
-                const url = (link.getAttribute("data-url") ??
-                    link.getAttribute("href") ??
-                    "#").trim();
+                const url = (link.getAttribute("data-url") ?? link.getAttribute("href") ?? "#").trim();
                 if (url && url !== "#")
                     window.location.assign(url);
             });
         });
-        if (window.bootstrap &&
-            document.querySelector('[data-bs-toggle="tooltip"]'))
+        if (window.bootstrap && document.querySelector('[data-bs-toggle="tooltip"]'))
             // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             [].slice
                 .call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -133,8 +127,6 @@
         bind();
         observe();
     }
-    document.readyState === "loading"
-        ? document.addEventListener("DOMContentLoaded", init)
-        : init();
+    document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", init) : init();
 })();
 })();

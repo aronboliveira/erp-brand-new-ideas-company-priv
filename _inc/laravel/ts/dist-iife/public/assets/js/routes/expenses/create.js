@@ -37,7 +37,7 @@
                 }
                 el.appendChild(fragment);
             }
-            catch (e) {
+            catch (_e) {
                 el.textContent = html;
             }
         };
@@ -84,8 +84,7 @@
                         if (url !== "#" && action !== "#")
                             return;
                         e.preventDefault();
-                        const msg = fm.getAttribute("data-guard-msg") ??
-                            "Store expense route is unavailable. Please contact technical support or your domain administrator.";
+                        const msg = fm.getAttribute("data-guard-msg") ?? "Store expense route is unavailable. Please contact technical support or your domain administrator.";
                         toast(msg);
                         fm.setAttribute("data-failed-route", "true");
                     }
@@ -106,8 +105,7 @@
                     if (url !== "#" && href !== "#")
                         return;
                     e.preventDefault();
-                    const msg = a.getAttribute("data-guard-msg") ??
-                        "Route is unavailable. Please contact technical support or your domain administrator.";
+                    const msg = a.getAttribute("data-guard-msg") ?? "Route is unavailable. Please contact technical support or your domain administrator.";
                     toast(msg);
                     a.setAttribute("data-failed-route", "true");
                 }

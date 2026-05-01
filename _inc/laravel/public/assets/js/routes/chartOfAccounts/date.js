@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/chartOfAccounts/date.js
  * @generated from original JavaScript - manual review recommended
@@ -164,4 +166,4 @@
         }
     });
 })();
-//# sourceMappingURL=date.js.map
+})();

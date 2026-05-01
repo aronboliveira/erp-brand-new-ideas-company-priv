@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/plans/paymentWall.js
  * @generated from original JavaScript - manual review recommended
@@ -199,4 +201,4 @@
         ? document.addEventListener("DOMContentLoaded", init, { once: true })
         : init();
 })();
-//# sourceMappingURL=paymentWall.js.map
+})();

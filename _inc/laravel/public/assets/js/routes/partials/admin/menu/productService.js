@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/menu/productService.js
  * @generated from original JavaScript - manual review recommended
@@ -63,4 +65,4 @@
     };
     ["product-services-index-link", "product-stock-index-link"].forEach(bindGuard);
 })();
-//# sourceMappingURL=productService.js.map
+})();

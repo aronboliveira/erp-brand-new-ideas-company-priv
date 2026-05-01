@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/settings/companies/calendar.js
  * @generated from original JavaScript - manual review recommended
@@ -54,4 +56,4 @@
         });
     }
 })();
-//# sourceMappingURL=calendar.js.map
+})();

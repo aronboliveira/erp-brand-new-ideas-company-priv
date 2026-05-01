@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leads/labels.js
  * @generated from original JavaScript - manual review recommended
@@ -158,4 +160,4 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
 })();
-//# sourceMappingURL=labels.js.map
+})();

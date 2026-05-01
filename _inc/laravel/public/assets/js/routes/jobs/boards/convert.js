@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/jobs/boards/convert.js
  * @generated from original JavaScript - manual review recommended
@@ -150,4 +152,4 @@
         C();
     });
 })();
-//# sourceMappingURL=convert.js.map
+})();

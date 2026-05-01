@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 const langPatch = {
     ar: {
         datepicker_init_failed: "فشل تحميل منتقي التاريخ.",
@@ -70,4 +72,4 @@ window.translations = Object.keys(window.translations || {}).length
         return acc;
     }, window.translations)
     : langPatch;
-//# sourceMappingURL=tasks.js.map
+})();

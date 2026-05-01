@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/companyPolicies/preview.js
  * @generated from original JavaScript - manual review recommended
@@ -58,4 +60,4 @@
     });
     mo.observe(document.body, { childList: true, subtree: true });
 })();
-//# sourceMappingURL=preview.js.map
+})();

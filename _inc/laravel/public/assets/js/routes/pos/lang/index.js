@@ -119,4 +119,3 @@
         window.translations[k] = { ...(window.translations[k] || {}), ...t[k] };
     });
 })();
-//# sourceMappingURL=index.js.map

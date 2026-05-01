@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/balances/index/horizontal.js
  * @generated from original JavaScript - manual review recommended
@@ -72,4 +74,4 @@
         console.error(`[horizontal] Error:`, _);
     }
 })();
-//# sourceMappingURL=horizontal.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payslips/bulkPayment.js
  * @generated from original JavaScript - manual review recommended
@@ -65,4 +67,4 @@
         console.error(`[bulkPayment] Error:`, _);
     }
 })();
-//# sourceMappingURL=bulkPayment.js.map
+})();

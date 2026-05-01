@@ -24,4 +24,3 @@
         }, window.translations)
         : imgPrevPatch;
 })();
-//# sourceMappingURL=edit.js.map

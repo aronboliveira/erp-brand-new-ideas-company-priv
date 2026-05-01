@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/events/generate.js
  * @generated from original JavaScript - manual review recommended
@@ -49,4 +51,4 @@
         }, { passive: false });
     }
 })();
-//# sourceMappingURL=generate.js.map
+})();

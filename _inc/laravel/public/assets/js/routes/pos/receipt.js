@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/pos/receipt.js
  * @generated from original JavaScript - manual review recommended
@@ -57,4 +59,4 @@
         console.error(`[receipt] Error:`, error);
     }
 })();
-//# sourceMappingURL=receipt.js.map
+})();

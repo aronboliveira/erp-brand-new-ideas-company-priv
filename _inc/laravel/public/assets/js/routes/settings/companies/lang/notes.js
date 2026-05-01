@@ -183,4 +183,3 @@
     Object.keys(t).forEach(k => (window.translations[k] = { ...(window.translations[k] || {}),
         ...t[k], }));
 })();
-//# sourceMappingURL=notes.js.map

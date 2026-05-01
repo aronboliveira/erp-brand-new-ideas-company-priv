@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/customers/invoice.js
  * @generated from original JavaScript - manual review recommended
@@ -49,4 +51,4 @@
         });
     });
 })();
-//# sourceMappingURL=invoice.js.map
+})();

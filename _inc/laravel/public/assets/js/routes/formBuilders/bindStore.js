@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/formBuilders/bindStore.js
  * @generated from original JavaScript - manual review recommended
@@ -136,4 +138,4 @@
         console.error(`[bindStore] Error:`, err);
     }
 })();
-//# sourceMappingURL=bindStore.js.map
+})();

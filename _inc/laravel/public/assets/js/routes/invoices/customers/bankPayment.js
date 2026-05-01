@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/invoices/customers/bankPayment.js
  * @generated from original JavaScript - manual review recommended
@@ -53,4 +55,4 @@
         });
     }
 })();
-//# sourceMappingURL=bankPayment.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/events/edit.js
  * @generated from original JavaScript - manual review recommended
@@ -47,4 +49,4 @@ if (form && form.getAttribute("data-listener-active") !== "true") {
         }
     }, { passive: false });
 }
-//# sourceMappingURL=edit.js.map
+})();

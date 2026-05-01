@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/chartOfAccounts/store.js
  * @generated from original JavaScript - manual review recommended
@@ -53,4 +55,4 @@
         });
     }
 })();
-//# sourceMappingURL=store.js.map
+})();

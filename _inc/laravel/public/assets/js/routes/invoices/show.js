@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/invoices/show.js
  * @generated from original JavaScript - manual review recommended
@@ -54,4 +56,4 @@
         console.error("[show] failed to initialise:", __moduleErr);
     }
 })();
-//# sourceMappingURL=show.js.map
+})();

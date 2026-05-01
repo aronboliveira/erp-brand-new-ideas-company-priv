@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/generics/grammar.js
  * @generated from original JavaScript - manual review recommended
@@ -69,4 +71,4 @@
         console.error(`[grammar] Error:`, _);
     }
 })();
-//# sourceMappingURL=grammar.js.map
+})();

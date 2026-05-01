@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/generics/utility.js
  * @generated from original JavaScript - manual review recommended
@@ -71,4 +73,4 @@ function _displayUnavailableRouteMessage(lang = "pt-br", msg = null) {
     }
     alert(message);
 }
-//# sourceMappingURL=utility.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projects/stages/update.js
  * @generated from original JavaScript - manual review recommended
@@ -70,4 +72,4 @@
         console.error(`[update] Error:`, _);
     }
 })();
-//# sourceMappingURL=update.js.map
+})();

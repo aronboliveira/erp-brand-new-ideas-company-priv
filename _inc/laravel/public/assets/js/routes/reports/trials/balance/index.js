@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/trials/balance/index.js
  * @generated from original JavaScript - manual review recommended
@@ -207,4 +209,4 @@
         console.error(`[index] Error:`, _);
     }
 })();
-//# sourceMappingURL=index.js.map
+})();

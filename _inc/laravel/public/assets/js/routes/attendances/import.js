@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/attendances/import.js
  * @generated from original JavaScript - manual review recommended
@@ -68,4 +70,4 @@
         console.error(`[import] Error:`, __err);
     }
 })();
-//# sourceMappingURL=import.js.map
+})();

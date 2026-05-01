@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/settings/companies/emailTest.js
  * @generated from original JavaScript - manual review recommended
@@ -51,4 +53,4 @@
         });
     }
 })();
-//# sourceMappingURL=emailTest.js.map
+})();

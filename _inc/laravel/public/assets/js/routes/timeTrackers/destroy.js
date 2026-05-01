@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/timeTrackers/destroy.js
  * @generated from original JavaScript - manual review recommended
@@ -76,4 +78,4 @@
         console.error(`[destroy] Error:`, __err);
     }
 })();
-//# sourceMappingURL=destroy.js.map
+})();

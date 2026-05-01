@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/awards/edit.js
  * @generated from original JavaScript - manual review recommended
@@ -101,4 +103,4 @@
         }
     }
 })();
-//# sourceMappingURL=edit.js.map
+})();

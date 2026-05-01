@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leads/list.js
  * @generated from original JavaScript - manual review recommended
@@ -170,4 +172,4 @@
         ? document.addEventListener("DOMContentLoaded", bind, { once: true })
         : bind();
 })();
-//# sourceMappingURL=list.js.map
+})();

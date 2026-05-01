@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/footer.js
  * @generated from original JavaScript - manual review recommended
@@ -228,4 +230,4 @@
         }
     }
 })();
-//# sourceMappingURL=footer.js.map
+})();

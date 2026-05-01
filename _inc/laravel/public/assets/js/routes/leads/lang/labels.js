@@ -28,4 +28,3 @@
         });
     }
 })();
-//# sourceMappingURL=labels.js.map

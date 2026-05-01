@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leads/listGuard.js
  * @generated from original JavaScript - manual review recommended
@@ -141,4 +143,4 @@
         }
     }
 })();
-//# sourceMappingURL=listGuard.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/documentUploads/update.js
  * @generated from original JavaScript - manual review recommended
@@ -62,4 +64,4 @@
         console.error(`[update] Error:`, __err);
     }
 })();
-//# sourceMappingURL=update.js.map
+})();

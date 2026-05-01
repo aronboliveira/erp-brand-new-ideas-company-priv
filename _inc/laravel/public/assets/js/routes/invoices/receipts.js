@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/invoices/receipts.js
  * @generated from original JavaScript - manual review recommended
@@ -67,4 +69,4 @@
         console.error(`[receipts] Error:`, err);
     }
 })();
-//# sourceMappingURL=receipts.js.map
+})();

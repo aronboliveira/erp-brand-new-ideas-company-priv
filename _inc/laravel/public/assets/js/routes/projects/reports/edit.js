@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projects/reports/edit.js
  * @generated from original JavaScript - manual review recommended
@@ -61,4 +63,4 @@
         }
     });
 })();
-//# sourceMappingURL=edit.js.map
+})();

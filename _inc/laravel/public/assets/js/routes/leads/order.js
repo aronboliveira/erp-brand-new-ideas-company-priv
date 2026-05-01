@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leads/order.js
  * @generated from original JavaScript - manual review recommended
@@ -277,4 +279,4 @@
         bindPipelineChange();
     }
 })();
-//# sourceMappingURL=order.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 const t1 = {
     ar: {
         pdf_unavailable: "تعذّر إنشاء ملف PDF",
@@ -195,4 +197,4 @@ allTranslations.forEach(tObj => {
         }
     });
 });
-//# sourceMappingURL=show.js.map
+})();

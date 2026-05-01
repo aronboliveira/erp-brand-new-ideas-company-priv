@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/setSalaries/index.js
  * @generated from original JavaScript - manual review recommended
@@ -64,4 +66,4 @@
         attachGuard(el);
     });
 })();
-//# sourceMappingURL=index.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/meetings/generateStore.js
  * @generated from original JavaScript - manual review recommended
@@ -63,4 +65,4 @@
         console.error(`[generateStore] Error:`, __err);
     }
 })();
-//# sourceMappingURL=generateStore.js.map
+})();

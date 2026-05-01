@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/formBuilders/fields.js
  * @generated from original JavaScript - manual review recommended
@@ -82,4 +84,4 @@
         console.error(`[fields] Error:`, _);
     }
 })();
-//# sourceMappingURL=fields.js.map
+})();

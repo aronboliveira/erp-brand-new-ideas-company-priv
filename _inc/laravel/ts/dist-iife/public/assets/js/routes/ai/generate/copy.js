@@ -16,8 +16,7 @@
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     Array.prototype.slice.call(r.querySelectorAll(s) || []);
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    const hasBootstrap = () => qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-        (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
+    const hasBootstrap = () => qs('link[rel="stylesheet"][href*="bootstrap"]') || (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
     const ensureToastContainer = () => {
         let c = qs("#np-toast-container");
         if (c)
@@ -44,8 +43,7 @@
                     "aria-atomic": "true",
                 }))
                     t.setAttribute(k, v);
-                t.innerHTML =
-                    '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
+                t.innerHTML = '<div class="toast-header"><strong class="me-auto">Notice</strong><button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button></div><div class="toast-body"></div>';
                 container.appendChild(t);
             }
             const body = qs(".toast-body", t);
@@ -87,23 +85,14 @@
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (el, key) => {
         let msg = errFb;
-        if (el.getAttribute(dataSvLocalized) === "true" ||
-            el.getAttribute(dataClientLocalized) === "true") {
+        if (el.getAttribute(dataSvLocalized) === "true" || el.getAttribute(dataClientLocalized) === "true") {
             msg = el.getAttribute(dataGuardMsg) || errFb;
         }
         else {
-            let lang = (window.sessionStorage.getItem("erp-np-lang") ??
-                document.documentElement.lang ??
-                "en")
-                .toLowerCase()
-                .replace(/_/g, "-");
+            let lang = (window.sessionStorage.getItem("erp-np-lang") ?? document.documentElement.lang ?? "en").toLowerCase().replace(/_/g, "-");
             lang = lang === "pt-br" ? lang : lang.slice(0, 2);
             const msgKey = key;
-            msg =
-                window.translations?.[lang]?.[msgKey] ||
-                    el.getAttribute(dataGuardMsg) ||
-                    window.translations?.en?.[msgKey] ||
-                    errFb;
+            msg = window.translations?.[lang]?.[msgKey] || el.getAttribute(dataGuardMsg) || window.translations?.en?.[msgKey] || errFb;
             if (msg !== errFb && el) {
                 el.setAttribute(dataGuardMsg, msg);
                 el.setAttribute(dataClientLocalized, "true");
@@ -114,20 +103,10 @@
     const resolveRoute = (
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     el, explicit) => {
-        const url = el?.getAttribute("data-url") || "", href = el
-            ? el.tagName === "FORM"
-                ? (el.getAttribute("action") ?? "")
-                : (el.getAttribute("href") ?? "")
-            : "";
-        if ((!explicit || explicit === "#") &&
-            (!url || url === "#") &&
-            (!href || href === "#"))
+        const url = el?.getAttribute("data-url") || "", href = el ? (el.tagName === "FORM" ? (el.getAttribute("action") ?? "") : (el.getAttribute("href") ?? "")) : "";
+        if ((!explicit || explicit === "#") && (!url || url === "#") && (!href || href === "#"))
             return null;
-        return explicit && explicit !== "#"
-            ? explicit
-            : url && url !== "#"
-                ? url
-                : href;
+        return explicit && explicit !== "#" ? explicit : url && url !== "#" ? url : href;
     };
     const setCheckedFirstRadio = () => {
         const modal = qs("#commonModalOver");
@@ -251,7 +230,7 @@
                 cache: false,
                 success: function (data) {
                     try {
-                        if (data.tone == 1) {
+                        if (data.tone === 1) {
                             $(".tone").removeClass("d-none");
                             $(".tone select").attr("name", "tone");
                         }
@@ -347,7 +326,7 @@
     const init = () => {
         if (!$.fn) {
             try {
-                console.info("jQuery unavailable");
+                console.warn("jQuery unavailable");
             }
             catch (_) {
                 console.error(`[copy] Error:`, _);
@@ -360,8 +339,6 @@
         bindGenerate();
         exposeGlobals();
     };
-    document.readyState === "loading"
-        ? document.addEventListener("DOMContentLoaded", init, { once: true })
-        : init();
+    document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", init, { once: true }) : init();
 })();
 })();

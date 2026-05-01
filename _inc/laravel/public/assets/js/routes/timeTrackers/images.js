@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/timeTrackers/images.js
  * @generated from original JavaScript - manual review recommended
@@ -324,4 +326,4 @@
         ? document.addEventListener("DOMContentLoaded", init, { once: true })
         : init();
 })();
-//# sourceMappingURL=images.js.map
+})();

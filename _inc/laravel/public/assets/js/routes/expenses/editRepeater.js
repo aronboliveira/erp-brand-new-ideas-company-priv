@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/expenses/editRepeater.js
  * @generated from original JavaScript - manual review recommended
@@ -103,4 +105,4 @@
         obs.observe(document.body, { childList: true, subtree: true });
     });
 })();
-//# sourceMappingURL=editRepeater.js.map
+})();

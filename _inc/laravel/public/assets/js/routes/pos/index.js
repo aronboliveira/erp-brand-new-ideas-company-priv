@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/pos/index.js
  * @generated from original JavaScript - manual review recommended
@@ -271,4 +273,4 @@
     if (emptyBtn)
         bindConfirm(emptyBtn, "confirm-modal-empty", "confirm-empty-yes");
 })();
-//# sourceMappingURL=index.js.map
+})();

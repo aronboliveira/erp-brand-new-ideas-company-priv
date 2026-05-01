@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leads/products.js
  * @generated from original JavaScript - manual review recommended
@@ -155,4 +157,4 @@
         }
     }
 })();
-//# sourceMappingURL=products.js.map
+})();

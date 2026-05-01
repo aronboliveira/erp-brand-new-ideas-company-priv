@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/notificationTemplates/index.js
  * @generated from original JavaScript - manual review recommended
@@ -94,4 +96,4 @@
         tooltips();
     });
 })();
-//# sourceMappingURL=index.js.map
+})();

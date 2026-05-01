@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projects/tasks/gridShow.js
  * @generated from original JavaScript - manual review recommended
@@ -127,4 +129,4 @@
     }
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", init) : init();
 })();
-//# sourceMappingURL=gridShow.js.map
+})();

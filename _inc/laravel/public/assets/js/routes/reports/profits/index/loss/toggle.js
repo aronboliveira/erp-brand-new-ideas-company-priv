@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/profits/index/loss/toggle.js
  * @generated from original JavaScript - manual review recommended
@@ -153,4 +155,4 @@
         ? document.addEventListener("DOMContentLoaded", init, { once: true })
         : init();
 })();
-//# sourceMappingURL=toggle.js.map
+})();

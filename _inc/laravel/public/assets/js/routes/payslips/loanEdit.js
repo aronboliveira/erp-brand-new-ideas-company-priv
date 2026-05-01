@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payslips/loanEdit.js
  * @generated from original JavaScript - manual review recommended
@@ -67,4 +69,4 @@
         console.error(`[loanEdit] Error:`, err);
     }
 })();
-//# sourceMappingURL=loanEdit.js.map
+})();

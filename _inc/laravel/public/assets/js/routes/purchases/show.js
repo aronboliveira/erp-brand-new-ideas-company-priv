@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/purchases/show.js
  * @generated from original JavaScript - manual review recommended
@@ -72,4 +74,4 @@
         console.error(`[show] Error:`, _);
     }
 })();
-//# sourceMappingURL=show.js.map
+})();

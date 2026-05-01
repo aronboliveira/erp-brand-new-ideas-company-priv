@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/meetings/calendar.js
  * @generated from original JavaScript - manual review recommended
@@ -75,4 +77,4 @@
         console.error("[calendar] failed to initialise:", __moduleErr);
     }
 })();
-//# sourceMappingURL=calendar.js.map
+})();

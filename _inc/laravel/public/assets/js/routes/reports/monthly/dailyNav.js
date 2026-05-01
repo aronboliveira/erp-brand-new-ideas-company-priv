@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/monthly/dailyNav.js
  * @generated from original JavaScript - manual review recommended
@@ -36,4 +38,4 @@
         console.error(`[dailyNav] Error:`, error);
     }
 })();
-//# sourceMappingURL=dailyNav.js.map
+})();

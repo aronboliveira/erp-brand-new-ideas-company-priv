@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/landingPage/menubar/edit.js
  * @generated from original JavaScript - manual review recommended
@@ -250,4 +252,4 @@
             : start();
     })();
 })();
-//# sourceMappingURL=edit.js.map
+})();

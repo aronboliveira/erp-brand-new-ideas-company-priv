@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/cashflow/monthly/open.js
  * @generated from original JavaScript - manual review recommended
@@ -62,4 +64,4 @@
         console.error(`[open] Error:`, err);
     }
 })();
-//# sourceMappingURL=open.js.map
+})();

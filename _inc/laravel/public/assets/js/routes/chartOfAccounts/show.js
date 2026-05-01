@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/chartOfAccounts/show.js
  * @generated from original JavaScript - manual review recommended
@@ -55,4 +57,4 @@
     const applyBtn = document.getElementById("applyDrilldown");
     bindGuard(applyBtn, "click");
 })();
-//# sourceMappingURL=show.js.map
+})();

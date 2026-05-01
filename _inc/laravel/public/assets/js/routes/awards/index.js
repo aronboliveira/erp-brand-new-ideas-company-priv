@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/awards/index.js
  * @generated from original JavaScript - manual review recommended
@@ -62,4 +64,4 @@
         attachGuard(el, "click");
     });
 })();
-//# sourceMappingURL=index.js.map
+})();

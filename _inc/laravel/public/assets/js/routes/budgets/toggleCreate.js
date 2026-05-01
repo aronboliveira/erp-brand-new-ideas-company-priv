@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/budgets/toggleCreate.js
  * @generated from original JavaScript - manual review recommended
@@ -158,4 +160,4 @@ const $ = window.jQuery;
         $(".period").trigger("change");
     });
 })();
-//# sourceMappingURL=toggleCreate.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/taxes/destroy.js
  * @generated from original JavaScript - manual review recommended
@@ -101,4 +103,4 @@
             error?.message ?? "Unknown error");
     }
 })();
-//# sourceMappingURL=destroy.js.map
+})();

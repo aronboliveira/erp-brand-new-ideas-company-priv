@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/ai/grammar/init.js
  * @generated from original JavaScript - manual review recommended
@@ -294,4 +296,4 @@
         ? document.addEventListener("DOMContentLoaded", init, { once: true })
         : init();
 })();
-//# sourceMappingURL=init.js.map
+})();

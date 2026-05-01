@@ -23,4 +23,3 @@
         window.translations[k] = Object.assign({}, window.translations[k] || {}, t[k]);
     });
 })();
-//# sourceMappingURL=create.js.map

@@ -28,4 +28,3 @@
         }, window.translations)
         : billPatch;
 })();
-//# sourceMappingURL=index.js.map

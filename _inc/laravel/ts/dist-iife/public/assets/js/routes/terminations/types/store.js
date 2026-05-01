@@ -17,14 +17,12 @@
                 if (action !== "#" || url !== "#")
                     return;
                 e.preventDefault();
-                const msg = f.getAttribute("data-guard-msg") ??
-                    "Create termination type route is unavailable. Please contact technical support or your domain administrator.";
+                const msg = f.getAttribute("data-guard-msg") ?? "Create termination type route is unavailable. Please contact technical support or your domain administrator.";
                 let container = document.getElementById("toast-container");
                 if (!container) {
                     container = document.createElement("div");
                     container.id = "toast-container";
-                    container.className =
-                        "toast-container position-fixed top-0 end-0 p-3";
+                    container.className = "toast-container position-fixed top-0 end-0 p-3";
                     container.style.zIndex = "1080";
                     document.body.appendChild(container);
                 }
@@ -46,7 +44,7 @@
                     try {
                         window.bootstrap.Toast.getOrCreateInstance(toast).show();
                     }
-                    catch (err) {
+                    catch (_err) {
                         alert(msg);
                     }
                 }

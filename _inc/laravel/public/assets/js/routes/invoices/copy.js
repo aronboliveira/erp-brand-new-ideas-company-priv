@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/invoices/copy.js
  * @generated from original JavaScript - manual review recommended
@@ -55,4 +57,4 @@
         console.error("[copy] failed to initialise:", __moduleErr);
     }
 })();
-//# sourceMappingURL=copy.js.map
+})();

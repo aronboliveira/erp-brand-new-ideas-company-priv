@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leaves/types/create.js
  * @generated from original JavaScript - manual review recommended
@@ -56,4 +58,4 @@
         console.error("[create] failed to initialise:", __moduleErr);
     }
 })();
-//# sourceMappingURL=create.js.map
+})();

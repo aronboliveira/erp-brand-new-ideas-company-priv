@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/events/picker.js
  * @generated from original JavaScript - manual review recommended
@@ -81,4 +83,4 @@
         queued = getMsg("date_picker_init_failed");
     }
 })();
-//# sourceMappingURL=picker.js.map
+})();

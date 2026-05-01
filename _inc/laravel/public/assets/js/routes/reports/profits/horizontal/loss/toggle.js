@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/profits/horizontal/loss/toggle.js
  * @generated from original JavaScript - manual review recommended
@@ -145,4 +147,4 @@
     });
     mo.observe(document.body, { childList: true, subtree: true });
 })();
-//# sourceMappingURL=toggle.js.map
+})();

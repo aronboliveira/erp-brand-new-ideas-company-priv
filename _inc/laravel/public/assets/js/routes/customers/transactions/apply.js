@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/customers/transactions/apply.js
  * @generated from original JavaScript - manual review recommended
@@ -54,4 +56,4 @@
         });
     }
 })();
-//# sourceMappingURL=apply.js.map
+})();

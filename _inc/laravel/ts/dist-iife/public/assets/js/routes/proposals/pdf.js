@@ -5,7 +5,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 (() => {

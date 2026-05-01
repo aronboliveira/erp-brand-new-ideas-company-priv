@@ -24,4 +24,3 @@
         }, window.translations)
         : imgPatch;
 })();
-//# sourceMappingURL=create.js.map

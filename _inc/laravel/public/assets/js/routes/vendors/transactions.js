@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/vendors/transactions.js
  * @generated from original JavaScript - manual review recommended
@@ -111,4 +113,4 @@
         console.error(`[transactions] Error:`, __err);
     }
 })();
-//# sourceMappingURL=transactions.js.map
+})();

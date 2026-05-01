@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leaves/types/delete.js
  * @generated from original JavaScript - manual review recommended
@@ -53,4 +55,4 @@
         console.error("[delete] failed to initialise:", __moduleErr);
     }
 })();
-//# sourceMappingURL=delete.js.map
+})();

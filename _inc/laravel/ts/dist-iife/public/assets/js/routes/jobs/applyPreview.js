@@ -15,7 +15,7 @@
             try {
                 return URL.createObjectURL(file);
             }
-            catch (e) {
+            catch (_e) {
                 return null;
             }
         };

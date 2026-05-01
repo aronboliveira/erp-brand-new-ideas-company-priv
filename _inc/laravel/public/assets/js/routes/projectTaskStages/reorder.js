@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projectTaskStages/reorder.js
  * @generated from original JavaScript - manual review recommended
@@ -222,4 +224,4 @@
         ? document.addEventListener("DOMContentLoaded", init, { once: true })
         : init();
 })();
-//# sourceMappingURL=reorder.js.map
+})();

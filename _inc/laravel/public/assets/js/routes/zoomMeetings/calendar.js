@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/zoomMeetings/calendar.js
  * @generated from original JavaScript - manual review recommended
@@ -274,4 +276,4 @@
     window.get_data = getData;
     document.getElementById("calendar_type")?.addEventListener("change", getData);
 })();
-//# sourceMappingURL=calendar.js.map
+})();

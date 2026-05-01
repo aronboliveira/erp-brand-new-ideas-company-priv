@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/tasks/board/toggle.js
  * @generated from original JavaScript - manual review recommended
@@ -103,4 +105,4 @@
             error?.message ?? "Unknown error");
     }
 })();
-//# sourceMappingURL=toggle.js.map
+})();

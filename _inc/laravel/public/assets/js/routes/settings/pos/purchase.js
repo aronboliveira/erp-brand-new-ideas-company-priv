@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/settings/pos/purchase.js
  * @generated from original JavaScript - manual review recommended
@@ -230,4 +232,4 @@
             console.error("Initialization failed", e);
     }
 })();
-//# sourceMappingURL=purchase.js.map
+})();

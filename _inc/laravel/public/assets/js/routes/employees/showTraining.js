@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/employees/showTraining.js
  * @generated from original JavaScript - manual review recommended
@@ -64,4 +66,4 @@
         console.error(`[showTraining] Error:`, _);
     }
 })();
-//# sourceMappingURL=showTraining.js.map
+})();

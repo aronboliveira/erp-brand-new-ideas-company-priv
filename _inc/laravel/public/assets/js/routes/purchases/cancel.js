@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/purchases/cancel.js
  * @generated from original JavaScript - manual review recommended
@@ -71,4 +73,4 @@
         console.error(`[cancel] Error:`, _);
     }
 })();
-//# sourceMappingURL=cancel.js.map
+})();

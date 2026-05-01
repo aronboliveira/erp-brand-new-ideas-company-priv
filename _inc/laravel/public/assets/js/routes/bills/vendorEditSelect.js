@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/bills/vendorEditSelect.js
  * @generated from original JavaScript - manual review recommended
@@ -75,4 +77,4 @@
         });
     }
 })();
-//# sourceMappingURL=vendorEditSelect.js.map
+})();

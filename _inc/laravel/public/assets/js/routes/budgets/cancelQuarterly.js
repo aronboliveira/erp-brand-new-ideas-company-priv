@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/budgets/cancelQuarterly.js
  * @generated from original JavaScript - manual review recommended
@@ -55,4 +57,4 @@
         });
     }
 })();
-//# sourceMappingURL=cancelQuarterly.js.map
+})();

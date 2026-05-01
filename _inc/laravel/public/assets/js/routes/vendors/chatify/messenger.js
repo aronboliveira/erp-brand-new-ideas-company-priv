@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/vendors/chatify/messenger.js
  * @generated from original JavaScript - manual review recommended
@@ -59,4 +61,4 @@
         console.error(`[messenger] Error:`, __err);
     }
 })();
-//# sourceMappingURL=messenger.js.map
+})();

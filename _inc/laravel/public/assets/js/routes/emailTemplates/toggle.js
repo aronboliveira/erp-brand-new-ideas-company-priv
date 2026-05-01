@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/emailTemplates/toggle.js
  * @generated from original JavaScript - manual review recommended
@@ -56,4 +58,4 @@
         console.error("[toggle] failed to initialise:", __moduleErr);
     }
 })();
-//# sourceMappingURL=toggle.js.map
+})();

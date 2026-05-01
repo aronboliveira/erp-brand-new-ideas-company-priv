@@ -120,4 +120,3 @@
         window.translations[k] = { ...(window.translations[k] || {}), ...t[k] };
     });
 })();
-//# sourceMappingURL=calendar.js.map

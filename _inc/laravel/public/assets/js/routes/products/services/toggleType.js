@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/products/services/toggleType.js
  * @generated from original JavaScript - manual review recommended
@@ -30,4 +32,4 @@
         console.error(`[toggleType] Error:`, __err);
     }
 })();
-//# sourceMappingURL=toggleType.js.map
+})();

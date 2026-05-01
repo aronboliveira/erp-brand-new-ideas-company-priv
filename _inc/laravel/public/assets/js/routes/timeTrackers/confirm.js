@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/timeTrackers/confirm.js
  * @generated from original JavaScript - manual review recommended
@@ -263,4 +265,4 @@
         ? document.addEventListener("DOMContentLoaded", init, { once: true })
         : init();
 })();
-//# sourceMappingURL=confirm.js.map
+})();

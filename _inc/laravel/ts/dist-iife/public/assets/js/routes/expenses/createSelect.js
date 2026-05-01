@@ -15,21 +15,13 @@
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getMsg = (key, el) => {
         let msg = errFb;
-        if (el.getAttribute("data-sv-localized") === "true" ||
-            el.getAttribute(clientLoc) === "true") {
+        if (el.getAttribute("data-sv-localized") === "true" || el.getAttribute(clientLoc) === "true") {
             msg = el.getAttribute(guardMsg) || errFb;
         }
         else {
-            let lang = (window.sessionStorage.getItem(langKey) ??
-                document.documentElement.lang ??
-                "en")
-                .toLowerCase()
-                .replace(/_/g, "-");
+            let lang = (window.sessionStorage.getItem(langKey) ?? document.documentElement.lang ?? "en").toLowerCase().replace(/_/g, "-");
             lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-            msg =
-                window.translations?.[lang]?.[key] ||
-                    window.translations?.en?.[key] ||
-                    errFb;
+            msg = window.translations?.[lang]?.[key] || window.translations?.en?.[key] || errFb;
             if (msg !== errFb) {
                 el.setAttribute(guardMsg, msg);
                 el.setAttribute(clientLoc, "true");
@@ -172,8 +164,7 @@
             ["employee", "customer", "vendor"].forEach(setupAjax);
         }
         catch {
-            if (window.location.hostname === "localhost" ||
-                window.location.hostname === "127.0.0.1")
+            if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
                 console.error("Initialization error");
         }
     });
@@ -194,7 +185,7 @@
             }
             el.appendChild(fragment);
         }
-        catch (e) {
+        catch (_e) {
             el.textContent = html;
         }
     }

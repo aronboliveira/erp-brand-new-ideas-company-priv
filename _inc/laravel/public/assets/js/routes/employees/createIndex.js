@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/employees/createIndex.js
  * @generated from original JavaScript - manual review recommended
@@ -59,4 +61,4 @@
         console.error(`[createIndex] Error:`, err);
     }
 })();
-//# sourceMappingURL=createIndex.js.map
+})();

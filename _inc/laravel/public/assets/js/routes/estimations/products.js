@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/estimations/products.js
  * @generated from original JavaScript - manual review recommended
@@ -66,4 +68,4 @@
         console.error(`[products] Error:`, err);
     }
 })();
-//# sourceMappingURL=products.js.map
+})();

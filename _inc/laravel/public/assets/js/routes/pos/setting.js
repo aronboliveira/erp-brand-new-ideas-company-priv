@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/pos/setting.js
  * @generated from original JavaScript - manual review recommended
@@ -56,4 +58,4 @@
         console.error(`[setting] Error:`, err);
     }
 })();
-//# sourceMappingURL=setting.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payslips/pdf.js
  * @generated from original JavaScript - manual review recommended
@@ -87,4 +89,4 @@
     if (!window.saveAsPDF)
         window.saveAsPDF = printFn;
 })();
-//# sourceMappingURL=pdf.js.map
+})();

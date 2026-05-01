@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/chartOfAccounts/edit.js
  * @generated from original JavaScript - manual review recommended
@@ -70,4 +72,4 @@
         bindGuard(el, "click");
     });
 })();
-//# sourceMappingURL=edit.js.map
+})();

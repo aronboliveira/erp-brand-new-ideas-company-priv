@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leads/show.js
  * @generated from original JavaScript - manual review recommended
@@ -183,4 +185,4 @@
         }
     }
 })();
-//# sourceMappingURL=show.js.map
+})();

@@ -18,16 +18,9 @@
             msg = el.getAttribute(FL_GUARD) || msg;
         }
         else {
-            let lang = (sessionStorage.getItem(LANG_KEY) ??
-                (document.documentElement.lang || "en"))
-                .toLowerCase()
-                .replace(/_/g, "-");
+            let lang = (sessionStorage.getItem(LANG_KEY) ?? (document.documentElement.lang || "en")).toLowerCase().replace(/_/g, "-");
             lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-            msg =
-                window.translations?.[lang]?.[key] ??
-                    el.getAttribute(FL_GUARD) ??
-                    window.translations?.en?.[key] ??
-                    msg;
+            msg = window.translations?.[lang]?.[key] ?? el.getAttribute(FL_GUARD) ?? window.translations?.en?.[key] ?? msg;
             if (msg !== ERR_FB) {
                 el.setAttribute(FL_GUARD, msg);
                 el.setAttribute(FL_CLIENT, "true");
@@ -43,8 +36,7 @@
                 c.id = "toast-container";
                 document.body.appendChild(c);
             }
-            const bs = !!document.querySelector('link[href*="bootstrap"]') &&
-                window.bootstrap.Toast;
+            const bs = !!document.querySelector('link[href*="bootstrap"]') && window.bootstrap.Toast;
             if (bs) {
                 const t = document.createElement("div");
                 t.className = "toast";
@@ -100,7 +92,7 @@
                     throw new Error("pipeline_change_failed");
                 form.submit();
             }
-            catch (e) {
+            catch (_e) {
                 errorMessage = getMsg("pipeline_change_failed", sel);
             }
         };

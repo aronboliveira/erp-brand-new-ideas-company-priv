@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projects/tasks/boardList.js
  * @generated from original JavaScript - manual review recommended
@@ -57,4 +59,4 @@
         console.error(`[boardList] Error:`, error);
     }
 })();
-//# sourceMappingURL=boardList.js.map
+})();

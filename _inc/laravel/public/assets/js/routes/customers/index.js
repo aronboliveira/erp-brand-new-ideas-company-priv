@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/customers/index.js
  * @generated from original JavaScript - manual review recommended
@@ -129,4 +131,4 @@
         }).observe(document.body, { childList: true, subtree: true });
     });
 })();
-//# sourceMappingURL=index.js.map
+})();

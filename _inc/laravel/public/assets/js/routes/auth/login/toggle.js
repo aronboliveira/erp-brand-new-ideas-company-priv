@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/auth/login/toggle.js
  * @generated from original JavaScript - manual review recommended
@@ -23,4 +25,4 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
-//# sourceMappingURL=toggle.js.map
+})();

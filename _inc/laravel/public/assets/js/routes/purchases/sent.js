@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/purchases/sent.js
  * @generated from original JavaScript - manual review recommended
@@ -72,4 +74,4 @@
         console.error(`[sent] Error:`, _);
     }
 })();
-//# sourceMappingURL=sent.js.map
+})();

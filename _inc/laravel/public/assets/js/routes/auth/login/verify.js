@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/auth/login/verify.js
  * @generated from original JavaScript - manual review recommended
@@ -57,4 +59,4 @@
     guardForm("resend-verification-form");
     guardForm("logout-form");
 })();
-//# sourceMappingURL=verify.js.map
+})();

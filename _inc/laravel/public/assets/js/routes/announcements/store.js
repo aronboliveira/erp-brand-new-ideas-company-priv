@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/announcements/store.js
  * @generated from original JavaScript - manual review recommended
@@ -107,4 +109,4 @@
         observer.observe(document.body, { childList: true, subtree: true });
     });
 })();
-//# sourceMappingURL=store.js.map
+})();

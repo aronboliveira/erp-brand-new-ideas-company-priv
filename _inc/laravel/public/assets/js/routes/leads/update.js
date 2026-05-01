@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leads/update.js
  * @generated from original JavaScript - manual review recommended
@@ -319,4 +321,4 @@
         }
     }
 })();
-//# sourceMappingURL=update.js.map
+})();

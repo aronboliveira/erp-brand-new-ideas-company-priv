@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/travels/generateEdit.js
  * @generated from original JavaScript - manual review recommended
@@ -63,4 +65,4 @@
         console.error(`[generateEdit] Error:`, __err);
     }
 })();
-//# sourceMappingURL=generateEdit.js.map
+})();

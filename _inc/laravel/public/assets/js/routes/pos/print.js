@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/pos/print.js
  * @generated from original JavaScript - manual review recommended
@@ -141,4 +143,4 @@
         }
     }
 })();
-//# sourceMappingURL=print.js.map
+})();

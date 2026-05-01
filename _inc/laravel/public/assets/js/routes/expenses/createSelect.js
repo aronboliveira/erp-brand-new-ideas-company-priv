@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/expenses/createSelect.js
  * @generated from original JavaScript - manual review recommended
@@ -188,4 +190,4 @@
         }
     }
 })();
-//# sourceMappingURL=createSelect.js.map
+})();

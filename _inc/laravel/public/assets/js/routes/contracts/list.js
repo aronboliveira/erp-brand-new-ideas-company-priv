@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/contracts/list.js
  * @generated from original JavaScript - manual review recommended
@@ -191,4 +193,4 @@
             console.error("Initialization failed", e);
     }
 })();
-//# sourceMappingURL=list.js.map
+})();

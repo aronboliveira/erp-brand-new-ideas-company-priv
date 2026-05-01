@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/settings/pos/posPreview.js
  * @generated from original JavaScript - manual review recommended
@@ -49,4 +51,4 @@
         console.error(`[posPreview] Error:`, err);
     }
 })();
-//# sourceMappingURL=posPreview.js.map
+})();

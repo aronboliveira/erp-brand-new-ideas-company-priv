@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/features/update.js
  * @generated from original JavaScript - manual review recommended
@@ -47,4 +49,4 @@
         }
     }, { passive: false });
 })();
-//# sourceMappingURL=update.js.map
+})();

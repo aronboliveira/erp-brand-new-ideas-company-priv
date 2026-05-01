@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/jobs/applications/archive.js
  * @generated from original JavaScript - manual review recommended
@@ -120,4 +122,4 @@
         console.error(`[archive] Error:`, err);
     }
 })();
-//# sourceMappingURL=archive.js.map
+})();

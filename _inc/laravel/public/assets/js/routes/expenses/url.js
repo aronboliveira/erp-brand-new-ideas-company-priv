@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/expenses/url.js
  * @generated from original JavaScript - manual review recommended
@@ -83,4 +85,4 @@
     });
     mo.observe(document.body, { childList: true, subtree: true });
 })();
-//# sourceMappingURL=url.js.map
+})();

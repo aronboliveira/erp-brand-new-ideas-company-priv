@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/jobs/categories/index.js
  * @generated from original JavaScript - manual review recommended
@@ -93,4 +95,4 @@
         F.initTooltips();
     });
 })();
-//# sourceMappingURL=index.js.map
+})();

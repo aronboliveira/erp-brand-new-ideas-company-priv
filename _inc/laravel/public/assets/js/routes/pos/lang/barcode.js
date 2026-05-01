@@ -41,4 +41,3 @@
         Object.keys(addKeys).forEach(k => (window.translations[k] = Object.assign({}, window.translations[k] || {}, addKeys[k])));
     }
 })();
-//# sourceMappingURL=barcode.js.map

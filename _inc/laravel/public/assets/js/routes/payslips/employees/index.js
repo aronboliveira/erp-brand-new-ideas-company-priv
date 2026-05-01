@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payslips/employees/index.js
  * @generated from original JavaScript - manual review recommended
@@ -97,4 +99,4 @@
         initTooltips();
     });
 })();
-//# sourceMappingURL=index.js.map
+})();

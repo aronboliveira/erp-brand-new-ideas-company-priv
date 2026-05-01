@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/jobs/applyPreview.js
  * @generated from original JavaScript - manual review recommended
@@ -50,4 +52,4 @@
         console.error(`[applyPreview] Error:`, err);
     }
 })();
-//# sourceMappingURL=applyPreview.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/contracts/shared/helpers.js
  * @generated from original JavaScript - manual review recommended
@@ -257,4 +259,4 @@
     if (!global.svToastOrAlert)
         global.svToastOrAlert = svToastOrAlert;
 })(typeof window !== "undefined" ? window : this);
-//# sourceMappingURL=helpers.js.map
+})();

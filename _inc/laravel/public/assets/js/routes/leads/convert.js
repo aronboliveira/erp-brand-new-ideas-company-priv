@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leads/convert.js
  * @generated from original JavaScript - manual review recommended
@@ -225,4 +227,4 @@
         }
     }
 })();
-//# sourceMappingURL=convert.js.map
+})();

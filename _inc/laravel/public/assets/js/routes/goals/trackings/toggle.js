@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/goals/trackings/toggle.js
  * @generated from original JavaScript - manual review recommended
@@ -113,4 +115,4 @@
         }
     });
 })();
-//# sourceMappingURL=toggle.js.map
+})();

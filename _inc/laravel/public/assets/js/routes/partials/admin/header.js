@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/header.js
  * @generated from original JavaScript - manual review recommended
@@ -55,4 +57,4 @@ document.querySelectorAll(".theme-avatar img").forEach(img => {
         });
     }
 });
-//# sourceMappingURL=header.js.map
+})();

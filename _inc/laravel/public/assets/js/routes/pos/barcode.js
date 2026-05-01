@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/pos/barcode.js
  * @generated from original JavaScript - manual review recommended
@@ -167,4 +169,4 @@
         console.error(`[barcode] Error:`, _);
     }
 })();
-//# sourceMappingURL=barcode.js.map
+})();

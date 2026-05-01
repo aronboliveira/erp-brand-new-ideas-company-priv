@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/taxes/estimationsIndex.js
  * @generated from original JavaScript - manual review recommended
@@ -59,4 +61,4 @@
         console.error(`[estimationsIndex] Error:`, err);
     }
 })();
-//# sourceMappingURL=estimationsIndex.js.map
+})();

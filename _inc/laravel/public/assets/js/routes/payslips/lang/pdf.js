@@ -41,4 +41,3 @@
         Object.keys(patch).forEach(k => (window.translations[k] = Object.assign({}, window.translations[k] || {}, patch[k])));
     }
 })();
-//# sourceMappingURL=pdf.js.map

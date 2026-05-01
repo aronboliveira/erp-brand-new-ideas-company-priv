@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/revenues/reset.js
  * @generated from original JavaScript - manual review recommended
@@ -67,4 +69,4 @@
         console.error(`[reset] Error:`, err);
     }
 })();
-//# sourceMappingURL=reset.js.map
+})();

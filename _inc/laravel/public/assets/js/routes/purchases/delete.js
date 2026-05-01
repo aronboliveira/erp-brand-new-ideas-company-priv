@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/purchases/delete.js
  * @generated from original JavaScript - manual review recommended
@@ -72,4 +74,4 @@
         console.error(`[delete] Error:`, _);
     }
 })();
-//# sourceMappingURL=delete.js.map
+})();

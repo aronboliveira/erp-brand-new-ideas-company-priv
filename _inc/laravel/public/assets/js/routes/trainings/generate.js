@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/trainings/generate.js
  * @generated from original JavaScript - manual review recommended
@@ -81,4 +83,4 @@
             error?.message ?? "Unknown error");
     }
 })();
-//# sourceMappingURL=generate.js.map
+})();

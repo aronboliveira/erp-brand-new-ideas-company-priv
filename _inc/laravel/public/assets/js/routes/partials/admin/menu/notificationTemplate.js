@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/menu/notificationTemplate.js
  * @generated from original JavaScript - manual review recommended
@@ -57,4 +59,4 @@
     });
     observer.observe(document.body, { childList: true, subtree: true });
 })();
-//# sourceMappingURL=notificationTemplate.js.map
+})();

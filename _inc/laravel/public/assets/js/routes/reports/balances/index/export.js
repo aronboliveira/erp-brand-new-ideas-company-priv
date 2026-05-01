@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/balances/index/export.js
  * @generated from original JavaScript - manual review recommended
@@ -69,4 +71,4 @@
         console.error(`[export] Error:`, _);
     }
 })();
-//# sourceMappingURL=export.js.map
+})();

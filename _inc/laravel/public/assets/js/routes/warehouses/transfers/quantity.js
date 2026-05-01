@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/warehouses/transfers/quantity.js
  * @generated from original JavaScript - manual review recommended
@@ -238,4 +240,4 @@
         ? document.addEventListener("DOMContentLoaded", bind, { once: true })
         : bind();
 })();
-//# sourceMappingURL=quantity.js.map
+})();

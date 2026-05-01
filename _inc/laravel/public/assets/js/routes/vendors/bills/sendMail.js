@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/vendors/bills/sendMail.js
  * @generated from original JavaScript - manual review recommended
@@ -58,4 +60,4 @@
         console.error(`[sendMail] Error:`, __err);
     }
 })();
-//# sourceMappingURL=sendMail.js.map
+})();

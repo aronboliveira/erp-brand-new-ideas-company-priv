@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/menu/indicator.js
  * @generated from original JavaScript - manual review recommended
@@ -59,4 +61,4 @@
     });
     observer.observe(document.body, { childList: true, subtree: true });
 })();
-//# sourceMappingURL=indicator.js.map
+})();

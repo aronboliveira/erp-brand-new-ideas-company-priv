@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/formBuilders/copy.js
  * @generated from original JavaScript - manual review recommended
@@ -75,4 +77,4 @@
         ? document.addEventListener("DOMContentLoaded", init)
         : init();
 })();
-//# sourceMappingURL=copy.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/menu/chart.js
  * @generated from original JavaScript - manual review recommended
@@ -67,4 +69,4 @@
         "trial-balance-link",
     ].forEach(bindGuard);
 })();
-//# sourceMappingURL=chart.js.map
+})();

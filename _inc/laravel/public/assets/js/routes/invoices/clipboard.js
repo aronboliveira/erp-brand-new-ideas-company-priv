@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/invoices/clipboard.js
  * @generated from original JavaScript — automated migration
@@ -14,4 +16,4 @@ function _copyToClipboard(element) {
     // document.execCommand('copy');
     show_toastr("success", "Url copied to clipboard", "success");
 }
-//# sourceMappingURL=clipboard.js.map
+})();

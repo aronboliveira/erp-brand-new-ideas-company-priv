@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/holidays/editPicker.js
  * @generated from original JavaScript - manual review recommended
@@ -96,4 +98,4 @@
         }
     });
 })();
-//# sourceMappingURL=editPicker.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/coupons/generate.js
  * @generated from original JavaScript - manual review recommended
@@ -100,4 +102,4 @@
         }
     }
 })();
-//# sourceMappingURL=generate.js.map
+})();

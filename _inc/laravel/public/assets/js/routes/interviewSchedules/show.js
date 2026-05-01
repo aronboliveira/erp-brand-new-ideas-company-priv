@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/interviewSchedules/show.js
  * @generated from original JavaScript - manual review recommended
@@ -90,4 +92,4 @@
             .forEach(bindFormGuard);
     });
 })();
-//# sourceMappingURL=show.js.map
+})();

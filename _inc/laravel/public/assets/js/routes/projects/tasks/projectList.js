@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projects/tasks/projectList.js
  * @generated from original JavaScript - manual review recommended
@@ -78,4 +80,4 @@
         console.error(`[projectList] Error:`, _);
     }
 })();
-//# sourceMappingURL=projectList.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/settings/seo.js
  * @generated from original JavaScript - manual review recommended
@@ -257,4 +259,4 @@
         console.error(`[seo] Error:`, err);
     }
 })();
-//# sourceMappingURL=seo.js.map
+})();

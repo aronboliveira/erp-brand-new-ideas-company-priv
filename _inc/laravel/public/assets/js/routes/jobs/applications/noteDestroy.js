@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/jobs/applications/noteDestroy.js
  * @generated from original JavaScript - manual review recommended
@@ -120,4 +122,4 @@
         console.error(`[noteDestroy] Error:`, err);
     }
 })();
-//# sourceMappingURL=noteDestroy.js.map
+})();

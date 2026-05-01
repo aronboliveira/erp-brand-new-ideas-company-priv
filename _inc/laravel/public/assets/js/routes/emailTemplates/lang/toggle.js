@@ -50,4 +50,3 @@
         }, window.translations)
         : mailPatch;
 })();
-//# sourceMappingURL=toggle.js.map

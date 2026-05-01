@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 if (!window.translations) {
     window.translations = {
         ar: { print_unavailable: "تعذّر تنفيذ الطباعة." },
@@ -39,4 +41,4 @@ else {
     };
     Object.keys(add).forEach(k => (window.translations[k] = Object.assign({}, window.translations[k] || {}, add[k])));
 }
-//# sourceMappingURL=print.js.map
+})();

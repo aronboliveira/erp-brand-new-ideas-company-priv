@@ -22,15 +22,12 @@
                 if (!container) {
                     container = document.createElement("div");
                     container.id = "toast-container";
-                    container.className =
-                        "toast-container position-fixed top-0 end-0 p-3";
+                    container.className = "toast-container position-fixed top-0 end-0 p-3";
                     container.style.zIndex = "1080";
                     document.body.appendChild(container);
                 }
                 const bsLink = document.querySelector('link[href*="bootstrap"]');
-                if (bsLink &&
-                    typeof window.bootstrap !== "undefined" &&
-                    window.bootstrap?.Toast) {
+                if (bsLink && window.bootstrap?.Toast) {
                     const t = document.createElement("div");
                     t.className = "toast";
                     t.setAttribute("role", "alert");
@@ -70,8 +67,7 @@
                 }
             }
             catch (err) {
-                if (window.location.hostname === "localhost" ||
-                    window.location.hostname === "127.0.0.1")
+                if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
                     console.error("[assets/js/routes/aiGrammar/clipboard.js] Copy error:", err?.constructor?.name ?? "Error", err?.message ?? "Unknown error");
                 toast(errMsg);
             }
@@ -80,20 +76,17 @@
             try {
                 e.preventDefault();
                 const ok = out.getAttribute("data-copy-ok-msg") ?? "Text copied to clipboard.";
-                const err = out.getAttribute("data-copy-err-msg") ??
-                    "Copy failed. Please try again.";
+                const err = out.getAttribute("data-copy-err-msg") ?? "Copy failed. Please try again.";
                 doCopy(out.value ?? "", ok, err);
             }
             catch (err2) {
-                if (window.location.hostname === "localhost" ||
-                    window.location.hostname === "127.0.0.1")
+                if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
                     console.error("[assets/js/routes/aiGrammar/clipboard.js] Click handler error:", err2?.constructor?.name ?? "Error", err2?.message ?? "Unknown error");
             }
         });
     }
     catch (error) {
-        if (window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1")
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
             console.error("[assets/js/routes/aiGrammar/clipboard.js] Initialization error:", error?.constructor?.name ?? "Error", error?.message ?? "Unknown error");
     }
 })();

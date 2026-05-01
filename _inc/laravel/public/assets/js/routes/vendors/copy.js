@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/vendors/copy.js
  * @generated from original JavaScript - manual review recommended
@@ -166,4 +168,4 @@
         ? document.addEventListener("DOMContentLoaded", bind, { once: true })
         : bind();
 })();
-//# sourceMappingURL=copy.js.map
+})();

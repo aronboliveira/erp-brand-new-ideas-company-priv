@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/attendances/date.js
  * @generated from original JavaScript - manual review recommended
@@ -92,4 +94,4 @@
             console.error("Error binding datepicker listeners:", err);
     }
 })();
-//# sourceMappingURL=date.js.map
+})();

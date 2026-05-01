@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projects/stages/create.js
  * @generated from original JavaScript - manual review recommended
@@ -57,4 +59,4 @@
         console.error(`[create] Error:`, error);
     }
 })();
-//# sourceMappingURL=create.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/budgets/editToggle.js
  * @generated from original JavaScript - manual review recommended
@@ -235,4 +237,4 @@
         bindPeriod();
     });
 })();
-//# sourceMappingURL=editToggle.js.map
+})();

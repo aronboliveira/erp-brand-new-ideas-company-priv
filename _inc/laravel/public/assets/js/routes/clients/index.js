@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/clients/index.js
  * @generated from original JavaScript - manual review recommended
@@ -67,4 +69,4 @@
         bindGuard(el, "click");
     });
 })();
-//# sourceMappingURL=index.js.map
+})();

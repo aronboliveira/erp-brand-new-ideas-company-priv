@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projects/reports/print.js
  * @generated from original JavaScript - manual review recommended
@@ -157,4 +159,4 @@
             console.error("Initialization failed", e);
     }
 })();
-//# sourceMappingURL=print.js.map
+})();

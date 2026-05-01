@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/proposals/pdf.js
  * @generated from original JavaScript - manual review recommended
@@ -144,4 +146,4 @@
             console.error("Initialization failed", e);
     }
 })();
-//# sourceMappingURL=pdf.js.map
+})();

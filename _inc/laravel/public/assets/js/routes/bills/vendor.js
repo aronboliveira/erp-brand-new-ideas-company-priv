@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/bills/vendor.js
  * @generated from original JavaScript - manual review recommended
@@ -65,4 +67,4 @@
         console.error(`[vendor] Error:`, _);
     }
 })();
-//# sourceMappingURL=vendor.js.map
+})();

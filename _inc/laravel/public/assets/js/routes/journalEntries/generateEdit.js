@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/journalEntries/generateEdit.js
  * @generated from original JavaScript - manual review recommended
@@ -57,4 +59,4 @@
         document.querySelectorAll(selector).forEach(bind);
     }).observe(document.body, { childList: true, subtree: true });
 })();
-//# sourceMappingURL=generateEdit.js.map
+})();

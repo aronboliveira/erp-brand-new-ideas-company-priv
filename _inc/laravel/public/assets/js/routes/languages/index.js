@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/languages/index.js
  * @generated from original JavaScript - manual review recommended
@@ -123,4 +125,4 @@
         }
     }
 })();
-//# sourceMappingURL=index.js.map
+})();

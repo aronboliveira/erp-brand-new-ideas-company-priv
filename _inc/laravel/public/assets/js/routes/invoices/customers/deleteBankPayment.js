@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/invoices/customers/deleteBankPayment.js
  * @generated from original JavaScript - manual review recommended
@@ -57,4 +59,4 @@
         .querySelectorAll('[data-listener-alias^="delete-bankpayment-"]')
         .forEach(el => bindGuard(el));
 })();
-//# sourceMappingURL=deleteBankPayment.js.map
+})();

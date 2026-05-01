@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payslips/loanDestroy.js
  * @generated from original JavaScript - manual review recommended
@@ -119,4 +121,4 @@
         console.error(`[loanDestroy] Error:`, err);
     }
 })();
-//# sourceMappingURL=loanDestroy.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/attendances/index.js
  * @generated from original JavaScript - manual review recommended
@@ -127,4 +129,4 @@
         console.error(`[index] Error:`, __err);
     }
 })();
-//# sourceMappingURL=index.js.map
+})();

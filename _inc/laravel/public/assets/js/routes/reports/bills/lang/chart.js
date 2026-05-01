@@ -104,4 +104,3 @@
         window.translations[k] = { ...(window.translations[k] || {}), ...t[k] };
     });
 })();
-//# sourceMappingURL=chart.js.map

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/bills/copy.js
  * @generated from original JavaScript - manual review recommended
@@ -90,4 +92,4 @@
             console.error("Failed to bind copy_link handlers:", err);
     }
 })();
-//# sourceMappingURL=copy.js.map
+})();

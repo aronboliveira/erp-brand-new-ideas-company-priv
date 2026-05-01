@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/attendances/monthly/apply.js
  * @generated from original JavaScript - manual review recommended
@@ -82,4 +84,4 @@
         console.error(`[apply] Error:`, _);
     }
 })();
-//# sourceMappingURL=apply.js.map
+})();

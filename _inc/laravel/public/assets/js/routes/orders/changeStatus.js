@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/orders/changeStatus.js
  * @generated from original JavaScript - manual review recommended
@@ -50,4 +52,4 @@
         }
     }, { passive: false });
 })();
-//# sourceMappingURL=changeStatus.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/labels/edit.js
  * @generated from original JavaScript - manual review recommended
@@ -76,4 +78,4 @@
             .forEach(f => f !== mainForm && attachGuard(f));
     });
 })();
-//# sourceMappingURL=edit.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/pos/printBarcode.js
  * @generated from original JavaScript - manual review recommended
@@ -107,4 +109,4 @@
         console.error(`[printBarcode] Error:`, _);
     }
 })();
-//# sourceMappingURL=printBarcode.js.map
+})();

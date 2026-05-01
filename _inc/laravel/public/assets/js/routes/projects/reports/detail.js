@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projects/reports/detail.js
  * @generated from original JavaScript - manual review recommended
@@ -64,4 +66,4 @@
         console.error("[detail] failed to initialise:", __moduleErr);
     }
 })();
-//# sourceMappingURL=detail.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/balances/index/filter.js
  * @generated from original JavaScript - manual review recommended
@@ -34,4 +36,4 @@
         console.error(`[filter] Error:`, _);
     }
 })();
-//# sourceMappingURL=filter.js.map
+})();

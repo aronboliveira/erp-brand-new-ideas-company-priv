@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payslips/otherPaymentStore.js
  * @generated from original JavaScript - manual review recommended
@@ -67,4 +69,4 @@
         console.error(`[otherPaymentStore] Error:`, err);
     }
 })();
-//# sourceMappingURL=otherPaymentStore.js.map
+})();

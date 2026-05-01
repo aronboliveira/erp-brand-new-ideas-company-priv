@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/installer/dismiss.js
  * @generated from original JavaScript - manual review recommended
@@ -146,4 +148,4 @@
         ? document.addEventListener("DOMContentLoaded", bind, { once: true })
         : bind();
 })();
-//# sourceMappingURL=dismiss.js.map
+})();

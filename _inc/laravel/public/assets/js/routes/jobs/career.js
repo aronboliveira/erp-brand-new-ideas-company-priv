@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/jobs/career.js
  * @generated from original JavaScript - manual review recommended
@@ -90,4 +92,4 @@
         initTooltips();
     });
 })();
-//# sourceMappingURL=career.js.map
+})();

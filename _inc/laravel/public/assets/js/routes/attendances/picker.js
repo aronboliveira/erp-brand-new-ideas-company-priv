@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/attendances/picker.js
  * @generated from original JavaScript - manual review recommended
@@ -138,4 +140,4 @@
         showError("datepicker_unavailable");
     }
 })();
-//# sourceMappingURL=picker.js.map
+})();

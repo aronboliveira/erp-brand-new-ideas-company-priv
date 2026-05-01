@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payslips/saturationDeductionDestroy.js
  * @generated from original JavaScript - manual review recommended
@@ -119,4 +121,4 @@
         console.error(`[saturationDeductionDestroy] Error:`, err);
     }
 })();
-//# sourceMappingURL=saturationDeductionDestroy.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/monthly/save.js
  * @generated from original JavaScript - manual review recommended
@@ -73,4 +75,4 @@
         console.error(`[save] Error:`, __err);
     }
 })();
-//# sourceMappingURL=save.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/menu/payslip.js (renamed to payslip-alt.ts due to TS casing conflict with paySlip.ts)
  * @generated from original JavaScript — automated migration
@@ -56,4 +58,4 @@
     }
     catch (_err) { }
 })();
-//# sourceMappingURL=payslip-alt.js.map
+})();

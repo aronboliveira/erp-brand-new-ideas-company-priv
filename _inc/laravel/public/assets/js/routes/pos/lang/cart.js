@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 window.translations = window.translations || {};
 (function () {
     const dict = {
@@ -134,4 +136,4 @@ window.translations = window.translations || {};
         window.translations[lc] = Object.assign({}, window.translations[lc] || {}, dict[lc]);
     });
 })();
-//# sourceMappingURL=cart.js.map
+})();

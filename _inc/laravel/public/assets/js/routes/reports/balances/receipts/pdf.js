@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/reports/balances/receipts/pdf.js
  * @generated from original JavaScript - manual review recommended
@@ -212,4 +214,4 @@
         ? document.addEventListener("DOMContentLoaded", init, { once: true })
         : init();
 })();
-//# sourceMappingURL=pdf.js.map
+})();

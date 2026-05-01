@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/settings/bills/preview.js
  * @generated from original JavaScript - manual review recommended
@@ -49,4 +51,4 @@
         console.error(`[preview] Error:`, err);
     }
 })();
-//# sourceMappingURL=preview.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/attendances/bulk/submit.js
  * @generated from original JavaScript - manual review recommended
@@ -62,4 +64,4 @@
         console.error(`[submit] Error:`, err);
     }
 })();
-//# sourceMappingURL=submit.js.map
+})();

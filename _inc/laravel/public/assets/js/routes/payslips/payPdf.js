@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payslips/payPdf.js
  * @generated from original JavaScript - manual review recommended
@@ -118,4 +120,4 @@
         doSavePdf(Q(CLICK_SEL) || document.body);
     };
 })();
-//# sourceMappingURL=payPdf.js.map
+})();

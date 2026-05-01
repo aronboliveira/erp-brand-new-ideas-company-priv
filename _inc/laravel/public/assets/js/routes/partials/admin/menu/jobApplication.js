@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/menu/jobApplication.js
  * @generated from original JavaScript - manual review recommended
@@ -70,4 +72,4 @@
         "career-index-link",
     ].forEach(bindGuard);
 })();
-//# sourceMappingURL=jobApplication.js.map
+})();

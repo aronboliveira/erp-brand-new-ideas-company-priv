@@ -6,7 +6,7 @@
  * @module projectReport
  */
 (() => {
-    console.info("Loaded: projectReport.js");
+    console.warn("Loaded: projectReport.js");
     const listenerAttr = "data-project-report-index-listener-active", el = document.getElementById("project-report-index-link");
     if (!el || el.getAttribute(listenerAttr) === "true")
         return;
@@ -14,11 +14,9 @@
     if (!el.getAttribute("data-listener-bound-click")) {
         el.setAttribute("data-listener-bound-click", "1");
         el.addEventListener("click", event => {
-            console.info("Clicked: project-report-index-link");
+            console.warn("Clicked: project-report-index-link");
             try {
-                const url = el.getAttribute("data-url"), href = el.href
-                    .replace(window.location.origin, "")
-                    .replace(window.location.pathname, "");
+                const url = el.getAttribute("data-url"), href = el.href.replace(window.location.origin, "").replace(window.location.pathname, "");
                 if ((!url || url === "#") && (!href || href === "#")) {
                     event.preventDefault();
                     const msg = el.getAttribute("data-guard-msg") ?? "# ERROR", bootstrapLink = document.querySelector('link[href*="bootstrap"]');
@@ -26,8 +24,7 @@
                     if (!container) {
                         container = document.createElement("div");
                         container.id = "toast-container";
-                        container.className =
-                            "toast-container position-fixed top-0 end-0 p-3";
+                        container.className = "toast-container position-fixed top-0 end-0 p-3";
                         container.style.zIndex = "1080";
                         document.body.appendChild(container);
                     }
@@ -59,7 +56,7 @@
         });
     }
     const observer = new MutationObserver(() => {
-        console.info("MutationObserver triggered for project-report-index-link");
+        console.warn("MutationObserver triggered for project-report-index-link");
         if (!document.getElementById("project-report-index-link"))
             observer.disconnect();
     });

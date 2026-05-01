@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payments/storeFIlePreview.js
  * @generated from original JavaScript - manual review recommended
@@ -31,4 +33,4 @@
         console.error(`[storeFIlePreview] Error:`, __err);
     }
 })();
-//# sourceMappingURL=storeFIlePreview.js.map
+})();

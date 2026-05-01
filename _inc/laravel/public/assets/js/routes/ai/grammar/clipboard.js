@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/ai/grammar/clipboard.js
  * @generated from original JavaScript — automated migration
@@ -88,4 +90,4 @@
             console.error("[assets/js/routes/aiGrammar/clipboard.js] Initialization error:", error?.constructor?.name ?? "Error", error?.message ?? "Unknown error");
     }
 })();
-//# sourceMappingURL=clipboard.js.map
+})();

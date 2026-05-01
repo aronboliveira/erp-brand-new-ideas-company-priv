@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/jobs/applications/show.js
  * @generated from original JavaScript - manual review recommended
@@ -82,4 +84,4 @@
         tips();
     });
 })();
-//# sourceMappingURL=show.js.map
+})();

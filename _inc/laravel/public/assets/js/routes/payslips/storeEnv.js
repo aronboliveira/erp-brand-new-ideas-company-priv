@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payslips/storeEnv.js
  * @generated from original JavaScript - manual review recommended
@@ -158,4 +160,4 @@
     }))
         window[k] = v;
 })();
-//# sourceMappingURL=storeEnv.js.map
+})();

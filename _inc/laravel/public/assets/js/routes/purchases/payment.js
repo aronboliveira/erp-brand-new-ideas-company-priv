@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/purchases/payment.js
  * @generated from original JavaScript - manual review recommended
@@ -135,4 +137,4 @@
         console.error(`[payment] Error:`, _);
     }
 })();
-//# sourceMappingURL=payment.js.map
+})();

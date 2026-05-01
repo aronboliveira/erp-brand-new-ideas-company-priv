@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/pos/daily/download.js
  * @generated from original JavaScript - manual review recommended
@@ -73,4 +75,4 @@
         console.error(`[download] Error:`, __err);
     }
 })();
-//# sourceMappingURL=download.js.map
+})();

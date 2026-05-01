@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/pos/daily/reset.js
  * @generated from original JavaScript - manual review recommended
@@ -68,4 +70,4 @@
         console.error(`[reset] Error:`, __err);
     }
 })();
-//# sourceMappingURL=reset.js.map
+})();

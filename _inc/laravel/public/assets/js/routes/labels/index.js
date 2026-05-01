@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/labels/index.js
  * @generated from original JavaScript - manual review recommended
@@ -100,4 +102,4 @@
             .forEach(bindFormGuard);
     });
 })();
-//# sourceMappingURL=index.js.map
+})();

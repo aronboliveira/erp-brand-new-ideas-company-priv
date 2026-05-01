@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/jobs/applications/filename.js
  * @generated from original JavaScript - manual review recommended
@@ -30,4 +32,4 @@
         console.error(`[filename] Error:`, __err);
     }
 })();
-//# sourceMappingURL=filename.js.map
+})();

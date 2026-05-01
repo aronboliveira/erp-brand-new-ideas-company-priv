@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/transactions/report.js
  * @generated from original JavaScript - manual review recommended
@@ -117,4 +119,4 @@
         console.error(`[report] Error:`, error);
     }
 })();
-//# sourceMappingURL=report.js.map
+})();

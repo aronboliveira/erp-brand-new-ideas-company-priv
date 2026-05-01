@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/menu/calls.js
  * @generated from original JavaScript - manual review recommended
@@ -69,4 +71,4 @@
         bindGuard(id);
     });
 })();
-//# sourceMappingURL=calls.js.map
+})();

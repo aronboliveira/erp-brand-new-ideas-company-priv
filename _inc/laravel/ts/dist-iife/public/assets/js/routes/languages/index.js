@@ -14,22 +14,13 @@
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const getLocalizedMessage = (msgKey, el) => {
         let msg = errFb;
-        if (el.getAttribute("data-sv-localized") === "true" ||
-            el.getAttribute(dataClientLocalized) === "true") {
+        if (el.getAttribute("data-sv-localized") === "true" || el.getAttribute(dataClientLocalized) === "true") {
             msg = el.getAttribute(dataGuardMsg) ?? errFb;
         }
         else {
-            let lang = (window.sessionStorage.getItem(defaultLangSessionKey) ??
-                document.documentElement.lang ??
-                "en")
-                .toLowerCase()
-                .replace(/_/g, "-");
+            let lang = (window.sessionStorage.getItem(defaultLangSessionKey) ?? document.documentElement.lang ?? "en").toLowerCase().replace(/_/g, "-");
             lang = lang === "pt-br" ? lang : lang.slice(0, 2);
-            msg =
-                window.translations?.[lang]?.[msgKey] ??
-                    el.getAttribute(dataGuardMsg) ??
-                    window.translations?.en?.[msgKey] ??
-                    errFb;
+            msg = window.translations?.[lang]?.[msgKey] ?? el.getAttribute(dataGuardMsg) ?? window.translations?.en?.[msgKey] ?? errFb;
             if (msg !== errFb) {
                 el.setAttribute(dataGuardMsg, msg);
                 el.setAttribute(dataClientLocalized, "true");
@@ -66,13 +57,9 @@
                 return;
             }
             const requestUrl = url ?? href;
-            const token = window.csrfToken ??
-                document
-                    .querySelector('meta[name="csrf-token"]')
-                    ?.getAttribute("content") ??
-                "";
+            const token = window.csrfToken ?? document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") ?? "";
             if (!token)
-                console.info("CSRF token missing");
+                console.warn("CSRF token missing");
             $.ajax({
                 type: "POST",
                 url: requestUrl,

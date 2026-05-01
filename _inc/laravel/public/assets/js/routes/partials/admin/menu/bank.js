@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/partials/admin/menu/bank.js
  * @generated from original JavaScript - manual review recommended
@@ -60,4 +62,4 @@
     };
     ["bank-account-index-link", "bank-transfer-index-link"].forEach(bindGuard);
 })();
-//# sourceMappingURL=bank.js.map
+})();

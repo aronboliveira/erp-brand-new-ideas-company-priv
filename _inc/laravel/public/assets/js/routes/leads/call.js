@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/leads/call.js
  * @generated from original JavaScript - manual review recommended
@@ -199,4 +201,4 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
 })();
-//# sourceMappingURL=call.js.map
+})();

@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/settings/companies/noc.js
  * @generated from original JavaScript - manual review recommended
@@ -60,4 +62,4 @@
         console.error(`[noc] Error:`, err);
     }
 })();
-//# sourceMappingURL=noc.js.map
+})();

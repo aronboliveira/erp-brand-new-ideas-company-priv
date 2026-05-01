@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/expenses/editSelect.js
  * @generated from original JavaScript - manual review recommended
@@ -214,4 +216,4 @@
         }
     }
 })();
-//# sourceMappingURL=editSelect.js.map
+})();

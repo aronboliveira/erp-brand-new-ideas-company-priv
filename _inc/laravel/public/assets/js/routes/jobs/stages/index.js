@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/jobs/stages/index.js
  * @generated from original JavaScript - manual review recommended
@@ -191,4 +193,4 @@
         enableDragSort(Q("#job-stages-sortable"));
     });
 })();
-//# sourceMappingURL=index.js.map
+})();

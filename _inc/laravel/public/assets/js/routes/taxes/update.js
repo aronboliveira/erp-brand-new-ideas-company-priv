@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/taxes/update.js
  * @generated from original JavaScript - manual review recommended
@@ -88,4 +90,4 @@
             error?.message ?? "Unknown error");
     }
 })();
-//# sourceMappingURL=update.js.map
+})();

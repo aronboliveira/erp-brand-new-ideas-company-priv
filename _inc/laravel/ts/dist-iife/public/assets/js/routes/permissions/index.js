@@ -5,7 +5,6 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-
 (function () {
     const listened = "data-listener-active";
     function toast(message) {

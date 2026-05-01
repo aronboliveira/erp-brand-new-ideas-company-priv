@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/interviewSchedules/storeSelect.js
  * @generated from original JavaScript - manual review recommended
@@ -102,4 +104,4 @@
         }
     }
 })();
-//# sourceMappingURL=storeSelect.js.map
+})();

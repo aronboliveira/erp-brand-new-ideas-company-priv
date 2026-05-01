@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projects/tasks/create.js
  * @generated from original JavaScript - manual review recommended
@@ -168,4 +170,4 @@
             error?.message ?? "Unknown error");
     }
 })();
-//# sourceMappingURL=create.js.map
+})();

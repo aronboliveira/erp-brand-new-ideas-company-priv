@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/ai/generate/copy.js
  * @generated from original JavaScript - manual review recommended
@@ -339,4 +341,4 @@
     };
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", init, { once: true }) : init();
 })();
-//# sourceMappingURL=copy.js.map
+})();

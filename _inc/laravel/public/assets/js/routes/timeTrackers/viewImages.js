@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/timeTrackers/viewImages.js
  * @generated from original JavaScript - manual review recommended
@@ -154,4 +156,4 @@
         console.error(`[viewImages] Error:`, __err);
     }
 })();
-//# sourceMappingURL=viewImages.js.map
+})();

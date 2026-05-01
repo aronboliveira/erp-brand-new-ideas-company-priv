@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/projects/reports/_.js
  * @generated from original JavaScript - manual review recommended
@@ -105,4 +107,4 @@
         });
     }
 })();
-//# sourceMappingURL=_.js.map
+})();

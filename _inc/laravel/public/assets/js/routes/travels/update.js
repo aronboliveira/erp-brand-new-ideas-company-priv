@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/travels/update.js
  * @generated from original JavaScript - manual review recommended
@@ -98,4 +100,4 @@
         console.error(`[update] Error:`, __err);
     }
 })();
-//# sourceMappingURL=update.js.map
+})();

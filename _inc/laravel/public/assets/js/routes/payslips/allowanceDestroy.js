@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payslips/allowanceDestroy.js
  * @generated from original JavaScript - manual review recommended
@@ -119,4 +121,4 @@
         console.error(`[allowanceDestroy] Error:`, err);
     }
 })();
-//# sourceMappingURL=allowanceDestroy.js.map
+})();

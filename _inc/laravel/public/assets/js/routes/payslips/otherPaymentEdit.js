@@ -1,3 +1,5 @@
+(function() {
+"use strict";
 /**
  * @fileoverview TypeScript version of public/assets/js/routes/payslips/otherPaymentEdit.js
  * @generated from original JavaScript - manual review recommended
@@ -67,4 +69,4 @@
         console.error(`[otherPaymentEdit] Error:`, err);
     }
 })();
-//# sourceMappingURL=otherPaymentEdit.js.map
+})();
