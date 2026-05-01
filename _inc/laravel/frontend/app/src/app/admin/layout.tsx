@@ -15,7 +15,11 @@ export default function AdminLayout({ title, settings }: AdminLayoutProps) {
   }, [themeColor]);
   return (
     <head>
-      <title>{(settings.title_text || "ERPGO") + " - " + (title || "")}</title>
+      <title>
+        {(settings.title_text || "ERP Brand New Ideas Company") +
+          " - " +
+          (title || "")}
+      </title>
       <meta name='title' content={settings.meta_title || ""} />
       <meta name='description' content={settings.meta_desc || ""} />
       <meta property='og:type' content='website' />

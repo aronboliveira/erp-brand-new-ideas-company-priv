@@ -12,7 +12,7 @@ export default function LandingPage() {
         <div className='container'>
           <div className='row align-items-center'>
             <div className='col-sm-5'>
-              <h1>ERPGo SaaS</h1>
+              <h1>ERP Brand New Ideas Company</h1>
               <h2>
                 ERP de Negócios completo, com recursos de CRM, HRM. Gerencie
                 suas equipes e processos com excelência!
@@ -31,7 +31,7 @@ export default function LandingPage() {
             <div className='col-sm-5'>
               <img
                 src='/assets/images/front/header-mokeup.svg'
-                alt='ERPGo'
+                alt='ERP Brand New Ideas Company'
                 className='img-fluid'
               />
             </div>

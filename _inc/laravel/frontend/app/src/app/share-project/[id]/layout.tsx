@@ -10,7 +10,7 @@ export async function generateMetadata({
 }: ShareProjectLayoutProps): Promise<Metadata> {
   const settings = await getProjectSettings(params.id);
   return {
-    title: settings.title_text || "ERPGo",
+    title: settings.title_text || "ERP Brand New Ideas Company",
     description: "Dashboard Template Description",
     icons: {
       icon: settings.company_favicon || "/uploads/logo/favicon.png",

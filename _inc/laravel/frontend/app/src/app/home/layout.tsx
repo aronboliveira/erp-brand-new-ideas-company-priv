@@ -5,18 +5,18 @@ import "./globals.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
-  title: "ERPGo SaaS",
+  title: "ERP Brand New Ideas Company",
   description: "All In One Business ERP With Project, Account, HRM, CRM",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || ""),
   openGraph: {
-    title: "ERPGo SaaS",
+    title: "ERP Brand New Ideas Company",
     description: "All In One Business ERP With Project, Account, HRM, CRM",
     images: "/uploads/meta/meta-image.png",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ERPGo SaaS",
+    title: "ERP Brand New Ideas Company",
     description: "All In One Business ERP With Project, Account, HRM, CRM",
     images: "/uploads/meta/meta-image.png",
   },
@@ -35,7 +35,7 @@ export default function LandingLayout({
             <Link className='navbar-brand bg-transparent' href='/'>
               <img
                 src='/uploads/logo/logo-light.png'
-                alt='ERPGo Logo'
+                alt='Brand New Ideas Company Logo'
                 style={{ width: "40%" }}
               />
             </Link>
@@ -80,7 +80,7 @@ export default function LandingLayout({
         {children}
         <footer className='footer'>
           <div className='container text-end py-4'>
-            <p>© 2023 ERPGo</p>
+            <p>© 2026 Brand New Ideas Company</p>
           </div>
         </footer>
       </body>

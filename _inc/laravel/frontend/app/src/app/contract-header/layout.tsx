@@ -7,7 +7,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { ContractLayoutProps } from "../../definitions/components";
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
-  title: "ERPGo - Contract",
+  title: "ERP Brand New Ideas Company - Contract",
   description: "Dashboard Template Description",
 };
 export default function ContractLayout({ children }: ContractLayoutProps) {
