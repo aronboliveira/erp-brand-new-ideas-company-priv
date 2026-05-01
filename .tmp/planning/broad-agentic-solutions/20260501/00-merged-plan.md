@@ -269,7 +269,7 @@ Two-step deploy:
    `public/assets/js/` (commit `25f3cdabd`).
 2. `node ts/scripts/esm-to-iife.cjs` — regenerated 1,101 routes fully IIFE-wrapped
    (`(function(){"use strict";…})()`), then `rsync ts/dist-iife/public/assets/js/
-   → public/assets/js/` to fix 21+ files where the deploy script's narrow regex
+→ public/assets/js/` to fix 21+ files where the deploy script's narrow regex
    missed named exports (e.g. `journalEntries/shared/repeater-utils.js` had
    `export { JournalEntryRepeater };` which throws SyntaxError as a classic script)
    (commit `94eae2b5b`).
@@ -288,20 +288,24 @@ the swap.
 
 Re-investigation found the original framing was stale: the four "guard" commits
 (`cff71b6e7`, `85ea61c9d`, `69e3522c5`, `f31bf7c17`) are **already on `main`**, so
-the 531-file PHPStan-vs-guards conflict no longer exists. The remaining
-divergence between `main` and `agent-prestech` is 20 commits / ~10,110 files —
+the 531-file PHPStan-vs-guards conflict no longer exists.
+
+The remaining divergence between `main` and `agent-prestech` is 20 commits / ~10,110 files —
 overwhelmingly compiled `ts/dist*/` output and chore/refactor noise.
 
-The bug-fix commits worth potentially cherry-picking are:
+Each row below is a commit that lives **only on `agent-prestech`**. The bugs/errors
+described in "Subject" **currently exist on `main`** and will remain unfixed there
+until the commit is cherry-picked in. The "fix" wording always refers to work done
+**in `agent-prestech`** that has not yet landed on `main`.
 
-| Commit       | Subject                                                                 |
-| ------------ | ----------------------------------------------------------------------- |
-| `810fbbf29`  | i18n locale bugs + 204 translation tests (Playwright 69 + Jest 135)     |
-| `fbe353d65`  | resolve expense create page failures (3 bugs)                           |
-| `3c8d79846`  | missing public consts + snake_case method renames                       |
-| `11b9690b3`  | DealController `ModelNotFoundException → 500` fixed                     |
-| `2af327294`  | resolve all 9 PHPStan level-5 errors                                    |
-| `66cafc92b`  | 3 orphan ProjectController routes; 35 missing consts; 12× 404 fixes     |
+| Commit (on `agent-prestech`) | Bug/error present on `main` — fixed by this commit                      |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `810fbbf29`                  | i18n locale bugs; `main` is missing 204 translation tests               |
+| `fbe353d65`                  | expense create page fails with 3 bugs on `main`                         |
+| `3c8d79846`                  | 35+ public const definitions missing on `main`; methods not snake_case  |
+| `11b9690b3`                  | DealController returns HTTP 500 on `ModelNotFoundException` on `main`    |
+| `2af327294`                  | 9 PHPStan level-5 errors currently failing on `main`                    |
+| `66cafc92b`                  | 3 ProjectController routes are orphaned on `main` (no handler); 12 more controllers return 500 instead of 404 on missing records |
 
 Attempted `git cherry-pick 11b9690b3` produced two conflicts:
 
@@ -327,11 +331,11 @@ benefit on this MVP prototype. Not pursuing.
 
 ### ✅ P3-5 · Security deferrals (D1–D3) [SOLVED 2026-05-01]
 
-| ID  | Issue                                                                       | Resolution                                                                                  | Commit       |
-| --- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------ |
-| D1  | Cross-controller IDOR / tenant scoping                                      | `app/Models/Scopes/CreatedByScope.php` helper created — admin/SA bypass built-in            | `3be5ca5a5`  |
-| D2  | Shared-link passwords stored as base64                                      | Already green — `ProjectController::1818` uses `Hash::make`; `Project` model has `'hashed'` | n/a          |
-| D3  | `JobController::jobApplyData()` login ambiguity on potential guest endpoint | `throttle:10,1` on POST route; dead `Auth::user()` removed; mime+size validation added      | `3be5ca5a5`  |
+| ID  | Issue                                                                       | Resolution                                                                                  | Commit      |
+| --- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ----------- |
+| D1  | Cross-controller IDOR / tenant scoping                                      | `app/Models/Scopes/CreatedByScope.php` helper created — admin/SA bypass built-in            | `3be5ca5a5` |
+| D2  | Shared-link passwords stored as base64                                      | Already green — `ProjectController::1818` uses `Hash::make`; `Project` model has `'hashed'` | n/a         |
+| D3  | `JobController::jobApplyData()` login ambiguity on potential guest endpoint | `throttle:10,1` on POST route; dead `Auth::user()` removed; mime+size validation added      | `3be5ca5a5` |
 
 D1 helper applies as `static::addGlobalScope(new CreatedByScope())` in a
 model's `booted()`, with `withoutGlobalScope(CreatedByScope::class)` as the
@@ -344,21 +348,21 @@ profile (jpeg/jpg/png/webp ≤5 MB) and resume (pdf/doc/docx ≤10 MB).
 
 User granted explicit approval. All 19 snapshots dropped via `sudo mysql`:
 
-| Database                       | Tables (pre-drop) | Status   |
-| ------------------------------ | ----------------: | -------- |
-| `erp_prestech`                 |                21 | dropped  |
-| `erp_prestech_test`            |                94 | dropped  |
-| `erp_prestech_db`              |                 0 | dropped  |
-| `erp_prestech_db_test_1`       |                 0 | dropped  |
-| `erp_prestech_db_test_2`       |               209 | dropped  |
-| `erp_prestech_db_test_3`       |                91 | dropped  |
-| `erp_prestech_db_test_4`       |                42 | dropped  |
-| `erp_prestech_db_test_6`       |               120 | dropped  |
-| `erp_prestech_db_test_7`       |               144 | dropped  |
-| `erp_prestech_db_test_8`       |                 0 | dropped  |
-| `erp_prestech_db_test_9`       |               209 | dropped  |
-| `erp_prestech_db_test_{10–16}` |       209 each ×7 | dropped  |
-| `erp_prestech_db_test_99`      |                 0 | dropped  |
+| Database                       | Tables (pre-drop) | Status  |
+| ------------------------------ | ----------------: | ------- |
+| `erp_prestech`                 |                21 | dropped |
+| `erp_prestech_test`            |                94 | dropped |
+| `erp_prestech_db`              |                 0 | dropped |
+| `erp_prestech_db_test_1`       |                 0 | dropped |
+| `erp_prestech_db_test_2`       |               209 | dropped |
+| `erp_prestech_db_test_3`       |                91 | dropped |
+| `erp_prestech_db_test_4`       |                42 | dropped |
+| `erp_prestech_db_test_6`       |               120 | dropped |
+| `erp_prestech_db_test_7`       |               144 | dropped |
+| `erp_prestech_db_test_8`       |                 0 | dropped |
+| `erp_prestech_db_test_9`       |               209 | dropped |
+| `erp_prestech_db_test_{10–16}` |       209 each ×7 | dropped |
+| `erp_prestech_db_test_99`      |                 0 | dropped |
 
 Final verification: `SHOW DATABASES LIKE '%prestech%'` → empty. Live
 `erp_brand_new_ideas_company_db` unchanged at 229 tables. `/tmp/rename_*`
@@ -372,19 +376,19 @@ artifacts also cleaned up.
 | ----------------------------------------------------------------------------------------------- | ------------------------ | ---------- |
 | P0-1 · DB rename target verified healthy: 229 tables, critical tables present, no DB brand hits | `f0520dd8d`              | 2026-05-01 |
 | P0-2 · BillProduct namespace `App\Models` → `App\Models\Bills`; callers updated                 | `c28f9474e`              | 2026-05-01 |
-| P0-2 follow-up · stale BillProduct test references and tracked backup references updated         | `7f206bff3`              | 2026-05-01 |
+| P0-2 follow-up · stale BillProduct test references and tracked backup references updated        | `7f206bff3`              | 2026-05-01 |
 | P1-1 · Brand rename committed (405 files); push pending — remote repo not yet on GitHub         | `c28f9474e`              | 2026-05-01 |
-| P1-1 follow-up · active frontend ERPGo fallbacks and tracked storage pointer cleaned             | `da1cc6361`              | 2026-05-01 |
-| P1-2 · rename_db.sh secrets removed, destructive guard added, `/tmp` rename litter cleaned       | `107567fb5`              | 2026-05-01 |
-| P2-1 · ESLint scope narrowed through ignore globs                                                | `787b0e403`              | 2026-05-01 |
-| P2-2 · Documentation tree moved to `_inc/laravel/.notes/`; scope map updated                     | `7e0bf8a04`, `940b03a37` | 2026-05-01 |
-| P2-3 · PHPUnit forced DB aligned to isolated `erp_brand_new_ideas_company_test` schema           | `c3e4088f2`              | 2026-05-01 |
+| P1-1 follow-up · active frontend ERPGo fallbacks and tracked storage pointer cleaned            | `da1cc6361`              | 2026-05-01 |
+| P1-2 · rename_db.sh secrets removed, destructive guard added, `/tmp` rename litter cleaned      | `107567fb5`              | 2026-05-01 |
+| P2-1 · ESLint scope narrowed through ignore globs                                               | `787b0e403`              | 2026-05-01 |
+| P2-2 · Documentation tree moved to `_inc/laravel/.notes/`; scope map updated                    | `7e0bf8a04`, `940b03a37` | 2026-05-01 |
+| P2-3 · PHPUnit forced DB aligned to isolated `erp_brand_new_ideas_company_test` schema          | `c3e4088f2`              | 2026-05-01 |
 | P2-4 · KNOWN_ISSUES.md date typo fixed; RESOLVED_ISSUES.md created at `.notes/`                 | `3f78574d3`              | 2026-05-01 |
 | P2-5 · README `php artisan test` examples replaced in all 3 language blocks                     | `3f78574d3`              | 2026-05-01 |
 | P2-6 · CI `\|\| true` replaced: hard-fail on tsc/jest/pytest; advisory on static-analysis steps | `3f78574d3`              | 2026-05-01 |
-| P3-1 · TS-compiled IIFE swap into `public/assets/js/` (1,134 deploy + 1,101 IIFE refresh)        | `25f3cdabd`, `94eae2b5b` | 2026-05-01 |
+| P3-1 · TS-compiled IIFE swap into `public/assets/js/` (1,134 deploy + 1,101 IIFE refresh)       | `25f3cdabd`, `94eae2b5b` | 2026-05-01 |
 | P3-5 · D1 `CreatedByScope` helper; D3 `throttle:10,1` + dead-code removal + mime validation     | `3be5ca5a5`              | 2026-05-01 |
-| P3-6 · 19 stale `erp_prestech*` snapshot DBs dropped after explicit user approval                | n/a (DDL only)           | 2026-05-01 |
+| P3-6 · 19 stale `erp_prestech*` snapshot DBs dropped after explicit user approval               | n/a (DDL only)           | 2026-05-01 |
 | C5 · Postman collection rename staged as `renamed:`                                             | pre-commit               | 2026-05-01 |
 | CompetenciesTest fillable assertion stale                                                       | `ac0da3f03`              | 2026-04-26 |
 | CI Node 24 action version warnings                                                              | `99c867344`, `3957967e0` | 2026-04-26 |

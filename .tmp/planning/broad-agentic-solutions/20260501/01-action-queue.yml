@@ -284,13 +284,25 @@ p3_deferred:
       Guard commits (cff71b6e7, 85ea61c9d, 69e3522c5, f31bf7c17) are ALREADY on main.
       Remaining divergence: 20 commits, 10,110 files changed vs main.
       Bulk of diff is ts/dist-iife/ compiled output + accumulated refactors.
-      Bug-fix commits worth cherry-picking:
-        810fbbf29 — i18n locale bugs + 204 translation tests
-        fbe353d65 — expense create page failures (3 bugs)
-        3c8d79846 — missing public consts + snake_case method rename
-        11b9690b3 — DealController ModelNotFoundException → 500 fixed
-        2af327294 — 9 PHPStan level-5 errors
-        66cafc92b — 3 orphan routes, 35 missing consts, 12x ModelNotFoundException→404
+
+      # Each commit below exists ONLY on agent-prestech.
+      # The described bug/error is present on MAIN and unfixed until the commit lands there.
+      # Direction: cherry-pick FROM agent-prestech INTO main.
+      cherry_pick_candidates:
+        - commit: 810fbbf29
+          bug_on_main: i18n locale bugs present; 204 translation tests missing from main test suite
+        - commit: fbe353d65
+          bug_on_main: expense create page returns errors in 3 distinct code paths on main
+        - commit: 3c8d79846
+          bug_on_main: 35+ public const identifiers missing on main; several method names not snake_case
+        - commit: 11b9690b3
+          bug_on_main: DealController returns HTTP 500 (instead of 404/redirect) on ModelNotFoundException on main
+        - commit: 2af327294
+          bug_on_main: 9 PHPStan level-5 errors currently failing on main
+        - commit: 66cafc92b
+          bug_on_main: |
+            3 ProjectController routes are orphaned on main (route defined, no handler method exists).
+            12 controllers return HTTP 500 instead of 404 on missing-record lookups on main.
     cherry_pick_attempted: 11b9690b3
     cherry_pick_result: CONFLICT  # DealController + deleted notes/KNOWN_ISSUES.md (moved to _inc/laravel/.notes/)
     recommended_approach: |
