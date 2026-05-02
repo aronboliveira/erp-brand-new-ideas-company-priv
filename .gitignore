@@ -279,6 +279,7 @@ obf.js
 **/nohupt.out
 auth-error.png
 **/auth-error.png
+_inc/laravel/utils/.llms/ctx/agents/other/NOTE_session_final_verification.md
 **/public/storage
 **/storage/framework/testing/*
 !**/storage/framework/testing/.gitignore

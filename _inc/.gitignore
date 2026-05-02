@@ -51,6 +51,7 @@ nohup.out
 **/nohupt.out
 auth-error.png
 **/auth-error.png
+laravel/utils/.llms/ctx/agents/other/NOTE_session_final_verification.md
 **/__pycache__/
 **/*.pyc
 **/.pytest_cache/
