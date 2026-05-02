@@ -44,7 +44,7 @@ class TrustHostsTest extends TestCase
 	}
 
 	#[Test]
-	public function hosts_contains_brand new ideas company_domains(): void
+	public function hosts_contains_brandnewideascompany_domains(): void
 	{
 		$hosts = $this->makeMiddleware()->hosts();
 		$this->assertContains('brandnewideascompany.com', $hosts);

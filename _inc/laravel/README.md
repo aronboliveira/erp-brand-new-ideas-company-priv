@@ -124,6 +124,8 @@ npm run production   # production build
 ```
 app/
 ├── Config/Constants/    # ViewsConstants, MiddlewareConstants, DataConstants, …
+├── Contracts/           # CalendarGateway interface, etc.
+├── Exceptions/          # Handler.php, custom exceptions
 ├── Http/
 │   ├── Controllers/     # Domain-grouped: Activity, Bills, Individuals, Planning, …
 │   ├── Middleware/       # XSS, Revalidate, locale, etc.
@@ -131,6 +133,7 @@ app/
 ├── Models/              # Domain-grouped, mirrors Controllers layout
 │   └── Traits/          # ChecksLogin, ChecksPermissions, HasCurrency, …
 ├── Providers/           # AppServiceProvider, RouteServiceProvider, …
+├── Services/            # Calendar, Utility delegation services, etc.
 └── Traits/              # Controller-level traits
 
 Modules/
@@ -158,7 +161,26 @@ public/
 tests/
 ├── Unit/                # PHPUnit unit tests
 ├── Feature/             # PHPUnit feature / HTTP tests
-└── frontend/js/         # Jest + TypeScript frontend tests
+├── frontend/js/         # Jest + TypeScript frontend tests
+├── e2e/                 # Playwright E2E specs
+└── python/              # Python test scripts
+
+utils/                   # Developer tooling workspace
+├── .llms/               # LLM context and session artifacts
+├── scripts/             # Shell, Python, JS, PHP, TS-harness scripts
+├── prompts/             # Coding-style guidelines per language
+├── cli/ grep/ find/ regex/ cmds/  Dated command logs
+└── README.md            # Full documentation
+
+.notes/                  # Durable team notes (issues, plans, work journal)
+├── KNOWN_ISSUES.md      # Open issues
+├── CURRENT_WORKING_ISSUES.md     # Bug-fix session log
+├── CURRENT_WORKING_ISSUES_WORK.md # Try/fail/success journal
+├── NEXT_STEPS.md        # Immediate/deferred tasks
+├── RESOLVED_ISSUES.md   # Resolved issues archive
+├── TODO_LATER.MD        # Deferred items
+├── README.md / README_INFRA.md / README_UTILS.md
+└── .llms/               # Guideline tree, history, migration notes
 ```
 
 ---
@@ -179,17 +201,19 @@ User IDs are **UUIDs** (string), not integers.
 
 ## Testing
 
-### Latest Results (2026-04-01)
+### Latest Results (2026-05-02)
 
 | Tool | Result |
 |------|--------|
-| PHPUnit | 176 PASS suites, 874 ✓, 7 FAIL suites (10 ⨯), 40 WARN |
-| Jest | 28/28 suites, 652/652 tests passed |
-| PHPStan | 0 errors |
-| Playwright | 9 passed, 3 skipped |
-| TSC | 1 error (casing conflict in ts/dist/) |
-| flake8 | 147 issues (style) |
-| mypy | 37 errors in 6 files |
+| PHPUnit | 12,177 tests, 21,156 assertions, 0 failures, 122 skipped, 5 incomplete |
+| Jest | 319/322 suites, ~1,458 tests passed |
+| PHPStan L5 | clean |
+| Playwright (E2E) | 478 passed, 13 skipped, 0 failed |
+| Playwright (mock pages) | 41 passed, 0 failed |
+| curl (287 routes) | 240 × 200, 43 × 302, 0 × fail |
+| tsc | clean |
+| ESLint | clean |
+| pytest | 53/53 |
 
 ### PHPUnit (backend)
 
@@ -389,6 +413,8 @@ npm run production   # build de producción
 ```
 app/
 ├── Config/Constants/    # ViewsConstants, MiddlewareConstants, DataConstants, …
+├── Contracts/           # Interfaz CalendarGateway, etc.
+├── Exceptions/          # Handler.php, excepciones personalizadas
 ├── Http/
 │   ├── Controllers/     # Agrupados por dominio: Activity, Bills, Individuals, Planning, …
 │   ├── Middleware/       # XSS, Revalidate, locale, etc.
@@ -396,6 +422,7 @@ app/
 ├── Models/              # Agrupados por dominio, espeja la estructura de Controllers
 │   └── Traits/          # ChecksLogin, ChecksPermissions, HasCurrency, …
 ├── Providers/           # AppServiceProvider, RouteServiceProvider, …
+├── Services/            # Calendar, servicios de delegación Utility, etc.
 └── Traits/              # Traits a nivel de controller
 
 Modules/
@@ -417,7 +444,26 @@ database/
 tests/
 ├── Unit/                # Tests unitarios PHPUnit
 ├── Feature/             # Tests de integración / HTTP PHPUnit
-└── frontend/js/         # Tests Jest + TypeScript frontend
+├── frontend/js/         # Tests Jest + TypeScript frontend
+├── e2e/                 # Especificaciones Playwright E2E
+└── python/              # Scripts de prueba Python
+
+utils/                   # Espacio de trabajo de herramientas
+├── .llms/               # Contexto LLM y artefactos de sesión
+├── scripts/             # Scripts sh/ py/ js/ php/ ts-harness/
+├── prompts/             # Guías de estilo por lenguaje
+├── cli/ grep/ find/ regex/ cmds/  Registros de comandos fechados
+└── README.md            # Documentación completa
+
+.notes/                  # Notas duraderas del equipo
+├── KNOWN_ISSUES.md      # Problemas abiertos
+├── CURRENT_WORKING_ISSUES.md     # Registro de sesiones de depuración
+├── CURRENT_WORKING_ISSUES_WORK.md # Bitácora de intentos/éxitos
+├── NEXT_STEPS.md        # Tareas inmediatas/diferidas
+├── RESOLVED_ISSUES.md   # Archivo de problemas resueltos
+├── TODO_LATER.MD        # Elementos diferidos
+├── README.md / README_INFRA.md / README_UTILS.md
+└── .llms/               # Árbol de guías, historial, notas de migración
 ```
 
 ---
@@ -636,6 +682,8 @@ npm run production   # build de produção
 ```
 app/
 ├── Config/Constants/    # ViewsConstants, MiddlewareConstants, DataConstants, …
+├── Contracts/           # Interface CalendarGateway, etc.
+├── Exceptions/          # Handler.php, exceções personalizadas
 ├── Http/
 │   ├── Controllers/     # Agrupados por domínio: Activity, Bills, Individuals, Planning, …
 │   ├── Middleware/       # XSS, Revalidate, locale, etc.
@@ -643,6 +691,7 @@ app/
 ├── Models/              # Agrupados por domínio, espelha a estrutura dos Controllers
 │   └── Traits/          # ChecksLogin, ChecksPermissions, HasCurrency, …
 ├── Providers/           # AppServiceProvider, RouteServiceProvider, …
+├── Services/            # Calendar, serviços de delegação Utility, etc.
 └── Traits/              # Traits a nível de controller
 
 Modules/
@@ -670,7 +719,26 @@ public/
 tests/
 ├── Unit/                # Testes unitários PHPUnit
 ├── Feature/             # Testes de integração / HTTP PHPUnit
-└── frontend/js/         # Testes Jest + TypeScript frontend
+├── frontend/js/         # Testes Jest + TypeScript frontend
+├── e2e/                 # Especificações Playwright E2E
+└── python/              # Scripts de teste Python
+
+utils/                   # Espaço de trabalho de ferramentas
+├── .llms/               # Contexto LLM e artefatos de sessão
+├── scripts/             # Scripts sh/ py/ js/ php/ ts-harness/
+├── prompts/             # Guias de estilo por linguagem
+├── cli/ grep/ find/ regex/ cmds/  Registros de comandos datados
+└── README.md            # Documentação completa
+
+.notes/                  # Notas duráveis da equipe
+├── KNOWN_ISSUES.md      # Problemas abertos
+├── CURRENT_WORKING_ISSUES.md     # Registro de sessões de depuração
+├── CURRENT_WORKING_ISSUES_WORK.md # Diário de tentativas/sucessos
+├── NEXT_STEPS.md        # Tarefas imediatas/adiadas
+├── RESOLVED_ISSUES.md   # Arquivo de problemas resolvidos
+├── TODO_LATER.MD        # Itens adiados
+├── README.md / README_INFRA.md / README_UTILS.md
+└── .llms/               # Árvore de guias, histórico, notas de migração
 ```
 
 ---

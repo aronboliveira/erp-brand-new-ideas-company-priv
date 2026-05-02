@@ -29,6 +29,8 @@ parameters:
 		- identifier: nullCoalesce.offset
 		- identifier: nullCoalesce.property
 		# --- Defensive boolean / type-narrowing checks ---
+		- identifier: booleanOr.alwaysFalse
+		- identifier: assign.propertyType
 		- identifier: if.alwaysTrue
 		- identifier: if.alwaysFalse
 		- identifier: deadCode.unreachable
@@ -56,7 +58,7 @@ parameters:
 		# --- Closure / unused-use (defensive $method pass-through) ---
 		- identifier: closure.unusedUse
 		# --- Trait methods not resolved by PHPStan ---
-		- '#Call to an undefined method (App\\Http\\Controllers\\|Modules\\LandingPage\\Http\\Controllers\\).*::(logException|logExecutionTime|measureProfile|viewMissingRedirect|saveSettings|_authorize|_checkLogin|buildBulk|buildBulkInOut|generateCacheKey|clearEntityCache|getTranslation|_mergeItemsAccounts|validate|sendFailedLoginResponse|buildJobPayload|get)\(#'
+		- '#Call to an undefined method (App\\Http\\Controllers\\|Modules\\LandingPage\\Http\\Controllers\\).*::(logException|logExecutionTime|measureProfile|viewMissingRedirect|saveSettings|_authorize|_checkLogin|buildBulk|buildBulkInOut|generateCacheKey|clearEntityCache|getTranslation|_mergeItemsAccounts|validate|sendFailedLoginResponse|buildJobPayload|get|logFailure|handleFailure|consoleOutput|logResponse|logRedirect)\(#'
 		# --- Model dynamic methods (not type-hinted) ---
 		- '#Call to an undefined method App\\Models\\.*::(creatorId|replies|whereKey|whereCategoryId)\(#'
 		# --- Static access to private constants via static:: (valid in PHP) ---

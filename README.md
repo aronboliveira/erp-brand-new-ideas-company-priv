@@ -24,27 +24,30 @@ Enterprise Resource Planning system for **Nova Brand New Ideas Company**. This r
 │   │   ├── Dockerfile             #    Multi-stage build (Node + PHP-FPM)
 │   │   ├── docker-compose.yml     #    app · nginx · mysql · redis
 │   │   └── README.md              #    Project-specific setup & run guide
-│   └── utils/                     # Developer tooling
-│       ├── regexes.md             #    Regex patterns for codebase searches
-│       ├── greps.md               #    Recommended grep commands
-│       ├── finds.md               #    Recommended find commands
-│       ├── scripts/               #    Utility scripts (sh/, py/, analysis)
-│       └── prompts/               #    LLM prompt templates (migration, seeding, etc.)
+│   │   └── utils/                 #    Developer tooling workspace (scripts, prompts, audits)
+│   │       ├── scripts/           #    sh/ py/ js/ php/ ts-harness/
+│   │       ├── prompts/           #    Coding-style guidelines per language
+│   │       ├── cli/ grep/ find/ regex/ cmds/  Dated command logs
+│   │       └── ...                #    See _inc/laravel/utils/README.md
+│   └── utils/                     # Monorepo-level context (minimal)
+│       └── .llms/
 │
 ├── _old/                          # Fork with experimental modifications (reference only)
 │   ├── app/                       #    Controllers, Models with manual edits
 │   ├── routes/                    #    Route files with inline changes
 │   └── ...                        #    Mirrors original structure
 │
-├── origin/                        # Unmodified upstream fork (ERPGo)
-│   └── erp/erpgo/                 #    Original source tree — read-only reference
+├── origin/                        # Unmodified upstream fork (upstream source)
+│   └── erp/                       #    Original source tree — read-only reference
 │
-├── notes/                         # Team documentation
-│   ├── CURRENT_WORKING_ISSUES.md  #    Route health report & active bugs
-│   ├── KNOWN_ISSUES.md            #    Migration naming, known constraints
-│   ├── CONSTANTS_AUDIT_REPORT.md  #    Constants refactoring audit
-│   ├── CONSTANTS_AUDIT_FIX_LOG.md #    Constants fix changelog
-│   └── modules_v2.html            #    Module dependency graph (visual)
+├── notes/                         # Team documentation (older copies — see _inc/laravel/.notes/)
+│   ├── CURRENT_WORKING_ISSUES.md  #    Route health report & active bugs (2026-02-07)
+│   └── KNOWN_ISSUES.md            #    Migration naming, known constraints
+│
+├── .notes/                        # Root-level durable notes (mostly migrated to _inc/laravel/.notes/)
+│   ├── .llms/.guidelines/         #    Legacy guideline tree (deprecated — mirrored in _inc/laravel/.notes/)
+│   ├── MOVED_README.md            #    Migration notice
+│   └── README.md
 │
 ├── obf.js                         # Route-map obfuscation layer (DO NOT deploy)
 ├── LICENSE                        # Project licence
@@ -194,22 +197,25 @@ See [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/test
 
 | File                                                             | Purpose                                                  |
 | ---------------------------------------------------------------- | -------------------------------------------------------- |
-| `_inc/laravel/utils/regexes.md`                                  | Regex patterns for codebase audits                       |
-| `_inc/laravel/utils/greps.md`                                    | `grep` one-liners for debugging                          |
-| `_inc/laravel/utils/finds.md`                                    | `find` one-liners for file discovery                     |
+| `_inc/laravel/utils/regexes.txt`                                 | Reusable regex patterns for codebase audits              |
+| `_inc/laravel/utils/cli/`                                        | Dated CLI command logs                                   |
+| `_inc/laravel/utils/grep/`                                       | Dated grep command notes                                 |
+| `_inc/laravel/utils/find/`                                       | Dated find command notes                                 |
+| `_inc/laravel/utils/regex/`                                      | Dated regex pattern notes                                |
 | `_inc/laravel/utils/scripts/py/analysis/compare_funcs_models.py` | Compare method signatures between old/new models         |
 | `_inc/laravel/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff function names across directories                   |
 | `_inc/laravel/utils/scripts/py/analysis/rearrange.py`            | Rearrange import statements                              |
 | `_inc/laravel/utils/scripts/py/analysis/read_deps.py`            | Parse composer/package dependency trees                  |
 | `_inc/laravel/utils/prompts/`                                    | XML/Markdown prompt templates for LLM-assisted migration |
+| `_inc/laravel/utils/README.md`                                   | Full guide to the utilities workspace                    |
 
 ---
 
 ## Notes for the team
 
 - **`_old/`** contains a manually-edited fork kept for diffing against the new codebase. Do not develop here.
-- **`origin/erp/erpgo/`** is the untouched upstream source. Do not modify — use it for `diff` comparisons.
-- **`notes/`** holds living documents about known issues, constants audits, and module graphs. Update them as you work.
+- **`origin/erp/`** is the untouched upstream source. Do not modify — use it for `diff` comparisons.
+- **`notes/`** holds older copies of working issues. The canonical versions live in **`_inc/laravel/.notes/`**. Update those instead.
 - **`obf.js`** is a route-map obfuscation file. **Must be git-ignored in production deployments** (see the security alert inside the file).
 - **`_test.*` files** at root are scratch pads for quick experiments. They are git-ignored.
 
@@ -245,16 +251,17 @@ Sistema de Planificación de Recursos Empresariales para **Nova Brand New Ideas 
 │   │   ├── Dockerfile             #    Build multi-etapa (Node + PHP-FPM)
 │   │   ├── docker-compose.yml     #    app · nginx · mysql · redis
 │   │   └── README.md              #    Guía de configuración y ejecución del proyecto
-│   └── utils/                     # Herramientas para desarrolladores
-│       ├── regexes.md             #    Patrones regex para auditorías del código
-│       ├── greps.md               #    Comandos grep recomendados
-│       ├── finds.md               #    Comandos find recomendados
-│       ├── scripts/               #    Scripts utilitarios (sh/, py/, analysis)
-│       └── prompts/               #    Templates de prompts LLM (migración, seeding, etc.)
+│   │   └── utils/                 #    Espacio de trabajo de herramientas (scripts, prompts, auditorías)
+│   │       ├── scripts/           #    sh/ py/ js/ php/ ts-harness/
+│   │       ├── prompts/           #    Guías de estilo por lenguaje
+│   │       ├── cli/ grep/ find/ regex/ cmds/  Registros de comandos fechados
+│   │       └── ...                #    Ver _inc/laravel/utils/README.md
+│   └── utils/                     # Contexto a nivel de monorepo (mínimo)
+│       └── .llms/
 │
 ├── _old/                          # Fork con modificaciones experimentales (solo referencia)
-├── origin/                        # Fork upstream sin modificar (ERPGo)
-├── notes/                         # Documentación del equipo
+├── origin/                        # Fork upstream sin modificar (upstream source)
+├── notes/                         # Documentación del equipo (copias antiguas — ver _inc/laravel/.notes/)
 ├── obf.js                         # Capa de ofuscación del mapa de rutas (NO desplegar)
 ├── LICENSE                        # Licencia del proyecto
 ├── .gitignore                     # Ignora: ._DEPRECATED_*, .vscode, vendor, node_modules, logs
@@ -394,22 +401,25 @@ Ver [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/test
 
 | Archivo                                                          | Propósito                                            |
 | ---------------------------------------------------------------- | ---------------------------------------------------- |
-| `_inc/laravel/utils/regexes.md`                                  | Patrones regex para auditorías del código            |
-| `_inc/laravel/utils/greps.md`                                    | Comandos `grep` para depuración                      |
-| `_inc/laravel/utils/finds.md`                                    | Comandos `find` para descubrimiento de archivos      |
+| `_inc/laravel/utils/regexes.txt`                                 | Patrones regex reutilizables para auditorías         |
+| `_inc/laravel/utils/cli/`                                        | Registros de comandos CLI fechados                   |
+| `_inc/laravel/utils/grep/`                                       | Notas de comandos grep fechadas                      |
+| `_inc/laravel/utils/find/`                                       | Notas de comandos find fechadas                      |
+| `_inc/laravel/utils/regex/`                                      | Notas de patrones regex fechados                     |
 | `_inc/laravel/utils/scripts/py/analysis/compare_funcs_models.py` | Comparar firmas de métodos entre modelos old/new     |
 | `_inc/laravel/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff de nombres de funciones entre directorios       |
 | `_inc/laravel/utils/scripts/py/analysis/rearrange.py`            | Reorganizar sentencias de import                     |
 | `_inc/laravel/utils/scripts/py/analysis/read_deps.py`            | Parsear árboles de dependencias composer/package     |
 | `_inc/laravel/utils/prompts/`                                    | Templates de prompts para migración asistida por LLM |
+| `_inc/laravel/utils/README.md`                                   | Guía completa del espacio de trabajo de utilidades   |
 
 ---
 
 ## Notas para el equipo
 
 - **`_old/`** contiene un fork editado manualmente para hacer diff contra el nuevo código. No desarrollar aquí.
-- **`origin/erp/erpgo/`** es la fuente upstream sin tocar. No modificar — usar para comparaciones con `diff`.
-- **`notes/`** contiene documentos activos sobre problemas conocidos, auditorías de constantes y grafos de módulos.
+- **`origin/erp/`** es la fuente upstream sin tocar. No modificar — usar para comparaciones con `diff`.
+- **`notes/`** contiene copias antiguas de problemas conocidos. Las versiones canónicas están en **`_inc/laravel/.notes/`**. Actualizar esas.
 - **`obf.js`** es un archivo de ofuscación del mapa de rutas. **Debe estar git-ignored en despliegues de producción**.
 - Los archivos **`_test.*`** en la raíz son para experimentos rápidos. Están git-ignored.
 
@@ -444,27 +454,25 @@ Sistema de Planejamento de Recursos Empresariais para **Nova Brand New Ideas Com
 │   │   ├── Dockerfile             #    Build multi-estágio (Node + PHP-FPM)
 │   │   ├── docker-compose.yml     #    app · nginx · mysql · redis
 │   │   └── README.md              #    Guia de configuração e execução do projeto
-│   └── utils/                     # Ferramentas para desenvolvedores
-│       ├── regexes.md             #    Padrões regex para auditorias do código
-│       ├── greps.md               #    Comandos grep recomendados
-│       ├── finds.md               #    Comandos find recomendados
-│       ├── scripts/               #    Scripts utilitários (sh/, py/, analysis)
-│       └── prompts/               #    Templates de prompts LLM (migração, seeding, etc.)
+│   │   └── utils/                 #    Espaço de trabalho de ferramentas (scripts, prompts, auditorias)
+│   │       ├── scripts/           #    sh/ py/ js/ php/ ts-harness/
+│   │       ├── prompts/           #    Guias de estilo por linguagem
+│   │       ├── cli/ grep/ find/ regex/ cmds/  Registros de comandos datados
+│   │       └── ...                #    Ver _inc/laravel/utils/README.md
+│   └── utils/                     # Contexto a nível de monorepo (mínimo)
+│       └── .llms/
 │
 ├── _old/                          # Fork com modificações experimentais (apenas referência)
 │   ├── app/                       #    Controllers, Models com edições manuais
 │   ├── routes/                    #    Arquivos de rotas com alterações inline
 │   └── ...                        #    Espelha a estrutura original
 │
-├── origin/                        # Fork upstream não modificado (ERPGo)
-│   └── erp/erpgo/                 #    Árvore fonte original — somente leitura
+├── origin/                        # Fork upstream não modificado (upstream source)
+│   └── erp/                       #    Árvore fonte original — somente leitura
 │
-├── notes/                         # Documentação da equipe
-│   ├── CURRENT_WORKING_ISSUES.md  #    Relatório de saúde das rotas e bugs ativos
-│   ├── KNOWN_ISSUES.md            #    Nomes de migração, restrições conhecidas
-│   ├── CONSTANTS_AUDIT_REPORT.md  #    Auditoria de refatoração de constantes
-│   ├── CONSTANTS_AUDIT_FIX_LOG.md #    Changelog de correções de constantes
-│   └── modules_v2.html            #    Grafo de dependências de módulos (visual)
+├── notes/                         # Documentação da equipe (cópias antigas — ver _inc/laravel/.notes/)
+│   ├── CURRENT_WORKING_ISSUES.md  #    Relatório de saúde das rotas (2026-02-07)
+│   └── KNOWN_ISSUES.md            #    Problemas conhecidos
 │
 ├── obf.js                         # Camada de ofuscação do mapa de rotas (NÃO fazer deploy)
 ├── LICENSE                        # Licença do projeto
@@ -605,22 +613,25 @@ Ver [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/test
 
 | Arquivo                                                          | Finalidade                                                        |
 | ---------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `_inc/laravel/utils/regexes.md`                                  | Padrões regex para auditorias do código                           |
-| `_inc/laravel/utils/greps.md`                                    | Comandos `grep` para depuração                                    |
-| `_inc/laravel/utils/finds.md`                                    | Comandos `find` para descoberta de arquivos                       |
+| `_inc/laravel/utils/regexes.txt`                                 | Padrões regex reutilizáveis para auditorias                       |
+| `_inc/laravel/utils/cli/`                                        | Registros de comandos CLI datados                                 |
+| `_inc/laravel/utils/grep/`                                       | Notas de comandos grep datadas                                    |
+| `_inc/laravel/utils/find/`                                       | Notas de comandos find datadas                                    |
+| `_inc/laravel/utils/regex/`                                      | Notas de padrões regex datados                                    |
 | `_inc/laravel/utils/scripts/py/analysis/compare_funcs_models.py` | Comparar assinaturas de métodos entre modelos old/new             |
 | `_inc/laravel/utils/scripts/py/analysis/compare_funcs_names.py`  | Diff de nomes de funções entre diretórios                         |
 | `_inc/laravel/utils/scripts/py/analysis/rearrange.py`            | Reorganizar sentenças de import                                   |
 | `_inc/laravel/utils/scripts/py/analysis/read_deps.py`            | Parsear árvores de dependências composer/package                  |
 | `_inc/laravel/utils/prompts/`                                    | Templates de prompts XML/Markdown para migração assistida por LLM |
+| `_inc/laravel/utils/README.md`                                   | Guia completo do espaço de trabalho de utilidades                 |
 
 ---
 
 ## Notas para a equipe
 
 - **`_old/`** contém um fork editado manualmente mantido para fazer diff contra o código novo. Não desenvolver aqui.
-- **`origin/erp/erpgo/`** é a fonte upstream intocada. Não modificar — usar para comparações com `diff`.
-- **`notes/`** contém documentos vivos sobre problemas conhecidos, auditorias de constantes e grafos de módulos. Atualizar conforme o trabalho avança.
+- **`origin/erp/`** é a fonte upstream intocada. Não modificar — usar para comparações com `diff`.
+- **`notes/`** contém cópias antigas de problemas conhecidos. As versões canônicas estão em **`_inc/laravel/.notes/`**. Atualizar essas.
 - **`obf.js`** é um arquivo de ofuscação do mapa de rotas. **Deve estar git-ignored em deploys de produção** (veja o alerta de segurança dentro do arquivo).
 - Os arquivos **`_test.*`** na raiz são rascunhos para experimentos rápidos. Estão git-ignored.
 

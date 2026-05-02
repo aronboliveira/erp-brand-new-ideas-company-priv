@@ -3,36 +3,88 @@
 ## ──────────────────────────────────────────────────────────────
 ## Root: erp_brand_new_ideas_company/
 ##   ├── _inc/laravel/                     ⭐ Main application workspace
-##   │   └── .notes/                        Durable team notes (issues, plans, work journal)
-##   │       └── .llms/
-##   │           ├── .guidelines/          ★ Unified guideline tree (primary + app-specific)
-##   │           │   ├── project.yml       Global config
-##   │           │   ├── constraints.md    Hard rules
-##   │           │   ├── backend/          PHP/Laravel (architecture, constants, controllers, models, services, middleware)
-##   │           │   ├── database/         Migrations, seeders, DB conventions
-##   │           │   ├── frontend/         Blade, JS singletons, ESM→IIFE, TS, template-literal testing
-##   │           │   ├── infrastructure/   server.toml
-##   │           │   ├── modules/          accounting, billing, crm, hrm, planning, products
-##   │           │   ├── roles/            agent-roles.md
-##   │           │   ├── security/         security-patterns.xml + roleplay maps
-##   │           │   └── testing/          CI, test-architecture, test suites, TS harness
-##   │           └── .history/             Resolved issues, fix logs, reports, session snapshots (outdated context)
-##   │
-##   ├── _inc/laravel/utils/                       Developer tooling workspace
-##   │   ├── .llms/                        LLM CLI logs, agent context, session notes, scripts
-##   │   │   ├── ctx/agents/               Agent README + backend/frontend/infrastructure guides
-##   │   │   └── notes/{date}/*.md         Chronological working notes
-##   │   └── prompts/.guidelines/          ★ CODING STYLE guidelines (multi-format: md/toml/xml/yml)
-##   │       ├── general/                  coding-conventions, error-handling, markup-accessibility
-##   │       ├── css/                      styling
-##   │       ├── javascript/               coding-rules, script-tags, singletons
-##   │       ├── php/                      blade, controllers, financial, i18n, migrations, models, routes, seeders, testing, transpilation
-##   │       ├── python/                   coding-conventions, spreadsheets
-##   │       ├── react/                    components
-##   │       └── typescript/               type-safety
+##   │   ├── .notes/                        Durable team notes (issues, plans, work journal)
+##   │   │   ├── .llms/                    ★ Unified guideline tree (primary + app-specific)
+##   │   │   │   ├── .guidelines/          ★ Guideline directories by domain
+##   │   │   │   │   ├── project.yml       Global config
+##   │   │   │   │   ├── constraints.md    Hard rules
+##   │   │   │   │   ├── backend/          PHP/Laravel (architecture, constants, controllers, models, services, middleware)
+##   │   │   │   │   ├── database/         Migrations, seeders, DB conventions
+##   │   │   │   │   ├── frontend/         Blade, JS singletons, ESM→IIFE, TS, template-literal testing
+##   │   │   │   │   ├── infrastructure/   server.toml
+##   │   │   │   │   ├── modules/          accounting, billing, crm, hrm, planning, products
+##   │   │   │   │   ├── roles/            agent-roles.md
+##   │   │   │   │   ├── security/         security-patterns.xml + roleplay maps
+##   │   │   │   │   └── testing/          CI, test-architecture, test suites, TS harness
+##   │   │   │   ├── .history/             reports/
+##   │   │   │   ├── README.md
+##   │   │   │   ├── route-view-testing-pattern.md
+##   │   │   │   └── typescript-migration.md
+##   │   │   ├── .history/                 ESLint/PHPStan logs
+##   │   │   ├── CURRENT_WORKING_ISSUES.md 462-line chronological bug-fix session log
+##   │   │   ├── CURRENT_WORKING_ISSUES_WORK.md 568-line try/fail/success work journal
+##   │   │   ├── KNOWN_ISSUES.md          194-line open issues (test suite, performance, route failures)
+##   │   │   ├── NEXT_STEPS.md            105-line immediate/deferred tasks list
+##   │   │   ├── RESOLVED_ISSUES.md       37-line resolved issues archive
+##   │   │   ├── TODO_LATER.MD            3-line placeholder for deferred CSP task
+##   │   │   ├── README.md                Overview of notes tree
+##   │   │   ├── README_INFRA.md          Infrastructure and tooling context map
+##   │   │   └── README_UTILS.md          Laravel project utilities documentation
+##   │   ├── utils/                        Developer tooling workspace
+##   │   │   ├── .llms/                    LLM CLI logs, agent context, session notes, scripts
+##   │   │   │   ├── ctx/                  erp_context.md + agents/ (backend, frontend, infrastructure)
+##   │   │   │   ├── cli/                  Dated CLI command logs
+##   │   │   │   ├── notes/{date}/*.md     Chronological working notes
+##   │   │   │   └── scripts/              Agent scripts
+##   │   │   ├── prompts/.guidelines/      ★ CODING STYLE guidelines (multi-format: md/toml/xml/yml)
+##   │   │   │   ├── general/              coding-conventions, error-handling, markup-accessibility
+##   │   │   │   ├── css/                  styling
+##   │   │   │   ├── javascript/           coding-rules, script-tags, singletons
+##   │   │   │   ├── php/                  blade, controllers, financial, i18n, migrations, models, routes, seeders, testing, transpilation
+##   │   │   │   ├── python/               coding-conventions, spreadsheets
+##   │   │   │   ├── react/                components
+##   │   │   │   └── typescript/           type-safety
+##   │   │   ├── scripts/                  Reusable scripts (sh/, py/, js/, php/, ts-harness/)
+##   │   │   ├── cli/                      Dated CLI command logs
+##   │   │   ├── grep/                     Dated grep command notes
+##   │   │   ├── regex/                    Dated regex pattern notes
+##   │   │   ├── find/                     Dated find command notes
+##   │   │   ├── cmds/                     Quick-command scripts
+##   │   │   ├── logs/                     Runtime logs
+##   │   │   ├── caches/                   Cached outputs
+##   │   │   ├── containers/               Container helpers
+##   │   │   ├── assets/                   Utility assets
+##   │   │   ├── README.md
+##   │   │   ├── FINANCE_AUDIT.md
+##   │   │   ├── ROUTE_MAP.md
+##   │   │   ├── CSS_FILE_PATTERN.md
+##   │   │   ├── JAVASCRIPT_FILE_PATTERN.md
+##   │   │   ├── TYPESCRIPT_FILE_PATTERN.md
+##   │   │   ├── REPORT_FILE_PATTERN.md
+##   │   │   └── regexes.txt
+##   │   └── ... (Modules/LandingPage, app/, resources/, routes/, database/, tests/, …)
 ##   │
 ##   ├── _old/                             Legacy fork (reference only, do NOT develop)
-##   └── origin/                           Upstream ERPGo (read-only)
+##   ├── origin/                           Upstream upstream source (read-only)
+##   ├── notes/                            Team documentation (stale — see _inc/laravel/.notes/)
+##   │   ├── CURRENT_WORKING_ISSUES.md     Route health report (2026-02-07)
+##   │   └── KNOWN_ISSUES.md               Known/resolved issues
+##   ├── .notes/                           Root-level hidden notes (mostly migrated)
+##   │   ├── .llms/.guidelines/            Legacy guideline tree (mirrored from _inc/laravel/.notes/)
+##   │   ├── .history/                     Legacy archival
+##   │   ├── MOVED_README.md               Migration notice
+##   │   └── README.md                     Directory overview
+##   ├── utils/                            Monorepo-level context
+##   │   └── .llms/
+##   ├── .agents/                          Agent config (empty)
+##   ├── .backup/                          Backup files for contingency
+##   ├── .deprecated/                      Deprecated code (Django, Flutter, old frontend)
+##   ├── .gh/                              GitHub helpers (sudo.yml)
+##   ├── .github/                          GitHub Actions CI
+##   ├── .claude/                          Claude AI settings
+##   ├── .history/                         Root-level historical archives
+##   ├── .tmp/                             Volatile temp files
+##   └── .venv/                            Python 3.13 virtual environment
 ## ──────────────────────────────────────────────────────────────
 
 starters:
@@ -110,11 +162,12 @@ starters:
             react:       _inc/laravel/utils/prompts/.guidelines/react/*.{md,xml,yml,toml}
             typescript:  _inc/laravel/utils/prompts/.guidelines/typescript/*.{md,xml,yml,toml}
         audits:
-            - commands: "Please save, as label:value (possibly prepending a comment for complex cases), uniquely (that is, if you use it twice in the same date do not write it again) used
-                - CLIs: in [_inc/laravel/utils/cli/$(date +%Y%m%d)/*.{md,txt,yml}];
-                - Regexes: in [_inc/laravel/utils/regex/$(date +%Y%m%d)/*.{md,txt,yml}];
-                - Grep : in [_inc/laravel/utils/grep/$(date +%Y%m%d)/*.{md,txt,yml}];
-                - Find (bash program): in [_inc/laravel/utils/find/$(date +%Y%m%d)/*.{md,txt,yml}]
+            - commands:
+                - "Save each CLI/grep/regex/find command as a dated entry (YYYYMMDD)."
+                - "cli: _inc/laravel/utils/cli/$(date +%Y%m%d)/*.{md,txt,yml}"
+                - "regex: _inc/laravel/utils/regex/$(date +%Y%m%d)/*.{md,txt,yml}"
+                - "grep: _inc/laravel/utils/grep/$(date +%Y%m%d)/*.{md,txt,yml}"
+                - "find: _inc/laravel/utils/find/$(date +%Y%m%d)/*.{md,txt,yml}"
         reports:
             - extension-pick: _inc/laravel/utils/REPORT_FILE_PATTERN.md
     credentials:
@@ -211,7 +264,7 @@ starters:
             - notes:
                 - "##DO NOT WORK ON THE PATHS WITH */ts/* FOR NOW##"
         - css:
-            - guidelines: _inc/laravel/utils/CSS_FILE_PATTERN.toml
+            - guidelines: _inc/laravel/utils/CSS_FILE_PATTERN.md
             - main-paths:
                 - _inc/laravel/resources/css/*.css
                 - _inc/laravel/public/css/*.css
@@ -287,7 +340,7 @@ starters:
             - long-processing: "For long processing tasks, consider using a dedicated directory for temporary files. This can help prevent clutter and ensure that important files are not accidentally deleted. Regularly review and clean up this directory to maintain an organized workspace. Also, try breaking into subprocedures, like fragments of files, and them merging them together (cleaning up the fragments later), so you don't lose progress, and saving in .tmp/copilot/{datetime}/ the steps you have taken already."
             - issue-tracking:
                   open-issues: _inc/laravel/.notes/KNOWN_ISSUES.md
-                  resolved-issues: _inc/laravel/.notes/.llms/.history/RESOLVED_ISSUES.md
+                  resolved-issues: _inc/laravel/.notes/RESOLVED_ISSUES.md
                   work-journal: _inc/laravel/.notes/CURRENT_WORKING_ISSUES_WORK.md
                   rules:
                       - "KNOWN_ISSUES.md contains ONLY open/unresolved issues"

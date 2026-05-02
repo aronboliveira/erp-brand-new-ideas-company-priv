@@ -4,7 +4,7 @@ const path = require("path");
 const fs = require("fs");
 
 /**
- * ERP Prestech – i18n / Translation E2E Tests
+ * ERP Brand New Ideas Company - i18n / Translation E2E Tests
  *
  * Validates that the server-side translation pipeline works correctly:
  *   1. Login page renders translated content via {lang} route parameter.
