@@ -103,11 +103,7 @@
                                 <div class="{{ VC::C_AT }} {{ VC::MT4 }}">
                                     <div class="row">
                                         <div class="{{ VC::C_AT }}">
-<<<<<<< HEAD
                                             <a href="#" class="{{ VC::BT_SM_PM }}" data-submit-form="{{ $formId }}" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
-=======
-                                            <a href="#" class="{{ VC::BT_SM_PM }}" onclick="document.getElementById('{{ $formId }}').submit();return false;" data-bs-toggle="tooltip" title="{{ __('Apply') }}">
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
                                                 <span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span>
                                             </a>
                                             <a href="{{ $indexUrl }}" class="{{ VC::BT_SM_DG }}" data-bs-toggle="tooltip" title="{{ __('Reset') }}">
@@ -220,9 +216,6 @@
         </div>
     </div>
 @endsection
-<<<<<<< HEAD
 @push(StacksConstants::ADM_SCR_PG)
     <script defer src="{{ asset('assets/js/core/form-submit-delegate.js') }}"></script>
 @endpush
-=======
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)

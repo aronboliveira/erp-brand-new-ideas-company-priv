@@ -32,13 +32,8 @@ export default function LandingProvider({ children }: Parent): JSX.Element {
               <Link href='/' passHref>
                 <Box component='div' className={"brand"}>
                   <Image
-<<<<<<< HEAD
                     src='/logo-brand new ideas company-2.webp'
                     alt='Nova Brand New Ideas Company Logo'
-=======
-                    src='/logo-prestech-2.webp'
-                    alt='Nova Prestech Logo'
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
                     className={"brandImage"}
                     width={92}
                     height={32}

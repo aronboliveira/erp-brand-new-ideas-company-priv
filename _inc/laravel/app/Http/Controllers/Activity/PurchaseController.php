@@ -53,6 +53,9 @@ use Illuminate\View\View;
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
 use App\Traits\DefinesResourceActions;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+use Illuminate\Contracts\View\View as ViewContract;
 class PurchaseController extends Controller
 {
 	use DefinesResourceActions;
@@ -230,15 +233,12 @@ class PurchaseController extends Controller
                 Log::warning("[{$class}::{$action}] authorization failed", [UsersConstants::COL_USER_ID => $user?->id]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode()]);
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['enc_id' => $ids], status: 404);
             } catch (QueryException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['enc_id' => $ids]);
             } catch (\RuntimeException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['enc_id' => $ids]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] error", ['message' => $e->getMessage()]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode()]);
@@ -284,15 +284,12 @@ class PurchaseController extends Controller
                 Log::warning("[{$class}::{$action}] authorization failed", [UsersConstants::COL_USER_ID => $user?->id]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode()]);
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['enc_id' => $ids], status: 404);
             } catch (QueryException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['enc_id' => $ids]);
             } catch (\RuntimeException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['enc_id' => $ids]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] error", ['message' => $e->getMessage()]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode()]);
@@ -357,8 +354,6 @@ class PurchaseController extends Controller
             } catch (AuthorizationException $e) {
                 Log::warning("[{$class}::{$action}] authorization failed", [UsersConstants::COL_USER_ID => $user?->id, 'purchase_id' => $purchase->id]);
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 if ($transactionStarted)
                     DB::rollBack();
@@ -375,7 +370,6 @@ class PurchaseController extends Controller
                 if ($transactionStarted)
                     DB::rollBack();
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $purchase->id]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'purchase_id' => $purchase->id]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -476,15 +470,12 @@ class PurchaseController extends Controller
                 return redirect()->back()->with('success', __('Purchase successfully sent.') . (($resp['is_success'] === false && !empty($resp['error'])) ? '<br><span class="text-danger">' . $resp['error'] . '</span>' : ''));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $id], status: 404);
             } catch (QueryException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $id]);
             } catch (\RuntimeException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $id]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'purchase_id' => $id]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -524,15 +515,12 @@ class PurchaseController extends Controller
             } catch (AuthorizationException $e) {
                 Log::warning("[{$class}::{$action}] authorization failed", [UsersConstants::COL_USER_ID => $user?->id, 'purchase_id' => $id]);
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $id], status: 404);
             } catch (QueryException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $id]);
             } catch (\RuntimeException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $id]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'purchase_id' => $id]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -541,12 +529,8 @@ class PurchaseController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'purchase_id' => $id]);
     }
 
-<<<<<<< HEAD
-    public function purchase(Request $request, string $purchaseId): View|RedirectResponse
-=======
     public const PRC = 'purchase';
     public function purchase(Request $request, string $purchaseId): ViewContract|RedirectResponse
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -618,15 +602,12 @@ class PurchaseController extends Controller
                 return view($viewPath, compact('purchase', 'color', 'settings', 'vendor', 'img', 'font_color'));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id_enc' => $purchaseId], status: 404);
             } catch (QueryException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id_enc' => $purchaseId]);
             } catch (\RuntimeException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id_enc' => $purchaseId]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'purchase_id_enc' => $purchaseId]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -798,15 +779,12 @@ class PurchaseController extends Controller
                 $response = view($viewPath, compact('purchase', 'vendor', 'items', 'purchasePayment', 'user'));
                 $this->logExecutionTime($renderStart, $action, 'renderCustomerBill');
                 return $response;
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['encrypted_id' => $encryptedId], status: 404);
             } catch (QueryException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['encrypted_id' => $encryptedId]);
             } catch (\RuntimeException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['encrypted_id' => $encryptedId]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'encrypted_id' => $encryptedId]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -815,12 +793,8 @@ class PurchaseController extends Controller
         }, ['method' => $method, 'class' => $class, 'encrypted_id' => $encryptedId]);
     }
 
-<<<<<<< HEAD
-    public function payment(Request $request, int $purchaseId): View|RedirectResponse
-=======
     public const PAY = 'payment';
     public function payment(Request $request, int $purchaseId): ViewContract|RedirectResponse
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -845,15 +819,12 @@ class PurchaseController extends Controller
                 $response = view($viewPath, compact('vendors', 'categories', 'accounts', 'purchase'));
                 $this->logExecutionTime($renderStart, $action, 'renderPayment');
                 return $response;
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $purchaseId], status: 404);
             } catch (QueryException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $purchaseId]);
             } catch (\RuntimeException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $purchaseId]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'purchase_id' => $purchaseId]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -947,8 +918,6 @@ class PurchaseController extends Controller
                 return redirect()->back()->with('success', __('Payment successfully added.'));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 if ($transactionStarted)
                     DB::rollBack();
@@ -965,7 +934,6 @@ class PurchaseController extends Controller
                 if ($transactionStarted)
                     DB::rollBack();
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $purchaseId]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'purchase_id' => $purchaseId]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -1019,8 +987,6 @@ class PurchaseController extends Controller
                 return redirect()->back()->with('success', __('Payment successfully deleted.'));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 if ($transactionStarted)
                     DB::rollBack();
@@ -1033,7 +999,6 @@ class PurchaseController extends Controller
                 if ($transactionStarted)
                     DB::rollBack();
                 return $this->handleFailure($request, $e, $class, $action, $method, ['purchase_id' => $purchaseId, 'payment_id' => $paymentId]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'purchase_id' => $purchaseId, 'payment_id' => $paymentId]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -1042,12 +1007,8 @@ class PurchaseController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'purchase_id' => $purchaseId, 'payment_id' => $paymentId]);
     }
 
-<<<<<<< HEAD
-    public function vendor(Request $request): View|RedirectResponse
-=======
     public const VND = 'vendor';
     public function vendor(Request $request): ViewContract|RedirectResponse
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     {
         $action = __FUNCTION__;
         $method = __METHOD__;
@@ -1068,15 +1029,12 @@ class PurchaseController extends Controller
                 $response = view($viewPath, compact('vendor'));
                 $this->logExecutionTime($renderStart, $action, 'renderVendorDetail');
                 return $response;
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['vendor_id' => $request->id], status: 404);
             } catch (QueryException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['vendor_id' => $request->id]);
             } catch (\RuntimeException $e) {
                 return $this->handleFailure($request, $e, $class, $action, $method, ['vendor_id' => $request->id]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'vendor_id' => $request->id]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -1166,8 +1124,6 @@ class PurchaseController extends Controller
                 return redirect()->back()->with('success', __('Purchase product successfully deleted.'));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
-<<<<<<< HEAD
-=======
             } catch (ModelNotFoundException $e) {
                 if ($transactionStarted)
                     DB::rollBack();
@@ -1180,7 +1136,6 @@ class PurchaseController extends Controller
                 if ($transactionStarted)
                     DB::rollBack();
                 return $this->handleFailure($request, $e, $class, $action, $method, ['item_id' => $itemId]);
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'item_id' => $request->id]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);

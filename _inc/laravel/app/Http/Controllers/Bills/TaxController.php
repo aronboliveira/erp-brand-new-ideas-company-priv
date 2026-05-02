@@ -8,7 +8,7 @@ use App\Config\Constants\{
     UsersConstants as UC,
     ViewsConstants
 };
-use App\Models\{BillProduct, InvoiceProduct, ProposalProduct, Tax};
+use App\Models\{Bills\BillProduct as BillProduct, InvoiceProduct, ProposalProduct, Tax};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Auth, DB, Log, Validator, View as ViewFacade};

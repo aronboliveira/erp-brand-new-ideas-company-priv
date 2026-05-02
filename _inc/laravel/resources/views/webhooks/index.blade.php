@@ -87,11 +87,7 @@
                                                     @endphp
                                                     <div class="action-btn bg-danger ms-2">
                                                         {!! Form::open(['method' => 'DELETE', 'url' => $deleteUrl, 'id' => 'delete-form-' . ($wh->id ?? ''), 'data-guard-msg' => $deleteGuard]) !!}
-<<<<<<< HEAD
                                                         <a href="#" class="{{ VC::MX3 }} {{ VC::BT_SM_PM }}" data-bs-toggle="tooltip" title="{{ __('Delete') }}" data-confirm-submit="{{ __('Are you sure?') }}">
-=======
-                                                        <a href="#" class="{{ VC::MX3 }} {{ VC::BT_SM_PM }}" data-bs-toggle="tooltip" title="{{ __('Delete') }}" onclick="event.preventDefault(); if(confirm('{{ __('Are you sure?') }}')) this.closest('form').submit();">
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
                                                             <i class="ti ti-trash {{ VC::TXT_WT }}"></i>
                                                         </a>
                                                         {!! Form::close() !!}

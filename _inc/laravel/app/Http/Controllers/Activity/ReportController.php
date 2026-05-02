@@ -23,7 +23,7 @@ use App\Exports\{
 use App\Models\{
     BankAccount,
     Bill,
-    BillProduct,
+    Bills\BillProduct as BillProduct,
     Branch,
     ChartOfAccount,
     ChartOfAccountSubType,
@@ -86,6 +86,7 @@ use Symfony\Component\HttpFoundation\{
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 use App\Traits\DefinesResourceActions;
+use App\Config\Constants\BillsConstants as BC;
 final class ReportController extends Controller
 {
 	use DefinesResourceActions;
@@ -3148,7 +3149,7 @@ final class ReportController extends Controller
     ): View {
         $start = $request->start_date ?? date('Y-01-01');
         $end  = $request->end_date ?? date('Y-m-d', strtotime('+1 day'));
-        
+
         // Cache the chart accounts data with 3-minute TTL
         $cacheKey = "rpt.balance_sheet.{$creatorId}.{$start}.{$end}";
         $chartAccounts = Cache::remember($cacheKey, self::CACHE_TTL_REPORT, function () use ($creatorId, $start, $end) {

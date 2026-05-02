@@ -33,6 +33,11 @@ use Maatwebsite\Excel\Facades\Excel;
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
 use App\Traits\DefinesResourceActions;
+use App\Config\Constants\PermissionsConstants as PMC;
+use App\Config\Constants\DatabaseConstants as DC;
+use App\Config\Constants\UsersConstants as UC;
+use App\Config\Constants\ProjectsConstants as PJC;
+use Illuminate\Support\Facades\Redirect;
 class ProjectReportController extends Controller
 {
 	use DefinesResourceActions;
@@ -306,50 +311,7 @@ class ProjectReportController extends Controller
         return ['labels' => $labels, 'datasets' => array_values($datasets)];
     }
 
-<<<<<<< HEAD
-    public function create(Request $request): View|RedirectResponse
-    {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        return redirect()->route(static::SINGULAR . '.index')->with('info', __('Feature not implemented.'));
-    }
-
-    public function store(Request $request): RedirectResponse
-    {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        return redirect()->route(static::SINGULAR . '.index')->with('info', __('Feature not implemented.'));
-    }
-
-    public function edit(Request $request, string|int $id): View|RedirectResponse
-    {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        return redirect()->route(static::SINGULAR . '.index')->with('info', __('Feature not implemented.'));
-    }
-
-    public function update(Request $request, string|int $id): RedirectResponse
-    {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        return redirect()->route(static::SINGULAR . '.index')->with('info', __('Feature not implemented.'));
-    }
-
-    public function destroy(Request $request, string|int $id): RedirectResponse
-    {
-        if (($u = self::_checkLogin()) instanceof RedirectResponse) return $u;
-        return redirect()->route(static::SINGULAR . '.index')->with('info', __('Feature not implemented.'));
-    }
-
-    public function ajax_data(Request $request): \Illuminate\Http\JsonResponse
-    {
-        return response()->json(['data' => []]);
-    }
-
-    public function ajax_tasks_report(Request $request, string|int $id): \Illuminate\Http\JsonResponse
-    {
-        return response()->json(['data' => []]);
-    }
-
-=======
     public const EXP = 'export';
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
     public function export(string|int $id): mixed
     {
         $action = __FUNCTION__;

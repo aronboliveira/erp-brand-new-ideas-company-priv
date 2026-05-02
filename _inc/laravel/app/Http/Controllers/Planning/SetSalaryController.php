@@ -29,6 +29,7 @@ use App\Models\{DeductionOption, SaturationDeduction};
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 use App\Traits\DefinesResourceActions;
+use Illuminate\Http\JsonResponse;
 class SetSalaryController extends Controller
 {
 	use DefinesResourceActions;

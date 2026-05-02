@@ -1,9 +1,5 @@
 #!/bin/bash
-<<<<<<< HEAD
 # Financial Module Test Script for ERP Brand New Ideas Company
-=======
-# Financial Module Test Script for ERP Prestech
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 # Tests mission-critical financial routes with various curl flags
 # Outputs: JSON results for potential Playwright consumption
 
@@ -49,10 +45,10 @@ test_route() {
     local expected_code="${2:-200}"
     local method="${3:-GET}"
     local description="$4"
-    
+
     local url="${BASE_URL}/${route}"
     local output_file="${OUTPUT_DIR}/${route//\//_}_${TIMESTAMP}.html"
-    
+
     # Full curl with headers, timing, and content
     local response=$(curl -sS -w "\n%{http_code}\n%{time_total}\n%{size_download}" \
         -X "$method" \
@@ -63,11 +59,11 @@ test_route() {
         --max-time 30 \
         -o "$output_file" \
         "$url" 2>&1)
-    
+
     local http_code=$(echo "$response" | tail -3 | head -1)
     local time_total=$(echo "$response" | tail -2 | head -1)
     local size=$(echo "$response" | tail -1)
-    
+
     # Validate response
     if [[ "$http_code" == "$expected_code" ]]; then
         log_pass "${description:-$route} ($http_code, ${time_total}s, ${size}B)"
@@ -87,22 +83,22 @@ test_route_with_validation() {
     local expected_code="${2:-200}"
     local required_elements="$3"
     local description="$4"
-    
+
     local url="${BASE_URL}/${route}"
     local output_file="${OUTPUT_DIR}/${route//\//_}_${TIMESTAMP}.html"
-    
+
     local http_code=$(curl -sS -w "%{http_code}" \
         -b "$COOKIE_FILE" \
         -H "Accept: text/html" \
         --max-time 30 \
         -o "$output_file" \
         "$url" 2>/dev/null)
-    
+
     if [[ "$http_code" != "$expected_code" ]]; then
         log_fail "${description:-$route} HTTP $http_code != $expected_code"
         return 2
     fi
-    
+
     # Validate required HTML elements
     if [[ -n "$required_elements" ]]; then
         IFS=',' read -ra elements <<< "$required_elements"
@@ -113,7 +109,7 @@ test_route_with_validation() {
             fi
         done
     fi
-    
+
     log_pass "${description:-$route} ($http_code, validated)"
     return 0
 }
@@ -124,27 +120,27 @@ test_json_api() {
     local expected_code="${2:-200}"
     local required_keys="$3"
     local description="$4"
-    
+
     local url="${BASE_URL}/${route}"
     local output_file="${OUTPUT_DIR}/${route//\//_}_api_${TIMESTAMP}.json"
-    
+
     local response=$(curl -sS -w "\n%{http_code}" \
         -b "$COOKIE_FILE" \
         -H "Accept: application/json" \
         -H "X-Requested-With: XMLHttpRequest" \
         --max-time 30 \
         "$url" 2>/dev/null)
-    
+
     local http_code=$(echo "$response" | tail -1)
     local body=$(echo "$response" | sed '$d')
-    
+
     echo "$body" > "$output_file"
-    
+
     if [[ "$http_code" != "$expected_code" ]]; then
         log_fail "${description:-$route} API HTTP $http_code != $expected_code"
         return 2
     fi
-    
+
     # Validate JSON keys if specified
     if [[ -n "$required_keys" ]]; then
         IFS=',' read -ra keys <<< "$required_keys"
@@ -155,17 +151,13 @@ test_json_api() {
             fi
         done
     fi
-    
+
     log_pass "${description:-$route} API ($http_code)"
     return 0
 }
 
 echo "=================================================="
-<<<<<<< HEAD
 echo "  ERP Brand New Ideas Company Financial Module Tests"
-=======
-echo "  ERP Prestech Financial Module Tests"
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 echo "  Started: $(date)"
 echo "=================================================="
 echo ""
@@ -179,7 +171,7 @@ test_route "invoices/create" 200 "GET" "Invoice Create Form"
 test_route_with_validation "invoices" 200 "table,invoice" "Invoices Table Structure"
 
 # ============================================
-# SECTION 2: Bills Module  
+# SECTION 2: Bills Module
 # ============================================
 echo ""
 echo "--- BILLS MODULE ---"

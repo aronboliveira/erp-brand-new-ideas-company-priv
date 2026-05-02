@@ -57,6 +57,9 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
 use App\Traits\DefinesResourceActions;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+use Illuminate\Contracts\View\View as ViewContract;
 class DealController extends Controller
 {
 	use DefinesResourceActions;
@@ -457,12 +460,8 @@ class DealController extends Controller
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class]);
   }
 
-<<<<<<< HEAD
-  public function labels(Request $req, int|string $id): View|JsonResponse|RedirectResponse|null
-=======
   public const LBL = 'labels';
   public function labels(Request $req, int|string $id): ViewContract|JsonResponse|RedirectResponse|null
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
   {
     $action = __FUNCTION__;
     $method = __METHOD__;
@@ -1370,12 +1369,8 @@ class DealController extends Controller
     }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'deal_id' => $id, 'source_id' => $sourceId]);
   }
 
-<<<<<<< HEAD
-  public function permission(Request $request, int|string $id, int|string $clientId): View|RedirectResponse
-=======
   public const PRM = 'permission';
   public function permission(Request $request, int|string $id, int|string $clientId): ViewContract|RedirectResponse
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
   {
     $action = __FUNCTION__;
     $method = __METHOD__;

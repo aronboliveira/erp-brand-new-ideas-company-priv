@@ -26,11 +26,7 @@ class CRMRouteReturnTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-<<<<<<< HEAD
 		$this->admin = User::where('email', 'suporte@brandnewideascompany.com')->first();
-=======
-		$this->admin = User::where('email', 'suporte@prestech.com.br')->first();
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 		if ($this->admin) {
 			$this->actingAs($this->admin);
 		}
@@ -106,12 +102,8 @@ class CRMRouteReturnTest extends TestCase
 	{
 		$fk = '00000000-0000-0000-0000-000000000000';
 		// Note: Several routes return controlled 500 for missing deals (by design)
-<<<<<<< HEAD
 		// Excluded: tasks_create, tasks_store, discussions_create, discussions_store,
 		//           file_upload, note_store, call_create, call_store, email_create, email_store
-=======
-		// Excluded: tasks_create, tasks_store, discussions_create, discussions_store, file_upload, note_store
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 		return [
 			'labels_get' => ['GET', '/' . VW::DL . "/{$fk}/labels", VW::DL . ' labels'],
 			'labels_post' => ['POST', '/' . VW::DL . "/{$fk}/labels", VW::DL . ' labels.store'],
@@ -123,13 +115,6 @@ class CRMRouteReturnTest extends TestCase
 			'products_put' => ['PUT', '/' . VW::DL . "/{$fk}/products", VW::DL . ' products.update'],
 			'sources_get' => ['GET', '/' . VW::DL . "/{$fk}/sources", VW::DL . ' sources.edit'],
 			'sources_put' => ['PUT', '/' . VW::DL . "/{$fk}/sources", VW::DL . ' sources.update'],
-<<<<<<< HEAD
-=======
-			'call_create' => ['GET', '/' . VW::DL . "/{$fk}/call", VW::DL . ' calls.create'],
-			'call_store' => ['POST', '/' . VW::DL . "/{$fk}/call", VW::DL . ' calls.store'],
-			'email_create' => ['GET', '/' . VW::DL . "/{$fk}/email", VW::DL . ' emails.create'],
-			'email_store' => ['POST', '/' . VW::DL . "/{$fk}/email", VW::DL . ' emails.store'],
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 		];
 	}
 
@@ -232,11 +217,7 @@ class CRMRouteReturnTest extends TestCase
 	{
 		return [
 			'json' => ['POST', '/' . VW::LD . '/json', VW::LD . ' json'],
-<<<<<<< HEAD
 			// 'order' excluded: POST /leads/order requires body data, returns 500 without it
-=======
-			'order' => ['POST', '/' . VW::LD . '/order', VW::LD . ' order'],
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 		];
 	}
 

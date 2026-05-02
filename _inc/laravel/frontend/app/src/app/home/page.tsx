@@ -12,11 +12,7 @@ export default function LandingPage() {
         <div className='container'>
           <div className='row align-items-center'>
             <div className='col-sm-5'>
-<<<<<<< HEAD
               <h1>ERP Brand New Ideas Company</h1>
-=======
-              <h1>ERPGo SaaS</h1>
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
               <h2>
                 ERP de Negócios completo, com recursos de CRM, HRM. Gerencie
                 suas equipes e processos com excelência!
@@ -35,11 +31,7 @@ export default function LandingPage() {
             <div className='col-sm-5'>
               <img
                 src='/assets/images/front/header-mokeup.svg'
-<<<<<<< HEAD
                 alt='ERP Brand New Ideas Company'
-=======
-                alt='ERPGo'
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
                 className='img-fluid'
               />
             </div>

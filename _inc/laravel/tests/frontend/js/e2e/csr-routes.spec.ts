@@ -8,7 +8,6 @@
 import { test, expect, Page } from "@playwright/test";
 
 const BASE = process.env.APP_URL || "http://127.0.0.1:8000";
-<<<<<<< HEAD
 
 // Skip in CI unless a live server URL is provided via APP_URL
 test.beforeEach(async ({}, testInfo) => {
@@ -18,8 +17,6 @@ test.beforeEach(async ({}, testInfo) => {
   );
 });
 
-=======
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 const TEST_EMAIL =
   process.env.TEST_EMAIL || "u_1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c@test.local";
 const TEST_PASS = process.env.TEST_PASS || "Admin@1234";

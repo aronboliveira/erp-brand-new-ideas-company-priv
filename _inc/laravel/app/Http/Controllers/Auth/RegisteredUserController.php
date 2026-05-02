@@ -41,6 +41,8 @@ use App\Helpers\SafeConsoleOutput;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 use App\Traits\HasCrudConstants;
+use App\Config\Constants\DatabaseConstants as DC;
+use App\Config\Constants\SettingsConstants as SC;
 class RegisteredUserController extends Controller
 {
     use HasCrudConstants;

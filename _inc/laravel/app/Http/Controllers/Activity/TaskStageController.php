@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
 use App\Traits\DefinesResourceActions;
+use App\Config\Constants\PermissionsConstants as PMC;
+use Illuminate\Database\QueryException;
 class TaskStageController extends Controller
 {
 	use DefinesResourceActions;
@@ -324,40 +326,6 @@ class TaskStageController extends Controller
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'stage_id' => $id]);
     }
 
-<<<<<<< HEAD
-    public function destroy(Request $request, int|string $id): RedirectResponse|null
-    {
-        $action = __FUNCTION__;
-        $method = __METHOD__;
-        $class  = static::class;
-        $base   = class_basename($class);
-        $req    = $request;
-        return $this->measureProfile($action, function () use ($req, $id, $action, $method, $class, $base) {
-            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
-            if (($redirect = self::guard($req, 'delete project task stage', self::REDIRECT_INDEX)) !== true) return $redirect;
-            try {
-                $fetchStart = microtime(true);
-                $stage = TaskStage::findOrFail($id);
-                $this->logExecutionTime($fetchStart, $action, 'fetchStage');
-                if ($stage[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new \Exception('owner'), $class . '::' . $action, route(self::REDIRECT_INDEX));
-                $txnStart = microtime(true);
-                DB::transaction(function () use ($stage, $action) {
-                    $delStart = microtime(true);
-                    $stage->delete();
-                    $this->logExecutionTime($delStart, $action, 'deleteStage');
-                });
-                $this->logExecutionTime($txnStart, $action, 'transaction');
-                Log::info("[{$base}::{$action}] deleted", ['stageId' => $id, 'method' => $method]);
-                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Task Stage Successfully Deleted.'));
-            } catch (\Throwable $e) {
-                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
-                return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
-            }
-        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'stage_id' => $id]);
-    }
-=======
 	public const ORD = 'order';
 	public function order(Request $request): JsonResponse|RedirectResponse|null
 	{
@@ -408,36 +376,5 @@ class TaskStageController extends Controller
 			}
 		}, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
 	}
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 
-    public function order(Request $request): JsonResponse|RedirectResponse|null
-    {
-        $action = __FUNCTION__;
-        $method = __METHOD__;
-        $class  = static::class;
-        $base   = class_basename($class);
-        $req    = $request;
-        return $this->measureProfile($action, function () use ($req, $action, $method, $base) {
-            if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-            $user = $userOrRedirect;
-            if (($redirect = self::guard($req, PermissionsConstants::MNG_PRJ_TSK_STG, self::REDIRECT_INDEX)) !== true) return $redirect;
-            Log::info("[{$base}::{$action}] called", ['user_id' => $user?->id, 'order' => $req->order, 'method' => $method]);
-            try {
-                $txnStart = microtime(true);
-                DB::transaction(function () use ($req, $action) {
-                    $loopStart = microtime(true);
-                    foreach ($req->input('order', []) as $pos => $id) TaskStage::where('id', $id)->update(['order' => $pos]);
-                    $this->logExecutionTime($loopStart, $action, 'reorderStages');
-                });
-                $this->logExecutionTime($txnStart, $action, 'transaction');
-                Log::info("[{$base}::{$action}] completed", ['count' => is_array($req->input('order', [])) ? count($req->input('order', [])) : null]);
-                return response()->json(['success' => true]);
-            } catch (\Throwable $e) {
-                Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
-                Log::channel(SettingsConstants::ERR_TRACE)->debug("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
-                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName(), 'order' => $req->input('order', [])]);
-                return response()->json(['error' => __('Server error')], 500);
-            }
-        }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
-    }
 }

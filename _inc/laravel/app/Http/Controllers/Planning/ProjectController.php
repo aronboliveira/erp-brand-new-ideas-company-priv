@@ -51,6 +51,14 @@ use Illuminate\View\View;
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
 use App\Traits\DefinesResourceActions;
+use App\Config\Constants\PermissionsConstants as PMC;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
+use Illuminate\Validation\ValidationException;
+use App\Config\Constants\ActivitiesConstants as AC;
+use App\Config\Constants\DatabaseConstants as DC;
+use App\Config\Constants\UsersConstants as UC;
+use App\Config\Constants\ProjectsConstants as PJC;
 class ProjectController extends Controller
 {
 	use DefinesResourceActions;
@@ -1713,44 +1721,6 @@ class ProjectController extends Controller
     }
 
     public const CP_LNK_ST_CRT = 'copyLinkSettingCreate';
-
-    public const PRJ_CP_LNK = 'projectCopyLink';
-    /**
-     * Gera um link compartilhável para o projeto a partir do ID criptografado.
-     */
-    public function projectCopyLink(Request $request, int|string $id): RedirectResponse|JsonResponse|null
-    {
-        $action = __FUNCTION__;
-        return $this->measureProfile($action, function () use ($request, $id, $action) {
-            $t = microtime(true);
-            if (($r = self::_checkLogin()) instanceof RedirectResponse) return $r;
-            $this->logExecutionTime($t, $action . '::checkLogin', 'completed');
-
-            $t = microtime(true);
-            if (($g = self::guard($request, 'view project', VW::PRJ . '.index')) instanceof RedirectResponse) return $g;
-            $this->logExecutionTime($t, $action . '::guard', 'completed');
-
-            try {
-                $t = microtime(true);
-                $project = Project::findOrFail($id);
-                $this->logExecutionTime($t, $action . '::fetchProject', 'completed');
-
-                $encrypted = Crypt::encrypt($project->id);
-                $link = url(VW::PRJ . '/link/' . $encrypted);
-
-                Log::info($action . ' generated', ['project_id' => $id, 'link' => $link]);
-
-                if ($request->wantsJson()) {
-                    return response()->json(['link' => $link, 'success' => true]);
-                }
-
-                return Redirect::back()->with('success', __('Link generated successfully.'))->with('link', $link);
-            } catch (\Throwable $e) {
-                Log::error($action . ' failed', ['error' => $e->getMessage(), 'project_id' => $id]);
-                return defaultUndefinedException($request, $e, __CLASS__ . '::' . $action);
-            }
-        }, ['projectId' => $id]);
-    }
 
     public function copyLinkSettingCreate(Request $request, int $projectId): View|RedirectResponse|null
     {

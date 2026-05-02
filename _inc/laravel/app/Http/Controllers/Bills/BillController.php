@@ -21,7 +21,7 @@ use App\Models\{
     Bill,
     BillAccount,
     BillPayment,
-    BillProduct,
+    Bills\BillProduct as BillProduct,
     ChartOfAccount,
     CustomField,
     DebitNote,

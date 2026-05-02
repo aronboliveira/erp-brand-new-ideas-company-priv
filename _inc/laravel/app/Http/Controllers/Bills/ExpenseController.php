@@ -16,7 +16,7 @@ use App\Models\{
     Bill,
     BillAccount,
     BillPayment,
-    BillProduct,
+    Bills\BillProduct as BillProduct,
     ChartOfAccount,
     Customer,
     CustomField,
@@ -54,6 +54,8 @@ use Throwable;
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
 use App\Traits\DefinesResourceActions;
+use App\Config\Constants\PermissionsConstants as PMC;
+use App\Config\Constants\ViewsConstants as VW;
 final class ExpenseController extends Controller
 {
 	use DefinesResourceActions;
@@ -903,8 +905,6 @@ final class ExpenseController extends Controller
         Log::info(__METHOD__, ['creatorId' => $creatorId, 'nextBill' => $next]);
         return $next;
     }
-<<<<<<< HEAD
-=======
 
     /**
      * Stub: Show expense payment view.
@@ -927,5 +927,4 @@ final class ExpenseController extends Controller
     {
         return $this->index($r);
     }
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 }
