@@ -6,9 +6,9 @@
  * @module index
  */
 (() => {
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const QA = (s) => Array.from(document.querySelectorAll(s));
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const T = window.PAYSLIP_I18N || {}, DEFAULT_ROUTE_MSG = T.routeUnavailable ??
         "Requested route is unavailable. Please contact technical support or your domain administrator.";
     const toast = (message) => {

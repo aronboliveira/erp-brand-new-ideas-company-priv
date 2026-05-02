@@ -8,11 +8,11 @@
 (() => {
     (function () {
         try {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
             const svLang = (window.svLang || {});
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
             svLang.zoomMeetings = svLang.zoomMeetings || {};
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
             svLang.zoomMeetings.store = svLang.zoomMeetings.store || {};
             svLang.zoomMeetings.store.routeGuardDefault =
                 "Store zoom meeting route is unavailable. Please contact technical support or your domain administrator.";

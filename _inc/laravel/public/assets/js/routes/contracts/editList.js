@@ -5,8 +5,8 @@
  * @generated from original JavaScript - manual review recommended
  * @module editList
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
 (() => {
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", DATA_LISTENER_ADDED = "data-listener-added";
     const getMsg = (el, key) => {
@@ -92,8 +92,8 @@
         });
         mo.observe(document.body, { childList: true, subtree: true });
     };
-    const routeGuard = (element, 
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const routeGuard = (element,
+
     alt) => {
         const url = element?.getAttribute("data-url");
         const href = element?.getAttribute("action") ?? element?.getAttribute("href");
@@ -158,9 +158,9 @@
                             data.forEach(it => {
                                 if (!it)
                                     return;
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
                                 const val = String(it.id ?? "");
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
                                 const text = String(it.name ?? "");
                                 if (val.length !== 0)
                                     $sel.append(`<option value="${val}">${text}</option>`);
@@ -189,7 +189,7 @@
         };
         initChoices();
         $(document).on("change", ".client_select", function () {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
             const client_id = String($(this).val() ?? "");
             getParent(client_id, this);
         });

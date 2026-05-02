@@ -6,9 +6,9 @@
  * @module index
  */
 (() => {
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    const Q = (s) => document.querySelector(s), 
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+    const Q = (s) => document.querySelector(s),
+
     QA = (s) => Array.from(document.querySelectorAll(s));
     const T = (m) => {
         const t = typeof m === "string"

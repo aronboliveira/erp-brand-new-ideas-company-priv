@@ -1,108 +1,165 @@
-(function() {
-"use strict";
 /**
- * erp-bootstrap.ts — Application Bootstrap / Initialization Singleton
+ * @file erp-bootstrap.js
+ * @description Singleton bootstrap loader — ensures all ERP core singletons
+ *              are instantiated and available on `window` before any route
+ *              script executes.
  *
- * Handles one-time page setup that currently lives inline in dash.js,
- * custom.js, and the Blade footer. Route files can assume this has
- * already run when they execute.
+ * Load order (in layout): erp-guard.js → erp-utils.js → erp-bootstrap.js
  *
- * @module core/erp-bootstrap
- * @see public/assets/js/dash.js
- * @see public/assets/js/custom.js
- * @see resources/views/partials/admin/footer.blade.php
+ * This script is designed to be minified and inlined or loaded synchronously
+ * in the main layout so that all downstream `<script defer>` files can safely
+ * assume `window.ERPGuard` and `window.ERPUtils` exist.
+ *
+ * @version 1.0.0
+ * @license MIT
  */
-/* ---------- Constants --------------------------------------------------- */
-/** Default toast auto-hide delay in milliseconds. */
-const TOAST_DELAY = 4000;
-/** CSS class for the global toast container. */
-const TOAST_CONTAINER_ID = "toast-container";
-/* ---------- Private state ----------------------------------------------- */
-let _bootstrapped = false;
-/* ---------- Toast Container --------------------------------------------- */
-/**
- * Ensures the global `#toast-container` element exists in the DOM.
- * Created once; 824+ route files previously inlined this logic.
- */
-export function ensureToastContainer() {
-    let container = document.getElementById(TOAST_CONTAINER_ID);
-    if (!container) {
-        container = document.createElement("div");
-        container.id = TOAST_CONTAINER_ID;
-        container.className =
-            "toast-container position-fixed bottom-0 end-0 p-3";
-        container.style.zIndex = "1100";
-        container.setAttribute("aria-live", "polite");
-        container.setAttribute("aria-atomic", "true");
-        document.body.appendChild(container);
+(function (w) {
+  "use strict";
+
+  /* ── Registry ─────────────────────────────────────────────────── */
+
+  /**
+   * Central registry of singletons the ERP system depends on.
+   * Each entry maps a `window` property name to a factory function
+   * that creates / returns the singleton when it is missing.
+   *
+   * @type {Array<{key: string, factory: function(): *}>}
+   */
+  const registry = [
+    {
+      key: "ERPGuard",
+      factory: function () {
+        // ERPGuard uses a static getInstance pattern
+        if (w.ERPGuard && w.ERPGuard.getInstance) {
+          return w.ERPGuard.getInstance();
+        }
+        return null;
+      },
+    },
+    {
+      key: "ERPUtils",
+      factory: function () {
+        if (w.ERPUtils) {
+          return new w.ERPUtils();
+        }
+        return null;
+      },
+    },
+  ];
+
+  /* ── Boot function ────────────────────────────────────────────── */
+
+  /**
+   * Iterate over the registry and ensure each singleton exists on `window`.
+   * If a singleton is missing, attempt to create it via its factory.
+   *
+   * @returns {string[]} Names of singletons that could NOT be resolved
+   *                     (empty array = all OK)
+   */
+  function ensureSingletons() {
+    const missing = [];
+
+    for (let i = 0; i < registry.length; i++) {
+      const entry = registry[i];
+
+      if (w[entry.key]) continue; // already present
+
+      try {
+        const instance = entry.factory();
+        if (instance) {
+          w[entry.key] = instance;
+        } else {
+          missing.push(entry.key);
+        }
+      } catch (err) {
+        missing.push(entry.key);
+        if (w.console && w.console.warn) {
+          w.console.warn(
+            "[ERPBootstrap] Failed to instantiate " + entry.key + ":",
+            err,
+          );
+        }
+      }
     }
-    return container;
-}
-/* ---------- CSRF -------------------------------------------------------- */
-let _csrfToken = null;
-/** Reads and caches `<meta name="csrf-token">`. */
-export function getCsrfToken() {
-    if (_csrfToken)
-        return _csrfToken;
-    const meta = document.querySelector('meta[name="csrf-token"]');
-    _csrfToken = meta?.content ?? "";
-    return _csrfToken;
-}
-/* ---------- Translations Init ------------------------------------------- */
-/**
- * Ensures `window.translations` is an object.
- * 326+ route files check this property; we initialise it once.
- */
-export function ensureTranslations() {
-    if (!window.translations || typeof window.translations !== "object") {
-        window.translations = {};
-    }
-    return window.translations;
-}
-/**
- * Reads `site_currency_symbol` and `site_currency_symbol_position`
- * from the inline `<script>` in the Blade footer.
- */
-export function getSiteCurrency() {
-    const w = window;
-    return {
-        symbol: w.site_currency_symbol ?? "$",
-        position: w.site_currency_symbol_position ?? "pre",
+
+    return missing;
+  }
+
+  /* ── Public helper for downstream scripts ─────────────────────── */
+
+  /**
+   * Called at the top of every route script IIFE to guarantee that the
+   * singletons it depends on are available.
+   *
+   * Usage:
+   *   const { guard, utils } = window.ERPBootstrap.require('ERPGuard', 'ERPUtils');
+   *
+   * If any requested singleton is still unavailable after a boot attempt,
+   * the missing names are logged and `null` is returned for that slot.
+   *
+   * @param {...string} names - window property names to require
+   * @returns {Object} hash of { guard: window.ERPGuard, utils: window.ERPUtils, … }
+   */
+  function require(/* ...names */) {
+    // Boot first (idempotent — fast path if already booted)
+    ensureSingletons();
+
+    const result = {};
+    const keys = Array.prototype.slice.call(arguments);
+
+    /* Canonical short aliases */
+    const aliases = {
+      ERPGuard: "guard",
+      ERPUtils: "utils",
     };
-}
-/* ---------- Feather Icons ----------------------------------------------- */
-/**
- * Safely calls `feather.replace()` if the library is loaded.
- */
-export function initFeatherIcons() {
-    const f = window.feather;
-    if (f && typeof f.replace === "function") {
-        f.replace();
+
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const alias = aliases[key] || key;
+      result[alias] = w[key] || null;
+
+      if (!result[alias] && w.console && w.console.warn) {
+        w.console.warn(
+          '[ERPBootstrap] Singleton "' + key + '" is unavailable.',
+        );
+      }
     }
-}
-/* ---------- Master Bootstrap -------------------------------------------- */
-/**
- * Runs all one-time initialisations. Idempotent — safe to call multiple times.
- * Called automatically at module load on `DOMContentLoaded` or immediately
- * if the DOM is already ready.
- */
-export function bootstrap() {
-    if (_bootstrapped)
-        return;
-    _bootstrapped = true;
-    ensureToastContainer();
-    ensureTranslations();
-    getCsrfToken();
-    initFeatherIcons();
-}
-/* ---------- Auto-init --------------------------------------------------- */
-if (typeof document !== "undefined") {
-    if (document.readyState === "interactive" ||
-        document.readyState === "complete") {
-        bootstrap();
-    }
-    else {
-        document.addEventListener("DOMContentLoaded", bootstrap, { once: true });
-    }
-}
-})();
+
+    return result;
+  }
+
+  /* ── Expose ───────────────────────────────────────────────────── */
+
+  w.ERPBootstrap = {
+    /** @type {function(): string[]} */
+    ensureSingletons: ensureSingletons,
+    /** @type {function(...string): Object} */
+    require: require,
+    /**
+     * Register a custom singleton at runtime.
+     * @param {string} key - window property name
+     * @param {function(): *} factory - Factory that returns the instance
+     */
+    register: function (key, factory) {
+      if (typeof key !== "string" || typeof factory !== "function") return;
+
+      // Avoid duplicates
+      for (let i = 0; i < registry.length; i++) {
+        if (registry[i].key === key) return;
+      }
+
+      registry.push({ key: key, factory: factory });
+    },
+  };
+
+  /* ── Initial boot ─────────────────────────────────────────────── */
+
+  const missing = ensureSingletons();
+
+  if (missing.length > 0 && w.console && w.console.warn) {
+    w.console.warn(
+      "[ERPBootstrap] Missing singletons after initial boot:",
+      missing.join(", "),
+    );
+  }
+})(typeof window !== "undefined" ? window : globalThis);

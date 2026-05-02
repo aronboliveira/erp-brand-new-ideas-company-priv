@@ -5,13 +5,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
 (() => {
     const ERR_FB = "# ERROR", FL_CLIENT = "data-client-localized", FL_GUARD = "data-guard-msg", LANG_KEY = "erp-np-lang";
     let errorMessage = "";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
     const getMsg = (key, el) => {
         let msg = ERR_FB;
         if (el.getAttribute(FL_CLIENT) === "true") {

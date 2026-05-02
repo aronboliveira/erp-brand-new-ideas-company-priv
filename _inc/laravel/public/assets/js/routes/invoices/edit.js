@@ -5,7 +5,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module edit
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 // assets/js/routes/invoices/edit.js
 (() => {
     try {

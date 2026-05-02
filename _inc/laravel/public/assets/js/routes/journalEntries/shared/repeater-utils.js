@@ -5,7 +5,7 @@
  * Reduces code duplication between create and edit blade templates.
  * Mirror of public/assets/js/routes/journalEntries/shared/repeater-utils.js
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument -- jQuery ($) lacks type definitions in this project */
+
 const _emitted = {};
 const devError = (tag, err) => {
     if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1")
@@ -83,7 +83,7 @@ const JournalEntryRepeater = (() => {
         }
         if (!$(selector + " .repeater").length)
             return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         let $repeater;
         try {
             $repeater = $(selector + " .repeater").repeater({

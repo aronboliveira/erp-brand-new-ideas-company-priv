@@ -7,7 +7,7 @@
  */
 (function () {
     try {
-        // eslint-disable-next-line no-inner-declarations
+
         function toast(msg) {
             if (window.bootstrap.Toast) {
                 const box = document.getElementById("toast-container") ??
@@ -31,7 +31,7 @@
                     "Requested route is unavailable. Please contact technical support or your domain administrator.");
             }
         }
-        // eslint-disable-next-line no-inner-declarations
+
         function guardClick(a) {
             if (!a || a.getAttribute("data-guard-bound") === "1")
                 return;
@@ -45,7 +45,7 @@
                 toast(a.getAttribute("data-guard-msg") ?? "");
             });
         }
-        // eslint-disable-next-line no-inner-declarations
+
         function init() {
             const ids = ["#project-report-index-link"];
             ids.forEach(function (sel) {

@@ -5,8 +5,8 @@
  * @generated from original JavaScript - manual review recommended
  * @module list
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
 (() => {
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", DATA_LISTENER_ADDED = "data-listener-added";
     const getMsg = (el, msgKey) => {
@@ -91,8 +91,8 @@
         });
         mo.observe(document.body, { childList: true, subtree: true });
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
     const routeGuard = (element, alt) => {
         const url = element?.getAttribute("data-url");
         const href = element?.getAttribute("action") ?? element?.getAttribute("href");

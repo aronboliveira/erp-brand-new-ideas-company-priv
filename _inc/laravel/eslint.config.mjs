@@ -1,4 +1,5 @@
 import js from "@eslint/js";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -150,6 +151,7 @@ export default [
   /* ── suppress phantom @typescript-eslint/* inline directives ──── */
   {
     files: ["**/*.js", "**/*.cjs", "**/*.mjs"],
+    plugins: { "@typescript-eslint": tsPlugin },
     rules: tsRuleOverrides,
   },
 
@@ -389,11 +391,6 @@ export default [
       "public/assets/js/routes/pos/lang/view.js",
       "public/assets/js/routes/reports/balances/horizontal/index/index.js",
       "public/assets/js/routes/users/apply.js",
-      ".backup/**",
-      "public/**",
-      "Modules/**",
-      "node_modules/**",
-      "vendor/**",
     ],
   },
 ];

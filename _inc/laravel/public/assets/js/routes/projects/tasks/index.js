@@ -58,10 +58,10 @@
                             catch (err) {
                                 if (window.location.hostname === "localhost" ||
                                     window.location.hostname === "127.0.0.1")
-                                    console.error("[assets/js/routes/projects/tasks/index.js] Bootstrap toast instantiation error:", 
-                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                                    err?.constructor?.name ?? "Error", 
-                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                                    console.error("[assets/js/routes/projects/tasks/index.js] Bootstrap toast instantiation error:",
+
+                                    err?.constructor?.name ?? "Error",
+
                                     err?.message ?? "Unknown error");
                                 alert(msg);
                             }
@@ -74,10 +74,10 @@
                     catch (err) {
                         if (window.location.hostname === "localhost" ||
                             window.location.hostname === "127.0.0.1")
-                            console.error("[assets/js/routes/projects/tasks/index.js] Click handler error:", 
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                            err?.constructor?.name ?? "Error", 
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                            console.error("[assets/js/routes/projects/tasks/index.js] Click handler error:",
+
+                            err?.constructor?.name ?? "Error",
+
                             err?.message ?? "Unknown error");
                     }
                 });
@@ -85,10 +85,10 @@
             catch (err) {
                 if (window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1")
-                    console.error("[assets/js/routes/projects/tasks/index.js] Link binding error:", 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    err?.constructor?.name ?? "Error", 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                    console.error("[assets/js/routes/projects/tasks/index.js] Link binding error:",
+
+                    err?.constructor?.name ?? "Error",
+
                     err?.message ?? "Unknown error");
             }
         });
@@ -96,10 +96,10 @@
     catch (error) {
         if (window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1")
-            console.error("[assets/js/routes/projects/tasks/index.js] Initialization error:", 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            error?.constructor?.name ?? "Error", 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            console.error("[assets/js/routes/projects/tasks/index.js] Initialization error:",
+
+            error?.constructor?.name ?? "Error",
+
             error?.message ?? "Unknown error");
     }
 })();

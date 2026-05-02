@@ -5,9 +5,9 @@
  * @generated from original JavaScript - manual review recommended
  * @module calendar
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
+
 (function () {
     const $ = window.jQuery;
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-error-guard", dataCalGuard = "data-cal-guard";
@@ -79,9 +79,9 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||

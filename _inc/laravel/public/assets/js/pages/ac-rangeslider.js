@@ -4,7 +4,7 @@
  * @module ac-rangeslider
  */
 // @ts-nocheck
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unused-vars, no-var */
+
 /* global $, jQuery */
 "use strict";
 // [ basic-Slider ]

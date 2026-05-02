@@ -5,21 +5,21 @@
  * @generated from original JavaScript - manual review recommended
  * @module payPdf
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
 (() => {
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const Q = (s) => document.querySelector(s);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const QA = (s) => Array.from(document.querySelectorAll(s)), CLICK_SEL = '[data-action="save-pdf"]', ATTR_GUARD = "data-guard-msg", ATTR_LOCALIZED = "data-sv-localized", ONCE = "data-guard-once", DEFAULT_ERR = "Save as PDF is unavailable. Please contact technical support or your domain administrator.";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const hasBs = () => !!(document.querySelector('link[rel~="stylesheet"][href*="bootstrap"]') && window.bootstrap);
     const getLang = () => {
         const fromStorage = (window.sessionStorage.getItem("erp-np-lang") ?? "").trim(), fromDoc = document.documentElement.lang.trim(), lang = (fromStorage || fromDoc).toLowerCase().replace(/_/g, "-");
         return lang === "pt-br" ? lang : lang.slice(0, 2);
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
     const localizeGuard = (el) => {
         if (!el)
             return DEFAULT_ERR;
@@ -116,7 +116,7 @@
     });
     mo.observe(document.documentElement, { childList: true, subtree: true });
     window.saveAsPDF = () => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
         doSavePdf(Q(CLICK_SEL) || document.body);
     };
 })();

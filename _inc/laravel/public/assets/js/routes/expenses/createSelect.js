@@ -5,14 +5,14 @@
  * @generated from original JavaScript - manual review recommended
  * @module createSelect
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
+
 (() => {
     const errFb = "# ERROR", clientLoc = "data-client-localized", guardMsg = "data-guard-msg", langKey = "erp-np-lang";
     let errorMessage = "";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
     const getMsg = (key, el) => {
         let msg = errFb;
         if (el.getAttribute("data-sv-localized") === "true" || el.getAttribute(clientLoc) === "true") {
@@ -95,8 +95,8 @@
             onTypeChange.call(checkedInput);
     };
     const onTypeChange = function () {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+
+
         const type = this.value;
         ["employee", "customer", "vendor"].forEach(cls => {
             document.querySelectorAll(`.${cls}`).forEach((el) => {

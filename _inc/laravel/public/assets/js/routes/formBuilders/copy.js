@@ -5,13 +5,13 @@
  * @generated from original JavaScript - manual review recommended
  * @module copy
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
 (() => {
     const SUCCESS_KEY = "link_copy_success", FAILURE_KEY = "link_copy_failed", LISTENER_ATTR = "data-copy-listener";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const SELECTOR = [".cp_link", ".iframe_link"];
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const showMsg = (key, isError = false) => {
         const msg = (() => {
             let lang = (sessionStorage.getItem("erp-np-lang") ??

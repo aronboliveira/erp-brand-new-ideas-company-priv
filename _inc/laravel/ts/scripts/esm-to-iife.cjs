@@ -86,6 +86,35 @@ function esmToIife(content) {
   // 4. Strip source map references
   code = code.replace(/^\/\/# sourceMappingURL=.*$/gm, "");
 
+  // 4b. Strip TS-only eslint-disable directives (rules like @typescript-eslint/*
+  //     are not loaded for plain JS, so they become "unused disable" warnings).
+  //     Block-comment disables: drop entirely if all rules are @typescript-eslint/*.
+  code = code.replace(
+    /\/\*\s*eslint-disable(?:-next-line)?\s+([^*]+?)\*\//g,
+    (match, ruleList) => {
+      const rules = ruleList
+        .split(",")
+        .map((r) => r.trim())
+        .filter((r) => r.length > 0);
+      const nonTs = rules.filter((r) => !r.startsWith("@typescript-eslint/"));
+      if (nonTs.length === 0) return "";
+      return match.replace(ruleList, " " + nonTs.join(", ") + " ");
+    }
+  );
+  //     Line-comment disables: same treatment.
+  code = code.replace(
+    /\/\/\s*eslint-disable(?:-next-line)?\s+([^\n]+)/g,
+    (match, ruleList) => {
+      const rules = ruleList
+        .split(",")
+        .map((r) => r.trim())
+        .filter((r) => r.length > 0);
+      const nonTs = rules.filter((r) => !r.startsWith("@typescript-eslint/"));
+      if (nonTs.length === 0) return "";
+      return match.replace(ruleList, nonTs.join(", "));
+    }
+  );
+
   // 5. Trim excess blank lines
   code = code.replace(/\n{3,}/g, "\n\n").trim();
 

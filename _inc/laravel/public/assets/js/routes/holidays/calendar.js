@@ -5,16 +5,16 @@
  * @generated from original JavaScript - manual review recommended
  * @module calendar
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 // assets/js/routes/holidays/calendar.js — Calendar-type switching for Holiday calendar
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
 (function () {
     const $ = window.jQuery;
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-holcal-error", dataCalGuard = "data-holcal-bound";
     const qs = (s, r = document) => r.querySelector(s);
     const hasBootstrapUi = () => !!(
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     (qs('link[rel="stylesheet"][href*="bootstrap"]') ||
         qs('link[href*="bootstrap"]'))) && !!window.bootstrap.Toast;
     const ensureToastContainer = () => {
@@ -87,9 +87,9 @@
             }
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" ||

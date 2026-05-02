@@ -5,12 +5,12 @@
  * @generated from original JavaScript - manual review recommended
  * @module url
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
 (() => {
     const ERR_FB = "# ERROR", CLIENT_FLAG = "data-client-localized", GUARD_MSG = "data-guard-msg", LANG_KEY = "erp-np-lang";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
     function getLocalizedMessage(key, el) {
         let msg = ERR_FB;
         if (el.getAttribute(CLIENT_FLAG) === "true") {
@@ -27,7 +27,7 @@
         }
         return msg;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     function showToast(message, _isError = false) {
         try {
             let container = document.getElementById("toast-container");

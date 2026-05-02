@@ -6,13 +6,13 @@
  * @module toggleCreate
  */
 const $ = window.jQuery;
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
 (() => {
     const errFb = "# ERROR", guardMsg = "data-guard-msg", clientFlag = "data-client-localized", langKey = "erp-np-lang";
     let errorMessage = "";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
     function getLocalizedMessage(key, el) {
         let msg = errFb;
         if (el.getAttribute(clientFlag) === "true") {

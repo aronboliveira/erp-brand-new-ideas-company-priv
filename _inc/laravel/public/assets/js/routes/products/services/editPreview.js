@@ -101,35 +101,35 @@
         if ($imgInput.length) {
             const onImgChange = function () {
                 try {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+
+
                     const file = this?.files?.[0];
                     if (!file || !$img.length) {
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
                         guardOnce(this, "image_preview_unavailable");
                         return;
                     }
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
+
+
+
                     const prev = this.getAttribute("data-prev-url") ?? "";
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
                     const url = URL.createObjectURL(file);
                     $img.attr("src", url);
                     if (prev)
                         try {
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
                             URL.revokeObjectURL(prev);
                         }
                         catch (__err) {
                             console.error(`[editPreview] Error:`, __err);
                         }
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+
+
                     this.setAttribute("data-prev-url", url);
                 }
                 catch {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
                     guardOnce(this, "image_preview_unavailable");
                 }
             };
@@ -149,12 +149,12 @@
         if (document.body.getAttribute("data-np-qty-bound") !== "true") {
             $(document).on("click", ".type", function () {
                 try {
-                    const isProduct = 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                    const isProduct =
+
                     String($(this).val() ?? "").toLowerCase() === "product";
                     const $qty = $(".quantity");
                     if (!$qty.length) {
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
                         guardOnce(this, "toggle_quantity_unavailable");
                         return;
                     }
@@ -163,7 +163,7 @@
                         .toggleClass("d-block", isProduct);
                 }
                 catch {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
                     guardOnce(this, "toggle_quantity_unavailable");
                 }
             });

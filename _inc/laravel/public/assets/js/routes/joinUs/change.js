@@ -5,16 +5,16 @@
  * @generated from original JavaScript - manual review recommended
  * @module change
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
+
 (() => {
     const lang = (document.documentElement.getAttribute("lang") ?? "en").toLowerCase();
     const dict = (window.translations &&
         (window.translations[lang] || window.translations[lang.split("-")[0]])) ||
         window.translations?.en ||
         {};
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const tr = (k) => dict[k] || k;
     const showToastOrAlert = (msg) => {
         try {
@@ -60,8 +60,8 @@
             alert(msg);
         }
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
     const ensure = (selector) => {
         const el = document.querySelector(selector);
         if (!el)
@@ -101,7 +101,7 @@
         safeToggle(current);
         $(document).on("click", "input[name='client_check']", function () {
             try {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
                 const mode = String($(this).val() ?? "new").toLowerCase();
                 safeToggle(mode);
             }

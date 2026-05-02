@@ -99,7 +99,7 @@
                         try {
                             if (yes)
                                 // SECURITY: Safe handler dispatch instead of new Function()
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                                 window.__confirmHandlers?.[yes]?.[0]?.() ||
                                     safeFormAction(yes, yesBtn);
                         }
@@ -117,7 +117,7 @@
                         try {
                             if (yes)
                                 // SECURITY: Safe handler dispatch instead of new Function()
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                                 window.__confirmHandlers?.[yes]?.[0]?.() ||
                                     safeFormAction(yes, document.body);
                         }

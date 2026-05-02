@@ -5,17 +5,17 @@
  * @generated from original JavaScript - manual review recommended
  * @module copy
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
+
 (function () {
     const $ = window.jQuery;
     const errFb = "# ERROR", dataClientLocalized = "data-client-localized", dataGuardMsg = "data-guard-msg", dataSvLocalized = "data-sv-localized", dataErrGuard = "data-error-guard", _dataBoundCopy = "data-bound-copy", _dataBoundSel = "data-bound-sel", dataBoundChange = "data-bound-template-change", dataBoundGen = "data-bound-generate", copiedMsgId = "ai-copied-msg", qs = (s, r = document) => r.querySelector(s);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    const _qsa = (s, r = document) => 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
+    const _qsa = (s, r = document) =>
+
     Array.prototype.slice.call(r.querySelectorAll(s) || []);
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const hasBootstrap = () => qs('link[rel="stylesheet"][href*="bootstrap"]') || (qs('link[href*="bootstrap"]') && window.bootstrap.Toast);
     const ensureToastContainer = () => {
         let c = qs("#np-toast-container");
@@ -82,7 +82,7 @@
         });
         mo.observe(document.documentElement, { childList: true, subtree: true });
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const getMsg = (el, key) => {
         let msg = errFb;
         if (el.getAttribute(dataSvLocalized) === "true" || el.getAttribute(dataClientLocalized) === "true") {
@@ -101,7 +101,7 @@
         return msg;
     };
     const resolveRoute = (
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     el, explicit) => {
         const url = el?.getAttribute("data-url") || "", href = el ? (el.tagName === "FORM" ? (el.getAttribute("action") ?? "") : (el.getAttribute("href") ?? "")) : "";
         if ((!explicit || explicit === "#") && (!url || url === "#") && (!href || href === "#"))
@@ -117,11 +117,11 @@
             if (!first.checked) {
                 first.checked = true;
                 $(first).trigger("change");
-                // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
             }
         }
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const writeField = (name, value) => {
         if (!name)
             return false;
@@ -143,11 +143,11 @@
                 $ta.val(String(value ?? ""));
                 return true;
             }
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
         $ta.val(String(value ?? ""));
         return true;
     };
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
     const ensureCopiedLabel = (afterEl) => {
         const el = qs("#" + copiedMsgId);
         if (el)
@@ -155,10 +155,10 @@
         const span = document.createElement("span");
         span.id = copiedMsgId;
         span.style.marginLeft = "0.5rem";
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
         span.textContent = getMsg(afterEl || document.body, "copied_label");
-        (afterEl?.parentNode ?? document.body).insertBefore(span, 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (afterEl?.parentNode ?? document.body).insertBefore(span,
+
         afterEl?.nextSibling || null);
         return span;
     };

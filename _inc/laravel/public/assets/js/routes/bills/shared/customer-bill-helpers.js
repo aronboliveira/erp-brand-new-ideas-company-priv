@@ -23,7 +23,7 @@ const devWarn = (tag, err) => {
     const hasERPGuard = () => !!(window.ERPGuard && typeof window.ERPGuard.showToast === "function");
     const showToast = (msg, type = "error") => {
         if (window.ERPGuard && typeof window.ERPGuard.showToast === "function") {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+
             window.ERPGuard.showToast(msg, type);
         }
         else {
@@ -90,7 +90,7 @@ const devWarn = (tag, err) => {
     };
     const ensureRouteGuardInit = () => {
         if (hasERPGuard() && typeof window.ERPGuard?.init === "function") {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
             window.ERPGuard.init();
         }
     };

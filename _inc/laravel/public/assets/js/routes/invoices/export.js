@@ -5,7 +5,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module export
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 (() => {
     try {
         const selector = ".export-invoice-link", alias = "data-listening-exportinvoiceclick";

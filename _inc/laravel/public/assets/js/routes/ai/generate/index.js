@@ -5,7 +5,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module index
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 (() => {
     try {
         const f = document.getElementById("ai-template-form"), btn = document.getElementById("ai-generate-btn"), desc = document.getElementById("ai-description");
@@ -82,10 +82,10 @@
                 catch (err) {
                     if (window.location.hostname === "localhost" ||
                         window.location.hostname === "127.0.0.1")
-                        console.error("[assets/js/routes/aiTemplates/generate.js] Click handler error:", 
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                        err?.constructor?.name ?? "Error", 
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                        console.error("[assets/js/routes/aiTemplates/generate.js] Click handler error:",
+
+                        err?.constructor?.name ?? "Error",
+
                         err?.message ?? "Unknown error");
                 }
             });
@@ -94,10 +94,10 @@
     catch (error) {
         if (window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1")
-            console.error("[assets/js/routes/aiTemplates/generate.js] Initialization error:", 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            error?.constructor?.name ?? "Error", 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            console.error("[assets/js/routes/aiTemplates/generate.js] Initialization error:",
+
+            error?.constructor?.name ?? "Error",
+
             error?.message ?? "Unknown error");
     }
 })();

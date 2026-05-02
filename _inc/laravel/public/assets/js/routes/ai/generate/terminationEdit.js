@@ -58,10 +58,10 @@
             catch (err) {
                 if (window.location.hostname === "localhost" ||
                     window.location.hostname === "127.0.0.1")
-                    console.error("[assets/js/routes/terminations/generateAi.js] Click handler error:", 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    err?.constructor?.name ?? "Error", 
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                    console.error("[assets/js/routes/terminations/generateAi.js] Click handler error:",
+
+                    err?.constructor?.name ?? "Error",
+
                     err?.message ?? "Unknown error");
             }
         });
@@ -69,10 +69,10 @@
     catch (error) {
         if (window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1")
-            console.error("[assets/js/routes/terminations/generateAi.js] Initialization error:", 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            error?.constructor?.name ?? "Error", 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            console.error("[assets/js/routes/terminations/generateAi.js] Initialization error:",
+
+            error?.constructor?.name ?? "Error",
+
             error?.message ?? "Unknown error");
     }
 })();

@@ -5,7 +5,7 @@
  */
 // @ts-nocheck
 "use strict";
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+
 document.addEventListener("DOMContentLoaded", function () {
     document
         .querySelector("#btn-default")

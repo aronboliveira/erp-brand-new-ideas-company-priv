@@ -3,7 +3,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module ac-datepicker
  */
-/* eslint-disable @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unused-vars */
+
 /* global $, jQuery */
 "use strict";
 (function () {

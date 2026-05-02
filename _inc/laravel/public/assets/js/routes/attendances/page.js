@@ -5,7 +5,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module page
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 (() => {
     const BS_LINK = 'link[href*="bootstrap"]', TYPE_RADIO = 'input[name="type"][type="radio"]', MONTH_CLASS = "month", DATE_CLASS = "date", TOGGLER_ATTR = "data-toggler-initialized", _translations = {
         ar: {

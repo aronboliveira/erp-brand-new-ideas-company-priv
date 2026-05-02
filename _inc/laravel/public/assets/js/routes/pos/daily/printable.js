@@ -5,7 +5,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module printable
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 (() => {
     const BS_LINK = 'link[href*="bootstrap"]', PRINTABLE_AREA_ID = "printableArea", FILENAME_INPUT = "#filename", _translations = {
         ar: {
@@ -164,10 +164,10 @@
                 showError("pdf_save_failed");
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
             window
                 .html2pdf()
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
                 .set({
                 margin: 0.3,
                 filename,
@@ -175,9 +175,9 @@
                 html2canvas: { scale: 4, dpi: 72, letterRendering: true },
                 jsPDF: { unit: "in", format: "A2" },
             })
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
                 .from(element)
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+
                 .save();
         }
         catch {

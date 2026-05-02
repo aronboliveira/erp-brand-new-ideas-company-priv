@@ -5,12 +5,12 @@
  * @generated from original JavaScript - manual review recommended
  * @module print
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
 (() => {
     const DATA_LISTENER_ADDED = "data-listener-added", ERR_FB = "# ERROR", DATA_CLIENT_LOCALIZED = "data-client-localized", DATA_GUARD_MSG = "data-guard-msg";
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+
+
     const getLocalizedMessage = (el, key) => {
         let msg = ERR_FB;
         if (el.getAttribute("data-sv-localized") === "true" ||

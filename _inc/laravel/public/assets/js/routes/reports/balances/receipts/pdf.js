@@ -5,7 +5,7 @@
  * @generated from original JavaScript - manual review recommended
  * @module pdf
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 (function () {
     const $ = window.jQuery;
     const qs = (s, r = document) => r.querySelector(s);
@@ -157,8 +157,8 @@
                 scheduleInteractiveError(getMsg(area, "plugin_unavailable"));
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+
+
             window.html2pdf().set(opt).from(area).save();
         }
         catch (_) {
