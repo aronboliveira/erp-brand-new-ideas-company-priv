@@ -1,7 +1,17 @@
 *.sqlite*
+**/.notes/
+**/.notes/**
+**/notes/
+**/notes/**
+!seeders/notes/
+!seeders/notes/**
 .env*
 !.env*.example
 !**/.env*.example
+**/cache/
+**/cache/**
+!**/cache/
+!**/cache/.gitignore
 .vscode/
 **/.vscode/
 .claude/

@@ -131,6 +131,13 @@ public/storage
 **/.my_cache/
 **/.mypy_cache/
 **/.venv/
+**/cache/
+**/cache/**
+!**/cache/
+!**/cache/.gitignore
+!bootstrap/cache/.gitignore
+!storage/framework/cache/.gitignore
+!storage/framework/cache/data/.gitignore
 
 # ─── Test output files ────────────────────────────────────────────────────────
 test_output.txt
@@ -143,6 +150,12 @@ tsconfig.tsbuildinfo
 
 # ─── IDE history ──────────────────────────────────────────────────────────────
 .history
+.notes/
+**/.notes/
+notes/
+**/notes/
+!database/seeders/notes/
+!database/seeders/notes/**
 .vscode/
 **/.vscode/
 .claude/

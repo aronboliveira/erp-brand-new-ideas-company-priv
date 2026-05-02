@@ -9,6 +9,14 @@ node_modules/
 
 # TypeScript cache
 *.tsbuildinfo
+**/cache/
+**/cache/**
+!**/cache/
+!**/cache/.gitignore
+**/.notes/
+**/.notes/**
+**/notes/
+**/notes/**
 
 # Editor
 .vscode/
