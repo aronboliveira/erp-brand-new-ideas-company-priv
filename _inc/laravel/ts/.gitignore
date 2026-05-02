@@ -12,6 +12,13 @@ node_modules/
 
 # Editor
 .vscode/
+**/.vscode/
+.claude/
+**/.claude/
+.codex
+.codex/
+**/.codex
+**/.codex/
 *.swp
 *.swo
 *~
@@ -23,6 +30,20 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+nohup.out
+**/nohup.out
+**/nohupt.out
+
+# Environment
+.env*
+!.env*.example
+!**/.env*.example
+
+# Transient
+*.bak
+*.bak[0-9]*
+*.tmp
+*.tmp.*
 
 # Testing
 coverage/

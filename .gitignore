@@ -15,7 +15,15 @@ _test**
 node_modules/
 **/node_modules/
 vendor/
-**vendor/
+**/vendor/
+!_inc/laravel/resources/views/vendor/
+!_inc/laravel/resources/views/vendor/**
+!_inc/laravel/resources/views/vendors/
+!_inc/laravel/resources/views/vendors/**
+!_inc/laravel/resources/views/emails/vendor/
+!_inc/laravel/resources/views/emails/vendor/**
+!_inc/laravel/resources/views/emails/vendors/
+!_inc/laravel/resources/views/emails/vendors/**
 
 # builds
 
@@ -44,6 +52,8 @@ pyvenv.cfg
 
 # ide / editor
 
+/.vscode/
+/.vscode/**
 .vscode/
 .vscode/**
 **/.vscode/
@@ -68,23 +78,22 @@ pyvenv.cfg
 **/playwright-report/
 **/coverage/
 **/test-results/
+**/.nyc_output/
 **/.pytest_cache/
 **/nohup.out
 nohup.out
-*.png
-*.webm
 .mypy_cache/
 .mypy_cache/**
 **/.mypy_cache/
 **/.my_cache/**
 .history/
 .history/**
-.notes/
-.notes/**
+/.notes/
+/.notes/**
+/notes/
+/notes/**
 **/.history/
 **/.history/**
-**/.notes/
-**/.notes/**
 
 # ide helpers
 
@@ -94,10 +103,19 @@ _ide_helper.php
 
 # storage (sessions, views cache, exports, logs, etc.)
 
+**/bootstrap/cache/*
+!**/bootstrap/cache/.gitignore
+**/storage/app/*
+!**/storage/app/.gitignore
+!**/storage/app/public/
+**/storage/app/public/*
+!**/storage/app/public/.gitignore
+**/storage/framework/cache/
 **/storage/framework/sessions/
 **/storage/framework/views/
 **/storage/phpstan/
-**/storage/debugbar/
+**/storage/debugbar/*
+!**/storage/debugbar/.gitignore
 **/storage/exports/
 **/storage/logs/
 **/storage/tmp/
@@ -187,7 +205,6 @@ _inc/laravel/.phpunit.result.cache
 .instructions.md
 AGENTS.md
 copilot-instructions.md
-where-to-update-and-read.yml
 
 origin/
 origin/**
@@ -203,19 +220,24 @@ _old/**
 **/.history/
 **/.history/**
 
-.claude/
-.claude/**
-.codex
-.codex/
-.codex/**
+/.claude/
+/.claude/**
+**/.claude/
+**/.claude/**
+/.codex
+/.codex/
+/.codex/**
+**/.codex
+**/.codex/
+**/.codex/**
 .gemini/
 .gemini/**
 .venv/
 .venv/**
 tmp/
 tmp/**
-utils/
-utils/**
+/utils/
+/utils/**
 
 # local runtime / backup noise
 all_branches_log.txt
@@ -225,14 +247,26 @@ obf.js
 .env
 .env.*
 .env*
+!.env*.example
+!**/.env*.example
 *.bkp
-**/cache/
-**/cache/**
+*.bak
+*.bak[0-9]*
+*.tmp
+*.tmp.*
+*.swp
+*.swo
+*~
+*.sqlite*
+**/.cache/
+**/.cache/**
 **/.next/
 **/.turbo/
 **/.vite/
+**/nohupt.out
 **/public/storage
-**/storage/framework/testing/
+**/storage/framework/testing/*
+!**/storage/framework/testing/.gitignore
 **/storage/test_files/
 _inc/laravel/json
 _inc/laravel/os
@@ -248,8 +282,6 @@ _inc/nginx/**
 _inc/php/
 _inc/php/**
 _inc/laravel/database/schema/*.sql
-_inc/laravel/database/migrations/2025_06_03_000000_create_users_table.php
-_inc/laravel/Modules/LandingPage/Database/Migrations/2025_06_03_000000_create_users_table.php
 _inc/laravel/webpack.mix.js
 _inc/laravel/frontend/app/public/.htaccess
 _inc/laravel/frontend/app/public/index.php

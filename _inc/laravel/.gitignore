@@ -14,11 +14,15 @@ _test.js
 node_modules/
 **/node_modules/
 vendor/
-**vendor/
+**/vendor/
 !resources/views/vendor/
+!resources/views/vendor/**
 !resources/views/vendors/
+!resources/views/vendors/**
 !resources/views/emails/vendor/
+!resources/views/emails/vendor/**
 !resources/views/emails/vendors/
+!resources/views/emails/vendors/**
 
 # builds
 
@@ -33,6 +37,9 @@ build/
 
 #.env
 #**/.env
+.env*
+!.env*.example
+!**/.env*.example
 
 !env/
 !env/**
@@ -50,10 +57,18 @@ pyvenv.cfg
 .backup/**
 .tmp/
 .tmp/**
+/ts/package-lock.json
 /vendor/srmklive/paypal/tests/Mocks/samples/sample2.pdf
 /vendor/srmklive/paypal/tests/Mocks/samples/sample.pdf
 # Backup and transient files
 *.bak
+*.bak[0-9]*
+*.tmp
+*.tmp.*
+*.swp
+*.swo
+*~
+*.sqlite*
 storage/test_attach/
 tsconfig.tsbuildinfo
 
@@ -66,15 +81,36 @@ tests/e2e/test-results/
 tests/e2e/results.json
 tests/frontend/js/playwright-report/
 tests/frontend/js/test-results/
+tests/frontend/js/coverage/
+tests/postman/reports/
+tests/postman/route-surface.json
+tests/postman/tmp-*.json
+coverage/
+test-results/
+test-results.json
+.nyc_output/
 
 # ─── PHPUnit / PHPStan caches ─────────────────────────────────────────────────
 .phpunit.result.cache
 storage/phpstan/
+storage/phpstan_results/
 
 # ─── Laravel runtime (sessions, compiled views, framework cache) ──────────────
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+storage/app/*
+!storage/app/.gitignore
+!storage/app/public/
+storage/app/public/*
+!storage/app/public/.gitignore
 storage/framework/sessions/
 storage/framework/views/
 storage/framework/cache/
+storage/framework/testing/*
+!storage/framework/testing/.gitignore
+storage/debugbar/*
+!storage/debugbar/.gitignore
+storage/tmp/
 
 # ─── Logs ─────────────────────────────────────────────────────────────────────
 storage/logs/
@@ -83,6 +119,7 @@ debug_paytabs.log
 # ─── Generated exports and uploads ───────────────────────────────────────────
 storage/exports/
 storage/uploads/
+public/storage
 
 # ─── Python bytecode ──────────────────────────────────────────────────────────
 **/__pycache__/
@@ -90,7 +127,10 @@ storage/uploads/
 *.pyo
 .mypy_cache/
 .pytest_cache/
+.venv/
 **/.my_cache/
+**/.mypy_cache/
+**/.venv/
 
 # ─── Test output files ────────────────────────────────────────────────────────
 test_output.txt
@@ -103,11 +143,21 @@ tsconfig.tsbuildinfo
 
 # ─── IDE history ──────────────────────────────────────────────────────────────
 .history
+.vscode/
+**/.vscode/
+.claude/
+**/.claude/
+.codex
+.codex/
+**/.codex
+**/.codex/
 
 
 # Miscellaneous
 
 nohup.out
+**/nohup.out
+**/nohupt.out
 codex
 claude/
 .history/
