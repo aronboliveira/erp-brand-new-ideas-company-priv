@@ -30,6 +30,8 @@ __pycache__/
 nohup.out
 **/nohup.out
 **/nohupt.out
+auth-error.png
+**/auth-error.png
 *.log
 *.bak
 *.bak[0-9]*

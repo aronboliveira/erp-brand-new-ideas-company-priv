@@ -277,6 +277,8 @@ obf.js
 **/.turbo/
 **/.vite/
 **/nohupt.out
+auth-error.png
+**/auth-error.png
 **/public/storage
 **/storage/framework/testing/*
 !**/storage/framework/testing/.gitignore

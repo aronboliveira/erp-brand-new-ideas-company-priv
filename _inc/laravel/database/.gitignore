@@ -23,6 +23,8 @@
 nohup.out
 **/nohup.out
 **/nohupt.out
+auth-error.png
+**/auth-error.png
 *.bak
 *.bak[0-9]*
 *.tmp

@@ -171,6 +171,8 @@ notes/
 nohup.out
 **/nohup.out
 **/nohupt.out
+auth-error.png
+**/auth-error.png
 codex
 claude/
 .history/

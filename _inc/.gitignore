@@ -49,6 +49,8 @@ out/
 nohup.out
 **/nohup.out
 **/nohupt.out
+auth-error.png
+**/auth-error.png
 **/__pycache__/
 **/*.pyc
 **/.pytest_cache/

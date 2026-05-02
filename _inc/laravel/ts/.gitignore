@@ -41,6 +41,8 @@ npm-debug.log*
 nohup.out
 **/nohup.out
 **/nohupt.out
+auth-error.png
+**/auth-error.png
 
 # Environment
 .env*
