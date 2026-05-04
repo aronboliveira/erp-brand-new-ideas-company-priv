@@ -17,4 +17,5 @@ trait HasCrudConstants
     public const EDT = 'edit';
     public const UPD = 'update';
     public const DEL = 'destroy';
+    public const ORD = 'order';
 }

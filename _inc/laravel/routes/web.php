@@ -16,7 +16,7 @@ use App\Http\Controllers\{
     Bills\BillController,
     BranchController,
     Bills\BudgetController,
-    BugStatusController,
+    BugStatusController as BGSTC,
     Bills\CashfreeController,
     ChartOfAccountController,
     Individuals\ClientController,
@@ -24,45 +24,45 @@ use App\Http\Controllers\{
     CompanyPolicyController,
     Individuals\CompetenciesController,
     ComplaintController,
-    ContractController,
+    ContractController as CTCC,
     Planning\ContractTypeController,
     Bills\CouponController,
     Bills\CreditNoteController,
     Individuals\CustomerController,
     Shapes\CustomFieldController,
-    CustomQuestionController,
+    CustomQuestionController as CSQTC,
     Shapes\DashboardController as DSBC,
-    DealController,
+    DealController as DLC,
     DebitNoteController,
     DeductionOptionController,
     DepartmentController,
     DesignationController,
     Shapes\DocumentController,
-    Ssr\DocumentUploadController,
+    Ssr\DocumentUploadController as DOCUC,
     Shapes\EmailTemplateController,
-    Individuals\EmployeeAttendanceController,
+    Individuals\EmployeeAttendanceController as EPATDC,
     EmployeeController,
     EventController,
-    ExpenseController,
+    ExpenseController as EXPC,
     Shapes\FormBuilderController,
     Planning\GoalController,
     GoalTrackingController,
     GoalTypeController,
     HolidayController,
     IndicatorController,
-    Planning\InterviewScheduleController,
+    Planning\InterviewScheduleController as IVSC,
     InvoiceController,
-    JobApplicationController,
-    JobCategoryController,
-    JobController,
-    Individuals\JobStageController,
+    JobApplicationController as JBAPC,
+    JobCategoryController as JBCTC,
+    JobController as JBC,
+    Individuals\JobStageController as JBSTC,
     JournalEntryController,
     LabelController,
     LanguageController,
-    LeadController,
+    LeadController as LDC,
     LeadStageController,
-    Planning\LeaveController,
-    Planning\LeaveTypeController,
+    Planning\LeaveController as LVC,
+    Planning\LeaveTypeController as LVTYC,
     LoanController,
     LoanOptionController,
     MeetingController,
@@ -70,7 +70,7 @@ use App\Http\Controllers\{
     OtherPaymentController,
     OvertimeController,
     PaymentController,
-    PayslipController,
+    PayslipController as PYSC,
     PayslipTypeController,
     PerformanceTypeController,
     PermissionController,
@@ -81,14 +81,14 @@ use App\Http\Controllers\{
     Products\ProductServiceCategoryController,
     Products\ProductServiceController,
     Products\ProductServiceUnitController,
-    ProductStockController,
-    ProjectController,
+    ProductStockController as PSTKC,
+    ProjectController as PRJC,
     ProjectReportController as PRPC,
-    Planning\ProjectStagesController,
-    ProjectTaskController,
+    Planning\ProjectStagesController as PRJSTC,
+    ProjectTaskController as PRJTC,
     PromotionController,
     ProposalController,
-    PurchaseController,
+    PurchaseController as PRCC,
     ReportController as RPC,
     ResignationController,
     RevenueController,
@@ -99,19 +99,19 @@ use App\Http\Controllers\{
     StageController,
     SupportController,
     SystemController,
-    TaskStageController,
+    TaskStageController as TSSTC,
     TaxController,
     Planning\TerminationController,
     Planning\TerminationTypeController,
     TimesheetController,
-    Planning\TimeTrackerController,
+    Planning\TimeTrackerController as TMTC,
     TrainerController,
     TrainingController,
     TrainingTypeController,
     TransactionController,
-    TransferController,
+    TransferController as TRFC,
     TravelController,
-    Individuals\UserController,
+    Individuals\UserController as USRC,
     VendorController,
     Companies\WarehouseController,
     WarehouseTransferController,
@@ -120,7 +120,7 @@ use App\Http\Controllers\{
     StripePaymentController,
 };
 use App\Config\Constants\{
-    DatabaseConstants,
+    DatabaseConstants as DBC,
     MiddlewaresConstants as MWC,
     ViewsConstants as VW
 };
@@ -173,7 +173,7 @@ R::get(VW::CST . '/' . VW::PPS . '/{id}/', [ProposalController::class, ProposalC
 R::get(VW::PPS . '/pdfs/{id}', [ProposalController::class, 'proposal'])->name(VW::PPS . '.pdf')
     ->middleware([MWC::XSS, MWC::REV]);
 R::get(VW::VND . '/' . VW::BIL . '/{id}/', [BillController::class, BillController::IV_LK])->name(VW::BIL . '.link.copy');
-R::get(VW::VND . '/' . VW::PRC . '/{id}/', [PurchaseController::class, PurchaseController::PRC_LK])->name(VW::PRC . '.link.copy');
+R::get(VW::VND . '/' . VW::PRC . '/{id}/', [PRCC::class, PRCC::PRC_LK])->name(VW::PRC . '.link.copy');
 #endregion
 //================================= Invoice Payment Gateways  ====================================//
 #region
@@ -188,18 +188,18 @@ R::any(VW::INV . '/with-cashfree/status', [CashfreeController::class, CashfreeCo
 #endregion
 //================================= Career Page  ====================================//
 #region
-R::get(VW::CRR . '/{id}/{lang}', [JobController::class, 'career'])->name(VW::CRR)
+R::get(VW::CRR . '/{id}/{lang}', [JBC::class, 'career'])->name(VW::CRR)
     ->middleware([MWC::XSS]);
-R::get(VW::JB . '/requirement/{code}/{lang}', [JobController::class, JobController::JB_RQ])->name(VW::JB . '.requirement')
+R::get(VW::JB . '/requirement/{code}/{lang}', [JBC::class, JBC::JB_RQ])->name(VW::JB . '.requirement')
     ->middleware([MWC::XSS]);
-R::get(VW::JB . '/apply/{code}/{lang}', [JobController::class, JobController::JB_AP])->name(VW::JB . '.apply')->middleware([MWC::XSS]);
-R::post(VW::JB . '/apply/data/{code}', [JobController::class, JobController::JB_AP_DT])->name(VW::JB . '.apply.data')->middleware([MWC::XSS, MWC::TRT . ':10,1']);
+R::get(VW::JB . '/apply/{code}/{lang}', [JBC::class, JBC::JB_AP])->name(VW::JB . '.apply')->middleware([MWC::XSS]);
+R::post(VW::JB . '/apply/data/{code}', [JBC::class, JBC::JB_AP_DT])->name(VW::JB . '.apply.data')->middleware([MWC::XSS, MWC::TRT . ':10,1']);
 #endregion
 //================================= Project Copy Module  ====================================//
 #region
 R::get(VW::PRJ . '/copy-link/{id}', [PRJC::class, PRJC::PRJ_CPY_LNK])->name(VW::PRJ . '.copy_link');
 R::any(VW::PRJ . '/link/{id}/{lang?}', [PRJC::class, PRJC::PRJ_LNK])->name(VW::PRJ . '.link')->middleware([MWC::XSS]);
-R::get(VW::PRJ . '.' . VW::TMS . '/table-view', [TMSC::class, TMSC::FT_TMS_TBL])->name(VW::PRJ . '.' . VW::TMS . '.filters.table.view')
+R::get(VW::PRJ . '.' . VW::TMS . '/table-view', [TimesheetController::class, TimesheetController::FT_TMS_TBL])->name(VW::PRJ . '.' . VW::TMS . '.filters.table.view')
     ->middleware([MWC::XSS]);
 R::get(VW::INV . '/pdf/{id}', [InvoiceController::class, 'invoice'])->name(VW::INV . '.pdf')
     ->middleware([MWC::XSS, MWC::REV]);
@@ -233,28 +233,28 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::get('/pos-dashboard', [DSBC::class, DSBC::POS_DSB_IDX])->name(VW::POS . '.dashboard')
         ->middleware([MWC::AUTH, MWC::XSS, MWC::REV]);
 
-    R::get('profile', [UserController::class, 'profile'])->name('profile')
+    R::get('profile', [USRC::class, 'profile'])->name('profile')
         ->middleware([MWC::AUTH, MWC::XSS, MWC::REV]);
 
-    R::any('edit-profile', [UserController::class, UserController::EDT_PRF])->name(VW::USR . '.account.update')
+    R::any('edit-profile', [USRC::class, USRC::EDT_PRF])->name(VW::USR . '.account.update')
         ->middleware([MWC::AUTH, MWC::XSS, MWC::REV]);
 
 
-    R::post('change-password', [UserController::class, UserController::UPD_PSW])
+    R::post('change-password', [USRC::class, USRC::UPD_PSW])
         ->name(VW::USR . '.password.update');
 
-    R::match(['GET', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], 'user-reset-password/{id}', [UserController::class, UserController::USR_PSW])->name(VW::USR . '.reset');
+    R::match(['GET', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], 'user-reset-password/{id}', [USRC::class, USRC::USR_PSW])->name(VW::USR . '.reset');
 
-    R::post('user-reset-password/{id}', [UserController::class, UserController::USR_PSW_RST])->name(VW::USR . '.password.reset');
+    R::post('user-reset-password/{id}', [USRC::class, USRC::USR_PSW_RST])->name(VW::USR . '.password.reset');
 
-    R::get('/change/mode', [UserController::class, UserController::CHG_MD])->name('change.mode');
-    R::resource(VW::USR, UserController::class)
+    R::get('/change/mode', [USRC::class, USRC::CHG_MD])->name('change.mode');
+    R::resource(VW::USR, USRC::class)
         ->middleware([MWC::AUTH, MWC::XSS, MWC::REV]);
 
-    R::resource(DatabaseConstants::TABLE_ROLES, RoleController::class)
+    R::resource(DBC::TABLE_ROLES, RoleController::class)
         ->middleware([MWC::AUTH, MWC::XSS, MWC::REV]);
 
-    R::resource(DatabaseConstants::TABLE_PERMISSIONS, PermissionController::class)
+    R::resource(DBC::TABLE_PERMISSIONS, PermissionController::class)
         ->middleware([MWC::AUTH, MWC::XSS, MWC::REV]);
     #endregion
 
@@ -779,7 +779,7 @@ R::group(['middleware' => [MWC::VF]], function () {
     #endregion
     #endregion
 
-    R::get('/search', [UserController::class, 'search'])->name('search.json');
+    R::get('/search', [USRC::class, 'search'])->name('search.json');
     R::post('/stages/order', [StageController::class, 'order'])->name('stages.order');
     R::post('/stages/json', [StageController::class, 'json'])->name('stages.json');
 
@@ -820,18 +820,18 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::post('/leads/{id}/convert', [LDC::class, 'convertToDeal'])->name(VW::LD . '.convert.to.deal')->middleware([MWC::AUTH, MWC::XSS]);
 
     // Lead Calls
-    R::get('/leads/{id}/call', [LeadController::class, 'callCreate'])->name(VW::LD . '.calls.create')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post('/leads/{id}/call', [LeadController::class, 'callStore'])->name(VW::LD . '.calls.store')->middleware([MWC::AUTH]);
-    R::get('/leads/{id}/call/{cid}/edit', [LeadController::class, 'callEdit'])->name(VW::LD . '.calls.edit')->middleware([MWC::AUTH, MWC::XSS]);
-    R::put('/leads/{id}/call/{cid}', [LeadController::class, 'callUpdate'])->name(VW::LD . '.calls.update')->middleware([MWC::AUTH]);
-    R::delete('/leads/{id}/call/{cid}', [LeadController::class, 'callDestroy'])->name(VW::LD . '.calls.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('/leads/{id}/call', [LDC::class, 'callCreate'])->name(VW::LD . '.calls.create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('/leads/{id}/call', [LDC::class, 'callStore'])->name(VW::LD . '.calls.store')->middleware([MWC::AUTH]);
+    R::get('/leads/{id}/call/{cid}/edit', [LDC::class, 'callEdit'])->name(VW::LD . '.calls.edit')->middleware([MWC::AUTH, MWC::XSS]);
+    R::put('/leads/{id}/call/{cid}', [LDC::class, 'callUpdate'])->name(VW::LD . '.calls.update')->middleware([MWC::AUTH]);
+    R::delete('/leads/{id}/call/{cid}', [LDC::class, 'callDestroy'])->name(VW::LD . '.calls.destroy')->middleware([MWC::AUTH, MWC::XSS]);
 
     // Lead Email
 
-    R::get('/leads/{id}/email', [LeadController::class, 'emailCreate'])->name(VW::LD . '.emails.create')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post('/leads/{id}/email', [LeadController::class, 'emailStore'])->name(VW::LD . '.emails.store')->middleware([MWC::AUTH]);
+    R::get('/leads/{id}/email', [LDC::class, 'emailCreate'])->name(VW::LD . '.emails.create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('/leads/{id}/email', [LDC::class, 'emailStore'])->name(VW::LD . '.emails.store')->middleware([MWC::AUTH]);
 
-    R::resource('leads', LeadController::class)->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource('leads', LDC::class)->middleware([MWC::AUTH, MWC::XSS]);
 
     // end Leads Module
 
@@ -847,7 +847,7 @@ R::group(['middleware' => [MWC::VF]], function () {
     // End Email Templates
 
     // HRM
-    R::resource(VW::USR, UserController::class)->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource(VW::USR, USRC::class)->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::EMP . '/json', [EmployeeController::class, 'json'])->name(VW::EMP . '.json')->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::BRC . '/' . VW::EMP . '/json', [EmployeeController::class, EmployeeController::EMP_JSON])->name(VW::BRC . '.employee.json')->middleware([MWC::AUTH, MWC::XSS]);
     R::get('employee-profile', [EmployeeController::class, 'profile'])->name(VW::EMP . '.profile')->middleware([MWC::AUTH, MWC::XSS]);
@@ -892,19 +892,19 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::resource(VW::OVT, OvertimeController::class)->middleware([MWC::AUTH, MWC::XSS]);
     //================================= Payslips Controller ====================================//
     #region
-    R::get(VW::PY_SLP . '/paysalary/{id}/{date}', [PayslipController::class, PayslipController::PAY_SLR])->name(VW::PY_SLP . '.paysalary')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PY_SLP . '/bulk_pay_create/{date}', [PayslipController::class, PayslipController::BLK_PAY_CRT])->name(VW::PY_SLP . '.bulk_pay_create')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::PY_SLP . '/bulk_payment/{date}', [PayslipController::class, PayslipController::BLK_PAY])->name(VW::PY_SLP . '.bulkpayment')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::PY_SLP . '/search_json', [PayslipController::class, PayslipController::SRC_JSN])->name(VW::PY_SLP . '.search_json')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PY_SLP . '/employeepayslip', [PayslipController::class, PayslipController::EMP_PAY_SLP])->name(VW::PY_SLP . '.employeepayslip')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PY_SLP . '/show/{id}', [PayslipController::class, PayslipController::SHW_EMP])->name(VW::PY_SLP . '.showemployee')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PY_SLP . '/edit/{id}', [PayslipController::class, PayslipController::EDT_EMP])->name(VW::PY_SLP . '.editemployee')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::PY_SLP . '/employee/update/{id}', [PayslipController::class, PayslipController::UPD_EMP])->name(VW::PY_SLP . '.updateEmployee')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PY_SLP . '/pdf/{id}/{m}', [PayslipController::class, 'pdf'])->name(VW::PY_SLP . '.pdf')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PY_SLP . '/payslipPdf/{id}', [PayslipController::class, PayslipController::PAY_SLP_PDF])->name(VW::PY_SLP . '.payslipPdf')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PY_SLP . '/send/{id}/{m}', [PayslipController::class, 'send'])->name(VW::PY_SLP . '.send')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PY_SLP . '/delete/{id}', [PayslipController::class, 'destroy'])->name(VW::PY_SLP . '.delete')->middleware([MWC::AUTH, MWC::XSS]);
-    R::resource(VW::PY_SLP, PayslipController::class)->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PY_SLP . '/paysalary/{id}/{date}', [PYSC::class, PYSC::PAY_SLR])->name(VW::PY_SLP . '.paysalary')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PY_SLP . '/bulk_pay_create/{date}', [PYSC::class, PYSC::BLK_PAY_CRT])->name(VW::PY_SLP . '.bulk_pay_create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PY_SLP . '/bulk_payment/{date}', [PYSC::class, PYSC::BLK_PAY])->name(VW::PY_SLP . '.bulkpayment')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PY_SLP . '/search_json', [PYSC::class, PYSC::SRC_JSN])->name(VW::PY_SLP . '.search_json')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PY_SLP . '/employeepayslip', [PYSC::class, PYSC::EMP_PAY_SLP])->name(VW::PY_SLP . '.employeepayslip')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PY_SLP . '/show/{id}', [PYSC::class, PYSC::SHW_EMP])->name(VW::PY_SLP . '.showemployee')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PY_SLP . '/edit/{id}', [PYSC::class, PYSC::EDT_EMP])->name(VW::PY_SLP . '.editemployee')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PY_SLP . '/employee/update/{id}', [PYSC::class, PYSC::UPD_EMP])->name(VW::PY_SLP . '.updateEmployee')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PY_SLP . '/pdf/{id}/{m}', [PYSC::class, 'pdf'])->name(VW::PY_SLP . '.pdf')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PY_SLP . '/payslipPdf/{id}', [PYSC::class, PYSC::PAY_SLP_PDF])->name(VW::PY_SLP . '.payslipPdf')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PY_SLP . '/send/{id}/{m}', [PYSC::class, 'send'])->name(VW::PY_SLP . '.send')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PY_SLP . '/delete/{id}', [PYSC::class, 'destroy'])->name(VW::PY_SLP . '.delete')->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource(VW::PY_SLP, PYSC::class)->middleware([MWC::AUTH, MWC::XSS]);
     #endregion
     R::post(VW::BRC . '/' . VW::EMP . '/json', [EmployeeController::class, EmployeeController::EMP_JSON])->name(VW::BRC . '.employee.json')->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::EVT . '/get-department', [EventController::class, EventController::GET_DPT])->name(VW::EVT . '.getdepartment')->middleware([MWC::AUTH, MWC::XSS]);
@@ -946,35 +946,35 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     // Recruitement
 
-    R::post('job-stage/order', [JobStageController::class, 'order'])->name(VW::JB . '.stage.order');
-    R::get('candidates-job-applications', [JobApplicationController::class, 'candidate'])->name(VW::JB . '.application.candidate')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post('job-application/order', [JobApplicationController::class, 'order'])->name(VW::JB . '.application.order')->middleware([MWC::XSS]);
-    R::post('job-application/{id}/rating', [JobApplicationController::class, 'rating'])->name(VW::JB . '.application.rating')->middleware([MWC::XSS]);
-    R::delete('job-application/{id}/archive', [JobApplicationController::class, 'archive'])->name(VW::JB . '.application.archive')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post('job-application/{id}/skill/store', [JobApplicationController::class, 'addSkill'])->name(VW::JB . '.application.skill.store')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post('job-application/{id}/note/store', [JobApplicationController::class, 'addNote'])->name(VW::JB . '.application.note.store')->middleware([MWC::AUTH, MWC::XSS]);
-    R::delete('job-application/{id}/note/destroy', [JobApplicationController::class, 'destroyNote'])->name(VW::JB . '.application.note.destroy')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post('job-application/getByJob', [JobApplicationController::class, 'getByJob'])->name(VW::JB_APL . '.get')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get('job-onboard', [JobApplicationController::class, 'jobOnBoard'])->name(VW::JB . '.on.board')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::JB_OB . '/create/{id}', [JobApplicationController::class, 'jobBoardCreate'])->name(VW::JB . '.on.board.create')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::JB_OB . '/store/{id}', [JobApplicationController::class, 'jobBoardStore'])->name(VW::JB . '.on.board.store')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::JB_OB . '/edit/{id}', [JobApplicationController::class, 'jobBoardEdit'])->name(VW::JB . '.on.board.edit')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::JB_OB . '/update/{id}', [JobApplicationController::class, 'jobBoardUpdate'])->name(VW::JB . '.on.board.update')->middleware([MWC::AUTH, MWC::XSS]);
-    R::delete(VW::JB_OB . '/delete/{id}', [JobApplicationController::class, 'jobBoardDelete'])->name(VW::JB . '.on.board.delete')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::JB_OB . '/convert/{id}', [JobApplicationController::class, 'jobBoardConvert'])->name(VW::JB . '.on.board.convert')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::JB_OB . '/convert/{id}', [JobApplicationController::class, 'jobBoardConvertData'])->name(VW::JB . '.on.board.convert')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post('job-application/stage/change', [JobApplicationController::class, 'stageChange'])->name(VW::JB . '.application.stage.change')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::ITV_SCD . '/create/{id?}', [InterviewScheduleController::class, 'create'])->name(VW::ITV_SCD . '.create')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get('task-board/{view?}', [ProjectTaskController::class, ProjectTaskController::TSK_BD])->name(VW::TSKB . '.view')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get('task-board-view', [ProjectTaskController::class, ProjectTaskController::TSK_BD_VW])->name(VW::PRJ . '.taskboard.view')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::EMP_ATD . '/' . EmployeeAttendanceController::BK_ATD, [EmployeeAttendanceController::class, EmployeeAttendanceController::BK_ATD])->name(VW::EMP_ATD . '.' . EmployeeAttendanceController::BK_ATD)->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::EMP_ATD . '/' . EmployeeAttendanceController::BK_ATD, [EmployeeAttendanceController::class, EmployeeAttendanceController::BK_ATD_DT])->name(VW::EMP_ATD . '.' . EmployeeAttendanceController::BK_ATD)->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::EMP_ATD . '/attendance', [EmployeeAttendanceController::class, 'attendance'])->name(VW::EMP_ATD . '.attendance')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('job-stage/order', [JBSTC::class, 'order'])->name(VW::JB . '.stage.order');
+    R::get('candidates-job-applications', [JBAPC::class, 'candidate'])->name(VW::JB . '.application.candidate')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('job-application/order', [JBAPC::class, 'order'])->name(VW::JB . '.application.order')->middleware([MWC::XSS]);
+    R::post('job-application/{id}/rating', [JBAPC::class, 'rating'])->name(VW::JB . '.application.rating')->middleware([MWC::XSS]);
+    R::delete('job-application/{id}/archive', [JBAPC::class, 'archive'])->name(VW::JB . '.application.archive')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('job-application/{id}/skill/store', [JBAPC::class, 'addSkill'])->name(VW::JB . '.application.skill.store')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('job-application/{id}/note/store', [JBAPC::class, 'addNote'])->name(VW::JB . '.application.note.store')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete('job-application/{id}/note/destroy', [JBAPC::class, 'destroyNote'])->name(VW::JB . '.application.note.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('job-application/getByJob', [JBAPC::class, 'getByJob'])->name(VW::JB_APL . '.get')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('job-onboard', [JBAPC::class, 'jobOnBoard'])->name(VW::JB . '.on.board')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::JB_OB . '/create/{id}', [JBAPC::class, 'jobBoardCreate'])->name(VW::JB . '.on.board.create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::JB_OB . '/store/{id}', [JBAPC::class, 'jobBoardStore'])->name(VW::JB . '.on.board.store')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::JB_OB . '/edit/{id}', [JBAPC::class, 'jobBoardEdit'])->name(VW::JB . '.on.board.edit')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::JB_OB . '/update/{id}', [JBAPC::class, 'jobBoardUpdate'])->name(VW::JB . '.on.board.update')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::JB_OB . '/delete/{id}', [JBAPC::class, 'jobBoardDelete'])->name(VW::JB . '.on.board.delete')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::JB_OB . '/convert/{id}', [JBAPC::class, 'jobBoardConvert'])->name(VW::JB . '.on.board.convert')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::JB_OB . '/convert/{id}', [JBAPC::class, 'jobBoardConvertData'])->name(VW::JB . '.on.board.convert')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('job-application/stage/change', [JBAPC::class, 'stageChange'])->name(VW::JB . '.application.stage.change')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::ITV_SCD . '/create/{id?}', [IVSC::class, 'create'])->name(VW::ITV_SCD . '.create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('task-board/{view?}', [PRJTC::class, PRJTC::TSK_BD])->name(VW::TSKB . '.view')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('task-board-view', [PRJTC::class, PRJTC::TSK_BD_VW])->name(VW::PRJ . '.taskboard.view')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::EMP_ATD . '/' . EPATDC::BK_ATD, [EPATDC::class, EPATDC::BK_ATD])->name(VW::EMP_ATD . '.' . EPATDC::BK_ATD)->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::EMP_ATD . '/' . EPATDC::BK_ATD, [EPATDC::class, EPATDC::BK_ATD_DT])->name(VW::EMP_ATD . '.' . EPATDC::BK_ATD)->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::EMP_ATD . '/attendance', [EPATDC::class, 'attendance'])->name(VW::EMP_ATD . '.attendance')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::RPT . '/leave', [RPC::class, 'leave'])->name(VW::RPT . '.leave')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::EMP . '/{id}/leave/{status}/{type}/{month}/{year}', [RPC::class, 'employeeLeave'])->name(VW::RPT . '.employee.leave')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::LV . '/{id}/action', [LeaveController::class, 'action'])->name(VW::LV . '.action')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::LV . '/changeaction', [LeaveController::class, LeaveController::CHG_ACT])->name(VW::LV . '.change_action')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::LV . '/jsoncount', [LeaveController::class, LeaveController::JSON_CT])->name(VW::LV . '.jsoncount')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::LV . '/{id}/action', [LVC::class, 'action'])->name(VW::LV . '.action')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::LV . '/changeaction', [LVC::class, LVC::CHG_ACT])->name(VW::LV . '.change_action')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::LV . '/jsoncount', [LVC::class, LVC::JSON_CT])->name(VW::LV . '.jsoncount')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::RPT . '-leave', [RPC::class, 'leave'])->name(VW::RPT . '.leave')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::EMP . '/{id}/leave/{status}/{type}/{month}/{year}', [RPC::class, 'employeeLeave'])->name(VW::RPT . '.employee.leave')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::RPT . '-payroll', [RPC::class, 'payroll'])->name(VW::RPT . '.payroll')->middleware([MWC::AUTH, MWC::XSS]);
@@ -1074,7 +1074,7 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::get(VW::PRJ . '/{id}/gantt/{duration?}', [PRJC::class, PRJC::GT])->name(VW::PRJ . '.gantt')->middleware([MWC::AUTH, MWC::XSS]);
     R::post(VW::PRJ . '/{id}/gantt', [PRJC::class, PRJC::GT_PT])->name(VW::PRJ . '.gantt.post')->middleware([MWC::AUTH, MWC::XSS]);
 
-    R::resource('projects', ProjectController::class)->middleware([MWC::AUTH, MWC::XSS]);
+    R::resource('projects', PRJC::class)->middleware([MWC::AUTH, MWC::XSS]);
 
     // User Permission
     R::get(VW::PRJ . '/{id}/' . VW::USR . '/{uid}/permission', [PRJC::class, PRJC::USR_PRM])->name(VW::PRJ . '.' . VW::USR . '.permission')->middleware([MWC::AUTH, MWC::XSS]);
@@ -1084,34 +1084,34 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     // Task Module
 
-    R::get('stage/{id}/tasks', [ProjectTaskController::class, ProjectTaskController::GET_STG_TSK])->name(VW::PRJ_TSK_C . '.stage')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('stage/{id}/tasks', [PRJTC::class, PRJTC::GET_STG_TSK])->name(VW::PRJ_TSK_C . '.stage')->middleware([MWC::AUTH, MWC::XSS]);
 
     // Project Task Module
 
-    R::get(VW::PRJ . '/{id}/' . VW::TSK, [ProjectTaskController::class, 'index'])->name(VW::PRJ_TSK_C . '.index')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PRJ . '/{pid}/' . VW::TSK . '/{sid}', [ProjectTaskController::class, 'create'])->name(VW::PRJ_TSK_C . '.create')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::PRJ . '/{pid}/' . VW::TSK . '/{sid}', [ProjectTaskController::class, 'store'])->name(VW::PRJ_TSK_C . '.store')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PRJ . '/{id}/' . VW::TSK . '/{tid}/show', [ProjectTaskController::class, 'show'])->name(VW::PRJ_TSK_C . '.show')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::PRJ . '/{id}/' . VW::TSK . '/{tid}/edit', [ProjectTaskController::class, 'edit'])->name(VW::PRJ_TSK_C . '.edit')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::PRJ . '/{id}/' . VW::TSK . '/update/{tid}', [ProjectTaskController::class, 'update'])->name(VW::PRJ_TSK_C . '.update')->middleware([MWC::AUTH, MWC::XSS]);
-    R::delete(VW::PRJ . '/{id}/' . VW::TSK . '/{tid}', [ProjectTaskController::class, 'destroy'])->name(VW::PRJ_TSK_C . '.destroy')->middleware([MWC::AUTH, MWC::XSS]);
-    R::patch(VW::PRJ . '/{id}/' . VW::TSK . '/order', [ProjectTaskController::class, ProjectTaskController::TSK_OD_UPD])->name(VW::PRJ . '.tasks.update.order')->middleware([MWC::AUTH, MWC::XSS]);
-    R::patch('update-task-priority-color', [ProjectTaskController::class, ProjectTaskController::UPD_TSK_PR_CL])->name(VW::PRJ . '.tasks.update.priority.color')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PRJ . '/{id}/' . VW::TSK, [PRJTC::class, 'index'])->name(VW::PRJ_TSK_C . '.index')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PRJ . '/{pid}/' . VW::TSK . '/{sid}', [PRJTC::class, 'create'])->name(VW::PRJ_TSK_C . '.create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PRJ . '/{pid}/' . VW::TSK . '/{sid}', [PRJTC::class, 'store'])->name(VW::PRJ_TSK_C . '.store')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PRJ . '/{id}/' . VW::TSK . '/{tid}/show', [PRJTC::class, 'show'])->name(VW::PRJ_TSK_C . '.show')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::PRJ . '/{id}/' . VW::TSK . '/{tid}/edit', [PRJTC::class, 'edit'])->name(VW::PRJ_TSK_C . '.edit')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PRJ . '/{id}/' . VW::TSK . '/update/{tid}', [PRJTC::class, 'update'])->name(VW::PRJ_TSK_C . '.update')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::PRJ . '/{id}/' . VW::TSK . '/{tid}', [PRJTC::class, 'destroy'])->name(VW::PRJ_TSK_C . '.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::patch(VW::PRJ . '/{id}/' . VW::TSK . '/order', [PRJTC::class, PRJTC::TSK_OD_UPD])->name(VW::PRJ . '.tasks.update.order')->middleware([MWC::AUTH, MWC::XSS]);
+    R::patch('update-task-priority-color', [PRJTC::class, PRJTC::UPD_TSK_PR_CL])->name(VW::PRJ . '.tasks.update.priority.color')->middleware([MWC::AUTH, MWC::XSS]);
 
-    R::post(VW::PRJ . '/{id}/comment/{tid}/file', [ProjectTaskController::class, ProjectTaskController::CM_STR_F])->name(VW::PRJ_TSK_C . '.comment.store.file')->middleware([MWC::AUTH, MWC::XSS]);
-    R::delete(VW::PRJ . '/{id}/comment/{tid}/file/{fid}', [ProjectTaskController::class, ProjectTaskController::CM_DST_F])->name(VW::PRJ_TSK_C . '.comment.destroy.file');
-    R::post(VW::PRJ . '/{id}/comment/{tid}', [ProjectTaskController::class, ProjectTaskController::CM_STR])->name(VW::PRJ_TSK_C . '.comment.store');
-    R::delete(VW::PRJ . '/{id}/comment/{tid}/{cid}', [ProjectTaskController::class, ProjectTaskController::CM_DST])->name(VW::PRJ_TSK_C . '.comment.destroy');
-    R::post(VW::PRJ . '/{id}/checklist/{tid}', [ProjectTaskController::class, ProjectTaskController::CHKL_STR])->name(VW::PRJ_TSK_C . '.checklist.store');
-    R::post(VW::PRJ . '/{id}/checklist/update/{cid}', [ProjectTaskController::class, ProjectTaskController::CHKL_UPD])->name(VW::PRJ_TSK_C . '.checklist.update');
-    R::delete(VW::PRJ . '/{id}/checklist/{cid}', [ProjectTaskController::class, ProjectTaskController::CHKL_DST])->name(VW::PRJ_TSK_C . '.checklist.destroy');
-    R::post(VW::PRJ . '/{id}/change/{tid}/fav', [ProjectTaskController::class, ProjectTaskController::CG_FAV])->name(VW::PRJ_TSK_C . '.change.fav');
-    R::post(VW::PRJ . '/{id}/change/{tid}/complete', [ProjectTaskController::class, ProjectTaskController::CG_COM])->name(VW::PRJ_TSK_C . '.change.complete');
-    R::post(VW::PRJ . '/{id}/change/{tid}/progress', [ProjectTaskController::class, ProjectTaskController::CG_PRG])->name(VW::PRJ_TSK_C . 'change.progress');
-    R::get(VW::PRJ . '/' . VW::TSK . '/{id}/get', [ProjectTaskController::class, ProjectTaskController::GET_TSK])->name(VW::PRJ_TSK_C . '.get')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get('/calendar/{id}/show', [ProjectTaskController::class, ProjectTaskController::CLD_SHW])->name(VW::PRJ_TSK_C . '.calendar.show')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post('/calendar/{id}/drag', [ProjectTaskController::class, ProjectTaskController::CLD_DRG])->name(VW::PRJ_TSK_C . '.calendar.drag');
-    R::get('calendar/{task}/{pid?}', [ProjectTaskController::class, ProjectTaskController::CLD_VW])->name(VW::PRJ_TSK_C . '.calendar')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PRJ . '/{id}/comment/{tid}/file', [PRJTC::class, PRJTC::CM_STR_F])->name(VW::PRJ_TSK_C . '.comment.store.file')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::PRJ . '/{id}/comment/{tid}/file/{fid}', [PRJTC::class, PRJTC::CM_DST_F])->name(VW::PRJ_TSK_C . '.comment.destroy.file');
+    R::post(VW::PRJ . '/{id}/comment/{tid}', [PRJTC::class, PRJTC::CM_STR])->name(VW::PRJ_TSK_C . '.comment.store');
+    R::delete(VW::PRJ . '/{id}/comment/{tid}/{cid}', [PRJTC::class, PRJTC::CM_DST])->name(VW::PRJ_TSK_C . '.comment.destroy');
+    R::post(VW::PRJ . '/{id}/checklist/{tid}', [PRJTC::class, PRJTC::CHKL_STR])->name(VW::PRJ_TSK_C . '.checklist.store');
+    R::post(VW::PRJ . '/{id}/checklist/update/{cid}', [PRJTC::class, PRJTC::CHKL_UPD])->name(VW::PRJ_TSK_C . '.checklist.update');
+    R::delete(VW::PRJ . '/{id}/checklist/{cid}', [PRJTC::class, PRJTC::CHKL_DST])->name(VW::PRJ_TSK_C . '.checklist.destroy');
+    R::post(VW::PRJ . '/{id}/change/{tid}/fav', [PRJTC::class, PRJTC::CG_FAV])->name(VW::PRJ_TSK_C . '.change.fav');
+    R::post(VW::PRJ . '/{id}/change/{tid}/complete', [PRJTC::class, PRJTC::CG_COM])->name(VW::PRJ_TSK_C . '.change.complete');
+    R::post(VW::PRJ . '/{id}/change/{tid}/progress', [PRJTC::class, PRJTC::CG_PRG])->name(VW::PRJ_TSK_C . 'change.progress');
+    R::get(VW::PRJ . '/' . VW::TSK . '/{id}/get', [PRJTC::class, PRJTC::GET_TSK])->name(VW::PRJ_TSK_C . '.get')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get('/calendar/{id}/show', [PRJTC::class, PRJTC::CLD_SHW])->name(VW::PRJ_TSK_C . '.calendar.show')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('/calendar/{id}/drag', [PRJTC::class, PRJTC::CLD_DRG])->name(VW::PRJ_TSK_C . '.calendar.drag');
+    R::get('calendar/{task}/{pid?}', [PRJTC::class, PRJTC::CLD_VW])->name(VW::PRJ_TSK_C . '.calendar')->middleware([MWC::AUTH, MWC::XSS]);
 
     //================================= Project Task Stages ====================================//
     #region
@@ -1196,17 +1196,17 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     //================================= Project Todos ====================================//
     #region
-    R::post(VW::TD . '/create', [UserController::class, UserController::TD_STR])->name(VW::TD . '.store')
+    R::post(VW::TD . '/create', [USRC::class, USRC::TD_STR])->name(VW::TD . '.store')
         ->middleware([MWC::AUTH, MWC::XSS]);
-    R::post(VW::TD . '/{id}/update', [UserController::class, UserController::TD_UPD])->name(VW::TD . '.update')
+    R::post(VW::TD . '/{id}/update', [USRC::class, USRC::TD_UPD])->name(VW::TD . '.update')
         ->middleware([MWC::AUTH, MWC::XSS]);
-    R::delete(VW::TD . '/{id}/delete', [UserController::class, UserController::TD_DEL])->name(VW::TD . '.destroy')
+    R::delete(VW::TD . '/{id}/delete', [USRC::class, USRC::TD_DEL])->name(VW::TD . '.destroy')
         ->middleware([MWC::AUTH, MWC::XSS]);
     #endregion
 
     //================================= Dashboards Views ====================================//
     #region
-    R::get('/change/mode', [UserController::class, UserController::CHG_MD])->name('change.mode')
+    R::get('/change/mode', [USRC::class, USRC::CHG_MD])->name('change.mode')
         ->middleware([MWC::AUTH, MWC::XSS]);
     R::get('dashboard-view', [DSBC::class, DSBC::FT_VW])->name('dashboard.view')
         ->middleware([MWC::AUTH, MWC::XSS]);
@@ -1216,7 +1216,7 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     //================================= SaaS Base ====================================//
     #region
-    R::resource(VW::USR, UserController::class)->middleware([
+    R::resource(VW::USR, USRC::class)->middleware([
         MWC::AUTH,
         MWC::XSS,
         MWC::REV
@@ -1273,9 +1273,9 @@ R::group(['middleware' => [MWC::VF]], function () {
             ],
         ],
         function () {
-            R::get(VW::CTC . '/{id}/description', [ContractController::class, 'description'])->name(VW::CTC . '.description');
-            R::get(VW::CTC . '/grid', [ContractController::class, 'grid'])->name(VW::CTC . '.grid');
-            R::resource(VW::CTC, ContractController::class);
+            R::get(VW::CTC . '/{id}/description', [CTCC::class, 'description'])->name(VW::CTC . '.description');
+            R::get(VW::CTC . '/grid', [CTCC::class, 'grid'])->name(VW::CTC . '.grid');
+            R::resource(VW::CTC, CTCC::class);
         }
     );
     R::post(VW::CTC . '/{id}/file', [CTCC::class, CTCC::F_UPL])->name(VW::CTC . '.file.upload')->middleware([MWC::AUTH, MWC::XSS]);
@@ -1396,8 +1396,8 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::get(VW::EMP . '/import/file', [EmployeeController::class, EmployeeController::IMP_FL])->name(VW::EMP . '.file.import');
     R::post(VW::EMP . '/import/index', [EmployeeController::class, 'import'])->name(VW::EMP . '.import');
 
-    R::get('attendance/import/file', [EmployeeAttendanceController::class, 'importFile'])->name('attendance.file.import');
-    R::post('attendance/import/index', [EmployeeAttendanceController::class, 'import'])->name('attendance.import');
+    R::get('attendance/import/file', [EPATDC::class, 'importFile'])->name('attendance.file.import');
+    R::post('attendance/import/index', [EPATDC::class, 'import'])->name('attendance.import');
 
     R::get(VW::TST . '/export', [TransactionController::class, 'export'])->name(VW::TST . '.export');
     R::get(VW::ACC_STT . '/export', [RPC::class, 'export'])->name(VW::ACC_STT . '.export');
@@ -1426,7 +1426,7 @@ R::group(['middleware' => [MWC::VF]], function () {
 
     //POS System
 
-    R::resource(DatabaseConstants::TABLE_WHS, WarehouseController::class)->middleware([
+    R::resource(DBC::TABLE_WHS, WarehouseController::class)->middleware([
         MWC::AUTH,
         MWC::XSS,
         MWC::REV
@@ -1465,18 +1465,18 @@ R::group(['middleware' => [MWC::VF]], function () {
                 ->name(VW::PRC . '.sent');
             R::get(DBC::TABLE_PURCHASES . '/{id}/resent', [PRCC::class, PRCC::RSNT])
                 ->name(VW::PRC . '.resent');
-            R::resource(DatabaseConstants::TABLE_PURCHASES, PurchaseController::class);
+            R::resource(DBC::TABLE_PURCHASES, PRCC::class);
         }
 
     );
     R::get('pos-print-setting', [SystemController::class, 'posPrintIndex'])->name(VW::POS . '.print.setting')
         ->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(DatabaseConstants::TABLE_PURCHASES . '/preview/{template}/{color}', [PurchaseController::class, PurchaseController::PV_PRC])
+    R::get(DBC::TABLE_PURCHASES . '/preview/{template}/{color}', [PRCC::class, PRCC::PV_PRC])
         ->name(VW::PRC . '.preview')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::POS . '/preview/{template}/{color}', [PosController::class, PosController::PV_POS])->name(VW::POS . '.preview')
         ->middleware([MWC::AUTH, MWC::XSS]);
 
-    R::post(VW::PRC . '/templates/settings', [PurchaseController::class, PurchaseController::SV_PCR_TMP_STG])
+    R::post(VW::PRC . '/templates/settings', [PRCC::class, PRCC::SV_PCR_TMP_STG])
         ->name(VW::PRC_TMP . 'settings');
     R::post(VW::POS . '/template/setting', [PosController::class, PosController::SV_POS_TMP])
         ->name(VW::PRC_TMP . 'settings');
@@ -1498,7 +1498,7 @@ R::group(['middleware' => [MWC::VF]], function () {
     //for pos print
     R::get('printview/pos', [PosController::class, PosController::PRT_VW])->name(VW::POS . '.printview')->middleware([MWC::AUTH, MWC::XSS, MWC::REV]);
 
-    R::resource(DatabaseConstants::TABLE_POS, PosController::class)->middleware([
+    R::resource(DBC::TABLE_POS, PosController::class)->middleware([
         MWC::AUTH,
         MWC::XSS,
         MWC::REV
@@ -1572,8 +1572,8 @@ R::group(['middleware' => [MWC::VF]], function () {
     #region
     R::post(VW::SET . '/offer-letter/{lang?}', [SystemController::class, SystemController::OF_LTR_UPD])->name('offer_letter.update');
     R::get(VW::SET . '/offer-letter', [SystemController::class, SystemController::CP])->name(VW::SET . '.offer_letter.language');
-    R::get(VW::JB_OB . '/pdf/{id}', [JobApplicationController::class, JobApplicationController::OFL_PDF])->name('offer_letter.download.pdf');
-    R::get(VW::JB_OB . '/doc/{id}', [JobApplicationController::class, JobApplicationController::OFL_DC])->name('offer_letter.download.doc');
+    R::get(VW::JB_OB . '/pdf/{id}', [JBAPC::class, JBAPC::OFL_PDF])->name('offer_letter.download.pdf');
+    R::get(VW::JB_OB . '/doc/{id}', [JBAPC::class, JBAPC::OFL_DC])->name('offer_letter.download.doc');
     #endregion
 
     //================================= Joining Letters ====================================//
@@ -1624,8 +1624,8 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::post(VW::SET . '/google-calendar', [SystemController::class, 'saveGooglecalendarSettings'])->name(VW::SET . 'google.calendar');
     R::any(VW::HLD . '/data', [HolidayController::class, HolidayController::GET_HL_D])->name(VW::HLD . '.get_holiday_data')->middleware([MWC::AUTH, MWC::XSS]);
     R::get('holiday-calendar', [HolidayController::class, 'calendar'])->name(VW::HLD . '.calendar');
-    R::any(VW::ITV_SCD . '/data', [InterviewScheduleController::class, InterviewScheduleController::GET_ITV_D])->name(VW::ITV_SCD . '.get_interview_data')->middleware([MWC::AUTH, MWC::XSS]);
-    R::post('calendar/get_task_data', [ProjectTaskController::class, ProjectTaskController::GET_TSK_D])->name(VW::PRJ_TSK_C . '.calendar.get_task_data')->middleware([MWC::AUTH, MWC::XSS]);
+    R::any(VW::ITV_SCD . '/data', [IVSC::class, IVSC::GET_ITV_D])->name(VW::ITV_SCD . '.get_interview_data')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post('calendar/get_task_data', [PRJTC::class, PRJTC::GET_TSK_D])->name(VW::PRJ_TSK_C . '.calendar.get_task_data')->middleware([MWC::AUTH, MWC::XSS]);
     R::any('zoom-meeting/get_zoom_meeting_data', [ZoomMeetingController::class, ZoomMeetingController::GET_ZMM_D])->name(VW::ZMM . '.get_zoom_meeting_data')->middleware([MWC::AUTH, MWC::XSS]);
 
     R::any(VW::MT . '/get_meeting_data', [MeetingController::class, MeetingController::GET_MT_D])->name(VW::MT . '.get_meeting_data')
@@ -1642,18 +1642,18 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::post(VW::RPT . '-monthly-attendance/getemployee', [RPC::class, RPC::GET_EMP])->name(VW::RPT . '.attendance.getemployee')->middleware([MWC::AUTH, MWC::XSS]);
 
     //shared project & copy link
-    R::any(VW::PRJ . '/copy/link/{id}', [ProjectController::class, ProjectController::CP_LNK_ST])->name(VW::PRJ . '.copy.link');
-    R::any(VW::PRJ . '/{id}/setting-create', [ProjectController::class, ProjectController::CP_LNK_ST_CRT])->name(VW::PRJ . '.copy_link.setting.create');
+    R::any(VW::PRJ . '/copy/link/{id}', [PRJC::class, PRJC::CP_LNK_ST])->name(VW::PRJ . '.copy.link');
+    R::any(VW::PRJ . '/{id}/setting-create', [PRJC::class, PRJC::CP_LNK_ST_CRT])->name(VW::PRJ . '.copy_link.setting.create');
     // TODO missing method
-    R::get('share-project/{lang?}', [ProjectController::class, 'shareProject'])->name('share.project');
+    R::get('share-project/{lang?}', [PRJC::class, 'shareProject'])->name('share.project');
 
     R::get('share-project/{lang?}', [PRJC::class, PRJC::SHR_PRJ])->name(VW::SHR_PRJ);
 
     //================================= Notification Templates ====================================//
     #region
-    R::get(VW::USR . '/logs', [UserController::class, UserController::USR_LOG])->name(VW::USR . '.log')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::USR . '/logs/{id}', [UserController::class, UserController::USR_LOG_VIEW])->name(VW::USR . '.log.view')->middleware([MWC::AUTH, MWC::XSS]);
-    R::delete(VW::USR . '/logs/{id}', [UserController::class, UserController::USR_LOG_DSTR])->name(VW::USR . '.log.destroy')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::USR . '/logs', [USRC::class, USRC::USR_LOG])->name(VW::USR . '.log')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::USR . '/logs/{id}', [USRC::class, USRC::USR_LOG_VIEW])->name(VW::USR . '.log.view')->middleware([MWC::AUTH, MWC::XSS]);
+    R::delete(VW::USR . '/logs/{id}', [USRC::class, USRC::USR_LOG_DSTR])->name(VW::USR . '.log.destroy')->middleware([MWC::AUTH, MWC::XSS]);
     #endregion
 
     //================================= Notification Templates ====================================//
