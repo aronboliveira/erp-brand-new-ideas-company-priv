@@ -29,18 +29,24 @@ use Tests\TestCase;
 class PmRouteReturnTest extends TestCase
 {
 	protected ?User $admin = null;
+	private bool $skipAll = false;
 
 	protected function setUp(): void
 	{
 		parent::setUp();
 		$this->admin = User::where('email', 'suporte@brandnewideascompany.com')->first();
-		if ($this->admin) {
-			$this->actingAs($this->admin);
+		if (!$this->admin) {
+			$this->skipAll = true;
+			return;
 		}
+		$this->actingAs($this->admin);
 	}
 
 	protected function assertNot500(TestResponse $r, string $ctx = ''): void
 	{
+		if ($this->skipAll) {
+			$this->markTestSkipped('SA user not seeded');
+		}
 		$this->assertNotEquals(500, $r->getStatusCode(), "HTTP 500 on [{$ctx}]");
 	}
 
@@ -410,6 +416,9 @@ class PmRouteReturnTest extends TestCase
 
 	public function test_proposals_export_no_500(): void
 	{
+		if ($this->skipAll) {
+			$this->markTestSkipped('SA user not seeded');
+		}
 		$r = $this->get('/proposals/export');
 		$this->assertNot500($r, 'proposals export');
 		$code = $r->getStatusCode();
