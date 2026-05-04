@@ -66,13 +66,33 @@ use Tests\TestCase;
 class HrmRouteReturnTest extends TestCase
 {
 	protected ?User $admin = null;
+	private bool $skipAll = false;
 
 	protected function setUp(): void
 	{
 		parent::setUp();
 		$this->admin = User::where('email', 'suporte@brandnewideascompany.com')->first();
-		if ($this->admin) {
-			$this->actingAs($this->admin);
+		if (!$this->admin) {
+			$this->skipAll = true;
+			return;
+		}
+		$this->actingAs($this->admin);
+	}
+
+	protected function assertNot500(TestResponse $r, string $ctx = ''): void
+	{
+		if ($this->skipAll) {
+			$this->markTestSkipped('SA user not seeded');
+		}
+		$this->assertNotEquals(500, $r->getStatusCode(), "HTTP 500 on [{$ctx}]");
+	}
+		$this->actingAs($this->admin);
+	}
+
+	protected function skipIfNoAdmin(): void
+	{
+		if (!$this->admin) {
+			$this->markTestSkipped('SA user not seeded — run "php artisan migrate:fresh --seed --force" first');
 		}
 	}
 
