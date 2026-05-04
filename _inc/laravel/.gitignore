@@ -133,6 +133,10 @@ public/storage
 **/.venv/
 **/cache/
 **/cache/**
+**/utils/caches/
+**/utils/caches/**
+utils/caches/
+utils/caches/**
 !**/cache/
 !**/cache/.gitignore
 !bootstrap/cache/.gitignore

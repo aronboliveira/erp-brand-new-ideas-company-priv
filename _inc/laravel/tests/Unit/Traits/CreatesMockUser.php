@@ -3,6 +3,7 @@
 namespace Tests\Unit\Traits;
 
 use App\Models\User;
+use App\Config\Constants\DatabaseConstants as DC;
 use Illuminate\Support\Facades\{Gate, Hash};
 use Spatie\Permission\Models\Permission;
 use App\Models\Role;
@@ -12,7 +13,10 @@ trait CreatesMockUser
 {
 	protected function createUserWithPermissions(array $permissions): User
 	{
-		$user = User::factory()->create(['password' => Hash::make('password')]);
+		$user = User::factory()->create([
+			'password' => Hash::make('password'),
+			DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
+		]);
 
 		$role = Role::create(['id' => (string) Str::uuid(), 'name' => 'test-role-' . uniqid()]);
 		foreach ($permissions as $permName) {
@@ -27,12 +31,17 @@ trait CreatesMockUser
 
 	protected function createUserWithoutPermissions(): User
 	{
-		return User::factory()->create(['password' => Hash::make('password')]);
+		return User::factory()->create([
+			'password' => Hash::make('password'),
+			DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
+		]);
 	}
 
 	private function actingAsUserWithAllPermissions(): void
 	{
-		$user = User::factory()->create();
+		$user = User::factory()->create([
+			DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
+		]);
 		$this->actingAs($user);
 		Gate::before(fn () => true);
 	}

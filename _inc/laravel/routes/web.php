@@ -874,7 +874,7 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::post(VW::EMP . '/update/sallary/{id}', [SetSalaryController::class, SetSalaryController::EMP_SL_UPDATE])->name(VW::EMP . '.salary.update')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::EMP . '/salary', [SetSalaryController::class, SetSalaryController::EMP_SL])->name(VW::EMP . '.salary')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::ALW . '/create/{eid}', [AllowanceController::class, AllowanceController::ALW_CR])->name(VW::ALW . '.create')->middleware([MWC::AUTH, MWC::XSS]);
-    R::get(VW::COM . '/create/{eid}', [CommissionController::class, CommissionController::COM_CR])->name(VW::COM . '.create')->middleware([MWC::AUTH, MWC::XSS]);
+    R::get(VW::COM . '/create/{employeeId}', [CommissionController::class, CommissionController::COM_CR])->name(VW::COM . '.create.employee')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::LN . '/create/{eid}', [LoanController::class, LoanController::LN_CRT])->name(VW::LN . '.create')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::STR_DD . '/create/{eid}', [SaturationDeductionController::class, SaturationDeductionController::STR_DD_CR])->name(VW::STR_DD . '.create')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::OT_PAY . '/create/{eid}', [OtherPaymentController::class, OtherPaymentController::OT_PAY_CR])->name(VW::OT_PAY . '.create')->middleware([MWC::AUTH, MWC::XSS]);

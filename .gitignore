@@ -238,6 +238,16 @@ _old/**
 **/.codex/**
 .gemini/
 .gemini/**
+**/.gemini/
+**/.gemini/**
+.opencode/
+.opencode/**
+**/.opencode/
+**/.opencode/**
+.agents/
+.agents/**
+**/.agents/
+**/.agents/**
 .venv/
 .venv/**
 tmp/
@@ -268,6 +278,8 @@ obf.js
 **/.cache/**
 **/cache/
 **/cache/**
+**/utils/caches/
+**/utils/caches/**
 !**/cache/
 !**/cache/.gitignore
 !**/bootstrap/cache/.gitignore

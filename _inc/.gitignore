@@ -63,6 +63,8 @@ laravel/utils/.llms/ctx/agents/other/NOTE_session_final_verification.md
 **/cache/**
 !**/cache/
 !**/cache/.gitignore
+**/utils/caches/
+**/utils/caches/**
 !laravel/bootstrap/cache/.gitignore
 !laravel/storage/framework/cache/.gitignore
 !laravel/storage/framework/cache/data/.gitignore
