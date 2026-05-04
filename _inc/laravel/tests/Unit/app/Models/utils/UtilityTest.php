@@ -631,21 +631,21 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_setEnvironmentValue_updates_env_file()
 	{
-		// Create a temporary directory to act as base path
-		$tempDir = __DIR__ . '/temp_env_' . uniqid();
+		$tempDir = sys_get_temp_dir() . '/temp_env_' . uniqid();
 		mkdir($tempDir);
-		// Write an initial .env file
 		file_put_contents($tempDir . '/.env', "FOO=bar\n");
+		copy($tempDir . '/.env', $tempDir . '/.env.testing');
+		$origBasePath = app()->basePath();
 		app()->setBasePath($tempDir);
-		// Call setEnvironmentValue to update FOO and add NEW
 		$result = Utility::setEnvironmentValue(['FOO' => 'baz', 'NEW' => 'value']);
 		$this->assertTrue($result);
-		$contents = file_get_contents($tempDir . '/.env');
-		// Ensure FOO was updated with single quotes around the value and NEW was appended
+		$envFile = app()->environmentFilePath();
+		$contents = file_get_contents($envFile);
 		$this->assertStringContainsString("FOO='baz'", $contents);
 		$this->assertStringContainsString("NEW='value'", $contents);
-		// Clean up
+		app()->setBasePath($origBasePath);
 		unlink($tempDir . '/.env');
+		@unlink($tempDir . '/.env.testing');
 		rmdir($tempDir);
 	}
 	/**
@@ -897,15 +897,15 @@ class UtilityTest extends TestCase
 			$p->setAccessible(true);
 			$p->setValue(null);
 		}
-		$tempDir = __DIR__ . '/nonexistent_dir_' . uniqid();
-		// Ensure the directory does not exist
+		$tempDir = sys_get_temp_dir() . '/nonexistent_dir_' . uniqid();
 		if (file_exists($tempDir)) {
-			unlink($tempDir);
+			rmdir($tempDir);
 		}
-		// Override base path so environmentFilePath() points here
+		$origBasePath = app()->basePath();
 		app()->setBasePath($tempDir);
 		$result = \App\Models\Utility::setEnvironmentValue(['ANY' => 'value']);
 		$this->assertFalse($result);
+		app()->setBasePath($origBasePath);
 	}
 
 	/**
@@ -1732,14 +1732,15 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_get_messenger_packages_migration_counts_files()
 	{
-		$tempDir = __DIR__ . '/temp_base_' . uniqid();
+		$tempDir = sys_get_temp_dir() . '/temp_base_' . uniqid();
 		mkdir($tempDir . '/vendor/munafio/chatify/database/migrations', 0755, true);
 		file_put_contents($tempDir . '/vendor/munafio/chatify/database/migrations/a.php', '');
 		file_put_contents($tempDir . '/vendor/munafio/chatify/database/migrations/b.php', '');
+		$origBasePath = app()->basePath();
 		app()->setBasePath($tempDir);
 		$count = Utility::getMessengerPackagesMigration();
 		$this->assertEquals(2, $count);
-		// Cleanup
+		app()->setBasePath($origBasePath);
 		unlink($tempDir . '/vendor/munafio/chatify/database/migrations/a.php');
 		unlink($tempDir . '/vendor/munafio/chatify/database/migrations/b.php');
 		rmdir($tempDir . '/vendor/munafio/chatify/database/migrations');
@@ -3325,31 +3326,39 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_set_environment_value_success_and_failure()
 	{
-		// Create a temporary directory with .env file
-		$tempDir = __DIR__ . '/temp_env_' . uniqid();
+		$tempDir = sys_get_temp_dir() . '/temp_env_' . uniqid();
 		mkdir($tempDir, 0755, true);
 		file_put_contents($tempDir . '/.env', "FOO=1\n");
+		copy($tempDir . '/.env', $tempDir . '/.env.testing');
 		$origBasePath = app()->basePath();
 		app()->setBasePath($tempDir);
 
 		$result = Utility::setEnvironmentValue(['FOO' => '2', 'BAR' => 'hello']);
 		$this->assertTrue($result);
-		$contents = file_get_contents($tempDir . '/.env');
+		$envFile = app()->environmentFilePath();
+		$contents = file_get_contents($envFile);
 		$this->assertStringContainsString("FOO='2'", $contents);
 		$this->assertStringContainsString("BAR='hello'", $contents);
 
 		// Simulate failure by making file unreadable (skip when running as root — root bypasses chmod)
 		if (function_exists('posix_getuid') && posix_getuid() === 0) {
+			app()->setBasePath($origBasePath);
+			chmod($tempDir . '/.env', 0644);
+			@unlink($tempDir . '/.env.testing');
+			unlink($tempDir . '/.env');
+			rmdir($tempDir);
 			$this->markTestIncomplete('Cannot test chmod-based failure as root');
+			return;
 		}
-		chmod($tempDir . '/.env', 0000);
+		chmod($tempDir . '/.env.testing', 0000);
 		$resultFail = Utility::setEnvironmentValue(['NEW' => 'val']);
 		$this->assertFalse($resultFail);
 		// Cleanup
-		chmod($tempDir . '/.env', 0644);
+		chmod($tempDir . '/.env.testing', 0644);
+		app()->setBasePath($origBasePath);
+		@unlink($tempDir . '/.env.testing');
 		unlink($tempDir . '/.env');
 		rmdir($tempDir);
-		app()->setBasePath($origBasePath);
 	}
 
 	/**
