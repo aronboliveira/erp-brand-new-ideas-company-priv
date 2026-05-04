@@ -12,7 +12,7 @@ Each importer is tested for:
 
 import json
 from io import StringIO
-from typing import Any, Dict, List
+from typing import Any, Dict
 from unittest.mock import patch
 
 import pytest

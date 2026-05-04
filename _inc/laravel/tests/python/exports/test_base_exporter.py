@@ -10,7 +10,6 @@ from unittest.mock import patch
 import pandas as pd
 import pytest
 from openpyxl import Workbook
-from openpyxl.styles import Alignment, Border, Font, PatternFill
 
 from base_exporter import (
     BaseExporter,

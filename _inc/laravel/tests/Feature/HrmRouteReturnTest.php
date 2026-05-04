@@ -86,20 +86,6 @@ class HrmRouteReturnTest extends TestCase
 		}
 		$this->assertNotEquals(500, $r->getStatusCode(), "HTTP 500 on [{$ctx}]");
 	}
-		$this->actingAs($this->admin);
-	}
-
-	protected function skipIfNoAdmin(): void
-	{
-		if (!$this->admin) {
-			$this->markTestSkipped('SA user not seeded — run "php artisan migrate:fresh --seed --force" first');
-		}
-	}
-
-	protected function assertNot500(TestResponse $r, string $ctx = ''): void
-	{
-		$this->assertNotEquals(500, $r->getStatusCode(), "HTTP 500 on [{$ctx}]");
-	}
 
 	protected function assertSuccessOrRedirect(TestResponse $r, string $ctx = ''): void
 	{

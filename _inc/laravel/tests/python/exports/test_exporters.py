@@ -12,13 +12,12 @@ import json
 import os
 import tempfile
 from io import StringIO
-from typing import Any, Dict, List, Type
+from typing import Any, Dict, List
 from unittest.mock import patch
 
 import pandas as pd
 import pytest
 
-from base_exporter import BaseExporter
 
 # Import all 19 exporter classes
 from account_statement_exporter import AccountStatementExporter

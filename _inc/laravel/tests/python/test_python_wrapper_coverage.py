@@ -40,8 +40,14 @@ def test_all_implemented_importers_have_php_wrappers() -> None:
 def test_php_wrapper_backend_gap_snapshot_is_current() -> None:
     export_wrappers = {_backend_name_from_endpoint(path) for path in EXPORT_WRAPPER_DIR.glob("*.php")}
     import_wrappers = {_backend_name_from_endpoint(path) for path in IMPORT_WRAPPER_DIR.glob("*.php")}
-    implemented_exports = {path.name for path in EXPORTS_PY_DIR.glob("*_exporter.py") if path.name != "base_exporter.py"}
-    implemented_imports = {path.name for path in IMPORTS_PY_DIR.glob("*_importer.py") if path.name != "base_importer.py"}
+    implemented_exports = {
+        path.name for path in EXPORTS_PY_DIR.glob("*_exporter.py")
+        if path.name != "base_exporter.py"
+    }
+    implemented_imports = {
+        path.name for path in IMPORTS_PY_DIR.glob("*_importer.py")
+        if path.name != "base_importer.py"
+    }
 
     missing_exports = export_wrappers - implemented_exports
     missing_imports = import_wrappers - implemented_imports

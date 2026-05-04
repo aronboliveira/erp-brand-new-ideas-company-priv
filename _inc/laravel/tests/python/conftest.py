@@ -29,23 +29,25 @@ def load_exporter_class(module_name: str):
     module_path = _EXPORTS_PY / f"{module_name}.py"
     if not module_path.exists():
         raise FileNotFoundError(f"Exporter module not found: {module_path}")
-    
+
     spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not load spec for {module_name} at {module_path}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
-    
+
     # Find the exporter class - typically <ModuleName>Exporter
     class_name = "".join(w.title() for w in module_name.replace("_exporter", "").split("_")) + "Exporter"
     if hasattr(module, class_name):
         return getattr(module, class_name)
-    
+
     # Fallback: return first class that ends with Exporter
     for name in dir(module):
         obj = getattr(module, name)
         if isinstance(obj, type) and name.endswith("Exporter") and name != "BaseExporter":
             return obj
-    
+
     raise AttributeError(f"No Exporter class found in {module_name}")
 
 
@@ -133,9 +135,18 @@ _EXPORTER_PAYLOADS: Dict[str, Callable[[], Dict[str, Any]]] = {
     "payroll_exporter": lambda: {
         "currency_symbol": "$",
         "rows": [
-            {"employee_id": "EMP-001", "status": 1, "employee_name": "Alice Johnson", "gross_salary": 7083.33, "net_payable": 5500.00, "salary_month": "Jan 2026"},
-            {"employee_id": "EMP-002", "status": 0, "employee_name": "Bob Smith", "gross_salary": 6000.00, "net_payable": 4700.00, "salary_month": "Jan 2026"},
-            {"employee_id": "EMP-003", "status": 1, "employee_name": "Carol Davis", "gross_salary": 5166.67, "net_payable": 4100.00, "salary_month": "Jan 2026"},
+            {
+                "employee_id": "EMP-001", "status": 1, "employee_name": "Alice Johnson",
+                "gross_salary": 7083.33, "net_payable": 5500.00, "salary_month": "Jan 2026",
+            },
+            {
+                "employee_id": "EMP-002", "status": 0, "employee_name": "Bob Smith",
+                "gross_salary": 6000.00, "net_payable": 4700.00, "salary_month": "Jan 2026",
+            },
+            {
+                "employee_id": "EMP-003", "status": 1, "employee_name": "Carol Davis",
+                "gross_salary": 5166.67, "net_payable": 4100.00, "salary_month": "Jan 2026",
+            },
         ],
     },
     "payslip_exporter": lambda: {
@@ -190,9 +201,18 @@ _EXPORTER_PAYLOADS: Dict[str, Callable[[], Dict[str, Any]]] = {
     "transaction_exporter": lambda: {
         "currency_symbol": "$",
         "rows": [
-            {"id": "TXN-001", "account": "Cash", "type": "Credit", "amount": 5000.00, "description": "Client payment", "date": "2026-01-05", "category": "Revenue"},
-            {"id": "TXN-002", "account": "Expenses", "type": "Debit", "amount": 1200.00, "description": "Rent payment", "date": "2026-01-10", "category": "Operating"},
-            {"id": "TXN-003", "account": "Cash", "type": "Debit", "amount": 350.00, "description": "Utility bill", "date": "2026-01-15", "category": "Operating"},
+            {
+                "id": "TXN-001", "account": "Cash", "type": "Credit", "amount": 5000.00,
+                "description": "Client payment", "date": "2026-01-05", "category": "Revenue",
+            },
+            {
+                "id": "TXN-002", "account": "Expenses", "type": "Debit", "amount": 1200.00,
+                "description": "Rent payment", "date": "2026-01-10", "category": "Operating",
+            },
+            {
+                "id": "TXN-003", "account": "Cash", "type": "Debit", "amount": 350.00,
+                "description": "Utility bill", "date": "2026-01-15", "category": "Operating",
+            },
         ],
     },
     "vendor_exporter": lambda: {
@@ -311,10 +331,9 @@ def exporter_payloads() -> Dict[str, Callable[[], Dict[str, Any]]]:
     Each callable returns a fresh deep-copy of the payload so tests can
     mutate it freely without cross-contamination.
     """
-    return {
-        key: (lambda v=val: copy.deepcopy(v()))
-        for key, val in _EXPORTER_PAYLOADS.items()
-    }
+    def _factory(v: Callable[[], Dict[str, Any]]) -> Callable[[], Dict[str, Any]]:
+        return lambda: copy.deepcopy(v())
+    return {key: _factory(val) for key, val in _EXPORTER_PAYLOADS.items()}
 
 
 @pytest.fixture()

@@ -49,7 +49,9 @@ def test_process_data_counts_imported_and_skipped_rows(attendance_import_payload
     assert "row is not a dict" in importer._errors[1]
 
 
-def test_run_writes_partial_result_for_mixed_payload(monkeypatch: Any, attendance_import_payload: dict[str, Any]) -> None:
+def test_run_writes_partial_result_for_mixed_payload(
+    monkeypatch: Any, attendance_import_payload: dict[str, Any]
+) -> None:
     importer = AttendanceImporter()
     monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(attendance_import_payload)))
     fake_stdout = io.StringIO()

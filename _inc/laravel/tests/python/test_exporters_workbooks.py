@@ -49,7 +49,9 @@ def _freeze_panes(sheet: Any) -> Any:
     return pane.coordinate if hasattr(pane, "coordinate") else pane
 
 
-@pytest.mark.parametrize("module_name,main_sheet,first_sheet,header_row", WORKBOOK_CASES)  # type: ignore[untyped-decorator]
+@pytest.mark.parametrize(  # type: ignore[untyped-decorator]
+    "module_name,main_sheet,first_sheet,header_row", WORKBOOK_CASES
+)
 def test_exporters_generate_loadable_workbooks(
     module_name: str,
     main_sheet: str,
@@ -81,8 +83,15 @@ def test_exporters_generate_loadable_workbooks(
         assert _freeze_panes(sheet) == "A2"
 
 
-def test_balance_sheet_workbook_contains_dashboard_and_balance_check(exporter_payloads: Any, tmp_path: Path, monkeypatch: Any) -> None:
-    workbook = _run_export("balance_sheet_exporter", exporter_payloads["balance_sheet_exporter"](), tmp_path, monkeypatch)
+def test_balance_sheet_workbook_contains_dashboard_and_balance_check(
+    exporter_payloads: Any, tmp_path: Path, monkeypatch: Any
+) -> None:
+    workbook = _run_export(
+        "balance_sheet_exporter",
+        exporter_payloads["balance_sheet_exporter"](),
+        tmp_path,
+        monkeypatch,
+    )
 
     dashboard = workbook["Dashboard"]
     sheet = workbook["Balance Sheet"]
@@ -93,25 +102,49 @@ def test_balance_sheet_workbook_contains_dashboard_and_balance_check(exporter_pa
     assert "Total Liabilities & Equity" in values
 
 
-def test_trial_balance_workbook_contains_balance_formula(exporter_payloads: Any, tmp_path: Path, monkeypatch: Any) -> None:
-    workbook = _run_export("trial_balance_exporter", exporter_payloads["trial_balance_exporter"](), tmp_path, monkeypatch)
+def test_trial_balance_workbook_contains_balance_formula(
+    exporter_payloads: Any, tmp_path: Path, monkeypatch: Any
+) -> None:
+    workbook = _run_export(
+        "trial_balance_exporter",
+        exporter_payloads["trial_balance_exporter"](),
+        tmp_path,
+        monkeypatch,
+    )
 
     dashboard = workbook["Dashboard"]
     sheet = workbook["Trial Balance"]
-    formulas = [cell.value for row in sheet.iter_rows() for cell in row if isinstance(cell.value, str) and cell.value.startswith("=")]
+    formulas = [
+        cell.value
+        for row in sheet.iter_rows()
+        for cell in row
+        if isinstance(cell.value, str) and cell.value.startswith("=")
+    ]
 
     assert dashboard["B4"].value == "✓ Trial Balance is BALANCED"
     assert any(formula.startswith('=IF(ABS(C') for formula in formulas)
     assert any(formula.startswith("=C") and "-D" in formula for formula in formulas)
 
 
-def test_sales_report_workbook_contains_totals_and_pivot(exporter_payloads: Any, tmp_path: Path, monkeypatch: Any) -> None:
-    workbook = _run_export("sales_report_exporter", exporter_payloads["sales_report_exporter"](), tmp_path, monkeypatch)
+def test_sales_report_workbook_contains_totals_and_pivot(
+    exporter_payloads: Any, tmp_path: Path, monkeypatch: Any
+) -> None:
+    workbook = _run_export(
+        "sales_report_exporter",
+        exporter_payloads["sales_report_exporter"](),
+        tmp_path,
+        monkeypatch,
+    )
 
     sheet = workbook["Sales Item"]
     pivot = workbook["Sales Pivot"]
     values = _sheet_values(sheet)
-    formulas = [cell.value for row in sheet.iter_rows() for cell in row if isinstance(cell.value, str) and cell.value.startswith("=")]
+    formulas = [
+        cell.value
+        for row in sheet.iter_rows()
+        for cell in row
+        if isinstance(cell.value, str) and cell.value.startswith("=")
+    ]
 
     assert "TOTAL" in values
     assert any(formula.startswith("=SUM(B7:B12)") for formula in formulas)

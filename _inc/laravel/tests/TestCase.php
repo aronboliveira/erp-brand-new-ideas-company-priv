@@ -145,27 +145,16 @@ STUB);
             }
         }
 
-        parent::setUp();
-
-        // Disable FK checks for unit tests that use synthetic/fake IDs
-        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
-
-        // Clear seeded mail settings for DEFAULT_UUID so tests can insertOrIgnore fresh values
-        try {
-            DB::table('settings')
-                ->where('created_by', \App\Config\Constants\DatabaseConstants::DEFAULT_UUID)
-                ->whereIn('name', ['mail_driver','mail_host','mail_port','mail_encryption','mail_username','mail_password','mail_from_address','mail_from_name'])
-                ->delete();
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Lock wait timeout — ignore, the settings will just remain
-        }
-
-        // Reset Utility static caches so each test reads fresh DB data
-        Utility::resetSettingsCache();
-
-        // Ensure UUID PK tables get auto-generated IDs for raw DB::table() inserts in tests
+        // Apply UUID PK defaults for raw DB::table() inserts in tests.
+        // MUST run BEFORE parent::setUp() — that call invokes RefreshDatabase
+        // which begins a transaction, and ALTER TABLE is DDL that causes an
+        // implicit COMMIT in MySQL, which would break per-test rollback for
+        // every subsequent test in the process.
         if (! self::$uuidDefaultsApplied) {
             self::$uuidDefaultsApplied = true;
+            if (! $this->app) {
+                $this->app = $this->createApplication();
+            }
             $tables = [
                 'settings',
                 'company_payment_settings',
@@ -183,6 +172,24 @@ STUB);
                 }
             }
         }
+
+        parent::setUp();
+
+        // Disable FK checks for unit tests that use synthetic/fake IDs
+        DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
+
+        // Clear seeded mail settings for DEFAULT_UUID so tests can insertOrIgnore fresh values
+        try {
+            DB::table('settings')
+                ->where('created_by', \App\Config\Constants\DatabaseConstants::DEFAULT_UUID)
+                ->whereIn('name', ['mail_driver','mail_host','mail_port','mail_encryption','mail_username','mail_password','mail_from_address','mail_from_name'])
+                ->delete();
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Lock wait timeout — ignore, the settings will just remain
+        }
+
+        // Reset Utility static caches so each test reads fresh DB data
+        Utility::resetSettingsCache();
     }
 
     protected function tearDown(): void
