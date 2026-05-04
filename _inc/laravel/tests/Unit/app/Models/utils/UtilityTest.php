@@ -6514,11 +6514,11 @@ class UtilityTest extends TestCase
 				['user_id' => $user?->id, 'value' => $v]
 			);
 		}
-		// Also insert for DEFAULT_UUID (for sendUserEmailTemplate which uses settingsById(1) → falls back)
+		// Also insert for id=1 (sendUserEmailTemplate uses settingsById(1))
 		foreach ($mailSettings as $n => $v) {
 			DB::table('settings')->updateOrInsert(
-				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $n],
-				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $v]
+				['created_by' => 1, 'name' => $n],
+				['user_id' => 1, 'value' => $v]
 			);
 		}
 		Utility::resetSettingsCache();
