@@ -1,0 +1,25 @@
+{
+  "date": "2026-05-04",
+  "phpunit_version": "10.5.55",
+  "php_version": "8.4.5",
+  "base_test_count": 12758,
+  "original_errors": 66,
+  "original_failures": 23,
+  "current_errors": 32,
+  "current_failures": 0,
+  "fixed_errors": 37,
+  "fixed_failures": -3,
+  "note_failures_increase": "Some errors turned into failures (assertions now reachable after namespace fix)",
+  "skipped": 187,
+  "deprecations": 38,
+  "incomplete": 9,
+  "earlyoom_fixed": true,
+  "earlyoom_changes": {
+    "threshold": "5% \u2192 2%",
+    "prefer_list": "removed php|phpunit, kept node only"
+  },
+  "current_skipped": 543,
+  "total_issues": 29,
+  "original_issues": 89,
+  "reduction": "67%"
+}
