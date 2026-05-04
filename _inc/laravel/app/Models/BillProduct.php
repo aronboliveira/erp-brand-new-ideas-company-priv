@@ -1,13 +1,18 @@
 <?php
 
-namespace App\Models\Bills;
+namespace App\Models;
 
 use App\Config\Constants\{
     BanksConstants as BKC,
     BillsConstants as BC,
     DatabaseConstants as DC
 };
+use App\Models\Bill;
+use App\Models\ChartOfAccount;
+use App\Models\ProductService;
+use App\Models\Tax;
 use App\Models\User;
+use Database\Factories\BillProductFactory;
 use App\Traits\{
     ExtendsProductServiceTable,
     FiltersSecureAttachments,
@@ -31,6 +36,11 @@ final class BillProduct extends Model
     use ExtendsProductServiceTable;
     use NormalizesArrays;
     use FiltersSecureAttachments;
+
+    protected static function newFactory(): BillProductFactory
+    {
+        return BillProductFactory::new();
+    }
 
     protected $fillable = [
         BC::COL_BL_ID,

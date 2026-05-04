@@ -24,8 +24,8 @@ use App\Models\{
 use App\Models\{
     BillAccount,
     BillPayment,
-    BillProduct,
 };
+use App\Models\BillProduct;
 use App\Models\Payment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;

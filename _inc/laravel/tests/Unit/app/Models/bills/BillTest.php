@@ -12,12 +12,12 @@ use App\Models\{
 	Employee,
 	Tax,
 	BillAccount,
-	BillProduct,
 	BillPayment,
 	Payment,
 	ProductServiceCategory,
 	DebitNote
 };
+use App\Models\BillProduct;
 
 class BillTest extends TestCase
 {

@@ -11,7 +11,6 @@ use App\Models\{
 	BankAccount,
 	BillAccount,
 	BillPayment,
-	BillProduct,
 	BugStatus,
 	ChartOfAccount,
 	ChartOfAccountType,
@@ -50,6 +49,7 @@ use App\Models\{
 	WarehouseProduct,
 	WebhookSettings
 };
+use App\Models\BillProduct;
 use App\Traits\ChecksLogin;
 use Carbon\Carbon;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -2685,7 +2685,7 @@ class UtilityTest extends TestCase
 		$bank = \App\Models\BankAccount::create(['chart_account_id' => 2, 'created_by' => $user?->id]);
 		\App\Models\InvoicePayment::create(['account_id' => $bank->id, 'amount' => 5, 'date' => now()]);
 		\App\Models\Revenue::create(['account_id' => $bank->id, 'amount' => 7, 'date' => now()]);
-		\App\Models\Bills\BillProduct::create(['product_id' => $prod->id, 'total' => 4, 'quantity' => 1, 'created_at' => now()]);
+		\App\Models\BillProduct::create(['product_id' => $prod->id, 'total' => 4, 'quantity' => 1, 'created_at' => now()]);
 		\App\Models\BillAccount::create(['chart_account_id' => 3, 'price' => 3, 'created_at' => now()]);
 		\App\Models\BillPayment::create(['account_id' => $bank->id, 'amount' => 2, 'date' => now()]);
 		\App\Models\Payment::create(['account_id' => $bank->id, 'amount' => 1, 'date' => now()]);
@@ -2742,7 +2742,7 @@ class UtilityTest extends TestCase
 		$credit = Utility::getBalanceSheetCredit($coaSale->id, null, null);
 		$this->assertEquals((5 * 2) + 3 + 4, $credit);
 
-		\App\Models\Bills\BillProduct::create(['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
+		\App\Models\BillProduct::create(['product_id' => $prod->id, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
 		\App\Models\BillAccount::create(['chart_account_id' => $coaExp->id, 'price' => 1, 'created_at' => now()]);
 		$bank2 = \App\Models\BankAccount::create(['chart_account_id' => $coaExp->id, 'created_by' => DatabaseConstants::DEFAULT_UUID]);
 		\App\Models\BillPayment::create(['account_id' => $bank2->id, 'amount' => 1, 'date' => now()]);
@@ -2785,7 +2785,7 @@ class UtilityTest extends TestCase
 		\App\Models\BankAccount::create(['chart_account_id' => $chart->id, 'created_by' => $user?->creatorId()]);
 		\App\Models\InvoicePayment::create(['account_id' => 1, 'amount' => 3, 'created_at' => now()]);
 		\App\Models\Revenue::create(['account_id' => 1, 'amount' => 4, 'created_at' => now()]);
-		\App\Models\Bills\BillProduct::create(['product_id' => 1, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
+		\App\Models\BillProduct::create(['product_id' => 1, 'total' => 2, 'quantity' => 3, 'created_at' => now()]);
 		\App\Models\BillAccount::create(['chart_account_id' => $chart->id, 'price' => 1, 'created_at' => now()]);
 		\App\Models\BillPayment::create(['account_id' => 1, 'amount' => 1, 'created_at' => now()]);
 		\App\Models\Payment::create(['account_id' => 1, 'amount' => 2, 'created_at' => now()]);

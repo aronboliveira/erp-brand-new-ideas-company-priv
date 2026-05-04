@@ -5,7 +5,8 @@ namespace Tests\Unit\Models;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\{BillProduct, Bill, ProductService, ChartOfAccount};
+use App\Models\{Bill, ProductService, ChartOfAccount};
+use App\Models\BillProduct;
 
 class BillProductTest extends TestCase
 {
