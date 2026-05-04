@@ -1293,14 +1293,14 @@ class UtilityTest extends TestCase
 		// Insert settings so settings()['company_name'] and mail_from_name exist
 		DB::table('settings')->insertOrIgnore([
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'company_name', 'value' => 'TestCo'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'TestCo Mail'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_host', 'value' => 'host'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_port', 'value' => '25'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_username', 'value' => 'user'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'pass'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'noreply@test.com'],
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'TestCo Mail'],
+			['created_by' => 1, 'name' => 'mail_driver', 'value' => 'smtp'],
+			['created_by' => 1, 'name' => 'mail_host', 'value' => 'host'],
+			['created_by' => 1, 'name' => 'mail_port', 'value' => '25'],
+			['created_by' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
+			['created_by' => 1, 'name' => 'mail_username', 'value' => 'user'],
+			['created_by' => 1, 'name' => 'mail_password', 'value' => 'pass'],
+			['created_by' => 1, 'name' => 'mail_from_address', 'value' => 'noreply@test.com'],
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'decimal_number', 'value' => '2']
 		]);
 		$replaced = Utility::replaceVariable(
@@ -5483,14 +5483,14 @@ class UtilityTest extends TestCase
 	{
 		// Insert settings for userId = 3
 		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_host', 'value' => 'smtp.example.com'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_port', 'value' => '587'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_username', 'value' => 'user'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'pass'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'from@example.com'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'Example']
+			['created_by' => 1, 'name' => 'mail_driver', 'value' => 'smtp'],
+			['created_by' => 1, 'name' => 'mail_host', 'value' => 'smtp.example.com'],
+			['created_by' => 1, 'name' => 'mail_port', 'value' => '587'],
+			['created_by' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
+			['created_by' => 1, 'name' => 'mail_username', 'value' => 'user'],
+			['created_by' => 1, 'name' => 'mail_password', 'value' => 'pass'],
+			['created_by' => 1, 'name' => 'mail_from_address', 'value' => 'from@example.com'],
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'Example']
 		]);
 
 		$smtpConfig = Utility::smtpDetail(3);
@@ -7098,14 +7098,14 @@ class UtilityTest extends TestCase
 			$table->timestamps();
 		});
 		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_host', 'value' => 'smtp.test.com'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_port', 'value' => '587'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_username', 'value' => 'user@test.com'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'secret'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'from@test.com'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'TestFrom']
+			['created_by' => 1, 'name' => 'mail_driver', 'value' => 'smtp'],
+			['created_by' => 1, 'name' => 'mail_host', 'value' => 'smtp.test.com'],
+			['created_by' => 1, 'name' => 'mail_port', 'value' => '587'],
+			['created_by' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
+			['created_by' => 1, 'name' => 'mail_username', 'value' => 'user@test.com'],
+			['created_by' => 1, 'name' => 'mail_password', 'value' => 'secret'],
+			['created_by' => 1, 'name' => 'mail_from_address', 'value' => 'from@test.com'],
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'TestFrom']
 		]);
 
 		// Create a non-super-admin user
@@ -7374,7 +7374,7 @@ class UtilityTest extends TestCase
 			['value' => 'TestApp']
 		);
 		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name'],
+			['created_by' => 1, 'name' => 'mail_from_name'],
 			['value' => 'MyCompany']
 		);
 
@@ -8109,7 +8109,7 @@ class UtilityTest extends TestCase
 
 		// Insert necessary settings so Utility::settings() works
 		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'ExampleCompany']
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'ExampleCompany']
 		]);
 
 		$replaced = Utility::replaceVariable($content, $obj);
@@ -8194,14 +8194,14 @@ class UtilityTest extends TestCase
 		]);
 		// Insert settings for user_id = 1 (admin)
 		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_host', 'value' => 'smtp.admin.test'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_port', 'value' => '587'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_username', 'value' => 'adminuser'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'adminpass'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'admin@company.test'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'AdminTest']
+			['created_by' => 1, 'name' => 'mail_driver', 'value' => 'smtp'],
+			['created_by' => 1, 'name' => 'mail_host', 'value' => 'smtp.admin.test'],
+			['created_by' => 1, 'name' => 'mail_port', 'value' => '587'],
+			['created_by' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
+			['created_by' => 1, 'name' => 'mail_username', 'value' => 'adminuser'],
+			['created_by' => 1, 'name' => 'mail_password', 'value' => 'adminpass'],
+			['created_by' => 1, 'name' => 'mail_from_address', 'value' => 'admin@company.test'],
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'AdminTest']
 		]);
 		// Clear static caches before second send
 		foreach (['getSettings', 'getSettingsId', 'languageSetting'] as $prop) {
@@ -8770,7 +8770,7 @@ class UtilityTest extends TestCase
 		// Insert settings to supply company_name and mail_from_name
 		DB::table('settings')->insertOrIgnore([
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'company_name', 'value' => 'Acme Corp'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'Support Team']
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'Support Team']
 		]);
 		$result = Utility::replaceVariable($content, $obj);
 		$this->assertStringContainsString('Hello Alice', $result);
@@ -8845,14 +8845,14 @@ class UtilityTest extends TestCase
 		]);
 		// Insert settings for super admin (ID 1)
 		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_host', 'value' => 'smtp.admin'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_port', 'value' => '25'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_username', 'value' => 'admin'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'adminpass'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'admin@test.com'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'Admin Sender']
+			['created_by' => 1, 'name' => 'mail_driver', 'value' => 'smtp'],
+			['created_by' => 1, 'name' => 'mail_host', 'value' => 'smtp.admin'],
+			['created_by' => 1, 'name' => 'mail_port', 'value' => '25'],
+			['created_by' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
+			['created_by' => 1, 'name' => 'mail_username', 'value' => 'admin'],
+			['created_by' => 1, 'name' => 'mail_password', 'value' => 'adminpass'],
+			['created_by' => 1, 'name' => 'mail_from_address', 'value' => 'admin@test.com'],
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'Admin Sender']
 		]);
 
 		Mail::fake();
@@ -11688,7 +11688,7 @@ class UtilityTest extends TestCase
 		// Insert settings so that settings()['company_name'] is available
 		DB::table('settings')->insertOrIgnore([
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'company_name', 'value' => 'AcmeCorp'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'MailerName']
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'MailerName']
 		]);
 		$obj = ['email' => 'user@test'];
 		$out = Utility::replaceVariable($content, $obj);
@@ -11783,14 +11783,14 @@ class UtilityTest extends TestCase
 			'content' => 'Hi {user_name}'
 		]);
 		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_host', 'value' => 'smtp.local'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_port', 'value' => '1025'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_username', 'value' => 'u'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'p'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'from@test'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'Mailer']
+			['created_by' => 1, 'name' => 'mail_driver', 'value' => 'smtp'],
+			['created_by' => 1, 'name' => 'mail_host', 'value' => 'smtp.local'],
+			['created_by' => 1, 'name' => 'mail_port', 'value' => '1025'],
+			['created_by' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
+			['created_by' => 1, 'name' => 'mail_username', 'value' => 'u'],
+			['created_by' => 1, 'name' => 'mail_password', 'value' => 'p'],
+			['created_by' => 1, 'name' => 'mail_from_address', 'value' => 'from@test'],
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'Mailer']
 		]);
 		$res3 = Utility::sendUserEmailTemplate($template->slug, ['z@test'], ['user_name' => 'EndUser']);
 		$this->assertTrue($res3['is_success']);
@@ -12712,14 +12712,14 @@ class UtilityTest extends TestCase
 
 		// Insert default mail settings under created_by = 1
 		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_driver', 'value' => 'log'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_host', 'value' => 'smtp.default'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_port', 'value' => '1025'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_username', 'value' => 'user'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'pass'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'from@default.com'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'DefaultName']
+			['created_by' => 1, 'name' => 'mail_driver', 'value' => 'log'],
+			['created_by' => 1, 'name' => 'mail_host', 'value' => 'smtp.default'],
+			['created_by' => 1, 'name' => 'mail_port', 'value' => '1025'],
+			['created_by' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
+			['created_by' => 1, 'name' => 'mail_username', 'value' => 'user'],
+			['created_by' => 1, 'name' => 'mail_password', 'value' => 'pass'],
+			['created_by' => 1, 'name' => 'mail_from_address', 'value' => 'from@default.com'],
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'DefaultName']
 		]);
 
 		$result = Utility::sendUserEmailTemplate('UserTemplate', ['dave@example.com'], ['user_name' => 'Dave']);
@@ -12761,7 +12761,7 @@ class UtilityTest extends TestCase
 		];
 		// {company_name} is always overwritten by settings()['mail_from_name']
 		DB::table('settings')->updateOrInsert(
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name'],
+			['created_by' => 1, 'name' => 'mail_from_name'],
 			['value' => 'AcmeCorp', 'user_id' => DatabaseConstants::DEFAULT_UUID]
 		);
 		Utility::resetSettingsCache();
@@ -13378,14 +13378,14 @@ class UtilityTest extends TestCase
 	{
 		DB::table('settings')->delete();
 		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_driver', 'value' => 'smtp'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_host', 'value' => 'smtp.example.com'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_port', 'value' => '587'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_encryption', 'value' => 'tls'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_username', 'value' => 'user123'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => 'secret'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'from@example.com'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'ExampleApp']
+			['created_by' => 1, 'name' => 'mail_driver', 'value' => 'smtp'],
+			['created_by' => 1, 'name' => 'mail_host', 'value' => 'smtp.example.com'],
+			['created_by' => 1, 'name' => 'mail_port', 'value' => '587'],
+			['created_by' => 1, 'name' => 'mail_encryption', 'value' => 'tls'],
+			['created_by' => 1, 'name' => 'mail_username', 'value' => 'user123'],
+			['created_by' => 1, 'name' => 'mail_password', 'value' => 'secret'],
+			['created_by' => 1, 'name' => 'mail_from_address', 'value' => 'from@example.com'],
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'ExampleApp']
 		]);
 
 		$config = Utility::smtpDetail(3);
@@ -13849,14 +13849,14 @@ class UtilityTest extends TestCase
 			->where('user_id', $user?->creatorId())
 			->update(['is_active' => 1]);
 		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_driver', 'value' => 'log'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_host', 'value' => ''],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_port', 'value' => ''],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_encryption', 'value' => ''],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_username', 'value' => ''],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_password', 'value' => ''],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_address', 'value' => 'no-reply@admin.com'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name', 'value' => 'AdminApp']
+			['created_by' => 1, 'name' => 'mail_driver', 'value' => 'log'],
+			['created_by' => 1, 'name' => 'mail_host', 'value' => ''],
+			['created_by' => 1, 'name' => 'mail_port', 'value' => ''],
+			['created_by' => 1, 'name' => 'mail_encryption', 'value' => ''],
+			['created_by' => 1, 'name' => 'mail_username', 'value' => ''],
+			['created_by' => 1, 'name' => 'mail_password', 'value' => ''],
+			['created_by' => 1, 'name' => 'mail_from_address', 'value' => 'no-reply@admin.com'],
+			['created_by' => 1, 'name' => 'mail_from_name', 'value' => 'AdminApp']
 		]);
 		Mail::fake();
 		$resp3 = Utility::sendUserEmailTemplate('notify_user', ['to@user.com'], ['user_name' => 'Z']);
