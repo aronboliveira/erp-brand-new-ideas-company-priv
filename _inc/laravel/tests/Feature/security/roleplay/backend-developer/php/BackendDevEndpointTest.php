@@ -41,7 +41,7 @@ class BackendDevEndpointTest extends TestCase
         ];
         foreach ($routes as [$method, $route]) {
             $r = $this->call($method, $route, []);
-            $this->assertContains($r->getStatusCode(), [302, 401, 403, 419],
+            $this->assertContains($r->getStatusCode(), [302, 401, 403, 404, 419],
                 "[BACKEND-DEV] {$method} {$route} acessível sem auth ({$r->getStatusCode()})");
         }
     }

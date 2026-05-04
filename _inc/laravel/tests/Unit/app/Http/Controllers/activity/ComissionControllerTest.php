@@ -70,7 +70,7 @@ class ComissionControllerTest extends TestCase
 	{
 		$user = $this->createUserWithoutPermissions();
 		$this->actingAs($user)
-			->get('/commissions/creates/' . $this->employee->id)
+			->get('/commissions/create/' . $this->employee->id)
 			->assertRedirect();
 	}
 
@@ -83,7 +83,7 @@ class ComissionControllerTest extends TestCase
 	public function test_can_view_create_form()
 	{
 		$this->actingAs($this->admin)
-			->get('/commissions/creates/' . $this->employee->id)
+			->get('/commissions/create/' . $this->employee->id)
 			->assertStatus(200)
 			->assertSee('Commission');
 	}

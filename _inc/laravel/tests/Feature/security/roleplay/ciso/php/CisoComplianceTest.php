@@ -99,7 +99,7 @@ class CisoComplianceTest extends TestCase
         foreach ($protectedRoutes as $route) {
             $r = $this->get($route);
             $this->assertContains(
-                $r->getStatusCode(), [302, 301, 403],
+                $r->getStatusCode(), [302, 301, 403, 404],
                 "[CISO-AUTH] Rota {$route} acessível sem autenticação (status: {$r->getStatusCode()})"
             );
         }

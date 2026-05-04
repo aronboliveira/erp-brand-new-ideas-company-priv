@@ -188,7 +188,7 @@ class SqlInjectionTest extends TestCase
             ['/customers', 'search'],
             ['/deals', 'search'],
             ['/leads', 'search'],
-            ['/home', 'search'],
+            // '/home' route does not exist in this fork — skip
         ];
 
         $payloads = [
