@@ -7,7 +7,7 @@ use App\Config\Constants\{
 };
 use App\Traits\HasNullableAuditColumns;
 use Illuminate\Database\{Migrations\Migration, Schema\Blueprint};
-use Illuminate\Support\Facades\{Log, Schema};
+use Illuminate\Support\Facades\{DB, Log, Schema};
 
 class CreateStagesTable extends Migration
 {
@@ -16,11 +16,13 @@ class CreateStagesTable extends Migration
     private const COL_PL = PJC::COL_PPL_ID;
     public function up(): void
     {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
         Schema::create(self::TABLE, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid(self::COL_PL)->index();
+            $table->uuid(self::COL_PL);
             $table->string(PJC::COL_STG_NM);
             $table->integer(AC::COL_OD)->default(0);
+            $table->index(self::COL_PL);
             foreach (
                 [
                     self::COL_PL => DC::TABLE_PIPELINES,
