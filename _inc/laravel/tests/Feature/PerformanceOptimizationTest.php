@@ -87,9 +87,7 @@ class PerformanceOptimizationTest extends TestCase
         $response = $this->{strtolower($method)}($route);
         $elapsed = microtime(true) - $start;
 
-        if ($response->getStatusCode() === 500) {
-            $this->markTestSkipped("Route {$method} {$route} returned 500 (likely missing seed data in isolated run)");
-        }
+        $this->assertNotEquals(500, $response->getStatusCode(), "Route {$method} {$route} returned 500");
 
         $this->assertLessThan(
             self::RESPONSE_TIME_FAST,
@@ -121,9 +119,7 @@ class PerformanceOptimizationTest extends TestCase
         $response = $this->get('/dashboard');
         $elapsed = microtime(true) - $start;
 
-        if ($response->getStatusCode() === 500) {
-            $this->markTestSkipped('Dashboard returned 500 (likely missing seed data in isolated run)');
-        }
+        $this->assertNotEquals(500, $response->getStatusCode(), 'Dashboard returned 500');
 
         $this->assertLessThan(
             self::RESPONSE_TIME_MEDIUM,
