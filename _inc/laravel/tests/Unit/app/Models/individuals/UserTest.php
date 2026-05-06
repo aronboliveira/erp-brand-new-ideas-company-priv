@@ -477,16 +477,6 @@ class UserTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** userCurrentLocation returns location id for company user.
-	 **/
-	public function user_current_location_for_company()
-	{
-		$this->markTestSkipped('users table has no current_location column — feature relies on in-memory attribute not reliably testable');
-	}
-
-	/**
-	 ** @test
-	 **
 	 ** countEmployees counts correctly.
 	 **/
 	public function count_employees_counts_created_by()
@@ -1023,16 +1013,6 @@ class UserTest extends TestCase
 			$cd2->id => ['id' => (string) Str::uuid()],
 		]);
 		$this->assertCount(2, $user?->clientDeals);
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** userCurrentLocation returns the correct id for non-company users.
-	 **/
-	public function user_current_location_for_non_company()
-	{
-		$this->markTestSkipped('users table has no current_location column — feature relies on in-memory attribute not reliably testable');
 	}
 
 	/**
@@ -1640,16 +1620,6 @@ class UserTest extends TestCase
 		$this->assertIsArray($keywords);
 		$this->assertContains(__('Sun'), $keywords);
 		$this->assertGreaterThan(10, count($keywords));
-	}
-
-	/**
-	 ** @test
-	 **
-	 ** userCurrentLocation resolves correct location for a company user.
-	 **/
-	public function user_current_location_for_company_user()
-	{
-		$this->markTestSkipped('users table has no current_location column — feature relies on in-memory attribute not reliably testable');
 	}
 
 	/**

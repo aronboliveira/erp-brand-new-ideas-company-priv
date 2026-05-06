@@ -18,6 +18,14 @@ class NotificationTest extends TestCase
 
 		// Create a dummy named route for deals.show used in toHtml()
 		Route::get('/deals/{id}', fn ($id) => 'deal')->name('deals.show');
+
+		// Seed a notification template so the booted hook doesn't clear the data field
+		\Illuminate\Support\Facades\DB::table('notification_templates')->insertOrIgnore([
+			'id'         => (string) \Illuminate\Support\Str::uuid(),
+			'name'       => 'assign_deal',
+			'slug'       => 'assign_deal',
+			'created_by' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID,
+		]);
 	}
 
 	/**
@@ -72,21 +80,32 @@ class NotificationTest extends TestCase
 	 **/
 	public function to_html_generates_assign_deal_markup()
 	{
-		$this->markTestSkipped(
-			'Notification::toHtml() requires notification template infrastructure ' .
-			'(template lookup, rules, booted hook) not set up in this unit test. ' .
-			'Test in integration suite after seeding.'
-		);
+		$user = User::factory()->create(['name' => 'Alice']);
+		Auth::login($user);
+
+		$dealId = 42;
+		$saUuid = \App\Config\Constants\DatabaseConstants::DEFAULT_UUID;
+		$notif = Notification::create([
+			'id'         => (string) \Illuminate\Support\Str::uuid(),
+			'user_id'    => $user->id,
+			'type'       => 'assign_deal',
+			'data'       => json_encode([
+				'updated_by' => $user->id,
+				'deal_id'    => $dealId,
+				'name'       => 'Important Deal'
+			]),
+			'is_read'    => false,
+			'created_by' => $saUuid,
+			'sent_by'    => $saUuid,
+			'sent_at'    => now(),
+		]);
 
 		$html = $notif->toHtml();
 
-		// Should contain a link to the deal
 		$this->assertStringContainsString("/deals/{$dealId}", $html);
-		// Should include the user's name and notification text
 		$this->assertStringContainsString('Alice', $html);
 		$this->assertStringContainsString('Added you', $html);
 		$this->assertStringContainsString('<b class=\'font-weight-bold\'>Important Deal</b>', $html);
-		// Should wrap in an anchor tag
 		$this->assertStringStartsWith('<a href=', trim($html));
 	}
 }

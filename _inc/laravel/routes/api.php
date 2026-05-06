@@ -19,6 +19,7 @@ Route::group([
     'middleware' => [
         MiddlewaresConstants::XSS,
         MiddlewaresConstants::TRT . ':10,1',
+        'throttle:' . \App\Config\Constants\RoutesKeysConstants::API_KEY,
     ]
 ], function () {
     Route::post(ViewsConstants::AUT . '-login', [ApiController::class, 'login'])
