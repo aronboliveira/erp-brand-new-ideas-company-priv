@@ -9,12 +9,6 @@
         <testsuite name="Models-Activity">
             <directory suffix="Test.php">./tests/Unit/app/Models/activity</directory>
         </testsuite>
-        <testsuite name="Models-Apr">
-            <directory suffix="Test.php">./tests/Unit/app/Models/Apr</directory>
-        </testsuite>
-        <testsuite name="Models-Aug">
-            <directory suffix="Test.php">./tests/Unit/app/Models/Aug</directory>
-        </testsuite>
         <testsuite name="Models-Bills">
             <directory suffix="Test.php">./tests/Unit/app/Models/bills</directory>
         </testsuite>

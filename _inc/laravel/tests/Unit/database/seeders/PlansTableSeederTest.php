@@ -64,14 +64,4 @@ class PlansTableSeederTest extends TestCase
 		$this->assertEquals($now->toDateTimeString(), $plan->created_at->toDateTimeString());
 		$this->assertEquals($now->toDateTimeString(), $plan->updated_at->toDateTimeString());
 	}
-
-	/**
-	 ** @test
-	 *
-	 ** Marks incomplete: cannot simulate exceeding the UUID retry limit in unit tests.
-	 **/
-	public function it_marks_uuid_retry_limit_as_incomplete()
-	{
-		$this->markTestIncomplete('Cannot simulate over 100,000 duplicate UUID attempts in a reasonable unit test.');
-	}
 }

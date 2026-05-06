@@ -130,14 +130,4 @@ class NotificationSeederTest extends TestCase
 			->get()
 			->each(fn ($row) => $this->assertEquals($customId, $row->created_by));
 	}
-
-	/**
-	 ** @test
-	 *
-	 ** Marks incomplete: cannot simulate exceeding the UUID retry limit in unit tests.
-	 **/
-	public function it_marks_uuid_retry_limit_as_incomplete()
-	{
-		$this->markTestIncomplete('Cannot simulate over 100,000 duplicate UUID attempts.');
-	}
 }
