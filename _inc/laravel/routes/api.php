@@ -34,5 +34,6 @@ Route::group([
         Route::post('add-tracker', [ApiController::class, ApiController::ADD_TRK])->name('trackers.store');
         // TODO THIS METHOD DOESN'T EXIST
         Route::post('stop-tracker', [ApiController::class, 'stopTracker'])->name('trackers.stop');
+        Route::get('customers', fn () => response()->json([]))->name('api.customers.index');
     });
 });
