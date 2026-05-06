@@ -22,9 +22,16 @@ class ProductControlRouteReturnTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-		$this->admin = User::where('email', 'suporte@brandnewideascompany.com')->first();
-		if ($this->admin) {
-			$this->actingAs($this->admin);
+		\$this->admin = User::where('email', 'suporte@brandnewideascompany.com')->first()
+
+			?? User::where('type', 'super admin')->first()
+
+			?? User::first();
+
+		if (\$this->admin) {
+
+			\$this->actingAs(\$this->admin);
+
 		}
 	}
 

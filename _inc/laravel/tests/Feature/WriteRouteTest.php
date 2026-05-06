@@ -38,7 +38,9 @@ class WriteRouteTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-		$this->admin = User::where('email', 'suporte@brandnewideascompany.com')->first();
+		$this->admin = User::where('email', 'suporte@brandnewideascompany.com')->first()
+			?? User::where('type', 'super admin')->first()
+			?? User::first();
 		if ($this->admin) {
 			$this->actingAs($this->admin);
 		}

@@ -6,6 +6,7 @@ use App\Models\Utility;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Mockery;
 
 abstract class TestCase extends BaseTestCase
@@ -140,8 +141,12 @@ STUB);
                 if (($cnt[0]->cnt ?? 0) > 50) {
                     RefreshDatabaseState::$migrated = true;
                 }
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
                 // Can't check — let RefreshDatabase handle it
+                Log::warning('TestCase::setUp — cannot check table count, RefreshDatabase may wipe seeded data', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
             }
         }
 
