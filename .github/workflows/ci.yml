@@ -182,7 +182,7 @@ jobs:
 
             - name: Run migrations (with FK checks disabled)
               run: |
-                  mysql -h 127.0.0.1 -u root -proot -e "SET GLOBAL FOREIGN_KEY_CHECKS=0;"
+                  mysql -h 127.0.0.1 -u root -proot -e "SET GLOBAL FOREIGN_KEY_CHECKS=0; CREATE USER IF NOT EXISTS 'admin_brand_new_ideas_company'@'%' IDENTIFIED BY 'test'; GRANT ALL ON *.* TO 'admin_brand_new_ideas_company'@'%'; FLUSH PRIVILEGES;"
                   php artisan migrate:fresh --seed --force
 
             - name: PHPUnit
