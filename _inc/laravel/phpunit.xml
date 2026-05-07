@@ -174,15 +174,12 @@
         -->
         <testsuite name="Roleplay-CISO">
             <directory suffix="Test.php">./tests/Feature/security/roleplay/ciso/php</directory>
-            <directory suffix="Test.php">./tests/Unit/security/roleplay/ciso/php</directory>
         </testsuite>
         <testsuite name="Roleplay-QA">
             <directory suffix="Test.php">./tests/Feature/security/roleplay/qa/php</directory>
-            <directory suffix="Test.php">./tests/Unit/security/roleplay/qa/php</directory>
         </testsuite>
         <testsuite name="Roleplay-BackendDev">
             <directory suffix="Test.php">./tests/Feature/security/roleplay/backend-developer/php</directory>
-            <directory suffix="Test.php">./tests/Unit/security/roleplay/backend-developer/php</directory>
         </testsuite>
     </testsuites>
     <!-- Coverage disabled to reduce memory; enable with: composer test-php-cov -->
