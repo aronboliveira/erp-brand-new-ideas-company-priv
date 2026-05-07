@@ -1822,9 +1822,27 @@ class ProjectController extends Controller
 
             // password gate
             $viewPwd = VW::PRJ . '.copylink_password';
-            if (($settings['password_protected'] ?? '') === 'on'
-                && !Hash::check($request->password ?? '', $project->password ?? '')
-                && session("copy_pass_true{$id}") !== "{$project->password}-{$id}"
+            $pwdProtected = ($settings['password_protected'] ?? '') === 'on';
+            $entered = $request->password ?? '';
+            $stored  = $project->password ?? '';
+            $ok = false;
+            if ($pwdProtected) {
+                $ok = Hash::check($entered, $stored);
+                // Migração legada base64 → bcrypt: senhas antigas armazenadas como
+                // base64 ainda são aceitas uma vez, depois re-hasheadas para bcrypt.
+                if (!$ok && $stored !== '' && !preg_match('/^\$2[ayb]\$/', $stored)) {
+                    $decoded = base64_decode($stored, true);
+                    if ($decoded !== false && hash_equals($decoded, $entered)) {
+                        $project->password = Hash::make($entered);
+                        $project->saveQuietly();
+                        $stored = $project->password;
+                        $ok = true;
+                    }
+                }
+            }
+            if ($pwdProtected
+                && !$ok
+                && session("copy_pass_true{$id}") !== "{$stored}-{$id}"
             ) {
                 $t = microtime(true);
                 $exists = ViewFacade::exists($viewPwd);
@@ -1833,7 +1851,7 @@ class ProjectController extends Controller
                 return view($viewPwd, compact('id'));
             }
 
-            session(["copy_pass_true{$id}" => "{$project->password}-{$id}"]);
+            session(["copy_pass_true{$id}" => "{$stored}-{$id}"]);
 
             // metrics building (unchanged)
             $t = microtime(true);
