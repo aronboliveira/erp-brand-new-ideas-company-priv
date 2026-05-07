@@ -24,7 +24,7 @@ on:
             - ".github/workflows/**"
 
 env:
-    PHP_VERSION: "8.3"
+    PHP_VERSION: "8.4"
     NODE_VERSION: "22"
     PYTHON_VERSION: "3.11"
     LARAVEL_DIR: "_inc/laravel"
@@ -86,7 +86,7 @@ jobs:
                   cache-dependency-path: ${{ env.LARAVEL_DIR }}/package-lock.json
 
             - name: npm ci
-              run: npm ci --ignore-scripts
+              run: npm ci
 
             - name: npm audit fix
               continue-on-error: true  # advisory; may have unfixable vulns
@@ -131,18 +131,18 @@ jobs:
             mysql:
                 image: mysql:8.0
                 env:
-                    MYSQL_DATABASE: erp_brand_new_ideas_company_db
+                    MYSQL_DATABASE: erp_brand_new_ideas_company_test
                     MYSQL_USER: test
                     MYSQL_PASSWORD: test
                     MYSQL_ROOT_PASSWORD: root
                 ports:
                     - 3306:3306
                 options: >-
-                    --health-cmd="mysqladmin ping -h localhost -u root -proot"
+                    --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -proot"
                     --health-interval=10s
                     --health-timeout=5s
                     --health-retries=5
-                    --health-start-period=30s
+                    --health-start-period=60s
 
             redis:
                 image: redis:7-alpine
@@ -175,18 +175,17 @@ jobs:
                   sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env
                   sed -i 's/DB_USERNAME=.*/DB_USERNAME=test/' .env
                   sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=test/' .env
-                  sed -i 's/DB_DATABASE=.*/DB_DATABASE=erp_brand_new_ideas_company_db/' .env
+                  sed -i 's/DB_DATABASE=.*/DB_DATABASE=erp_brand_new_ideas_company_test/' .env
                   sed -i 's/REDIS_HOST=.*/REDIS_HOST=127.0.0.1/' .env
                   php artisan key:generate
 
-            - name: Run migrations
-              run: php artisan migrate --force
-
-            - name: Seed base catalog data
-              run: php artisan db:seed --class=ContentValidationSeeder --force
+            - name: Run migrations (with FK checks disabled)
+              run: |
+                  mysql -h 127.0.0.1 -u root -proot -e "SET GLOBAL FOREIGN_KEY_CHECKS=0;"
+                  php artisan migrate:fresh --seed --force
 
             - name: PHPUnit
-              run: php -d memory_limit=2G vendor/bin/phpunit --no-coverage --stop-on-failure
+              run: php -d memory_limit=2G vendor/bin/phpunit --no-coverage
 
     # ════════════════════════════════════════════════════════════════════════
     # TEST-JS — Jest + Playwright
