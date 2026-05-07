@@ -68,15 +68,12 @@ class GeneratedOfferLetterTest extends TestCase
 	 **/
 	public function replace_variable_applies_all_settings_and_obj_values(): void
 	{
-		// Stub Utility::settings() to provide app_name, default_salary_type, default_salary_duration
-		$this->aliasMock(Utility::class)
-			->shouldReceive('settings')
-			->once()
-			->andReturn([
+				// * DEV-ONLY TEST CLONE: Pre-seed Utility static cache instead of aliasMock
+		\App\Models\Utility::$getSettings = [
 				'app_name'               => 'AcmeCorp',
 				'default_salary_type'    => 'hourly',
 				'default_salary_duration' => 'weekly',
-			]);
+			];
 
 		// Ensure env fallback would be ignored
 		putenv('APP_NAME=IgnoredApp');
@@ -112,14 +109,12 @@ class GeneratedOfferLetterTest extends TestCase
 	 **/
 	public function replace_variable_uses_env_app_name_when_settings_empty(): void
 	{
-		$this->aliasMock(Utility::class)
-			->shouldReceive('settings')
-			->once()
-			->andReturn([
+		// * DEV-ONLY TEST CLONE: Pre-seed Utility static cache instead of aliasMock
+\App\Models\Utility::$getSettings = [
 				'app_name'               => '',
 				'default_salary_type'    => '',
 				'default_salary_duration' => '',
-			]);
+			];
 
 		putenv('APP_NAME=MyEnvApp');
 

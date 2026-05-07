@@ -65,14 +65,11 @@ class ExperienceCertificateTest extends TestCase
 	 **/
 	public function replace_variable_prefers_settings_app_name_over_env(): void
 	{
-		// Stub Utility::settings() to return a custom app_name and date format
-		$this->aliasMock(Utility::class)
-			->shouldReceive('settings')
-			->once()
-			->andReturn([
+				// * DEV-ONLY TEST CLONE: Pre-seed Utility static cache instead of aliasMock
+		\App\Models\Utility::$getSettings = [
 				'app_name'         => 'FromSettings',
 				'site_date_format' => 'd/m/Y',
-			]);
+			];
 
 		// Build a template containing placeholders
 		$template = 'App: {app_name}, Date: {date}';
@@ -96,14 +93,11 @@ class ExperienceCertificateTest extends TestCase
 	 **/
 	public function replace_variable_uses_env_app_name_when_settings_app_name_empty(): void
 	{
-		// Stub Utility::settings() to return an empty app_name but custom date format
-		$this->aliasMock(Utility::class)
-			->shouldReceive('settings')
-			->once()
-			->andReturn([
+				// * DEV-ONLY TEST CLONE: Pre-seed Utility static cache instead of aliasMock
+		\App\Models\Utility::$getSettings = [
 				'app_name'         => '',
 				'site_date_format' => 'Y',
-			]);
+			];
 
 		putenv('APP_NAME=EnvOnlyApp');
 
@@ -125,14 +119,11 @@ class ExperienceCertificateTest extends TestCase
 	 **/
 	public function replace_variable_handles_date_formatting_exceptions(): void
 	{
-		// Stub Utility::settings() to return valid values
-		$this->aliasMock(Utility::class)
-			->shouldReceive('settings')
-			->once()
-			->andReturn([
+				// * DEV-ONLY TEST CLONE: Pre-seed Utility static cache instead of aliasMock
+		\App\Models\Utility::$getSettings = [
 				'app_name'         => 'TestApp',
 				'site_date_format' => 'Y',
-			]);
+			];
 
 		// Temporarily override now()->format() to throw an exception
 		$mockNow = Mockery::mock('overload:Illuminate\Support\Carbon');

@@ -47,16 +47,13 @@ class JoiningLetterTest extends TestCase
 	 **/
 	public function replace_variable_applies_settings_and_obj_values(): void
 	{
-		// Mock Utility::settings() to provide predictable values
-		$this->aliasMock(Utility::class)
-			->shouldReceive('settings')
-			->once()
-			->andReturn([
+				// * DEV-ONLY TEST CLONE: Pre-seed Utility static cache instead of aliasMock
+		\App\Models\Utility::$getSettings = [
 				'site_date_format'  => 'Y-m-d',
 				'site_time_format'  => 'H:i',
 				'company_name'      => 'TestCorp',
 				'company_address'   => '123 Main St',
-			]);
+			];
 
 		$template = '{date} | {app_name} | {address} | {employee_name} | {start_date}';
 		$inputValues = [
@@ -89,16 +86,13 @@ class JoiningLetterTest extends TestCase
 	 **/
 	public function replace_variable_handles_missing_values_as_dash(): void
 	{
-		// Mock Utility::settings() to return empty strings for company data
-		$this->aliasMock(Utility::class)
-			->shouldReceive('settings')
-			->once()
-			->andReturn([
+				// * DEV-ONLY TEST CLONE: Pre-seed Utility static cache instead of aliasMock
+		\App\Models\Utility::$getSettings = [
 				'site_date_format'  => 'Y/m/d',
 				'site_time_format'  => 'H:i:s',
 				'company_name'      => '',
 				'company_address'   => '',
-			]);
+			];
 
 		$template = '{app_name}--{address}--{employee_name}';
 		$output = JoiningLetter::replaceVariable($template, []);
