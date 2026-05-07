@@ -123,7 +123,6 @@ jobs:
     test-php:
         name: PHPUnit Tests
         runs-on: ubuntu-latest
-        needs: lint
         defaults:
             run:
                 working-directory: ${{ env.LARAVEL_DIR }}
@@ -182,7 +181,7 @@ jobs:
 
             - name: Run migrations (with FK checks disabled)
               run: |
-                  mysql -h 127.0.0.1 -u root -proot -e "SET GLOBAL FOREIGN_KEY_CHECKS=0; CREATE USER IF NOT EXISTS 'admin_brand_new_ideas_company'@'%' IDENTIFIED BY 'test'; GRANT ALL ON *.* TO 'admin_brand_new_ideas_company'@'%'; FLUSH PRIVILEGES;"
+                  mysql -h 127.0.0.1 -u root -proot -e "SET GLOBAL FOREIGN_KEY_CHECKS=0; GRANT ALL ON *.* TO 'test'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;" 2>/dev/null || true
                   php artisan migrate:fresh --seed --force
 
             - name: PHPUnit
@@ -249,8 +248,7 @@ jobs:
 
             - name: Install Python test deps
               run: |
-                  pip install pytest pytest-cov flake8 mypy
-                  pip install -r requirements.txt 2>/dev/null || true  # optional file; keep soft
+                  pip install pytest pytest-cov flake8 mypy pandas requests openpyxl
 
             - name: pytest
               run: python3 -m pytest tests/python/ -v

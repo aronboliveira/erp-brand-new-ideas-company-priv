@@ -199,7 +199,7 @@
         <env name="DB_HOST" value="127.0.0.1" force="true"/>
         <env name="DB_PORT" value="3306" force="true"/>
         <env name="DB_DATABASE" value="erp_brand_new_ideas_company_test" force="true"/>
-        <env name="DB_USERNAME" value="admin_brand_new_ideas_company" force="true"/>
+        <env name="DB_USERNAME" value="test" force="true"/>
         <env name="DB_PASSWORD" value="test" force="true"/>
         <env name="MAIL_MAILER" value="array" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync" force="true"/>
