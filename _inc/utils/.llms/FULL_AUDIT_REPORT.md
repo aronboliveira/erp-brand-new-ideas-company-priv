@@ -3,7 +3,7 @@
 **Last updated:** 2026-02-25
 **Branch:** `agent`
 **Commits (chronological):** `9e7d78eb` → `259fcc7f` → `6f4e49f1` (i18n) → `aaef3f39` (expense form)
-**PHP:** 8.3.6 | **PHPUnit:** 10.5.55 | **Playwright:** chromium
+**PHP:** 8.4 | **PHPUnit:** 10.5.55 | **Playwright:** chromium
 **Server:** `php artisan serve --port=8888`
 
 > See [I18N_AUDIT_REPORT.md](./I18N_AUDIT_REPORT.md) for full i18n audit details (commit `6f4e49f1`).
