@@ -354,6 +354,8 @@ export default [
       "vendor/**",
       ".backup/**",
       ".venv/**",
+      ".history/**",
+      "frontend/**",
       "ts/**",
       "Modules/**",
       "utils/**",
