@@ -133,6 +133,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ["dist/**", "node_modules/**", "**/*.d.ts", "**/vendor-all.ts", "**/site.ts", "**/cookieconsent.ts"],
+    ignores: ["dist/**", "dist-iife/**", ".tmp/**", "scripts/**/*.cjs", "node_modules/**", "**/*.d.ts", "**/vendor-all.ts", "**/site.ts", "**/cookieconsent.ts"],
   },
 );

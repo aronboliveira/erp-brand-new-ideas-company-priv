@@ -84,7 +84,6 @@
     });
   }).observe(document.body, { childList: true, subtree: true });
 
-  // @ts-ignore -- migration: function overload type
   window.copyToClipboard = (text: string): void => {
     const element = document.getElementById(text) ?? document.body;
     try {
