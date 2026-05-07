@@ -111,11 +111,11 @@ jobs:
 
             - name: Flake8
               continue-on-error: true  # informational; non-blocking
-              run: python3 -m flake8 tests/python/ resources/python/ --max-line-length=120
+              run: python3 -m flake8 tests/python/ --max-line-length=120
 
             - name: mypy
               continue-on-error: true  # informational; non-blocking
-              run: python3 -m mypy tests/python/ resources/python/ --ignore-missing-imports
+              run: python3 -m mypy tests/python/ --ignore-missing-imports
 
     # ════════════════════════════════════════════════════════════════════════
     # TEST-PHP — PHPUnit (requires MySQL)
