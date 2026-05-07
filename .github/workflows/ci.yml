@@ -186,7 +186,7 @@ jobs:
                   php artisan migrate:fresh --seed --force
 
             - name: PHPUnit
-              run: php -d memory_limit=2G vendor/bin/phpunit --no-coverage
+              run: php -d memory_limit=4G vendor/bin/phpunit --no-coverage
 
     # ════════════════════════════════════════════════════════════════════════
     # TEST-JS — Jest + Playwright
