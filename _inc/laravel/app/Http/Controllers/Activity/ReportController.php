@@ -23,7 +23,7 @@ use App\Exports\{
 use App\Models\{
     BankAccount,
     Bill,
-    Bills\BillProduct as BillProduct,
+    BillProduct,
     Branch,
     ChartOfAccount,
     ChartOfAccountSubType,
