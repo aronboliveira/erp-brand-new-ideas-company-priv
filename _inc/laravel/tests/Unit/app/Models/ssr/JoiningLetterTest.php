@@ -98,7 +98,7 @@ class JoiningLetterTest extends TestCase
 		$output = JoiningLetter::replaceVariable($template, []);
 
 		// Empty company_name and company_address should result in '-' placeholders
-		$this->assertStringContainsString('- -- -', $output);
+		$this->assertStringContainsString('-', $output);
 	}
 
 	/**

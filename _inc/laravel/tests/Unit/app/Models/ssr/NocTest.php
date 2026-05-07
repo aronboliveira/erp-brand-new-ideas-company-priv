@@ -5,24 +5,20 @@ namespace Tests\Unit\Models;
 use App\Models\{Noc};
 use Illuminate\Support\Carbon;
 use Mockery;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Tests\TestCase;
 use Tests\Concerns\SafeAliasMock;
 
 class NocTest extends TestCase
 {
+	use SafeAliasMock;
+	use MockeryPHPUnitIntegration;
+
     protected function setUp(): void
     {
         parent::setUp();
         \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
-
-	use SafeAliasMock;
-
-	protected function tearDown(): void
-	{
-		Mockery::close();
-        parent::tearDown();
-	}
 
 	/**
 	 ** @test

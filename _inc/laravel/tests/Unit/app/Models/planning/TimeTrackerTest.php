@@ -31,10 +31,9 @@ class TimeTrackerTest extends TestCase
 			->getMock()->shouldReceive('first')
 			->andReturn((object)['name' => 'Sprint task']);
 
-		// Stub Utility::secondToTime()
-		$this->aliasMock('App\Models\Utility')
-			->shouldReceive('secondToTime')
-			->andReturn('00:42:00');
+		// * DEV-ONLY TEST CLONE: secondToTime is a pure function — no mock needed.
+		// secondToTime(2520) = '00:42:00' which matches the test expectation exactly.
+		// Original: aliasMock('App\Models\Utility')->shouldReceive('secondToTime')->andReturn('00:42:00');
 	}
 
 	/**

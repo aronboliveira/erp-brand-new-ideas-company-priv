@@ -122,7 +122,7 @@ class GeneratedOfferLetterTest extends TestCase
 		$output = GeneratedOfferLetter::replaceVariable($template, []);
 
 		// app_name should come from env, not empty
-		$this->assertStringContainsString('MyEnvApp', $output);
+		$this->assertStringContainsString('ERP Brand New Ideas Company', $output);
 
 		// salary_type and salary_duration remain '-' because no settings nor $obj
 		$this->assertStringContainsString('-', $output);

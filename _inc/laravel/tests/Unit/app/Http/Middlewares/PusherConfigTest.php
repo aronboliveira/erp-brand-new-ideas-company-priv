@@ -23,16 +23,14 @@ class PusherConfigTest extends TestCase
 	 **/
 	public function handle_passes_through_and_sets_pusher_config()
 	{
-		// Arrange: stub Utility::settingsById to return our test settings
-		$this->aliasMock('App\Models\Utility')
-			->shouldReceive('settingsById')
-			->with(1)
-			->andReturn([
-				'pusher_app_key'     => 'test-key',
-				'pusher_app_secret'  => 'test-secret',
-				'pusher_app_id'      => 'test-id',
-				'pusher_app_cluster' => 'test-cluster',
-			]);
+		// * DEV-ONLY TEST CLONE: Pre-seed Utility::\$getSettingsId cache instead of aliasMock.
+		// Original: aliasMock('App\Models\Utility')->shouldReceive('settingsById')->with(1)->andReturn([...])
+		\App\Models\Utility::$getSettingsId[1] = [
+			'pusher_app_key'     => 'test-key',
+			'pusher_app_secret'  => 'test-secret',
+			'pusher_app_id'      => 'test-id',
+			'pusher_app_cluster' => 'test-cluster',
+		];
 
 		$middleware = new PusherConfig();
 		$request   = Request::create('/test', 'GET');
