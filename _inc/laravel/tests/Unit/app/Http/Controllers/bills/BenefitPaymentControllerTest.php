@@ -20,7 +20,6 @@ class BenefitPaymentControllerTest extends TestCase
 	{
 		parent::setUp();
 		Log::spy();
-		$this->markTestSkipped('Requires missing routes and external gateway configuration');
 	}
 
 	protected function fakeGuzzle(array $responses = []): void
