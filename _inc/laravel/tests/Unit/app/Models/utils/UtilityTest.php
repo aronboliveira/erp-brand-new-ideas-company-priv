@@ -2018,42 +2018,55 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_warehouse_transfer_qty_moves_and_deletes()
 	{
-		$this->markTestSkipped('warehouse_products.product_id has UNIQUE constraint preventing multi-warehouse per product.');
-		$user = User::create(['name' => 'U6', 'email' => 'u6-' . uniqid() . '@u.com', 'password' => bcrypt('x'), 'lang' => 'en']);
-		$stubClass = new class($user) extends \App\Models\Utility
-		{
-			private static $u;
-			public function __construct($u)
-			{
-				self::$u = $u;
-			}
-			protected static function _checkLogin(bool $haltRedirect = false): \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse|\Illuminate\View\View|\App\Models\User|false
-			{
-				return self::$u;
-			}
-		};
+		// Migration 2025_06_03_233612_create_warehouse_products_table now
+		// uniques on (warehouse_id, product_id) instead of product_id alone,
+		// matching what FinanceBillingService::warehouseTransferQty actually
+		// writes (a second row with the same product but a different
+		// warehouse during a transfer).
+		$user = User::create([
+			'name'     => 'U6',
+			'email'    => 'u6-' . uniqid() . '@u.com',
+			'password' => bcrypt('x'),
+			'lang'     => 'en',
+		]);
 		Auth::login($user);
 
-		$wh1 = \App\Models\Warehouse::create(['name' => 'W1', 'zip' => '00001', 'city' => 'TestCity', 'address' => 'TestAddr']);
-		$wh2 = \App\Models\Warehouse::create(['name' => 'W2', 'zip' => '00002', 'city' => 'TestCity', 'address' => 'TestAddr']);
-		$prod = \App\Models\ProductService::create(['sku' => 'SKU0004-' . uniqid(), 'type' => 'product', 'quantity' => 0]);
+		$wh1  = \App\Models\Warehouse::create(['name' => 'W1', 'zip' => '00001', 'city' => 'TestCity', 'address' => 'TestAddr']);
+		$wh2  = \App\Models\Warehouse::create(['name' => 'W2', 'zip' => '00002', 'city' => 'TestCity', 'address' => 'TestAddr']);
+		$prod = \App\Models\ProductService::create([
+			'sku'      => 'SKU0004-' . uniqid(),
+			'type'     => 'product',
+			'quantity' => 0,
+		]);
 		$fromRec = \App\Models\WarehouseProduct::create([
 			'warehouse_id' => $wh1->id,
 			'product_id'   => $prod->id,
 			'quantity'     => 20,
-			'created_by'   => $user?->id
+			'created_by'   => $user?->id,
 		]);
 
-		// Transfer 10, to nonexisting in toWarehouse
+		// Transfer 10 → creates new row at $wh2 with qty 10, decrements $wh1 to 10
 		Utility::warehouseTransferQty($wh1->id, $wh2->id, $prod->id, 10);
-		$toRec = \App\Models\WarehouseProduct::where('warehouse_id', $wh2->id)->first();
+		$toRec = \App\Models\WarehouseProduct::where('warehouse_id', $wh2->id)
+			->where('product_id', $prod->id)
+			->first();
+		$this->assertNotNull($toRec, 'destination warehouse_product row must exist');
 		$this->assertEquals(10, $toRec->quantity);
 		$this->assertEquals(10, $fromRec->fresh()->quantity);
 
-		// Transfer remainder to delete fromRec
+		// Transfer remaining 10 → fromRec deleted, toRec accumulates to 20
 		Utility::warehouseTransferQty($wh1->id, $wh2->id, $prod->id, 10);
-		$this->assertNull(\App\Models\WarehouseProduct::where('warehouse_id', $wh1->id)->first());
-		$this->assertEquals(20, \App\Models\WarehouseProduct::where('warehouse_id', $wh2->id)->sum('quantity'));
+		$this->assertNull(
+			\App\Models\WarehouseProduct::where('warehouse_id', $wh1->id)
+				->where('product_id', $prod->id)
+				->first()
+		);
+		$this->assertEquals(
+			20,
+			\App\Models\WarehouseProduct::where('warehouse_id', $wh2->id)
+				->where('product_id', $prod->id)
+				->sum('quantity')
+		);
 	}
 
 	/**
