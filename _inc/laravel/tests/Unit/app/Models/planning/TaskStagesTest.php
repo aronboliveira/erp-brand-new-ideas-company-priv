@@ -40,34 +40,21 @@ class TaskStagesTest extends TestCase
 	 **/
 	public function get_chart_data_structure(): void
 	{
-		// Freeze today
 		Carbon::setTestNow(Carbon::parse('2025-05-30'));
 
-		// Fake logged-in company user.
-		$user = (object)['id' => 1, 'type' => 'company', 'creatorId' => fn () => 1];
-		Auth::shouldReceive('user')->andReturn($user);
+		// Login a real company user; getChartData() reads TaskStage rows
+		// scoped by created_by = creatorId() and groups by distinct name.
+		$user = \App\Models\User::factory()->create(['type' => 'company', 'lang' => 'en']);
+		Auth::login($user);
 
-		// Stub TaskStage::where()->get()
-		$fakeStages = collect([
-			(object)['id' => 10, 'name' => 'Todo', 'color' => '#f00'],
-			(object)['id' => 11, 'name' => 'Done', 'color' => '#0f0'],
-		]);
-		$this->aliasMock(TaskStage::class)
-			->shouldReceive('where')->andReturnSelf()
-			->getMock()->shouldReceive('get')->andReturn($fakeStages);
-
-		// Simplify ProjectTask::where* chain to 0 counts.
-		$this->aliasMock('App\Models\ProjectTask')
-			->shouldReceive('where')->andReturnSelf()
-			->getMock()->shouldReceive('whereDate')->andReturnSelf()
-			->getMock()->shouldReceive('join')->andReturnSelf()
-			->getMock()->shouldReceive('count')->andReturn(0);
+		TaskStage::create(['name' => 'Todo', 'color' => '#f00', 'order' => 1, 'created_by' => $user->id]);
+		TaskStage::create(['name' => 'Done', 'color' => '#0f0', 'order' => 2, 'created_by' => $user->id]);
 
 		$data = TaskStage::getChartData();
 
 		$this->assertArrayHasKey('label',   $data);
 		$this->assertArrayHasKey('dataset', $data);
-		$this->assertCount(2, $data['dataset']); // two fake stages
+		$this->assertCount(2, $data['dataset']);
 	}
 
 	protected function tearDown(): void

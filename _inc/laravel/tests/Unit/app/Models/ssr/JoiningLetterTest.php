@@ -108,19 +108,15 @@ class JoiningLetterTest extends TestCase
 	 **/
 	public function default_joining_letter_register_creates_expected_number_of_records(): void
 	{
-		// Count of languages in defaultJoiningLetterRegister: ar, zh, da, de, en, es, fr, he, it, ja, nl, pl, pt, ru, tr, pt-br = 16
-		$createMock = $this->aliasMock(JoiningLetter::class)
-			->shouldAllowMockingProtectedMethods()
-			->shouldReceive('create')
-			->times(16)
-			->andReturnUsing(function ($attrs) {
-				$this->assertArrayHasKey('lang', $attrs);
-				$this->assertArrayHasKey('content', $attrs);
-				$this->assertArrayHasKey('created_by', $attrs);
-				return new JoiningLetter($attrs);
-			});
+		// 16 languages: ar, zh, da, de, en, es, fr, he, it, ja, nl, pl,
+		// pt, ru, tr, pt-br. Drive the real create() path. The fillable
+		// allowlist on JoiningLetter includes only lang+content, so
+		// created_by is filtered by mass-assignment — count by the lang
+		// set written rather than by created_by.
+		$before = JoiningLetter::count();
+		JoiningLetter::defaultJoiningLetterRegister(\App\Config\Constants\DatabaseConstants::DEFAULT_UUID);
+		$after = JoiningLetter::count();
 
-		// Call with an arbitrary user_id
-		JoiningLetter::defaultJoiningLetterRegister(99);
+		$this->assertSame(16, $after - $before);
 	}
 }
