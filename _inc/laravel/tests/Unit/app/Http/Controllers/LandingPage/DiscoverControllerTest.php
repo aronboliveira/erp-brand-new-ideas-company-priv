@@ -328,8 +328,6 @@ class DiscoverControllerTest extends TestCase
 	 */
 	public function discover_store_without_file_appends_feature_and_redirects_back()
 	{
-		$this->markTestSkipped('Route for DiscoverController@discoverStore is not registered.');
-
 		$response = $this->post(action([DiscoverController::class, 'discoverStore']), [
 			'discoverHeading'     => 'New Feature',
 			'discoverDescription' => 'New Desc',
@@ -347,16 +345,25 @@ class DiscoverControllerTest extends TestCase
 	 */
 	public function discover_store_with_file_upload_failure_redirects_back_with_error()
 	{
-		$this->markTestSkipped('Cannot mock static method on Eloquent model without @runInSeparateProcess');
+		// Force LandingPageSetting::uploadFile() to fail through the
+		// validator path: seed `local_storage_validation` with a mime
+		// list that does NOT include png. The controller wraps the
+		// validator's first message in `__()` and flashes it under 'error'.
+		\Illuminate\Support\Facades\DB::table('settings')->updateOrInsert(
+			['created_by' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'name' => 'local_storage_validation'],
+			['user_id' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'value' => 'pdf']
+		);
+		\App\Models\Utility::resetSettingsCache();
 
 		$file = UploadedFile::fake()->image('logo.png');
-		$response = $this->post(route('discover.store'), [
+		$response = $this->post(action([DiscoverController::class, 'discoverStore']), [
 			'discoverLogo'        => $file,
 			'discoverHeading'     => 'Head',
 			'discoverDescription' => 'Desc',
 		]);
 
-		$response->assertRedirect()
-			->assertSessionHas('error', __('upload_failed'));
+		$response->assertRedirect();
+		$this->assertNotNull(session('error'));
+		$this->assertStringContainsStringIgnoringCase('pdf', (string) session('error'));
 	}
 }

@@ -66,12 +66,15 @@ class LandingPageControllerTest extends TestCase
 	 **/
 	public function create_returns_create_form()
 	{
-		$this->markTestSkipped(
-			'Route landingpage/{landingpage} (show) is registered before landingpage/create (create) '
-				. 'due to split middleware groups in Modules/LandingPage/Routes/web.php. '
-				. 'GET /landingpage/create matches show($id="create") instead of create(), '
-				. 'resulting in a 302 redirect with "Setting not found".'
-		);
+		$user = User::factory()->create(['type' => 'super admin']);
+		Permission::firstOrCreate(['name' => 'manage landing page']);
+		$user?->givePermissionTo('manage landing page');
+
+		$response = $this->actingAs($user)
+			->get(action([LandingPageController::class, 'create']));
+
+		$response->assertStatus(200)
+			->assertViewIs('landingpage::landingpage.create');
 	}
 
 	/**

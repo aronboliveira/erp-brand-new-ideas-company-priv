@@ -111,8 +111,7 @@ class MessageControllerTest extends TestCase
 	 **/
 	public function test_index_displays_view_for_non_admin_users()
 	{
-		$this->markTestSkipped('Requires Chatify routes/views fully configured');
-		$user = User::factory()->create(['type' => 'company']);
+		$user = User::factory()->create(['type' => 'company', 'lang' => 'en']);
 		$this->actingAs($user);
 
 		$response = $this->get('/chats');
@@ -168,18 +167,20 @@ class MessageControllerTest extends TestCase
 	 **/
 	public function test_download_returns_404_for_missing_file()
 	{
-		$this->markTestSkipped('Requires Chatify file storage with writable attachments folder');
 		$user = User::factory()->create();
 		$this->actingAs($user);
 
-		// ensure custom attachments folder
-		config(['chatify.attachments.folder' => 'test_attach']);
-		File::deleteDirectory(storage_path('test_attach'));
+		$folder = 'test_attach_' . uniqid();
+		config(['chatify.attachments.folder' => $folder]);
+		\Illuminate\Support\Facades\File::deleteDirectory(storage_path($folder));
 
-		$response = $this->get('/chats/downloads/nonexistent.txt');
-
-		// Controller's broad catch intercepts abort(404) and returns a redirect
-		$response->assertRedirect();
+		try {
+			$response = $this->get('/chats/downloads/nonexistent.txt');
+			// Controller's broad catch turns abort(404) into a redirect
+			$response->assertRedirect();
+		} finally {
+			\Illuminate\Support\Facades\File::deleteDirectory(storage_path($folder));
+		}
 	}
 
 	/**
@@ -189,19 +190,22 @@ class MessageControllerTest extends TestCase
 	 **/
 	public function test_download_serves_existing_file()
 	{
-		$this->markTestSkipped('Requires Chatify file storage with writable attachments folder');
 		$user = User::factory()->create();
 		$this->actingAs($user);
 
-		config(['chatify.attachments.folder' => 'test_attach']);
-		$path = storage_path('test_attach');
-		File::ensureDirectoryExists($path);
+		$folder = 'test_attach_' . uniqid();
+		config(['chatify.attachments.folder' => $folder]);
+		$path = storage_path($folder);
+		\Illuminate\Support\Facades\File::ensureDirectoryExists($path);
 		file_put_contents("$path/example.txt", 'hello world');
 
-		$response = $this->get('/chats/downloads/example.txt');
-
-		$response->assertStatus(200)
-			->assertHeader('content-disposition', 'attachment; filename=example.txt');
+		try {
+			$response = $this->get('/chats/downloads/example.txt');
+			$response->assertStatus(200)
+				->assertHeader('content-disposition', 'attachment; filename=example.txt');
+		} finally {
+			\Illuminate\Support\Facades\File::deleteDirectory($path);
+		}
 	}
 
 	/**
@@ -244,8 +248,7 @@ class MessageControllerTest extends TestCase
 	 **/
 	public function index_displays_chat_view_for_non_admin_user()
 	{
-		$this->markTestSkipped('Requires Chatify routes/views fully configured');
-		$user = User::factory()->create(['type' => 'user']);
+		$user = User::factory()->create(['type' => 'user', 'lang' => 'en']);
 		$this->actingAs($user);
 
 		$response = $this->get('/chats');
@@ -504,24 +507,24 @@ class MessageControllerTest extends TestCase
 	 **/
 	public function download_returns_file_or_404()
 	{
-		$this->markTestSkipped('Requires Chatify file storage with writable attachments folder');
 		$user = User::factory()->create();
 		$this->actingAs($user);
 
-		// set custom folder for testing
-		config(['chatify.attachments.folder' => 'test_attach']);
-		$path = storage_path('test_attach');
-		@mkdir($path, 0755, true);
+		$folder = 'test_attach_' . uniqid();
+		config(['chatify.attachments.folder' => $folder]);
+		$path = storage_path($folder);
+		\Illuminate\Support\Facades\File::ensureDirectoryExists($path);
 		file_put_contents("$path/test.txt", 'hello');
 
-		// existing file → 200
-		$response = $this->get('/chats/downloads/test.txt');
-		$response->assertStatus(200)
-			->assertHeader('content-disposition');
+		try {
+			$response = $this->get('/chats/downloads/test.txt');
+			$response->assertStatus(200)->assertHeader('content-disposition');
 
-		// missing file → controller's broad catch intercepts abort(404) and redirects
-		$response = $this->get('/chats/downloads/nope.txt');
-		$response->assertRedirect();
+			$response = $this->get('/chats/downloads/nope.txt');
+			$response->assertRedirect();
+		} finally {
+			\Illuminate\Support\Facades\File::deleteDirectory($path);
+		}
 	}
 
 	/**
@@ -531,16 +534,19 @@ class MessageControllerTest extends TestCase
 	 **/
 	public function get_contacts_returns_html_or_empty_hint()
 	{
-		$this->markTestSkipped('Requires Chatify routes/views fully configured');
-		$user = User::factory()->create();
+		// getContacts() renders Chatify list-item views (vendor.Chatify.layouts.list_item)
+		// when "members" exist for the auth'd user. The stubbed Chatify
+		// package provides only a no-op service, not the Blade tree, so
+		// we keep the user list trivially empty by using a fresh user with
+		// no related members and assert on the empty-hint contracts.
+		$user = User::factory()->create(['type' => 'company', 'lang' => 'en']);
 		$this->actingAs($user);
 
-		// no messages yet → empty hint
 		$response = $this->getJson('/chats/get-contacts', ['messenger_id' => 'chat_1']);
-		$this->assertStringContainsString('Your contact list is empty', $response->json('contacts'));
 
-		// Chatify::getContactItem is a stub returning ''; verify endpoint still responds
-		$response->assertJsonStructure(['contacts']);
+		$response->assertStatus(200)
+			->assertJsonStructure(['contacts']);
+		$this->assertStringContainsString('Your contact list is empty', (string) $response->json('contacts'));
 	}
 
 	/**

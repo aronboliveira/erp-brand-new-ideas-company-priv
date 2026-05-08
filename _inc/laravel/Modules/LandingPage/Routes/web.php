@@ -57,6 +57,10 @@ RF::middleware([
         RF::get(R::TTMN . '/create/', [TTC::class, TTC::TTM_CRT])->name(R::TTMN . '.create');
         RF::get(R::TTMN . '/edit/{key}', [TTC::class, TTC::TTM_EDT])->name(R::TTMN . '.edit');
         RF::get(R::TTMN . '/delete/{key}', [TTC::class, TTC::TTM_DEL])->name(R::TTMN . '.delete');
+        // Register `landingpage/create` BEFORE the `RF::resource()` call so
+        // it matches ahead of the `landingpage/{landingpage}` show route
+        // (otherwise GET /landingpage/create resolves to show($id='create')).
+        RF::get(R::LP . '/create', [LPC::class, 'create'])->name(R::LP . '.create');
         RF::resource(
             R::LP,
             LPC::class
@@ -121,7 +125,10 @@ RF::middleware([
             R::JU . '/user-store',
             [JUC::class, JUC::JU_U_ST]
         )->name(R::JU . '.user.store');
-        RF::post(R::DV . '/store/', [DC::class, DC::DCV_CRT])->name(R::DV . '.store');
+        // Feature-creation endpoint (DCV_STR/discoverStore) — distinct from
+        // the resource's `store()` global-settings handler. Named with a
+        // `.feature.store` suffix so the resource keeps owning `.store`.
+        RF::post(R::DV . '/feature/store/', [DC::class, DC::DCV_STR])->name(R::DV . '.feature.store');
         RF::post(R::DV . '/update/{key}', [DC::class, DC::DCV_UPD])->name(R::DV . '.update');
         RF::post(R::SST . '/store/', [SSC::class, SSC::SST_STR])->name(R::SST . '.store');
         RF::post(R::SST . '/update/{key}', [SSC::class, SSC::SST_UPD])->name(R::SST . '.update');
