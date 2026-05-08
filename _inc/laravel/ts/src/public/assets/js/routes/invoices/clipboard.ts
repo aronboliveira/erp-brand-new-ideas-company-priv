@@ -5,7 +5,7 @@
  */
 function _copyToClipboard(element: HTMLElement): void {
   const copyText = element.id;
-  navigator.clipboard.writeText(copyText);
+  void navigator.clipboard.writeText(copyText);
   // document.addEventListener('copy', function (e) {
   //     e.clipboardData.setData('text/plain', copyText);
   //     e.preventDefault();

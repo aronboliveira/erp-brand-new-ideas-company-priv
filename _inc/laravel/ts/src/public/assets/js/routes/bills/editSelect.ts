@@ -9,10 +9,9 @@
   if (!select || select.getAttribute("data-listener-active") === "true") return;
   select.setAttribute("data-listener-active", "true");
 
-  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   if (!select.getAttribute("data-listener-bound-change")) {
     select.setAttribute("data-listener-bound-change", "1");
-    select.addEventListener("change", async (): Promise<void> => {
+    select.addEventListener("change", () => void (async (): Promise<void> => {
       try {
         const url = select.getAttribute("data-url");
         if (!url || url === "#") {
@@ -78,7 +77,7 @@
       } catch (e) {
         console.error(`[editSelect] Error:`, e);
       }
-    });
+    })());
   }
 })();
 

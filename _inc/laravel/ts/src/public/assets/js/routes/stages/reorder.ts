@@ -5,7 +5,6 @@
  */
 
 import type {
-  JQuerySortableUI,
   JQueryExtendedSortable as JQueryExtended,
   JQueryStaticFn,
 } from "../../../../../declarations/routes/jquery-ui.interfaces";

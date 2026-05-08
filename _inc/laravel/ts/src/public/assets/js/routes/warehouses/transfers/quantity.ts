@@ -22,11 +22,8 @@
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBootstrap = () =>
     !!(
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      (
-        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-        qs('link[href*="bootstrap"]')
-      )
+      qs('link[rel="stylesheet"][href*="bootstrap"]') ??
+      qs('link[href*="bootstrap"]')
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     let c = qs("#np-toast-container");

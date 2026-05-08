@@ -70,7 +70,7 @@
         e.preventDefault();
         const ok = out.getAttribute("data-copy-ok-msg") ?? "Text copied to clipboard.";
         const err = out.getAttribute("data-copy-err-msg") ?? "Copy failed. Please try again.";
-        doCopy((out as HTMLTextAreaElement).value ?? "", ok, err);
+        void doCopy((out as HTMLTextAreaElement).value ?? "", ok, err);
       } catch (err2) {
         if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("[assets/js/routes/aiGrammar/clipboard.js] Click handler error:", err2?.constructor?.name ?? "Error", (err2 as Error)?.message ?? "Unknown error");
       }

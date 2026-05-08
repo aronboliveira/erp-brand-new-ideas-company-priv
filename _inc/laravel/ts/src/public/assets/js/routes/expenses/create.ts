@@ -296,21 +296,18 @@
       venSel = document.getElementById("vendor");
     if (empSel && once(empSel, "data-bound"))
       if (!empSel.getAttribute("data-listener-bound-change")) {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         empSel.setAttribute("data-listener-bound-change", "1");
-        empSel.addEventListener("change", () => fetchDetail(empSel, "#employee_detail"));
+        empSel.addEventListener("change", () => { void fetchDetail(empSel, "#employee_detail"); });
       }
     if (cusSel && once(cusSel, "data-bound"))
       if (!cusSel.getAttribute("data-listener-bound-change")) {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         cusSel.setAttribute("data-listener-bound-change", "1");
-        cusSel.addEventListener("change", () => fetchDetail(cusSel, "#customer_detail"));
+        cusSel.addEventListener("change", () => { void fetchDetail(cusSel, "#customer_detail"); });
       }
     if (venSel && once(venSel, "data-bound"))
       if (!venSel.getAttribute("data-listener-bound-change")) {
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         venSel.setAttribute("data-listener-bound-change", "1");
-        venSel.addEventListener("change", () => fetchDetail(venSel, "#vendor_detail"));
+        venSel.addEventListener("change", () => { void fetchDetail(venSel, "#vendor_detail"); });
       }
 
     qsa("tbody[data-repeater-item] tr:nth-child(1)").forEach(row => {

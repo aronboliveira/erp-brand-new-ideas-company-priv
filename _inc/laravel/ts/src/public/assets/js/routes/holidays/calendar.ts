@@ -5,7 +5,6 @@
  */
 
 import type {
-  FullCalendarInstance,
   FullCalendarStatic,
   CalendarHTMLElement,
 } from "../../../../../declarations/routes/fullcalendar.interfaces";
@@ -29,11 +28,8 @@ import type {
   ): T | null => r.querySelector<T>(s);
   const hasBootstrapUi = (): boolean =>
     !!(
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      (
-        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-        qs('link[href*="bootstrap"]')
-      )
+      qs('link[rel="stylesheet"][href*="bootstrap"]') ??
+      qs('link[href*="bootstrap"]')
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLElement => {
     const c = qs<HTMLElement>("#np-toast-container");

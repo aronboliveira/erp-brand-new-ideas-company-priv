@@ -72,7 +72,7 @@
           e.preventDefault();
           const ok = desc.getAttribute("data-copy-all-msg") ?? "Text copied to clipboard.";
           const err = desc.getAttribute("data-copy-err-msg") ?? "Copy failed. Please try again.";
-          doCopy((desc as HTMLTextAreaElement).value ?? "", ok, err);
+          void doCopy((desc as HTMLTextAreaElement).value ?? "", ok, err);
         } catch (err2) {
           if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("[assets/js/routes/aiTemplates/clipboard.js] Copy-all click error:", err2?.constructor?.name ?? "Error", (err2 as Error)?.message ?? "Unknown error");
         }
@@ -89,7 +89,7 @@
           const selected = start !== end ? ((desc as HTMLTextAreaElement).value ?? "").substring(start, end) : ((desc as HTMLTextAreaElement).value ?? "");
           const ok = desc.getAttribute("data-copy-sel-msg") ?? "Selected text copied to clipboard.";
           const err = desc.getAttribute("data-copy-err-msg") ?? "Copy failed. Please try again.";
-          doCopy(selected, ok, err);
+          void doCopy(selected, ok, err);
         } catch (err2) {
           if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") console.error("[assets/js/routes/aiTemplates/clipboard.js] Copy-selected click error:", err2?.constructor?.name ?? "Error", (err2 as Error)?.message ?? "Unknown error");
         }

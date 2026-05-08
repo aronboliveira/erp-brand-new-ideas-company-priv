@@ -20,9 +20,6 @@
 
 /* ---------- Constants --------------------------------------------------- */
 
-/** Default toast auto-hide delay in milliseconds. */
-const TOAST_DELAY = 4000;
-
 /** CSS class for the global toast container. */
 const TOAST_CONTAINER_ID = "toast-container";
 

@@ -56,13 +56,13 @@ import "../../../../../declarations/routes/vendor-libs";
 
   const els = document.querySelectorAll(SELECTOR);
   if (els.length === 0) return;
-  const handlers = new WeakMap<Element, (e: Event) => Promise<void>>();
+  const handlers = new WeakMap<Element, (e: Event) => void>();
 
   els.forEach((el): void => {
     if (el.getAttribute(ATTR_ACTIVE) === "true") return;
     el.setAttribute(ATTR_ACTIVE, "true");
 
-    const handler = async (e: Event): Promise<void> => {
+    const asyncHandler = async (e: Event): Promise<void> => {
       e.preventDefault();
       try {
         const href = el.getAttribute("href");
@@ -73,8 +73,8 @@ import "../../../../../declarations/routes/vendor-libs";
         showError(getMsg(ERROR_KEY));
       }
     };
+    const handler = (e: Event): void => { void asyncHandler(e); };
     handlers.set(el, handler);
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     if (!el.getAttribute("data-listener-bound-click")) {
       el.setAttribute("data-listener-bound-click", "1");
       el.addEventListener("click", handler);
@@ -85,7 +85,6 @@ import "../../../../../declarations/routes/vendor-libs";
     if (![...els].some(el => document.body.contains(el))) {
       els.forEach((el): void => {
         const h = handlers.get(el);
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         if (h) el.removeEventListener("click", h);
       });
       obs.disconnect();

@@ -23,11 +23,8 @@
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const hasBS = () =>
     !!(
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      (
-        qs('link[rel="stylesheet"][href*="bootstrap"]') ||
-        qs('link[href*="bootstrap"]')
-      )
+      qs('link[rel="stylesheet"][href*="bootstrap"]') ??
+      qs('link[href*="bootstrap"]')
     ) && !!window.bootstrap.Toast;
   const ensureToastContainer = (): HTMLDivElement => {
     const existing = qs("#np-toast-container") as HTMLDivElement | null;

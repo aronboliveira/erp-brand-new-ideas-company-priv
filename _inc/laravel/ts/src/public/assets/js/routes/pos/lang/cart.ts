@@ -11,7 +11,7 @@ declare global {
   }
 }
 
-window.translations = window.translations || {};
+window.translations = window.translations ?? {};
 (function (): void {
   const dict = {
     ar: {

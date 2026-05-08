@@ -4,11 +4,7 @@
  * @module drag
  */
 
-import type {
-  DragulaInstance,
-  DragulaStatic,
-  TranslationsDict,
-} from "../../../../../declarations/routes/dragula.interfaces";
+import "../../../../../declarations/routes/dragula.interfaces";
 import "../../../../../declarations/routes/vendor-libs";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

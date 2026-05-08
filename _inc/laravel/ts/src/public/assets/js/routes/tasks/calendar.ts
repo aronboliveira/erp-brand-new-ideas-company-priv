@@ -5,7 +5,6 @@
  */
 
 import type {
-  FullCalendarInstance,
   FullCalendarStatic,
   CalendarHTMLElement,
 } from "../../../../../declarations/routes/fullcalendar.interfaces";
