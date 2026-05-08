@@ -40,6 +40,24 @@ class NotificationService
 {
     use ChecksLogin;
 
+    /**
+     * Test seam — when set, sendTwilioMsg() invokes this callable
+     * instead of constructing a real Twilio\Rest\Client and calling
+     * ->messages->create(). Receives ($sid, $token, $to, $from, $msg).
+     *
+     * Production code MUST leave this null. Tests must reset to null
+     * via resetTestSeams() in finally{} to prevent bleed.
+     */
+    public static ?\Closure $sendTwilioOverride = null;
+
+    /**
+     * Reset all NotificationService test seams to null.
+     */
+    public static function resetTestSeams(): void
+    {
+        self::$sendTwilioOverride = null;
+    }
+
     // ─────────────────────────────────────────────────────────
     //  Email Template Dispatch
     // ─────────────────────────────────────────────────────────
@@ -522,11 +540,15 @@ class NotificationService
         $fromNumber = $settings['twilio_from'] ?? '';
         if (!$sid || !$token || !$fromNumber) return;
         try {
-            $client = new TwilioClient($sid, $token);
-            $client->messages->create($to, [
-                'from' => $fromNumber,
-                'body' => $msg,
-            ]);
+            if (self::$sendTwilioOverride !== null) {
+                (self::$sendTwilioOverride)($sid, $token, $to, $fromNumber, $msg);
+            } else {
+                $client = new TwilioClient($sid, $token);
+                $client->messages->create($to, [
+                    'from' => $fromNumber,
+                    'body' => $msg,
+                ]);
+            }
         } catch (\Throwable $e) {
             Log::error(__CLASS__ . '::' . __FUNCTION__ . " Twilio send failed: {$e->getMessage()}");
         }

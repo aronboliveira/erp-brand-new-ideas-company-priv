@@ -921,23 +921,22 @@ class UtilityTest extends TestCase
 		$p->setAccessible(true);
 		$p->setValue(null);
 
-		// Stub Schema::hasTable to return true
-		Schema::shouldReceive('hasTable')->with('languages')->andReturn(true);
-
 		// Ensure settings()['disable_lang'] is empty by truncating settings table
 		DB::table('settings')->delete();
 
-		// Mock Language::pluck to return a known collection
-		$langMock = $this->aliasMock('App\Models\Language');
-		$langMock->shouldReceive('pluck')
-			->with('full_name', 'code')
-			->once()
-			->andReturn(collect(['en' => 'English', 'pt' => 'Português']));
+		// Seed real Language rows instead of aliasMock — pluck()/whereNotIn()
+		// run against the actual table (Schema::hasTable returns true natively).
+		DB::table('languages')->delete();
+		DB::table('languages')->insertOrIgnore([
+			['code' => 'en', 'full_name' => 'English'],
+			['code' => 'pt', 'full_name' => 'Português'],
+		]);
+		Utility::resetSettingsCache();
 
 		$result = Utility::languages();
 		$this->assertInstanceOf(\Illuminate\Support\Collection::class, $result);
 		$this->assertCount(2, $result);
-		$this->assertEquals('English', $result->get('en'));
+		$this->assertEquals('English',   $result->get('en'));
 		$this->assertEquals('Português', $result->get('pt'));
 	}
 
@@ -954,25 +953,21 @@ class UtilityTest extends TestCase
 		$p->setAccessible(true);
 		$p->setValue(null);
 
-		// Stub Schema::hasTable to return true
-		Schema::shouldReceive('hasTable')->with('languages')->andReturn(true);
-
 		// Insert a disable_lang setting
 		DB::table('settings')->delete();
 		DB::table('settings')->insertOrIgnore([
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'disable_lang', 'value' => 'pt,es']
 		]);
 
-		// Mock Language::whereNotIn(...)->pluck(...)
-		$langMock = $this->aliasMock('App\Models\Language');
-		$langMock->shouldReceive('whereNotIn')
-			->with('code', ['pt', 'es'])
-			->once()
-			->andReturnSelf();
-		$langMock->shouldReceive('pluck')
-			->with('full_name', 'code')
-			->once()
-			->andReturn(collect(['en' => 'English']));
+		// Seed real Language rows — Utility::languages() will call
+		// Language::whereNotIn(['pt','es'])->pluck(...) against this data.
+		DB::table('languages')->delete();
+		DB::table('languages')->insertOrIgnore([
+			['code' => 'en', 'full_name' => 'English'],
+			['code' => 'pt', 'full_name' => 'Português'],
+			['code' => 'es', 'full_name' => 'Español'],
+		]);
+		Utility::resetSettingsCache();
 
 		$result = Utility::languages();
 		$this->assertInstanceOf(\Illuminate\Support\Collection::class, $result);
@@ -2873,10 +2868,25 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_get_calendar_data_filters_by_color_id()
 	{
-		// Stub googleCalendarConfig to avoid file checks
-		$this->aliasMock('App\Models\Utility')->shouldIgnoreMissing();
+		// Seed the credentials file path so CalendarService::configure() does
+		// not bail out before the seam runs. The file content is irrelevant
+		// because the live fetch is replaced by $fetchEventsOverride below.
+		// ## ! MOCKING REAL PROD SECRET — google_calendar_json_file is the
+		// path to the service-account credentials JSON in production.
+		$path = storage_path('gcal-filter-test.json');
+		file_put_contents($path, '{}');
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'gcal-filter-test.json']
+		);
+		// ## ! MOCKING REAL PROD SECRET — google_clender_id (sic) is the live
+		// Google Calendar ID in production.
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'calid-test']
+		);
+		Utility::resetSettingsCache();
 
-		// Prepare fake event objects
 		$matchingEvent = (object)[
 			'id'             => 'E1',
 			'summary'        => 'Match',
@@ -2891,15 +2901,20 @@ class UtilityTest extends TestCase
 			'endDateTime'    => '2025-06-11 12:00:00',
 			'colorId'        => '99'
 		];
-		$this->aliasMock('Spatie\GoogleCalendar\Event')
-			->shouldReceive('get')
-			->andReturn(collect([$matchingEvent, $nonMatchingEvent]));
 
-		$result = Utility::getCalendarData('event');
-		$this->assertCount(1, $result);
-		$this->assertEquals('E1', $result[0]['id']);
-		$this->assertEquals('Match', $result[0]['title']);
-		$this->assertEquals(true, $result[0]['allDay']);
+		\App\Services\Utility\CalendarService::$fetchEventsOverride =
+			fn() => collect([$matchingEvent, $nonMatchingEvent]);
+
+		try {
+			$result = Utility::getCalendarData('event');
+			$this->assertCount(1, $result);
+			$this->assertEquals('E1', $result[0]['id']);
+			$this->assertEquals('Match', $result[0]['title']);
+			$this->assertEquals(true, $result[0]['allDay']);
+		} finally {
+			\App\Services\Utility\CalendarService::resetTestSeams();
+			if (file_exists($path)) unlink($path);
+		}
 	}
 
 	/**
@@ -2949,35 +2964,46 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_send_twilio_msg_sends_message()
 	{
-		$this->markTestSkipped('Twilio overload mock requires @runInSeparateProcess; skipped to avoid class-already-loaded error.');
-		// Prepare user, template, lang, and settings
 		$user = User::create(['name' => 'U20', 'email' => 'u20-' . uniqid() . '@u.com', 'password' => bcrypt('x'), 'lang' => 'en']);
 		Auth::login($user);
 
 		$tpl = NotificationTemplate::create(['slug' => 'tw2']);
+		// 'customer_name' is a recognised replaceVariable() placeholder
+		// (see NotificationService::replaceVariable's allowlist).
 		NotificationTemplateLang::create([
 			'parent_id'  => $tpl->id,
 			'lang'       => 'en',
-			'content'    => 'SMS {msg}',
+			'content'    => 'SMS {customer_name}',
 			'created_by' => $user?->id
 		]);
 
+		// ## ! MOCKING REAL PROD SECRET — twilio_sid + twilio_token are
+		// the live Twilio Account SID / auth token in production.
 		DB::table('settings')->insertOrIgnore([
 			['created_by' => $user?->id, 'name' => 'twilio_sid',   'value' => 'ACSID'],
 			['created_by' => $user?->id, 'name' => 'twilio_token', 'value' => 'TOKEN'],
 			['created_by' => $user?->id, 'name' => 'twilio_from',  'value' => '+12345']
 		]);
+		Utility::resetSettingsCache();
 
-		// Mock Twilio Client
-		$mockClient = Mockery::mock('overload:Twilio\Rest\Client');
-		$mockMessages = Mockery::mock();
-		$mockClient->messages = $mockMessages;
-		$mockMessages
-			->shouldReceive('create')
-			->once()
-			->with('+100', ['from' => '+12345', 'body' => 'SMS world']);
+		$captured = null;
+		\App\Services\Utility\NotificationService::$sendTwilioOverride =
+			function ($sid, $token, $to, $from, $msg) use (&$captured) {
+				$captured = compact('sid', 'token', 'to', 'from', 'msg');
+			};
 
-		Utility::sendTwilioMsg('+100', 'tw2', ['msg' => 'world']);
+		try {
+			Utility::sendTwilioMsg('+100', 'tw2', ['customer_name' => 'world']);
+
+			$this->assertNotNull($captured, 'Twilio override should have been invoked');
+			$this->assertEquals('ACSID',     $captured['sid']);
+			$this->assertEquals('TOKEN',     $captured['token']);
+			$this->assertEquals('+100',      $captured['to']);
+			$this->assertEquals('+12345',    $captured['from']);
+			$this->assertEquals('SMS world', $captured['msg']);
+		} finally {
+			\App\Services\Utility\NotificationService::resetTestSeams();
+		}
 	}
 
 	/**
@@ -3706,19 +3732,46 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_g_default_and_override()
 	{
-		// Mock _checkLogin to simulate redirect
-		$this->aliasMock('App\Models\Utility')->shouldReceive('_checkLogin')->andReturn(response('redirect'));
-		$redirect = Utility::g();
-		$this->assertInstanceOf(\Illuminate\Http\RedirectResponse::class, $redirect);
-
-		// Now simulate Auth not checked and no settings
-		$this->aliasMock('App\Models\Utility')->shouldReceive('_checkLogin')->andReturn((object)[]);
-		Auth::logout();
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'color', 'value' => 'red']
+		// Authenticate as a super-admin so creatorId() === user->id and the
+		// settings query in Utility::g() runs the user-scoped branch.
+		$user = User::create([
+			'name'     => 'GUser',
+			'email'    => 'g-' . uniqid() . '@g.com',
+			'password' => bcrypt('x'),
+			'type'     => 'super admin',
+			'lang'     => 'en',
 		]);
-		$result = Utility::g();
-		$this->assertEquals('red', $result['color']);
+		Auth::login($user);
+		Utility::resetSettingsCache();
+
+		// Path 1 — no rows for this user *or* DEFAULT_UUID for SC::CLR; the
+		// hard-coded default ('') flows through unchanged.
+		DB::table('settings')->where('user_id', $user->id)->delete();
+		DB::table('settings')
+			->where('user_id', DatabaseConstants::DEFAULT_UUID)
+			->where('name', 'color')
+			->delete();
+
+		$defaults = Utility::g();
+		$this->assertIsArray($defaults);
+		$this->assertSame('', $defaults['color']);
+		$this->assertSame('off', $defaults['cust_darklayout']);
+		$this->assertSame('on', $defaults['cust_theme_bg']);
+
+		// Path 2 — seed an override row under the user's creatorId; g()
+		// must pick up 'color' = 'red' from the user-scoped branch.
+		DB::table('settings')->insertOrIgnore([
+			[
+				'created_by' => $user->id,
+				'user_id'    => $user->creatorId(),
+				'name'       => 'color',
+				'value'      => 'red',
+			],
+		]);
+
+		$overridden = Utility::g();
+		$this->assertIsArray($overridden);
+		$this->assertSame('red', $overridden['color']);
 	}
 
 	/**
@@ -3902,37 +3955,45 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_add_and_get_calendar_data_end_to_end()
 	{
-		$this->markTestSkipped('Cannot double-mock Spatie\GoogleCalendar\Event (overload + alias conflict)');
-		file_put_contents($path, '{}');
+		// ## ! MOCKING REAL PROD SECRET — google_calendar_json_file is the
+		// path to the service-account credentials JSON in production.
 		DB::table('settings')->insertOrIgnore([
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'gcal2.json'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'cid2']
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'cid2'],
 		]);
+		Utility::resetSettingsCache();
 
-		// Mock GoogleEvent for save and get
-		$mockEvent = Mockery::mock('overload:Spatie\GoogleCalendar\Event');
-		$mockEvent->shouldReceive('save')->once();
-		$fakeEvent = (object)[
-			'id'            => 'C1',
-			'summary'       => 'Check',
-			'startDateTime' => '2025-07-01 08:00:00',
-			'endDateTime'   => '2025-07-01 09:00:00',
-			'colorId'       => (string) Utility::colorCodeData('event')
-		];
-		$this->aliasMock('Spatie\GoogleCalendar\Event')->shouldReceive('get')->andReturn(collect([$fakeEvent]));
+		$saveCalled = 0;
+		\App\Services\Utility\CalendarService::$saveEventOverride = function ($event) use (&$saveCalled) {
+			$saveCalled++;
+		};
+		\App\Services\Utility\CalendarService::$fetchEventsOverride = function () {
+			return [
+				(object) [
+					'id'            => 'C1',
+					'summary'       => 'Check',
+					'startDateTime' => '2025-07-01 08:00:00',
+					'endDateTime'   => '2025-07-01 09:00:00',
+					'colorId'       => (string) Utility::colorCodeData('event'),
+				],
+			];
+		};
 
-		$request = (object)[
-			'title'      => 'Check',
-			'start_date' => '2025-07-01 08:00:00',
-			'end_date'   => '2025-07-01 09:00:00'
-		];
-		Utility::addCalendarData($request, 'event');
-		$events = Utility::getCalendarData('event');
-		$this->assertCount(1, $events);
-		$this->assertEquals('C1', $events[0]['id']);
+		try {
+			$request = (object)[
+				'title'      => 'Check',
+				'start_date' => '2025-07-01 08:00:00',
+				'end_date'   => '2025-07-01 09:00:00'
+			];
+			Utility::addCalendarData($request, 'event');
+			$this->assertSame(1, $saveCalled, 'addEvent should invoke save once');
 
-		// Cleanup
-		unlink($path);
+			$events = Utility::getCalendarData('event');
+			$this->assertCount(1, $events);
+			$this->assertEquals('C1', $events[0]['id']);
+		} finally {
+			\App\Services\Utility\CalendarService::resetTestSeams();
+		}
 	}
 
 	/**
