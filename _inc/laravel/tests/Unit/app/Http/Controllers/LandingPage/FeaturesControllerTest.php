@@ -186,7 +186,25 @@ class FeaturesControllerTest extends TestCase
 	 **/
 	public function featuresStore_adds_other_feature_and_redirects()
 	{
-		$this->markTestSkipped('Route for FeaturesController@featuresStore is not registered in current routes.');
+		$user = User::factory()->create(['type' => 'super admin', 'lang' => 'en']);
+
+		$data = [
+			'other_features_heading'     => 'Other H',
+			'other_featured_description' => 'Other D',
+			'other_feature_buy_now_link' => 'https://example.com/other',
+		];
+
+		$response = $this->actingAs($user)
+			->post(action([FeaturesController::class, 'featuresStore']), $data);
+
+		$response->assertRedirect()
+			->assertSessionHas('success', 'Other feature added');
+
+		$setting = LandingPageSetting::where('name', 'other_features')->first();
+		$this->assertNotNull($setting);
+		$list = json_decode($setting->value, true);
+		$this->assertNotEmpty($list);
+		$this->assertSame('Other H', $list[0]['other_features_heading']);
 	}
 
 	/**
@@ -196,7 +214,28 @@ class FeaturesControllerTest extends TestCase
 	 **/
 	public function featuresUpdate_modifies_other_feature_and_redirects()
 	{
-		$this->markTestSkipped('Route for FeaturesController@featuresUpdate is not registered in current routes.');
+		$user = User::factory()->create(['type' => 'super admin', 'lang' => 'en']);
+		$initial = [[
+			'other_features_heading'     => 'Old',
+			'other_featured_description' => 'OldD',
+			'other_feature_buy_now_link' => 'https://old.example.com',
+		]];
+		LandingPageSetting::create(['name' => 'other_features', 'value' => json_encode($initial)]);
+
+		$data = [
+			'other_features_heading'     => 'NewH',
+			'other_featured_description' => 'NewD',
+			'other_feature_buy_now_link' => 'https://new.example.com',
+		];
+		$response = $this->actingAs($user)
+			->post(action([FeaturesController::class, 'featuresUpdate'], ['key' => 0]), $data);
+
+		$response->assertRedirect()
+			->assertSessionHas('success', 'Other feature updated');
+
+		$list = json_decode(LandingPageSetting::where('name', 'other_features')->first()->value, true);
+		$this->assertSame('NewH', $list[0]['other_features_heading']);
+		$this->assertSame('NewD', $list[0]['other_featured_description']);
 	}
 
 	/**
@@ -206,7 +245,17 @@ class FeaturesControllerTest extends TestCase
 	 **/
 	public function featuresDelete_removes_other_feature_and_redirects()
 	{
-		$this->markTestSkipped('Route for FeaturesController@featuresDelete is not registered in current routes.');
+		$user = User::factory()->create(['type' => 'super admin', 'lang' => 'en']);
+		$initial = [
+			['other_features_heading' => 'A'],
+			['other_features_heading' => 'B'],
+		];
+		LandingPageSetting::create(['name' => 'other_features', 'value' => json_encode($initial)]);
+
+		$response = $this->actingAs($user)
+			->get(action([FeaturesController::class, 'featuresDelete'], ['key' => 0]));
+
+		$response->assertRedirect();
 	}
 
 	/**

@@ -48,6 +48,9 @@ RF::middleware([
         RF::get(R::FT . '/edit/{key}', [FTC::class, FTC::FTR_EDT])->name(R::FT . '.edit');
         RF::get(R::FT . '/update/{key}', [FTC::class, FTC::FTR_UPD])->name(R::FT . '.update');
         RF::get(R::FT . '/delete/{key}', [FTC::class, FTC::FTR_DEL])->name(R::FT . '.delete');
+        RF::get(R::FT . '/others/create/', [FTC::class, FTC::FTRS_CRT])->name(R::FT . '.others.create');
+        RF::get(R::FT . '/others/edit/{key}', [FTC::class, FTC::FTRS_EDT])->name(R::FT . '.others.edit');
+        RF::get(R::FT . '/others/delete/{key}', [FTC::class, FTC::FTRS_DEL])->name(R::FT . '.others.delete');
         RF::get(R::SST . '/create/', [SSC::class, SSC::SST_CRT])->name(R::SST . '.create');
         RF::get(R::SST . '/edit/{key}', [SSC::class, SSC::SST_EDT])->name(R::SST . '.edit');
         RF::get(R::SST . '/delete/{key}', [SSC::class, SSC::SST_DEL])->name(R::SST . '.delete');
@@ -108,6 +111,8 @@ RF::middleware([
         RF::post(R::FT . '/store/', [FTC::class, FTC::FTR_STR])->name(R::FT . '.store');
         RF::post(R::FT . '/update/{key}', [FTC::class, FTC::FTR_UPD])->name(R::FT . '.update');
         RF::post(R::FT . '/highlight/store/', [FTC::class, FTC::FTR_HGL])->name(R::FT . '.highlight.store');
+        RF::post(R::FT . '/others/store/', [FTC::class, FTC::FTRS_STR])->name(R::FT . '.others.store');
+        RF::post(R::FT . '/others/update/{key}', [FTC::class, FTC::FTRS_UPD])->name(R::FT . '.others.update');
         RF::post(
             R::JU . '/store',
             [JUC::class, 'store']

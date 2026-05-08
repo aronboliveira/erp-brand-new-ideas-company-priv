@@ -3408,27 +3408,36 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_number_format_wrappers()
 	{
-		$this->markTestSkipped('aliasMock on final Utility class not supported; formatNumber is private static.');
-		$settings = ['purchase_prefix' => 'P-', 'pos_prefix' => 'O-', 'contract_prefix' => 'C-'];
-		// price-specific
+		// formatNumber() is private static and reads from Utility::settings().
+		// Instead of mocking it, seed each prefix key in the real settings
+		// table and assert the wrappers produce '<prefix><05d-zero-padded>'.
+		$prefixes = [
+			'purchase_prefix' => 'P-',
+			'pos_prefix'      => 'O-',
+			'contract_prefix' => 'C-',
+			'proposal_prefix' => 'X-',
+			'invoice_prefix'  => 'Y-',
+			'bill_prefix'     => 'B-',
+		];
+		foreach ($prefixes as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+		Utility::resetSettingsCache();
+
+		// Array-driven wrappers (don't read settings):
 		$this->assertEquals('INV00123', Utility::invoiceNumberFormat(['invoice_prefix' => 'INV'], 123));
 		$this->assertEquals('PROP00123', Utility::proposalNumberFormat(['proposal_prefix' => 'PROP'], 123));
 
-		// generic via formatNumber
-		$fm = $this->aliasMock('App\Models\Utility[formatNumber]');
-		$fm->shouldReceive('formatNumber')->with('purchase_prefix', 10)->andReturn('P-00010');
+		// Settings-driven wrappers (delegate to formatNumber):
 		$this->assertEquals('P-00010', Utility::purchaseNumberFormat(10));
-		$fm->shouldReceive('formatNumber')->with('pos_prefix', 5)->andReturn('O-00005');
 		$this->assertEquals('O-00005', Utility::posNumberFormat(5));
-		$fm->shouldReceive('formatNumber')->with('contract_prefix', 2)->andReturn('C-00002');
 		$this->assertEquals('C-00002', Utility::contractNumberFormat(2));
-		$fm->shouldReceive('formatNumber')->with('proposal_prefix', 7)->andReturn('X-00007');
 		$this->assertEquals('X-00007', Utility::customerProposalNumberFormat(7));
-		$fm->shouldReceive('formatNumber')->with('invoice_prefix', 9)->andReturn('Y-00009');
 		$this->assertEquals('Y-00009', Utility::customerInvoiceNumberFormat(9));
-		$fm->shouldReceive('formatNumber')->with('pos_prefix', 3)->andReturn('Z-00003');
-		$this->assertEquals('Z-00003', Utility::customerPosNumberFormat(3));
-		$fm->shouldReceive('formatNumber')->with('bill_prefix', 4)->andReturn('B-00004');
+		$this->assertEquals('O-00003', Utility::customerPosNumberFormat(3));
 		$this->assertEquals('B-00004', Utility::vendorBillNumberFormat(4));
 	}
 
@@ -7409,28 +7418,24 @@ class UtilityTest extends TestCase
 	 ** This test covers replaceVariable stand-alone behavior. **/
 	public function it_replaces_all_defined_variables_in_content()
 	{
-		$this->markTestSkipped('Settings cache interaction complex in test context');
-		// Clear static caches so settings are fetched fresh from DB
-		$ref = new \ReflectionClass(\App\Models\Utility::class);
-		foreach (['getSettings', 'getSettingsId', 'languageSetting'] as $prop) {
-			if ($ref->hasProperty($prop)) {
-				$p = $ref->getProperty($prop);
-				$p->setAccessible(true);
-				$p->setValue(null);
-			}
-		}
+		// Settings table uses uuid created_by/user_id (DEFAULT_UUID for global
+		// rows), not integer keys. The original recipe inserted under id=1
+		// which never matched what Utility::settings() reads.
+		Auth::logout();
+		Utility::resetSettingsCache();
+
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'company_name'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'TestApp']
+		);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'MyCompany']
+		);
+		Utility::resetSettingsCache();
 
 		$content = "App: {app_name}, Company: {company_name}, URL: {app_url}, Custom: {user_name}";
-		$obj = ['user_name' => 'XYZ'];
-		// Use updateOrInsert so values are set even if prior tests inserted different values
-		DB::table('settings')->updateOrInsert(
-			['created_by' => 1, 'user_id' => 1, 'name' => 'company_name'],
-			['value' => 'TestApp']
-		);
-		DB::table('settings')->updateOrInsert(
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_name'],
-			['value' => 'MyCompany']
-		);
+		$obj     = ['user_name' => 'XYZ'];
 
 		$replaced = Utility::replaceVariable($content, $obj);
 		$this->assertStringContainsString('App: TestApp', $replaced);
@@ -12852,19 +12857,19 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_replaces_variables_in_email_content_correctly()
 	{
-		$this->markTestSkipped('Settings cache interaction complex in test context');
+		// Settings table uses uuid created_by (DEFAULT_UUID for global rows),
+		// not integer keys; the original recipe's created_by=1 row was unread.
+		Auth::logout();
 		Utility::resetSettingsCache();
-		// Prepare content with several placeholders
-		$content = "Hello {user_name}, your company is {company_name} at {app_url}";
-		$obj = [
-			'user_name' => 'Frank',
-		];
-		// {company_name} is always overwritten by settings()['mail_from_name']
 		DB::table('settings')->updateOrInsert(
-			['created_by' => 1, 'user_id' => 1, 'name' => 'mail_from_name'],
-			['value' => 'AcmeCorp', 'user_id' => DatabaseConstants::DEFAULT_UUID]
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'mail_from_name'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'AcmeCorp']
 		);
 		Utility::resetSettingsCache();
+
+		$content = "Hello {user_name}, your company is {company_name} at {app_url}";
+		$obj     = ['user_name' => 'Frank'];
+
 		$result = Utility::replaceVariable($content, $obj);
 		$this->assertStringContainsString('Hello Frank', $result);
 		$this->assertStringContainsString('company is AcmeCorp', $result);
