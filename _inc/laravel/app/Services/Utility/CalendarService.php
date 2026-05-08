@@ -28,6 +28,40 @@ use Carbon\Carbon;
 class CalendarService
 {
     /**
+     * Test seam — when set, addEvent() invokes this callable instead of
+     * GoogleEvent::save(). The callable receives the constructed
+     * GoogleEvent (with name/start/end/colorId already populated).
+     *
+     * Tests should set this to a closure that records the event
+     * (e.g. inserts a local row into a fake `google_events` table)
+     * and reset it to null in tearDown.
+     *
+     * Production code MUST leave this null — bypassing the real save
+     * would suppress live calendar writes silently.
+     */
+    public static ?\Closure $saveEventOverride = null;
+
+    /**
+     * Test seam — when set, getEvents() invokes this callable instead of
+     * GoogleEvent::get(). The callable receives no arguments and must
+     * return an iterable of objects exposing
+     * `id`, `summary`, `startDateTime`, `endDateTime`, `colorId`.
+     *
+     * Production code MUST leave this null.
+     */
+    public static ?\Closure $fetchEventsOverride = null;
+
+    /**
+     * Reset both seam overrides to null. Tests should call this in
+     * tearDown to avoid bleeding overrides across tests.
+     */
+    public static function resetTestSeams(): void
+    {
+        self::$saveEventOverride = null;
+        self::$fetchEventsOverride = null;
+    }
+
+    /**
      * Configure google-calendar package from DB settings.
      *
      * Reads the service account credentials file path and calendar ID
@@ -76,7 +110,12 @@ class CalendarService
             $event->startDateTime = Carbon::parse($request->start_date);
             $event->endDateTime   = Carbon::parse($request->end_date);
             $event->colorId       = Utility::colorCodeData($type);
-            $event->save();
+
+            if (self::$saveEventOverride !== null) {
+                (self::$saveEventOverride)($event);
+            } else {
+                $event->save();
+            }
         } catch (\Throwable $e) {
             Log::error(self::class . '::addEvent — failed adding calendar event: ' . $e->getMessage());
         }
@@ -96,7 +135,9 @@ class CalendarService
         self::configure();
 
         try {
-            $events = GoogleEvent::get();
+            $events = self::$fetchEventsOverride !== null
+                ? (self::$fetchEventsOverride)()
+                : GoogleEvent::get();
         } catch (\Throwable $e) {
             Log::error(self::class . '::getEvents — failed fetching calendar events: ' . $e->getMessage());
             return [];

@@ -5821,53 +5821,57 @@ class UtilityTest extends TestCase
 	 * * addCalendarData, and getCalendarData — requires live Google Calendar credentials. **/
 	public function it_manages_calendar_functions()
 	{
-		$this->markTestSkipped('Requires live Google Calendar API credentials.');
-		// Create google_events schema
-		if (!Schema::hasTable('google_events')) Schema::create('google_events', function ($table) {
-			$table->id();
-			$table->string('name');
-			$table->dateTime('startDateTime');
-			$table->dateTime('endDateTime');
-			$table->integer('colorId');
-			$table->timestamps();
-		});
-		DB::table('google_events')->delete();
-
 		// colorCodeData known cases
 		$this->assertEquals(1, Utility::colorCodeData('event'));
 		$this->assertEquals(2, Utility::colorCodeData('zoom_meeting'));
 		$this->assertEquals(11, Utility::colorCodeData('appointment'));
 		$this->assertEquals(11, Utility::colorCodeData('unknown_type'));
 
-		// googleCalendarConfig: no actual file, so warning path returns early
-		// Create a fake file for config
+		// ## ! MOCKING REAL PROD SECRET — google_calendar_json_file is the
+		// path to the service-account credentials JSON in production.
 		$envSettings = ['google_calendar_json_file' => 'fake.json', 'google_clender_id' => 'cal123'];
 		$this->partialMock(Utility::class, function ($mock) use ($envSettings) {
 			$mock->shouldReceive('settings')->andReturn($envSettings);
 		});
-		// Ensure no error: method returns void
+		// Missing file path: warning is logged, method returns without error
 		Utility::googleCalendarConfig();
 
-		// addCalendarData and getCalendarData: create a real JSON file
+		// Now provide a real JSON path
 		$jsonPath = storage_path('fake_calendar.json');
 		file_put_contents($jsonPath, '{"dummy":"data"}');
 		$this->partialMock(Utility::class, function ($mock) use ($jsonPath) {
 			$mock->shouldReceive('settings')->andReturn([
 				'google_calendar_json_file' => basename($jsonPath),
-				'google_clender_id' => 'cal123'
+				'google_clender_id'         => 'cal123',
 			]);
 		});
-		// call config
 		Utility::googleCalendarConfig();
 
-		// Create a request-like object
-		$req = (object) ['title' => 'Meeting', 'start_date' => '2025-06-10 09:00:00', 'end_date' => '2025-06-10 10:00:00'];
-		Utility::addCalendarData($req, 'event');
-		$events = Utility::getCalendarData('event');
-		$this->assertNotEmpty($events);
-		$this->assertEquals('Meeting', $events[0]['title']);
-		// Clean up
-		unlink($jsonPath);
+		$saved = [];
+		\App\Services\Utility\CalendarService::$saveEventOverride = function ($event) use (&$saved) {
+			$saved[] = $event;
+		};
+		\App\Services\Utility\CalendarService::$fetchEventsOverride = function () use (&$saved) {
+			return array_map(function ($e) {
+				return (object) [
+					'id'            => uniqid('ev_', true),
+					'summary'       => $e->name,
+					'startDateTime' => (string) $e->startDateTime,
+					'endDateTime'   => (string) $e->endDateTime,
+					'colorId'       => (string) $e->colorId,
+				];
+			}, $saved);
+		};
+
+		try {
+			$req = (object) ['title' => 'Meeting', 'start_date' => '2025-06-10 09:00:00', 'end_date' => '2025-06-10 10:00:00'];
+			Utility::addCalendarData($req, 'event');
+			$events = Utility::getCalendarData('event');
+			$this->assertNotEmpty($events);
+			$this->assertEquals('Meeting', $events[0]['title']);
+		} finally {
+			\App\Services\Utility\CalendarService::resetTestSeams();
+		}
 	}
 
 	/** 
@@ -6964,57 +6968,45 @@ class UtilityTest extends TestCase
 	 ** This test covers googleCalendarConfig and getCalendarData. **/
 	public function it_fetches_calendar_events_filtered_by_color()
 	{
-		$this->markTestSkipped('Requires live Google Calendar API credentials.');
-		// Create settings table and insert credential file path (non-existent)
-		DB::table('settings')->delete(); // was Schema::dropIfExists
-		if (!Schema::hasTable('settings')) if (!Schema::hasTable('settings')) Schema::create('settings', function ($table) {
-			$table->id();
-			$table->uuid(DatabaseConstants::COL_TABLE_CREATOR);
-			$table->string('name');
-			$table->string('value');
-			$table->timestamps();
-		});
+		// ## ! MOCKING REAL PROD SECRET — google_calendar_json_file is the
+		// path to the service-account credentials JSON in production.
 		DB::table('settings')->insertOrIgnore([
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'nonexistent.json'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'test-id']
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'test-id'],
 		]);
+		Utility::resetSettingsCache();
 
-		// No file exists => googleCalendarConfig logs warning and returns without error
+		// File missing — googleCalendarConfig logs and returns without error
 		Utility::googleCalendarConfig();
 
-		// Create GoogleEvent table
-		if (!Schema::hasTable('google_events')) Schema::create('google_events', function ($table) {
-			$table->id();
-			$table->string('name');
-			$table->dateTime('startDateTime');
-			$table->dateTime('endDateTime');
-			$table->integer('colorId');
-			$table->string('summary')->nullable();
-			$table->timestamps();
-		});
-		DB::table('google_events')->delete();
+		\App\Services\Utility\CalendarService::$fetchEventsOverride = function () {
+			return [
+				(object) [
+					'id'            => 'ev_a',
+					'summary'       => 'Event A',
+					'startDateTime' => '2025-06-10 00:00:00',
+					'endDateTime'   => '2025-06-10 23:59:59',
+					'colorId'       => '1',
+				],
+				(object) [
+					'id'            => 'ev_b',
+					'summary'       => 'Event B',
+					'startDateTime' => '2025-06-11 00:00:00',
+					'endDateTime'   => '2025-06-11 23:59:59',
+					'colorId'       => '2',
+				],
+			];
+		};
 
-		// Insert events with different colorIds
-		GoogleEvent::create([
-			'name' => 'Meeting A',
-			'startDateTime' => '2025-06-10 00:00:00',
-			'endDateTime' => '2025-06-10 23:59:59',
-			'colorId' => 1,
-			'summary' => 'Event A'
-		]);
-		GoogleEvent::create([
-			'name' => 'Meeting B',
-			'startDateTime' => '2025-06-11 00:00:00',
-			'endDateTime' => '2025-06-11 23:59:59',
-			'colorId' => 2,
-			'summary' => 'Event B'
-		]);
-
-		// colorCodeData('event') => 1
-		$events = Utility::getCalendarData('event');
-		$this->assertCount(1, $events);
-		$this->assertEquals('Event A', $events[0]['title']);
-		$this->assertTrue(isset($events[0]['className']));
+		try {
+			// colorCodeData('event') => 1, so only Event A passes the filter
+			$events = Utility::getCalendarData('event');
+			$this->assertCount(1, $events);
+			$this->assertEquals('Event A', $events[0]['title']);
+			$this->assertTrue(isset($events[0]['className']));
+		} finally {
+			\App\Services\Utility\CalendarService::resetTestSeams();
+		}
 	}
 
 	/** 
@@ -7912,36 +7904,45 @@ class UtilityTest extends TestCase
 	 */
 	public function it_adds_calendar_event_and_retrieves_by_type()
 	{
-		$this->markTestSkipped('Requires live Google Calendar API credentials.');
-		// Prepare settings for googleCalendarConfig
+		// ## ! MOCKING REAL PROD SECRET — google_calendar_json_file is the
+		// path to the service-account credentials JSON in production.
 		$this->partialMock(Utility::class, function ($m) {
 			$m->shouldReceive('settings')->andReturn([
 				'google_calendar_json_file' => 'does_not_exist.json',
 				'google_clender_id'         => 'primary'
 			]);
 		});
-		// Because credentials file is missing, googleCalendarConfig logs and does nothing.
-		// But addCalendarData still attempts to create a local record of GoogleEvent
-		$req = new \stdClass();
-		$req->title     = 'Test Event';
-		$req->start_date = '2025-06-10 00:00:00';
-		$req->end_date  = '2025-06-11 00:00:00';
 
-		// Ensure table exists
-		if (!Schema::hasTable('google_events')) Schema::create('google_events', function ($t) {
-			$t->id();
-			$t->string('name');
-			$t->timestamp('startDateTime');
-			$t->timestamp('endDateTime');
-			$t->string('colorId');
-			$t->timestamps();
-		});
-		DB::table('google_events')->delete();
+		$captured = [];
+		\App\Services\Utility\CalendarService::$saveEventOverride = function ($event) use (&$captured) {
+			$captured[] = $event;
+		};
+		\App\Services\Utility\CalendarService::$fetchEventsOverride = function () use (&$captured) {
+			return array_map(function ($e) {
+				return (object) [
+					'id'            => uniqid('ev_', true),
+					'summary'       => $e->name,
+					'startDateTime' => (string) $e->startDateTime,
+					'endDateTime'   => (string) $e->endDateTime,
+					'colorId'       => (string) $e->colorId,
+				];
+			}, $captured);
+		};
 
-		Utility::addCalendarData($req, 'meeting');
-		$result = Utility::getCalendarData('meeting');
-		$this->assertCount(1, $result);
-		$this->assertEquals(true, $result[0]['allDay']);
+		try {
+			$req = new \stdClass();
+			$req->title     = 'Test Event';
+			$req->start_date = '2025-06-10 00:00:00';
+			$req->end_date  = '2025-06-11 00:00:00';
+
+			Utility::addCalendarData($req, 'meeting');
+			$result = Utility::getCalendarData('meeting');
+			$this->assertCount(1, $result);
+			$this->assertEquals(true, $result[0]['allDay']);
+			$this->assertEquals('Test Event', $result[0]['title']);
+		} finally {
+			\App\Services\Utility\CalendarService::resetTestSeams();
+		}
 	}
 
 	/** 
@@ -8714,19 +8715,35 @@ class UtilityTest extends TestCase
 	 */
 	public function it_retrieves_calendar_data_for_given_type()
 	{
-		$this->markTestSkipped('Requires live Google Calendar API credentials.');
-		// Fake event with colorId = 1
-		GoogleEvent::create([
-			'name'          => 'Test Event',
-			'startDateTime' => '2025-06-10 00:00:00',
-			'endDateTime'   => '2025-06-10 00:00:00',
-			'colorId'       => '1',
-			'summary'       => 'Test Event'
-		]);
-		$data = Utility::getCalendarData('event');
-		$this->assertIsArray($data);
-		$this->assertCount(1, $data);
-		$this->assertEquals('Test Event', $data[0]['title']);
+		// ## ! MOCKING REAL PROD SECRET — google_calendar_json_file is the
+		// path to the service-account credentials JSON in production.
+		$this->partialMock(Utility::class, function ($m) {
+			$m->shouldReceive('settings')->andReturn([
+				'google_calendar_json_file' => 'does_not_exist.json',
+				'google_clender_id'         => 'primary',
+			]);
+		});
+
+		\App\Services\Utility\CalendarService::$fetchEventsOverride = function () {
+			return [
+				(object) [
+					'id'            => 'ev_test_1',
+					'summary'       => 'Test Event',
+					'startDateTime' => '2025-06-10 00:00:00',
+					'endDateTime'   => '2025-06-10 00:00:00',
+					'colorId'       => '1',
+				],
+			];
+		};
+
+		try {
+			$data = Utility::getCalendarData('event');
+			$this->assertIsArray($data);
+			$this->assertCount(1, $data);
+			$this->assertEquals('Test Event', $data[0]['title']);
+		} finally {
+			\App\Services\Utility\CalendarService::resetTestSeams();
+		}
 	}
 
 	/** 
@@ -10179,46 +10196,66 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_manages_google_calendar_events()
 	{
-		$this->markTestSkipped('Requires live Google Calendar API credentials.');
 		Storage::fake('local');
 
 		// Create a dummy JSON credentials file
 		$path = storage_path('test_creds.json');
 		File::put($path, json_encode(['dummy' => 'data']));
 
-		// Insert into settings so Utility::settings() picks it up
-		$user = User::factory()->create();
+		// ## ! MOCKING REAL PROD SECRET — google_calendar_json_file is the
+		// path to the service-account credentials JSON in production; the
+		// "dummy-calendar@..." address mocks the production calendar ID.
+		$user = User::factory()->create(['lang' => 'en']);
 		Auth::login($user);
 		DB::table('settings')->insertOrIgnore([
 			['created_by' => $user?->creatorId(), 'name' => 'google_calendar_json_file', 'value' => 'test_creds.json'],
 			['created_by' => $user?->creatorId(), 'name' => 'google_clender_id', 'value' => 'dummy-calendar@group.calendar.google.com']
 		]);
+		Utility::resetSettingsCache();
 
 		Utility::googleCalendarConfig();
 		$this->assertEquals('service_account', config('google-calendar.default_auth_profile'));
 		$this->assertEquals($path, config('google-calendar.auth_profiles.service_account.credentials_json'));
 
-		// Fake Spatie Event saving
-		$request = (object)[
-			'title' => 'Test Event',
-			'start_date' => '2025-06-01 10:00:00',
-			'end_date' => '2025-06-01 12:00:00'
-		];
-		Utility::addCalendarData($request, 'event');
-		// Create a second event with different type
-		$request2 = (object)[
-			'title' => 'Meeting',
-			'start_date' => '2025-06-02 09:00:00',
-			'end_date' => '2025-06-02 10:00:00'
-		];
-		Utility::addCalendarData($request2, 'meeting');
-		$all = Utility::getCalendarData('event');
-		// Only the first "event" should appear
-		$this->assertCount(1, $all);
-		$item = $all[0];
-		$this->assertArrayHasKey('id', $item);
-		$this->assertEquals('Test Event', $item['title']);
-		$this->assertTrue($item['allDay']);
+		$saved = [];
+		\App\Services\Utility\CalendarService::$saveEventOverride = function ($event) use (&$saved) {
+			$saved[] = $event;
+		};
+		\App\Services\Utility\CalendarService::$fetchEventsOverride = function () use (&$saved) {
+			return array_map(function ($e) {
+				return (object) [
+					'id'            => uniqid('ev_', true),
+					'summary'       => $e->name,
+					'startDateTime' => (string) $e->startDateTime,
+					'endDateTime'   => (string) $e->endDateTime,
+					'colorId'       => (string) $e->colorId,
+				];
+			}, $saved);
+		};
+
+		try {
+			$request = (object)[
+				'title' => 'Test Event',
+				'start_date' => '2025-06-01 10:00:00',
+				'end_date' => '2025-06-01 12:00:00'
+			];
+			Utility::addCalendarData($request, 'event');
+			$request2 = (object)[
+				'title' => 'Meeting',
+				'start_date' => '2025-06-02 09:00:00',
+				'end_date' => '2025-06-02 10:00:00'
+			];
+			Utility::addCalendarData($request2, 'meeting');
+			$all = Utility::getCalendarData('event');
+			// Only the first "event" should appear (different colorId for 'meeting')
+			$this->assertCount(1, $all);
+			$item = $all[0];
+			$this->assertArrayHasKey('id', $item);
+			$this->assertEquals('Test Event', $item['title']);
+			$this->assertTrue($item['allDay']);
+		} finally {
+			\App\Services\Utility\CalendarService::resetTestSeams();
+		}
 	}
 
 	/** 
@@ -13151,33 +13188,52 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_adds_and_retrieves_google_calendar_events_by_type()
 	{
-		$this->markTestSkipped('Requires live Google Calendar API credentials.');
-		$user = User::factory()->create();
+		$user = User::factory()->create(['lang' => 'en']);
 		Auth::login($user);
 
-		// Prepare a valid JSON file for googleCalendarConfig
+		// ## ! MOCKING REAL PROD SECRET — google_calendar_json_file is the
+		// path to the service-account credentials JSON in production.
 		$file = storage_path('cal2.json');
 		file_put_contents($file, '{}');
 		DB::table('settings')->insertOrIgnore([
 			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'cal2.json'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'id2']
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'id2'],
 		]);
+		Utility::resetSettingsCache();
 
-		// Use a fake request object
-		$request = (object)[
-			'title'      => 'Meeting',
-			'start_date' => '2025-09-01 10:00:00',
-			'end_date'   => '2025-09-01 11:00:00'
-		];
-		Utility::addCalendarData($request, 'meeting');
+		$saved = [];
+		\App\Services\Utility\CalendarService::$saveEventOverride = function ($event) use (&$saved) {
+			$saved[] = $event;
+		};
+		\App\Services\Utility\CalendarService::$fetchEventsOverride = function () use (&$saved) {
+			return array_map(function ($e) {
+				return (object) [
+					'id'            => uniqid('ev_', true),
+					'summary'       => $e->name,
+					'startDateTime' => (string) $e->startDateTime,
+					'endDateTime'   => (string) $e->endDateTime,
+					'colorId'       => (string) $e->colorId,
+				];
+			}, $saved);
+		};
 
-		// getCalendarData for type 'meeting'
-		$events = Utility::getCalendarData('meeting');
-		$this->assertIsArray($events);
-		$this->assertCount(1, $events);
-		$ev = $events[0];
-		$this->assertEquals('Meeting', $ev['title']);
-		$this->assertEquals('2025-09-01 10:00:00', Carbon::parse($ev['start'])->toDateTimeString());
+		try {
+			$request = (object)[
+				'title'      => 'Meeting',
+				'start_date' => '2025-09-01 10:00:00',
+				'end_date'   => '2025-09-01 11:00:00'
+			];
+			Utility::addCalendarData($request, 'meeting');
+
+			$events = Utility::getCalendarData('meeting');
+			$this->assertIsArray($events);
+			$this->assertCount(1, $events);
+			$ev = $events[0];
+			$this->assertEquals('Meeting', $ev['title']);
+			$this->assertEquals('2025-09-01 10:00:00', Carbon::parse($ev['start'])->toDateTimeString());
+		} finally {
+			\App\Services\Utility\CalendarService::resetTestSeams();
+		}
 	}
 
 	/**
