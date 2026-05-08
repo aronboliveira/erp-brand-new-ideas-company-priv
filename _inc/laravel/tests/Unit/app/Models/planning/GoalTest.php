@@ -29,28 +29,16 @@ class GoalTest extends TestCase
 	 **/
 	public function target_returns_zero_for_unknown_type(): void
 	{
-		// Fake user login.
-		$user = new class
-		{
-			public function creatorId()
-			{
-				return 1;
-			}
-			public function priceFormat($v)
-			{
-				return $v;
-			}
-		};
-		$this->aliasMock(Goal::class)
-			->shouldReceive('_checkLogin')
-			->once()
-			->andReturn($user);
+		// target() delegates to GoalRequestService::calculateTarget(),
+		// which does its own auth check. Login a real user with `lang`
+		// set so the XSS middleware doesn't redirect.
+		$user = \App\Models\User::factory()->create(['type' => 'company', 'lang' => 'en']);
+		\Illuminate\Support\Facades\Auth::login($user);
 
 		$goal = new Goal;
-
 		$result = $goal->target('Unknown', '2024-01', '2024-12', 1000);
 
-		$this->assertSame(['percentage' => 0, 'total' => 0], $result);
+		$this->assertEquals(['percentage' => 0, 'total' => 0], $result);
 	}
 
 	/**

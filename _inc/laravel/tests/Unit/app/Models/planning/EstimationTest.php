@@ -142,30 +142,32 @@ class EstimationTest extends TestCase
 	 **/
 	public function it_computes_estimation_summary(): void
 	{
-		// Fake logged-in user with priceFormat().
-		$user = new class
-		{
-			public function priceFormat($v)
-			{
-				return number_format($v, 2);
-			}
-			public function creatorId()
-			{
-				return 1;
-			}
-		};
+		// Login a real user; the service does its own _checkLogin() and
+		// then $user->priceFormat($total). Seed settings so the format
+		// produces a deterministic '100' string.
+		\DB::table('settings')->updateOrInsert(
+			['created_by' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'name' => 'site_currency_symbol'],
+			['user_id' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'value' => '']
+		);
+		\DB::table('settings')->updateOrInsert(
+			['created_by' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'name' => 'site_currency_symbol_position'],
+			['user_id' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'value' => 'pre']
+		);
+		\DB::table('settings')->updateOrInsert(
+			['created_by' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'name' => 'decimal_number'],
+			['user_id' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'value' => '0']
+		);
+		\App\Models\Utility::resetSettingsCache();
 
-		$this->aliasMock(Estimation::class)
-			->shouldReceive('_checkLogin')
-			->once()
-			->andReturn($user);
+		$user = \App\Models\User::factory()->create(['type' => 'company', 'lang' => 'en']);
+		\Illuminate\Support\Facades\Auth::login($user);
 
 		$a = Mockery::mock(Estimation::class)->shouldReceive('getTotal')->andReturn(40)->getMock();
 		$b = Mockery::mock(Estimation::class)->shouldReceive('getTotal')->andReturn(60)->getMock();
 
 		$summary = Estimation::getEstimationSummary([$a, $b]);
 
-		$this->assertSame('100.00', $summary);
+		$this->assertSame('100', $summary);
 	}
 
 	protected function tearDown(): void

@@ -58,20 +58,26 @@ class ContractTest extends TestCase
 	 **/
 	public function it_calculates_and_formats_the_contract_summary(): void
 	{
-		// Fake user implementing priceFormat().
-		$fakeUser = new class
-		{
-			public function priceFormat($amount): string
-			{
-				return number_format($amount, 2, '.', ',');
-			}
-		};
+		// Login a real user; getContractSummary() delegates to a service
+		// that does its own _checkLogin() via the ChecksLogin trait, then
+		// calls $user->priceFormat($total). Seed settings so priceFormat
+		// produces a deterministic '200' (no symbol, 0 decimals).
+		\DB::table('settings')->updateOrInsert(
+			['created_by' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'name' => 'site_currency_symbol'],
+			['user_id' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'value' => '']
+		);
+		\DB::table('settings')->updateOrInsert(
+			['created_by' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'name' => 'site_currency_symbol_position'],
+			['user_id' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'value' => 'pre']
+		);
+		\DB::table('settings')->updateOrInsert(
+			['created_by' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'name' => 'decimal_number'],
+			['user_id' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'value' => '0']
+		);
+		\App\Models\Utility::resetSettingsCache();
 
-		// Mock static _checkLogin().
-		$this->aliasMock(Contract::class)
-			->shouldReceive('_checkLogin')
-			->once()
-			->andReturn($fakeUser);
+		$user = \App\Models\User::factory()->create(['type' => 'company', 'lang' => 'en']);
+		\Illuminate\Support\Facades\Auth::login($user);
 
 		$contracts = new Collection([
 			(object) ['value' => 125.55],
@@ -80,7 +86,7 @@ class ContractTest extends TestCase
 
 		$result = Contract::getContractSummary($contracts);
 
-		$this->assertSame('200.00', $result);
+		$this->assertSame('200', $result);
 	}
 
 	/**

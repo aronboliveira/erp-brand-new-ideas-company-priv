@@ -64,12 +64,11 @@ class PlanTest extends TestCase
 	 **/
 	public function total_plan_proxies_to_count(): void
 	{
-		$this->aliasMock(Plan::class)
-			->shouldReceive('count')
-			->once()
-			->andReturn(42);
-
-		$this->assertSame(42, Plan::totalPlan());
+		// Plan::totalPlan() simply proxies to self::count() — seed real
+		// rows and assert the count instead of aliasMocking the class.
+		$baseline = Plan::count();
+		Plan::factory()->count(3)->create();
+		$this->assertSame($baseline + 3, Plan::totalPlan());
 	}
 
 	/**
@@ -81,19 +80,22 @@ class PlanTest extends TestCase
 	 **/
 	public function get_plan_caches_result(): void
 	{
-		$fake = new Plan;
-		$this->aliasMock(Plan::class)
-			->makePartial()
-			->shouldReceive('find')
-			->once()
-			->with('abc')
-			->andReturn($fake);
+		// Plan::getPlan() caches in self::$cachedPlan; seed a real plan,
+		// reset the cache, and verify both calls return the same instance.
+		$ref = new \ReflectionClass(Plan::class);
+		if ($ref->hasProperty('cachedPlan')) {
+			$prop = $ref->getProperty('cachedPlan');
+			$prop->setAccessible(true);
+			$prop->setValue(null, null);
+		}
+		$plan = Plan::factory()->create();
 
-		$first = Plan::getPlan('abc');
-		$second = Plan::getPlan('abc');
+		$first  = Plan::getPlan($plan->id);
+		$second = Plan::getPlan($plan->id);
 
-		$this->assertSame($fake, $first);
-		$this->assertSame($first, $second);
+		$this->assertNotNull($first);
+		$this->assertSame($plan->id, $first->id);
+		$this->assertSame($first, $second, 'Second call should return cached instance');
 	}
 
 	protected function tearDown(): void

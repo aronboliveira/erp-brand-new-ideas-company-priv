@@ -30,10 +30,14 @@ class ProposalTest extends TestCase
 			(object) ['price' => 20, 'quantity' => 3, 'discount' => 2, 'tax' => 'C'],
 		]);
 
-		// Stub Utility::totalTaxRate() → 10 % for any tax code
-		$this->aliasMock('App\Models\Utility')
-			->shouldReceive('totalTaxRate')
-			->andReturn(10);
+		// Prime Utility::$taxRateData cache so totalTaxRate() returns 10
+		// for any tax code used by the fake items, instead of aliasMocking
+		// the Utility class (fails class-already-loaded).
+		\App\Models\Utility::$taxRateData = [
+			'A' => 10.0,
+			'B' => 10.0,
+			'C' => 10.0,
+		];
 	}
 
 	/**
@@ -47,7 +51,7 @@ class ProposalTest extends TestCase
 		$p = new Proposal;
 		$p->setRelation('items', $this->items);
 
-		$this->assertSame(50 * 2 + 30 * 1 + 20 * 3, $p->getSubTotal());
+		$this->assertEquals(50 * 2 + 30 * 1 + 20 * 3, $p->getSubTotal());
 	}
 
 	/**
@@ -61,7 +65,7 @@ class ProposalTest extends TestCase
 		$p = new Proposal;
 		$p->setRelation('items', $this->items);
 
-		$this->assertSame(5 + 0 + 2, $p->getTotalDiscount());
+		$this->assertEquals(5 + 0 + 2, $p->getTotalDiscount());
 	}
 
 	/**

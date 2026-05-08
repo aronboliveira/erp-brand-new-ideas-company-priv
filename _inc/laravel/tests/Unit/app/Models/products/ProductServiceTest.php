@@ -101,26 +101,22 @@ class ProductServiceTest extends TestCase
 	 **/
 	public function tax_helpers_work_as_expected(): void
 	{
-		// Stub Tax::find for ids 1 and 2.
-		$this->aliasMock('App\Models\Tax')
-			->shouldReceive('find')
-			->withArgs([1])
-			->andReturn((object)['id' => 1, 'rate' => 5, 'name' => 'VAT'])
-			->getMock()
-			->shouldReceive('find')
-			->withArgs([2])
-			->andReturn((object)['id' => 2, 'rate' => 10, 'name' => 'GST']);
+		// Tax::find() reads real DB rows with UUID PKs — seed them rather
+		// than aliasMock the model (which fails class-already-loaded).
+		$tax1 = \App\Models\Tax::create(['name' => 'VAT-' . uniqid(), 'rate' => 5]);
+		$tax2 = \App\Models\Tax::create(['name' => 'GST-' . uniqid(), 'rate' => 10]);
+		$ids  = "{$tax1->id},{$tax2->id}";
 
 		$ps = new ProductService;
 
-		$taxObjs = $ps->tax('1,2');
+		$taxObjs = $ps->tax($ids);
 		$this->assertCount(2, $taxObjs);
 
-		$rate = $ps->taxRate('1,2');
+		$rate = $ps->taxRate($ids);
 		$this->assertSame(15.0, $rate);
 
-		$names = ProductService::taxData('1,2');
-		$this->assertSame('VAT,GST', $names);
+		$names = ProductService::taxData($ids);
+		$this->assertSame("{$tax1->name},{$tax2->name}", $names);
 	}
 
 	protected function tearDown(): void
