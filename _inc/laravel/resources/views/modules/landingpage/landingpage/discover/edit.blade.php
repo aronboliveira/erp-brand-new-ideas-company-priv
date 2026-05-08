@@ -8,14 +8,14 @@ use Modules\LandingPage\Config\Constants\RoutesResourcesConstants;
         <div class="col-md-12">
             <div class="form-group">
                 {{ Collective\Html\FormFacade::label('Heading', __('Heading'), ['class' => 'form-label']) }}
-                {{ Collective\Html\FormFacade::text('discover_heading',$discover['discover_heading'], ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
+                {{ Collective\Html\FormFacade::text('discover_heading', $discover['discoverHeading'] ?? ($discover['discover_heading'] ?? ''), ['class' => 'form-control', 'placeholder' => __('Enter Heading')]) }}
             </div>
         </div>
 
         <div class="col-md-12">
             <div class="form-group">
                 {{ Collective\Html\FormFacade::label('Description', __('Description'), ['class' => 'form-label']) }}
-                {{ Collective\Html\FormFacade::textarea('discover_description', $discover['discover_description'], ['class' => 'form-control summernote-simple', 'placeholder' => __('Enter Description')]) }}
+                {{ Collective\Html\FormFacade::textarea('discover_description', $discover['discoverDescription'] ?? ($discover['discover_description'] ?? ''), ['class' => 'form-control summernote-simple', 'placeholder' => __('Enter Description')]) }}
             </div>
         </div>
 

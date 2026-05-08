@@ -224,6 +224,7 @@ class DiscoverController extends AppController
                 }
                 $feature = $features[$id];
                 $key     = $id;
+                $discover = $feature;
                 $view = self::getFirstExistingView(self::ENTITY . '.edit');
                 if (!$view) {
                     Log::warning("{$action} • view not found", ['attempted' => self::ENTITY . '.edit']);
@@ -232,7 +233,7 @@ class DiscoverController extends AppController
                 Log::info("{$action} • rendering edit view", ['key' => $key]);
                 return view(
                     $view,
-                    compact('feature', 'key')
+                    compact('feature', 'key', 'discover')
                 );
             } catch (\Throwable $e) {
                 Log::error("{$action} • Error in {$action}", ['error' => $e->getMessage(), 'id' => $id]);

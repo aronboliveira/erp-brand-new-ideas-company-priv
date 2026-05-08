@@ -37,7 +37,7 @@ class DiscoverControllerTest extends TestCase
 		$prop->setValue(null, null);
 
 		// create and authenticate a user
-		$this->user = User::factory()->create(['type' => 'super admin']);
+		$this->user = User::factory()->create(['type' => 'super admin', 'lang' => 'en']);
 		$this->actingAs($this->user);
 
 		// Create individual discover_of_features records (UUID-keyed)
@@ -177,11 +177,20 @@ class DiscoverControllerTest extends TestCase
 	 **/
 	public function discoverEdit_displays_edit_view_for_valid_key()
 	{
-		$this->markTestSkipped(
-			'Blade template discover/edit.blade.php expects $discover["discover_heading"] (snake_case) '
-				. 'but the controller passes camelCase keys (discoverHeading). '
-				. 'This is a production view/controller mismatch that causes HTTP 500.'
-		);
+		$user = User::factory()->create(['type' => 'super admin', 'lang' => 'en']);
+
+		$setting = LandingPageSetting::create([
+			'name'      => 'discover_of_features',
+			'query_key' => 'feat-1',
+			'value'     => json_encode(['discoverHeading' => 'H', 'discoverDescription' => 'D', 'discoverLogo' => '']),
+		]);
+
+		$response = $this->actingAs($user)
+			->get('/discover/edit/' . $setting->query_key);
+
+		$response->assertStatus(200)
+			->assertViewHas('discover')
+			->assertViewHas('key', $setting->query_key);
 	}
 
 	/**
@@ -275,11 +284,12 @@ class DiscoverControllerTest extends TestCase
 	 */
 	public function edit_with_valid_key_displays_form()
 	{
-		$this->markTestSkipped(
-			'Resource edit() passes compact("feature", "key") but the Blade template '
-				. 'discover/edit.blade.php expects a $discover variable and snake_case keys. '
-				. 'This is a production view/controller mismatch that causes HTTP 500.'
-		);
+		$response = $this->get(route('discover.edit', ['discover' => $this->feature2->query_key]));
+
+		$response->assertOk()
+			->assertViewHas('feature')
+			->assertViewHas('discover')
+			->assertViewHas('key', $this->feature2->query_key);
 	}
 
 	/**

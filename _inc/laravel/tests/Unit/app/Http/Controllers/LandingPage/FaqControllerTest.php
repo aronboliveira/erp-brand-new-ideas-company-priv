@@ -202,11 +202,22 @@ class FaqControllerTest extends TestCase
 	 **/
 	public function edit_displays_form_for_valid_key()
 	{
-		$this->markTestSkipped(
-			'Blade template faqs/edit.blade.php expects $faq (singular) '
-				. 'but the FaqController::edit() passes the variable as $faqs (plural, self::ENTITY="faqs"). '
-				. 'This is a production view/controller mismatch that causes HTTP 500.'
-		);
+		$user = User::factory()->create(['type' => 'super admin']);
+		Permission::firstOrCreate(['name' => 'manage faq']);
+		$user?->givePermissionTo('manage faq');
+
+		LandingPageSetting::create([
+			'name'      => 'faqs',
+			'query_key' => 'q-key',
+			'value'     => json_encode(['faq_questions' => 'Q1', 'faq_answer' => 'A1']),
+		]);
+
+		$response = $this->actingAs($user)
+			->get('/faqs/edit/q-key');
+
+		$response->assertStatus(200)
+			->assertViewHas('faq')
+			->assertViewHas('key', 'q-key');
 	}
 
 	/**

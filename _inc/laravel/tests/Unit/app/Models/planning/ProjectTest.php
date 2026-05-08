@@ -159,14 +159,12 @@ class ProjectTest extends TestCase
 	 **/
 	public function project_progress_calculates_percentage(): void
 	{
-		$this->markTestSkipped('Requires DB task data — setRelation bypassed by real getProgressColor');
-
 		$project = new Project;
 		$project->setRelation('tasks', collect([
-			(object) ['stage_id' => 99, 'is_complete' => 1],
-			(object) ['stage_id' => 99, 'is_complete' => 1],
-			(object) ['stage_id' => 99, 'is_complete' => 0],
-			(object) ['stage_id' => 77, 'is_complete' => 1],
+			(object) ['project_stage_id' => 99, 'is_complete' => 1],
+			(object) ['project_stage_id' => 99, 'is_complete' => 1],
+			(object) ['project_stage_id' => 99, 'is_complete' => 0],
+			(object) ['project_stage_id' => 77, 'is_complete' => 1],
 		]));
 
 		$result = $project->projectProgress($project, 99);

@@ -212,7 +212,7 @@ class FaqController extends AppController
                     throw new \RuntimeException("View not found: " . self::ENTITY . '.' . $function);
                 }
                 Log::debug("[$action] loaded edit form", ['key' => $key]);
-                return view($view, [self::ENTITY => $faqs[$key], 'key' => $key]);
+                return view($view, ['faq' => $faqs[$key], 'key' => $key]);
             } catch (\Throwable $e) {
                 Log::error("[$action] failed", ['error' => $e->getMessage(), 'key' => $key]);
                 Log::debug("[$action] exception trace", ['trace' => $e->getTraceAsString()]);
