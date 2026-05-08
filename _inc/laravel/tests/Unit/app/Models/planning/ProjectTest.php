@@ -117,21 +117,22 @@ class ProjectTest extends TestCase
 	 **/
 	public function project_task_hits_db_once_and_then_uses_cache(): void
 	{
-		// Intercept the static call chain.
-		$this->aliasMock('App\Models\ProjectTask')
-			->shouldReceive('where')
-			->once()->with('project_id', 42)->andReturnSelf()
-			->getMock()
-			->shouldReceive('get')
-			->once()->andReturn($this->fakeTasks);
+		// Project::projectTask() caches the resultset in self::$projectTask.
+		// Reset the cache, seed real ProjectTasks for a real project, and
+		// verify both calls return the same Collection instance.
+		$this->cacheProp->setValue(null);
 
-		// 1️⃣  First invocation → DB mocked above
-		$firstCall = Project::projectTask(42);
-		$this->assertSame($this->fakeTasks, $firstCall);
+		$project = \App\Models\Project::factory()->create();
+		\App\Models\ProjectTask::factory()->count(2)->create([
+			'project_id'    => $project->id,
+			'estimated_hrs' => 3,
+		]);
 
-		// 2️⃣  Second invocation → must reuse cache
-		$secondCall = Project::projectTask(42);
-		$this->assertSame($firstCall, $secondCall); // same instance!
+		$first  = Project::projectTask($project->id);
+		$second = Project::projectTask($project->id);
+
+		$this->assertCount(2, $first);
+		$this->assertSame($first, $second, 'Second call should hit the static cache');
 	}
 
 	/**
@@ -177,47 +178,39 @@ class ProjectTest extends TestCase
 
 	public function project_total_task_calls_count(): void
 	{
-		$this->aliasMock('App\Models\ProjectTask')
-			->shouldReceive('where')
-			->once()
-			->with('project_id', 77)
-			->andReturnSelf()
-			->getMock()
-			->shouldReceive('count')
-			->once()
-			->andReturn(8);
+		$project = \App\Models\Project::factory()->create();
+		\App\Models\ProjectTask::factory()->count(8)->create(['project_id' => $project->id]);
 
 		$proj = new Project;
-
-		$this->assertSame(8, $proj->projectTotalTask(77));
+		$this->assertSame(8, $proj->projectTotalTask($project->id));
 	}
 
 	/**
 	 ** @test
 	 *
-	 ** projectCompleteTask() must chain two
-	 ** where clauses and then count().
+	 ** projectCompleteTask() must chain project_id + project_stage_id where()
+	 ** clauses and count(). Note: production uses PJC::COL_STAGE_ID
+	 ** ('project_stage_id'), not 'stage_id' as the original mock asserted.
 	 **/
 	public function project_complete_task_calls_count(): void
 	{
-		$this->aliasMock('App\Models\ProjectTask')
-			->shouldReceive('where')
-			->once()
-			->with('project_id', 77)
-			->andReturnSelf()
-			->getMock()
-			->shouldReceive('where')
-			->once()
-			->with('stage_id', 5)
-			->andReturnSelf()
-			->getMock()
-			->shouldReceive('count')
-			->once()
-			->andReturn(3);
+		$project = \App\Models\Project::factory()->create();
+		$stage   = \App\Models\ProjectStage::create([
+			'name'  => 'Done',
+			'color' => '#0f0',
+			'order' => 1,
+		]);
+		// 3 tasks at this stage, 2 unrelated
+		\App\Models\ProjectTask::factory()->count(3)->create([
+			'project_id'       => $project->id,
+			'project_stage_id' => $stage->id,
+		]);
+		\App\Models\ProjectTask::factory()->count(2)->create([
+			'project_id' => $project->id,
+		]);
 
 		$proj = new Project;
-
-		$this->assertSame(3, $proj->projectCompleteTask(77, 5));
+		$this->assertSame(3, $proj->projectCompleteTask($project->id, $stage->id));
 	}
 
 

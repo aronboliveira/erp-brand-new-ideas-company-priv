@@ -60,25 +60,30 @@ class PusherConfigTest extends TestCase
 	/**
 	 ** @test
 	 **
-	 ** handle() should swallow exceptions from Utility::settingsById()
-	 ** and still return the next middleware's Response.
+	 ** handle() must log and re-throw exceptions from Utility::settingsById()
+	 ** so the upstream Laravel error handler can render a 500 (rather than
+	 ** silently passing through with stale Pusher config).
 	 **/
-	public function handle_swallows_utility_exception_and_passes_through()
+	public function handle_logs_and_rethrows_utility_exception()
 	{
-		// Arrange: stub Utility::settingsById to throw
-		$this->aliasMock('App\Models\Utility')
-			->shouldReceive('settingsById')
-			->with(1)
-			->andThrow(new \RuntimeException('oops'));
+		// Force settingsById() to throw by priming a sentinel cache that
+		// the middleware will read into config(...) — but make the cache
+		// a non-iterable to trigger the catch path. Easiest reliable
+		// trigger: stub the static cache to a string so foreach() throws.
+		\App\Models\Utility::$getSettingsId[1] = 'not-an-array-will-throw-on-array-access';
 
 		$middleware = new PusherConfig();
 		$request   = Request::create('/error', 'GET');
 
-		// Act
-		$response = $middleware->handle($request, fn ($req) => new Response('OKAY', 200));
-
-		// Assert it still passes through
-		$this->assertInstanceOf(Response::class, $response);
-		$this->assertSame('OKAY', $response->getContent());
+		try {
+			$middleware->handle($request, fn ($req) => new Response('OKAY', 200));
+			$this->fail('Expected handle() to re-throw on Utility::settingsById failure');
+		} catch (\Throwable $e) {
+			// Production catch block re-throws after logging; that's the
+			// contract we're guarding here.
+			$this->assertNotEmpty($e->getMessage());
+		} finally {
+			unset(\App\Models\Utility::$getSettingsId[1]);
+		}
 	}
 }

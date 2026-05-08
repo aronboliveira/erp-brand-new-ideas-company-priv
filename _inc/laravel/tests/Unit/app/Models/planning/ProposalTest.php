@@ -109,25 +109,19 @@ class ProposalTest extends TestCase
 	 **/
 	public function change_status_updates_status_and_saves(): void
 	{
-		// Build a spy Proposal instance
-		$fake = Mockery::mock(Proposal::class)->makePartial();
-		$fake->status = 'Draft';
+		// Drive the real changeStatus() path: it mutates status_label
+		// (string from ProposalStatus enum) and status (mapped int — 2
+		// for Accepted), then save()s. Original test asserted on a
+		// nonexistent contract (update() once + raw 'Accepted' on the
+		// status field). Seed a real Proposal and verify the persisted
+		// row reflects the enum mapping.
+		$proposal = Proposal::factory()->create();
 
-		// Expect update() called once after mutation
-		$fake->shouldReceive('update')
-			->once()
-			->andReturnTrue();
+		Proposal::changeStatus($proposal->id, 'Accepted');
 
-		// Intercept Proposal::find()
-		$this->aliasMock(Proposal::class)
-			->shouldReceive('find')
-			->once()
-			->with(7)
-			->andReturn($fake);
-
-		Proposal::changeStatus(7, 'Accepted');
-
-		$this->assertSame('Accepted', $fake->status);
+		$fresh = Proposal::find($proposal->id);
+		$this->assertSame('accepted', (string) $fresh->status_label);
+		$this->assertSame(2, (int) $fresh->status);
 	}
 
 	protected function tearDown(): void

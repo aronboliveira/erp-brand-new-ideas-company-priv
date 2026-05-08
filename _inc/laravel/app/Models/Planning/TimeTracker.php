@@ -134,9 +134,12 @@ class TimeTracker extends Model
             get: function (): string {
                 $pid = $this->{PJC::COL_PJ_ID};
                 if (blank($pid)) return '';
+                // The projects table column is `name`, not `project_name`
+                // (AC::COL_PJ_NM is the *attribute* alias used elsewhere
+                // for relation eager-loading; see ZoomMeetingController).
                 $name = Project::query()
                     ->whereKey($pid)
-                    ->value(AC::COL_PJ_NM);
+                    ->value('name');
                 return (string)($name ?? '');
             }
         );
