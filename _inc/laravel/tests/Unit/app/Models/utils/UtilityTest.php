@@ -105,6 +105,25 @@ class UtilityTest extends TestCase
 		\Illuminate\Database\Eloquent\Model::unguard();
 		DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
 		$this->seedChartOfAccountTypesAndSubTypes();
+		// Per-test settings hygiene — these DEFAULT_UUID keys are the
+		// common-cross-test mutation surface. Without this, prior tests
+		// leave 'P-'/'O-'/'C-'/'TestCo' values that defeat assertions in
+		// later tests (RefreshDatabase wraps in transactions but the test
+		// DB is migration-resistant, so cross-process leftovers persist).
+		DB::table('settings')->where('created_by', DatabaseConstants::DEFAULT_UUID)
+			->whereIn('name', [
+				'proposal_prefix', 'invoice_prefix', 'pos_prefix', 'bill_prefix',
+				'purchase_prefix', 'contract_prefix',
+				'company_name', 'mail_from_name',
+				'meta_title', 'meta_desc', 'meta_image',
+				'enable_cookie', 'cookie_title', 'cookie_text', 'cookie_description',
+				'gdpr_cookie',
+				'company_key',
+				'site_currency_symbol', 'site_currency_symbol_position', 'decimal_number',
+			])
+			->delete();
+		Utility::resetSettingsCache();
+
 		// Create a super-admin user for auth-based tests
 		// Use firstOrCreate to avoid duplicate entry errors when the DB
 		// already has this email (RefreshDatabase wraps in transactions but
@@ -9495,9 +9514,9 @@ class UtilityTest extends TestCase
 	 */
 	public function it_gets_tax_models_and_calculates_tax_rates_correctly()
 	{
-		// Create two Tax entries
-		$tax1 = Tax::create(['name' => 'Tax10_50', 'rate' => 5.0]);
-		$tax2 = Tax::create(['name' => 'Tax11_100', 'rate' => 10.0]);
+		// uniqid'd names — taxes.name is UNIQUE.
+		$tax1 = Tax::create(['name' => 'Tax10_50_' . uniqid(), 'rate' => 5.0]);
+		$tax2 = Tax::create(['name' => 'Tax11_100_' . uniqid(), 'rate' => 10.0]);
 
 		// getTax caches on first call
 		$found = Utility::getTax($tax1->id);
@@ -13322,10 +13341,20 @@ class UtilityTest extends TestCase
 		// Create a temporary JSON file
 		$path = storage_path('calendar.json');
 		file_put_contents($path, '{}');
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_calendar_json_file', 'value' => 'calendar.json'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'google_clender_id', 'value' => 'cal-id']
-		]);
+		// updateOrInsert (not insertOrIgnore) — pre-existing rows would
+		// otherwise win and skew the cal-id assertion.
+		// ## ! MOCKING REAL PROD SECRET — google_clender_id is the live
+		// Google Calendar ID in production.
+		foreach ([
+			'google_calendar_json_file' => 'calendar.json',
+			'google_clender_id'         => 'cal-id',
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+		Utility::resetSettingsCache();
 
 		// This should set configuration without error
 		Utility::googleCalendarConfig();
