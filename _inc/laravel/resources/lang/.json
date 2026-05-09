@@ -53,11 +53,7 @@
     "A variable is to be used in such a way.": "A variable is to be used in such a way.",
     "AamarPay": "AamarPay",
     "Aamarpay": "Aamarpay",
-<<<<<<< HEAD
-    "About Brand New Ideas Company": "About Brand New Ideas Company",
-=======
-    "About Nova Prestech": "About Nova Prestech",
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
+    "About Portfolio Learning Lab": "About Portfolio Learning Lab",
     "About Us": "About Us",
     "Absent": "Absent",
     "Acceptance of Terms": "Acceptance of Terms",
@@ -140,19 +136,11 @@
     "All": "All",
     "All Branch": "All Branch",
     "All Categories": "All Categories",
-<<<<<<< HEAD
-    "All content, source code, trademarks, and visual assets of the Platform are the exclusive property of <strong>Brand New Ideas Company.net Informática</strong> or its licensors, protected under <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9609.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.609/1998</a> (Software Protection) and <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9610.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.610/1998</a> (Copyright).": "All content, source code, trademarks, and visual assets of the Platform are the exclusive property of <strong>Brand New Ideas Company.net Informática</strong> or its licensors, protected under <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9609.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.609/1998</a> (Software Protection) and <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9610.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.610/1998</a> (Copyright).",
+    "All content, source code, trademarks, and visual assets of the Platform are the exclusive property of <strong>Portfolio Learning Lab</strong> or its licensors, protected under <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9609.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.609/1998</a> (Software Protection) and <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9610.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.610/1998</a> (Copyright).": "All content, source code, trademarks, and visual assets of the Platform are the exclusive property of <strong>Portfolio Learning Lab</strong> or its licensors, protected under <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9609.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.609/1998</a> (Software Protection) and <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9610.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.610/1998</a> (Copyright).",
     "All Department": "All Department",
     "All Employee": "All Employee",
     "All In One Business ERP With Project, Account, HRM, CRM": "All In One Business ERP With Project, Account, HRM, CRM",
-    "All intellectual property rights over the Platform, including source code, design, trademarks, and documentation, belong exclusively to Brand New Ideas Company, protected under": "All intellectual property rights over the Platform, including source code, design, trademarks, and documentation, belong exclusively to Brand New Ideas Company, protected under",
-=======
-    "All content, source code, trademarks, and visual assets of the Platform are the exclusive property of <strong>Nova Prestech.net Informática</strong> or its licensors, protected under <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9609.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.609/1998</a> (Software Protection) and <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9610.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.610/1998</a> (Copyright).": "All content, source code, trademarks, and visual assets of the Platform are the exclusive property of <strong>Nova Prestech.net Informática</strong> or its licensors, protected under <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9609.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.609/1998</a> (Software Protection) and <a href=\"https://www.planalto.gov.br/ccivil_03/leis/l9610.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Law 9.610/1998</a> (Copyright).",
-    "All Department": "All Department",
-    "All Employee": "All Employee",
-    "All In One Business ERP With Project, Account, HRM, CRM": "All In One Business ERP With Project, Account, HRM, CRM",
-    "All intellectual property rights over the Platform, including source code, design, trademarks, and documentation, belong exclusively to Nova Prestech, protected under": "All intellectual property rights over the Platform, including source code, design, trademarks, and documentation, belong exclusively to Nova Prestech, protected under",
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
+    "All intellectual property rights over the Platform, including source code, design, trademarks, and documentation, belong exclusively to Portfolio Learning Lab, protected under": "All intellectual property rights over the Platform, including source code, design, trademarks, and documentation, belong exclusively to Portfolio Learning Lab, protected under",
     "All items here cannot be deleted.": "All items here cannot be deleted.",
     "All Project": "All Project",
     "All rights reserved.": "All rights reserved.",
@@ -1228,15 +1216,9 @@
     "Enter Zoom Client Id": "Enter Zoom Client Id",
     "Enter Zoom Client Secret Key": "Enter Zoom Client Secret Key",
     "entries per page": "entries per page",
-<<<<<<< HEAD
-    "ERP Brand New Ideas Company is a comprehensive enterprise resource planning platform that integrates financial management, HR, CRM, project tracking, invoicing, and more into a unified system accessible from any browser.": "ERP Brand New Ideas Company is a comprehensive enterprise resource planning platform that integrates financial management, HR, CRM, project tracking, invoicing, and more into a unified system accessible from any browser.",
-    "Brand New Ideas Company": "Brand New Ideas Company",
-    "Brand New Ideas Company SaaS": "Brand New Ideas Company SaaS",
-=======
-    "ERP Nova Prestech is a comprehensive enterprise resource planning platform that integrates financial management, HR, CRM, project tracking, invoicing, and more into a unified system accessible from any browser.": "ERP Nova Prestech is a comprehensive enterprise resource planning platform that integrates financial management, HR, CRM, project tracking, invoicing, and more into a unified system accessible from any browser.",
-    "ERPGo": "ERPGo",
-    "ERPGo SaaS": "ERPGo SaaS",
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
+    "Finance Admin Learning ERP is a comprehensive enterprise resource planning platform that integrates financial management, HR, CRM, project tracking, invoicing, and more into a unified system accessible from any browser.": "Finance Admin Learning ERP is a comprehensive enterprise resource planning platform that integrates financial management, HR, CRM, project tracking, invoicing, and more into a unified system accessible from any browser.",
+    "Learning ERP": "Learning ERP",
+    "Learning ERP SaaS": "Learning ERP SaaS",
     "Error": "Error",
     "error": "error",
     "Estimate": "Estimate",
@@ -1405,11 +1387,7 @@
     "Hosting, payment processing, and email delivery services, under contractual data protection agreements.": "Hosting, payment processing, and email delivery services, under contractual data protection agreements.",
     "Hours": "Hours",
     "Hours Estimation": "Hours Estimation",
-<<<<<<< HEAD
-    "How can I contact Brand New Ideas Company?": "How can I contact Brand New Ideas Company?",
-=======
-    "How can I contact Nova Prestech?": "How can I contact Nova Prestech?",
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
+    "How can I contact Portfolio Learning Lab?": "How can I contact Portfolio Learning Lab?",
     "How to Get Google reCaptcha Site and Secret key": "How to Get Google reCaptcha Site and Secret key",
     "HR Admin Setup": "HR Admin Setup",
     "HRM": "HRM",
@@ -2066,13 +2044,8 @@
     "Notification Message": "Notification Message",
     "Notification Template": "Notification Template",
     "Notification Template successfully updated.": "Notification Template successfully updated.",
-<<<<<<< HEAD
-    "Brand New Ideas Company.net Informática Ltda., responsible for decisions regarding the processing of personal data.": "Brand New Ideas Company.net Informática Ltda., responsible for decisions regarding the processing of personal data.",
-    "Brand New Ideas Company.net Informática, responsible for decisions regarding the processing of personal data, pursuant to <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Art. 5, VI of the LGPD</a>.": "Brand New Ideas Company.net Informática, responsible for decisions regarding the processing of personal data, pursuant to <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Art. 5, VI of the LGPD</a>.",
-=======
-    "Nova Prestech.net Informática Ltda., responsible for decisions regarding the processing of personal data.": "Nova Prestech.net Informática Ltda., responsible for decisions regarding the processing of personal data.",
-    "Nova Prestech.net Informática, responsible for decisions regarding the processing of personal data, pursuant to <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Art. 5, VI of the LGPD</a>.": "Nova Prestech.net Informática, responsible for decisions regarding the processing of personal data, pursuant to <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Art. 5, VI of the LGPD</a>.",
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
+    "Portfolio Learning Lab, responsible for decisions regarding the processing of personal data.": "Portfolio Learning Lab, responsible for decisions regarding the processing of personal data.",
+    "Portfolio Learning Lab, responsible for decisions regarding the processing of personal data, pursuant to <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Art. 5, VI of the LGPD</a>.": "Portfolio Learning Lab, responsible for decisions regarding the processing of personal data, pursuant to <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Art. 5, VI of the LGPD</a>.",
     "November": "November",
     "Now": "Now",
     "Number": "Number",
@@ -2918,13 +2891,8 @@
     "Thank you!": "Thank you!",
     "Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn't receive the email, we will gladly send you another.": "Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn't receive the email, we will gladly send you another.",
     "Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\\'t receive the email, we will gladly send you another.": "Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\\'t receive the email, we will gladly send you another.",
-<<<<<<< HEAD
-    "The ERP Brand New Ideas Company web application, including all its modules and services.": "The ERP Brand New Ideas Company web application, including all its modules and services.",
-    "The ERP Brand New Ideas Company web application, including all modules, APIs, and related services.": "The ERP Brand New Ideas Company web application, including all modules, APIs, and related services.",
-=======
-    "The ERP Nova Prestech web application, including all its modules and services.": "The ERP Nova Prestech web application, including all its modules and services.",
-    "The ERP Nova Prestech web application, including all modules, APIs, and related services.": "The ERP Nova Prestech web application, including all modules, APIs, and related services.",
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
+    "The Finance Admin Learning ERP web application, including all its modules and services.": "The Finance Admin Learning ERP web application, including all its modules and services.",
+    "The Finance Admin Learning ERP web application, including all modules, APIs, and related services.": "The Finance Admin Learning ERP web application, including all modules, APIs, and related services.",
     "The Platform provides enterprise resource planning modules. Features and availability may vary according to the contracted plan.": "The Platform provides enterprise resource planning modules. Features and availability may vary according to the contracted plan.",
     "The Platform provides enterprise resource planning tools, including but not limited to: financial management, human resources, project tracking, CRM, invoicing, and reporting modules.": "The Platform provides enterprise resource planning tools, including but not limited to: financial management, human resources, project tracking, CRM, invoicing, and reporting modules.",
     "The Platform uses essential cookies for authentication and session management. We may also use analytical cookies to improve user experience. You can manage cookie preferences through your browser settings.": "The Platform uses essential cookies for authentication and session management. We may also use analytical cookies to improve user experience. You can manage cookie preferences through your browser settings.",
@@ -2962,13 +2930,8 @@
     "This Month Total Estimate": "This Month Total Estimate",
     "This operation is not perform due to demo mode.": "This operation is not perform due to demo mode.",
     "This page has no content yet.": "This page has no content yet.",
-<<<<<<< HEAD
-    "This Privacy Policy describes how <strong>Brand New Ideas Company.net Informática</strong> (\"we\", \"Controller\") collects, uses, stores, and shares personal data through the ERP Brand New Ideas Company platform, in compliance with <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Lei Geral de Proteção de Dados — LGPD (Law 13.709/2018)</a> and the <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Marco Civil da Internet (Law 12.965/2014)</a>.": "This Privacy Policy describes how <strong>Brand New Ideas Company.net Informática</strong> (\"we\", \"Controller\") collects, uses, stores, and shares personal data through the ERP Brand New Ideas Company platform, in compliance with <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Lei Geral de Proteção de Dados — LGPD (Law 13.709/2018)</a> and the <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Marco Civil da Internet (Law 12.965/2014)</a>.",
-    "This Privacy Policy describes how Brand New Ideas Company.net Informática Ltda. collects, uses, stores, and protects personal data processed through the ERP Brand New Ideas Company platform, in compliance with the Brazilian General Data Protection Law (LGPD — Law 13.709/2018).": "This Privacy Policy describes how Brand New Ideas Company.net Informática Ltda. collects, uses, stores, and protects personal data processed through the ERP Brand New Ideas Company platform, in compliance with the Brazilian General Data Protection Law (LGPD — Law 13.709/2018).",
-=======
-    "This Privacy Policy describes how <strong>Nova Prestech.net Informática</strong> (\"we\", \"Controller\") collects, uses, stores, and shares personal data through the ERP Nova Prestech platform, in compliance with <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Lei Geral de Proteção de Dados — LGPD (Law 13.709/2018)</a> and the <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Marco Civil da Internet (Law 12.965/2014)</a>.": "This Privacy Policy describes how <strong>Nova Prestech.net Informática</strong> (\"we\", \"Controller\") collects, uses, stores, and shares personal data through the ERP Nova Prestech platform, in compliance with <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Lei Geral de Proteção de Dados — LGPD (Law 13.709/2018)</a> and the <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Marco Civil da Internet (Law 12.965/2014)</a>.",
-    "This Privacy Policy describes how Nova Prestech.net Informática Ltda. collects, uses, stores, and protects personal data processed through the ERP Nova Prestech platform, in compliance with the Brazilian General Data Protection Law (LGPD — Law 13.709/2018).": "This Privacy Policy describes how Nova Prestech.net Informática Ltda. collects, uses, stores, and protects personal data processed through the ERP Nova Prestech platform, in compliance with the Brazilian General Data Protection Law (LGPD — Law 13.709/2018).",
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
+    "This Privacy Policy describes how <strong>Portfolio Learning Lab</strong> (\"we\", \"Controller\") collects, uses, stores, and shares personal data through the Finance Admin Learning ERP platform, in compliance with <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Lei Geral de Proteção de Dados — LGPD (Law 13.709/2018)</a> and the <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Marco Civil da Internet (Law 12.965/2014)</a>.": "This Privacy Policy describes how <strong>Portfolio Learning Lab</strong> (\"we\", \"Controller\") collects, uses, stores, and shares personal data through the Finance Admin Learning ERP platform, in compliance with <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Lei Geral de Proteção de Dados — LGPD (Law 13.709/2018)</a> and the <a href=\"https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm\" target=\"_blank\" rel=\"noopener noreferrer\">Marco Civil da Internet (Law 12.965/2014)</a>.",
+    "This Privacy Policy describes how Portfolio Learning Lab collects, uses, stores, and protects personal data processed through the Finance Admin Learning ERP platform, in compliance with the Brazilian General Data Protection Law (LGPD — Law 13.709/2018).": "This Privacy Policy describes how Portfolio Learning Lab collects, uses, stores, and protects personal data processed through the Finance Admin Learning ERP platform, in compliance with the Brazilian General Data Protection Law (LGPD — Law 13.709/2018).",
     "This Product is not found!": "This Product is not found!",
     "This product is out of stock!": "This product is out of stock!",
     "this tax is already assign to proposal or bill or invoice so please move or remove this tax related data.": "this tax is already assign to proposal or bill or invoice so please move or remove this tax related data.",
@@ -3279,21 +3242,12 @@
     "Week": "Week",
     "Week total": "Week total",
     "Welcome": "Welcome",
-<<<<<<< HEAD
-    "What is the ERP Brand New Ideas Company platform?": "What is the ERP Brand New Ideas Company platform?",
+    "What is the Finance Admin Learning ERP platform?": "What is the Finance Admin Learning ERP platform?",
     "What Our Clients Say": "What Our Clients Say",
-    "What services does Brand New Ideas Company offer?": "What services does Brand New Ideas Company offer?",
+    "What services does Portfolio Learning Lab offer?": "What services does Portfolio Learning Lab offer?",
     "When required by law, court order, or to protect the rights and safety of Users and the Controller.": "When required by law, court order, or to protect the rights and safety of Users and the Controller.",
-    "With over 30 years of tradition in the IT market, Brand New Ideas Company.net Informática delivers enterprise-grade solutions in cybersecurity, infrastructure, and software development from our headquarters in Rio de Janeiro, Brazil.": "With over 30 years of tradition in the IT market, Brand New Ideas Company.net Informática delivers enterprise-grade solutions in cybersecurity, infrastructure, and software development from our headquarters in Rio de Janeiro, Brazil.",
-    "With over <strong>30 years of experience</strong> in the IT industry, <strong>Brand New Ideas Company.net Informática</strong> delivers comprehensive technology solutions — from infrastructure and cybersecurity to custom software development and digital transformation.": "With over <strong>30 years of experience</strong> in the IT industry, <strong>Brand New Ideas Company.net Informática</strong> delivers comprehensive technology solutions — from infrastructure and cybersecurity to custom software development and digital transformation.",
-=======
-    "What is the ERP Nova Prestech platform?": "What is the ERP Nova Prestech platform?",
-    "What Our Clients Say": "What Our Clients Say",
-    "What services does Nova Prestech offer?": "What services does Nova Prestech offer?",
-    "When required by law, court order, or to protect the rights and safety of Users and the Controller.": "When required by law, court order, or to protect the rights and safety of Users and the Controller.",
-    "With over 30 years of tradition in the IT market, Nova Prestech.net Informática delivers enterprise-grade solutions in cybersecurity, infrastructure, and software development from our headquarters in Rio de Janeiro, Brazil.": "With over 30 years of tradition in the IT market, Nova Prestech.net Informática delivers enterprise-grade solutions in cybersecurity, infrastructure, and software development from our headquarters in Rio de Janeiro, Brazil.",
-    "With over <strong>30 years of experience</strong> in the IT industry, <strong>Nova Prestech.net Informática</strong> delivers comprehensive technology solutions — from infrastructure and cybersecurity to custom software development and digital transformation.": "With over <strong>30 years of experience</strong> in the IT industry, <strong>Nova Prestech.net Informática</strong> delivers comprehensive technology solutions — from infrastructure and cybersecurity to custom software development and digital transformation.",
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
+    "With over 30 years of tradition in the IT market, Portfolio Learning Lab delivers enterprise-grade solutions in cybersecurity, infrastructure, and software development from our headquarters in Rio de Janeiro, Brazil.": "With over 30 years of tradition in the IT market, Portfolio Learning Lab delivers enterprise-grade solutions in cybersecurity, infrastructure, and software development from our headquarters in Rio de Janeiro, Brazil.",
+    "With over <strong>30 years of experience</strong> in the IT industry, <strong>Portfolio Learning Lab</strong> delivers comprehensive technology solutions — from infrastructure and cybersecurity to custom software development and digital transformation.": "With over <strong>30 years of experience</strong> in the IT industry, <strong>Portfolio Learning Lab</strong> delivers comprehensive technology solutions — from infrastructure and cybersecurity to custom software development and digital transformation.",
     "Work there. Find the dream job you’ve always wanted..": "Work there. Find the dream job you’ve always wanted..",
     "Working Location": "Working Location",
     "Write message": "Write message",
@@ -3310,11 +3264,7 @@
     "You can easily change order of project task stage using drag & drop.": "You can easily change order of project task stage using drag & drop.",
     "You can find out how to do that here.": "You can find out how to do that here.",
     "you can only update current day attendance.": "you can only update current day attendance.",
-<<<<<<< HEAD
-    "You can reach us by email at <a href=\"mailto:comercial@brandnewideascompany.com\" class=\"text-decoration-none\" style=\"color: var(--brand new ideas company-jade);\">comercial@brandnewideascompany.com</a>, by phone at <a href=\"tel:+552138607510\" class=\"text-decoration-none\" style=\"color: var(--brand new ideas company-jade);\">+55 (21) 3860-7510</a>, or visit our office at Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro — RJ.": "You can reach us by email at <a href=\"mailto:comercial@brandnewideascompany.com\" class=\"text-decoration-none\" style=\"color: var(--brand new ideas company-jade);\">comercial@brandnewideascompany.com</a>, by phone at <a href=\"tel:+552138607510\" class=\"text-decoration-none\" style=\"color: var(--brand new ideas company-jade);\">+55 (21) 3860-7510</a>, or visit our office at Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro — RJ.",
-=======
-    "You can reach us by email at <a href=\"mailto:comercial@prestech.com.br\" class=\"text-decoration-none\" style=\"color: var(--prestech-jade);\">comercial@prestech.com.br</a>, by phone at <a href=\"tel:+552138607510\" class=\"text-decoration-none\" style=\"color: var(--prestech-jade);\">+55 (21) 3860-7510</a>, or visit our office at Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro — RJ.": "You can reach us by email at <a href=\"mailto:comercial@prestech.com.br\" class=\"text-decoration-none\" style=\"color: var(--prestech-jade);\">comercial@prestech.com.br</a>, by phone at <a href=\"tel:+552138607510\" class=\"text-decoration-none\" style=\"color: var(--prestech-jade);\">+55 (21) 3860-7510</a>, or visit our office at Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro — RJ.",
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
+    "You can reach us by email at <a href=\"mailto:comercial@example.invalid\" class=\"text-decoration-none\" style=\"color: var(--portfolio-jade);\">comercial@example.invalid</a>, by phone at <a href=\"tel:+552138607510\" class=\"text-decoration-none\" style=\"color: var(--portfolio-jade);\">+55 (21) 3860-7510</a>, or visit our office at Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro — RJ.": "You can reach us by email at <a href=\"mailto:comercial@example.invalid\" class=\"text-decoration-none\" style=\"color: var(--portfolio-jade);\">comercial@example.invalid</a>, by phone at <a href=\"tel:+552138607510\" class=\"text-decoration-none\" style=\"color: var(--portfolio-jade);\">+55 (21) 3860-7510</a>, or visit our office at Rua Francisco Manuel, 99A — Benfica, Rio de Janeiro — RJ.",
     "You can't change Date!": "You can't change Date!",
     "You get the latest content when data is updated": "You get the latest content when data is updated",
     "You need help?": "You need help?",

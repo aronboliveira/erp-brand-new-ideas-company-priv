@@ -1,4 +1,4 @@
-# ERP Prestech — Subagent Context File
+# Finance/Admin Learning ERP — Subagent Context File
 
 # Last updated: 2026-02-18T21:30Z
 
@@ -6,13 +6,13 @@
 
 ## Project Location
 
-- Workspace root: `/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech`
+- Workspace root: repository root
 - Laravel root: `_inc/laravel/`
 - All paths below are relative to Laravel root unless noted
 
 ## Stack
 
-- Laravel 11.x, PHP 8.3.6, MySQL (erp_prestech_db)
+- Laravel 10.x, PHP 8.4 local runtime, MySQL (`erp_brand_new_ideas_company_db`)
 - PHPUnit 10.5.55, Jest 29.7.0, Playwright 1.58.2, Pytest
 - Node.js (for frontend tests), Python 3 (for utility scripts)
 
@@ -21,7 +21,7 @@
 - Test user email: `u_1ecb6d5a-e2c5-4961-af3b-0ad83f9d259c@test.local`
 - Test user password: `Admin@1234`
 - User type: `super admin` (bypasses permission checks in `ChecksPermissions::guard()`)
-- Session cookie name: `erp_nova_prestech_session`
+- Session cookie name: `erp_brand_new_ideas_company_session`
 - CSRF: `<meta name="csrf-token">` + `<input name="_token">`
 
 ## Key Constants Files

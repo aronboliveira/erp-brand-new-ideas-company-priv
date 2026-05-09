@@ -25,12 +25,9 @@ Installer successfully UPDATED on2026/02/07 09:45:04pm
 تم تحديث البرنامج بنجاح في 2026/02/09 06:32:51pm
 Installer successfully UPDATED on2026/02/25 04:40:47am
 Installer successfully UPDATED on2026/02/25 04:40:47am
-<<<<<<< HEAD
 Installer successfully UPDATED on2026/02/26 06:42:54pm
 Installer successfully UPDATED on2026/02/26 06:45:17pm
 Installer successfully UPDATED on2026/03/10 12:44:15pm
 Installer successfully UPDATED on2026/03/10 12:44:25pm
 Installer successfully UPDATED on2026/03/10 12:44:47pm
-=======
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected)
 Installer successfully UPDATED on2026/05/03 05:58:00pm

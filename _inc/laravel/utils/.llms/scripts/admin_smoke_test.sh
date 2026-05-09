@@ -4,13 +4,9 @@ set -euo pipefail
 
 BASE="http://127.0.0.1:8888"
 COOKIE="/tmp/admin_smoke_cookies.txt"
-<<<<<<< HEAD:_inc/laravel/utils/.llms/scripts/admin_smoke_test.sh
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LARAVEL_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 OUTDIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-=======
-OUTDIR="/home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/utils/.llms"
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected):_inc/utils/.llms/scripts/admin_smoke_test.sh
 RESULT_JSON="$OUTDIR/admin_smoke_results.json"
 RESULT_TXT="$OUTDIR/admin_smoke_summary.txt"
 
@@ -42,11 +38,7 @@ fi
 
 # Step 3: Get all GET routes from artisan
 echo "=== Collecting routes ==="
-<<<<<<< HEAD:_inc/laravel/utils/.llms/scripts/admin_smoke_test.sh
 cd "$LARAVEL_ROOT"
-=======
-cd /home/aronboliveira/Desktop/programming/Prestech/erp/erpgo-fork/erp_prestech/_inc/laravel
->>>>>>> 66cafc92b (fix: implement 3 orphan ProjectController routes; add 35 missing consts across 8 controllers; fix PurchaseController 12x ModelNotFoundException→404; convert 96 string literals to const refs in routes/web.php; DealController deal() visibility→protected):_inc/utils/.llms/scripts/admin_smoke_test.sh
 
 ROUTES=$(php artisan route:list --json 2>/dev/null | grep -v 'Constructing\|^$' | python3 -c "
 import json, sys, re

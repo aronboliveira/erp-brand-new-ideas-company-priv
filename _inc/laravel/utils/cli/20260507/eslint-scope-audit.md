@@ -5,7 +5,7 @@
 ```bash
 # Initial inventory of error-producing top-level dirs
 npx eslint . --max-warnings=0 2>&1 | grep -E '^/' | sed 's/:.*//' \
-  | sort -u | sed -E 's|.*erp_prestech/_inc/laravel/||' \
+  | sort -u | sed -E 's|.*/_inc/laravel/||' \
   | awk -F'/' '{print $1"/"$2}' | sort | uniq -c | sort -rn | head -20
 
 # Counts (before fix)

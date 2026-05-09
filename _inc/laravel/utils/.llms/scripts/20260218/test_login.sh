@@ -5,6 +5,8 @@ echo ""
 
 # Clean cookies
 rm -f /tmp/login_test_cookies.txt
+TEST_EMAIL="${ERP_TEST_EMAIL:-admin@example.test}"
+TEST_PASS="${ERP_TEST_PASS:-Admin@1234}"
 
 # 1. Get login page and CSRF token
 echo "1. Getting login page..."
@@ -21,15 +23,15 @@ echo "✓ Got CSRF token: ${CSRF_TOKEN:0:20}..."
 
 # 2. Attempt login
 echo ""
-echo "2. Attempting login with suporte@prestech.com.br..."
+echo "2. Attempting login with ${TEST_EMAIL}..."
 LOGIN_RESPONSE=$(curl -s -b /tmp/login_test_cookies.txt -c /tmp/login_test_cookies.txt \
     -X POST http://127.0.0.1:8000/login \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -H "X-Requested-With: XMLHttpRequest" \
     -w "\nHTTP_CODE:%{http_code}" \
     -d "_token=${CSRF_TOKEN}" \
-    -d "email=suporte@prestech.com.br" \
-    -d "password=Admin@Prestech2026!" \
+    -d "email=${TEST_EMAIL}" \
+    -d "password=${TEST_PASS}" \
     -L)
 
 HTTP_CODE=$(echo "$LOGIN_RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)

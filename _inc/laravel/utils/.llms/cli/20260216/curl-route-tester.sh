@@ -75,7 +75,7 @@ attempt_login() {
 }
 
 echo "═══════════════════════════════════════════════"
-echo " ERP Prestech — Curl Route Tester"
+echo " Finance/Admin Learning ERP — Curl Route Tester"
 echo " Base URL: $BASE_URL"
 echo " $(date '+%Y-%m-%d %H:%M:%S')"
 echo "═══════════════════════════════════════════════"

@@ -33,7 +33,7 @@ bash tests/sh/05_watch_health.sh 3 50   # every 3s, 50 cycles
 export ERP_BASE_URL="http://127.0.0.1:8000"
 
 # Credentials (default: admin@admin.com / admin)
-export ERP_TEST_EMAIL="suporte@prestech.com.br"
+export ERP_TEST_EMAIL="admin@example.test"
 export ERP_TEST_PASS="yourpassword"
 
 # Timeouts (seconds)
