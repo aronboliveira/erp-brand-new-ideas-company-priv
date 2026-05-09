@@ -5,6 +5,7 @@ namespace Tests\Unit\Models;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 use App\Models\Order;
 use App\Models\UserCoupon;
 
@@ -162,10 +163,12 @@ class OrderTest extends TestCase
 	 **/
 	public function order_uses_uuid_for_primary_key()
 	{
+		$suffix = Str::lower(Str::random(12));
+
 		$order = Order::create([
-			'order_id'       => 'ORD-400',
+			'order_id'       => 'ORD-400-' . $suffix,
 			'name'           => 'UUIDTest',
-			'email'          => 'u@uuid.test',
+			'email'          => 'u-' . $suffix . '@uuid.test',
 			'card_number'    => '2222',
 			'card_exp_month' => 'march',
 			'card_exp_year'  => '2033',
@@ -173,11 +176,11 @@ class OrderTest extends TestCase
 			'plan_id'        => 'plan-uuid',
 			'price'          => 5.00,
 			'price_currency' => 'USD',
-			'txn_id'         => 'TXN-5',
+			'txn_id'         => 'TXN-5-' . $suffix,
 			'payment_status' => 'completed',
 			'payment_type'   => 'card_credit',
-			'receipt'        => 'RCT-5',
-			'user_id'        => 'u3',
+			'receipt'        => 'RCT-5-' . $suffix,
+			'user_id'        => 'u3-' . $suffix,
 		]);
 
 		$key = $order->getKey();

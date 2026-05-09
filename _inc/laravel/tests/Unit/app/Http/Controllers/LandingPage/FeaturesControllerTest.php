@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Modules\LandingPage;
 
+use App\Config\Constants\DatabaseConstants as DC;
+use App\Config\Constants\SettingsConstants as SGC;
+use App\Models\Utility;
 use Tests\TestCase;
-use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use Modules\LandingPage\Entities\LandingPageSetting;
@@ -24,6 +28,7 @@ class FeaturesControllerTest extends TestCase
 		$prop = $ref->getProperty('settings');
 		$prop->setAccessible(true);
 		$prop->setValue(null, null);
+		Utility::resetSettingsCache();
 	}
 
 	/**
@@ -119,6 +124,8 @@ class FeaturesControllerTest extends TestCase
 	{
 		$user = User::factory()->create(['type' => 'super admin']);
 		Storage::fake('local');
+		$this->seedLocalStorageSettings('png,jpg,jpeg,svg,webp');
+		File::ensureDirectoryExists(storage_path('uploads/landing_page_image'));
 
 		$file = UploadedFile::fake()->image('logo.png');
 		$data = [
@@ -464,5 +471,21 @@ class FeaturesControllerTest extends TestCase
 
 		$response->assertRedirect()
 			->assertSessionHas('error', __('Setting not found'));
+	}
+
+	private function seedLocalStorageSettings(string $mimes): void
+	{
+		foreach ([
+			SGC::STR_STT    => SGC::LC,
+			SGC::LC_ST_VL   => $mimes,
+			SGC::LC_ST_M_UP => SGC::MAX_U_SIZE_DEF,
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DC::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DC::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+
+		Utility::resetSettingsCache();
 	}
 }

@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Modules\LandingPage;
 
+use App\Config\Constants\DatabaseConstants as DC;
+use App\Config\Constants\SettingsConstants as SGC;
+use App\Models\Utility;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\User;
@@ -9,6 +12,7 @@ use Modules\LandingPage\Entities\LandingPageSetting;
 use Modules\LandingPage\Http\Controllers\DiscoverController;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class DiscoverControllerTest extends TestCase
@@ -35,6 +39,7 @@ class DiscoverControllerTest extends TestCase
 		$prop = $ref->getProperty('settings');
 		$prop->setAccessible(true);
 		$prop->setValue(null, null);
+		Utility::resetSettingsCache();
 
 		// create and authenticate a user
 		$this->user = User::factory()->create(['type' => 'super admin', 'lang' => 'en']);
@@ -349,11 +354,7 @@ class DiscoverControllerTest extends TestCase
 		// validator path: seed `local_storage_validation` with a mime
 		// list that does NOT include png. The controller wraps the
 		// validator's first message in `__()` and flashes it under 'error'.
-		\Illuminate\Support\Facades\DB::table('settings')->updateOrInsert(
-			['created_by' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'name' => 'local_storage_validation'],
-			['user_id' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'value' => 'pdf']
-		);
-		\App\Models\Utility::resetSettingsCache();
+		$this->seedLocalStorageSettings('pdf');
 
 		$file = UploadedFile::fake()->image('logo.png');
 		$response = $this->post(action([DiscoverController::class, 'discoverStore']), [
@@ -365,5 +366,21 @@ class DiscoverControllerTest extends TestCase
 		$response->assertRedirect();
 		$this->assertNotNull(session('error'));
 		$this->assertStringContainsStringIgnoringCase('pdf', (string) session('error'));
+	}
+
+	private function seedLocalStorageSettings(string $mimes): void
+	{
+		foreach ([
+			SGC::STR_STT    => SGC::LC,
+			SGC::LC_ST_VL   => $mimes,
+			SGC::LC_ST_M_UP => SGC::MAX_U_SIZE_DEF,
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DC::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DC::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+
+		Utility::resetSettingsCache();
 	}
 }
