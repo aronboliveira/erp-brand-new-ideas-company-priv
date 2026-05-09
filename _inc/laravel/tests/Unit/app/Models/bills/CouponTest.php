@@ -25,9 +25,10 @@ class CouponTest extends TestCase
 	 **/
 	public function coupon_is_fillable()
 	{
+		// uniqid suffix — coupons.code is UNIQUE.
 		$data = [
 			'name'        => 'Spring Sale',
-			'code'        => 'SPRING2025',
+			'code'        => 'SPRING2025_' . uniqid(),
 			'discount'    => 15.5,
 			'limit'       => 100,
 			'description' => '15.5% off spring items',

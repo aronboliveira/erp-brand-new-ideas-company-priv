@@ -161,8 +161,12 @@ class TransactionTest extends TestCase
 	 **/
 	public function edit_transaction_updates_fields()
 	{
+		// Use a uniqid-suffixed payment_id — editTransaction() locates rows
+		// via (payment_id, payment_type) and prior runs may leak rows with
+		// the same key, causing the function to update the wrong record.
+		$pid = 'p1_' . uniqid();
 		$trx = Transaction::factory()->create([
-			'payment_id'   => 'p1',
+			'payment_id'   => $pid,
 			'payment_type' => 'bill',
 			'account'      => 'old',
 			'amount'       => 5.00,

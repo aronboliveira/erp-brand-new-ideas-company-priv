@@ -197,6 +197,13 @@ class TestimonialsControllerTest extends TestCase
 	 **/
 	public function screenshots_delete_removes_entry()
 	{
+		// The controller's screenshotsDelete reads the first row matching
+		// `name=screenshots` via `LandingPageSetting::where(...)->first()`.
+		// The seed table has multiple legacy rows (Job Career, POS, etc.);
+		// remove them first so the test's freshly-seeded row is the one
+		// the controller targets.
+		LandingPageSetting::where('name', 'screenshots')->delete();
+
 		$user = User::factory()->create(['type' => 'super admin']);
 		$items = [
 			['screenshots_heading' => 'One'],

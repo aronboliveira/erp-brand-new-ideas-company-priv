@@ -2179,11 +2179,17 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_get_seo_setting_returns_keys()
 	{
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'meta_title', 'value' => 'T'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'meta_desc', 'value' => 'D'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'other', 'value' => 'X']
-		]);
+		foreach ([
+			'meta_title' => 'T',
+			'meta_desc'  => 'D',
+			'other'      => 'X',
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+		Utility::resetSettingsCache();
 		$res = Utility::getSeoSetting();
 		$this->assertEquals(['meta_title' => 'T', 'meta_desc' => 'D', 'meta_image' => ''], $res + ['meta_image' => '']);
 	}
@@ -2234,7 +2240,13 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_get_gdpr_and_get_val_by_name1()
 	{
-		DB::table('settings')->insertOrIgnore(['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'gdpr_cookie', 'value' => 'ok']);
+		// updateOrInsert (not insertOrIgnore) — pre-existing rows with
+		// stale values would otherwise win and skew the assertions.
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'gdpr_cookie'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'ok']
+		);
+		Utility::resetSettingsCache();
 		$gdpr = Utility::getGdpr();
 		$this->assertEquals('ok', $gdpr['gdpr_cookie']);
 		$this->assertEquals('ok', Utility::getValByName1('gdpr_cookie'));
@@ -2528,7 +2540,11 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_get_cookie_setting_merges_settings()
 	{
-		DB::table('settings')->insertOrIgnore(['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'cookie_title', 'value' => 'Title']);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'cookie_title'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'Title']
+		);
+		Utility::resetSettingsCache();
 		$res = Utility::getCookieSetting();
 		$this->assertEquals('Title', $res['cookie_title']);
 		$this->assertEquals('#', $res['contactus_url']);
@@ -3839,11 +3855,17 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_get_seo_setting()
 	{
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'meta_title', 'value' => 'T'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'meta_desc', 'value' => 'D'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'other', 'value' => 'X']
-		]);
+		foreach ([
+			'meta_title' => 'T',
+			'meta_desc'  => 'D',
+			'other'      => 'X',
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+		Utility::resetSettingsCache();
 		$seo = Utility::getSeoSetting();
 		$this->assertEquals('T', $seo['meta_title']);
 		$this->assertArrayNotHasKey('other', $seo);
@@ -3875,9 +3897,11 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_get_val_by_name1()
 	{
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'cookie_text', 'value' => 'txt']
-		]);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'cookie_text'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'txt']
+		);
+		Utility::resetSettingsCache();
 		$this->assertEquals('txt', Utility::getValByName1('cookie_text'));
 		$this->assertEquals('', Utility::getValByName1('nonexistent'));
 	}
@@ -6367,9 +6391,12 @@ class UtilityTest extends TestCase
 			$table->timestamps();
 		});
 
-		// Insert two tax records
-		$tax1 = Tax::create(['name' => 'GST', 'rate' => 10.00]);
-		$tax2 = Tax::create(['name' => 'VAT', 'rate' => 5.00]);
+		// Insert two tax records — taxes.name is UNIQUE, so use uniqid
+		// suffix to avoid leaking-row collisions from prior runs.
+		$gstName = 'GST_' . uniqid();
+		$vatName = 'VAT_' . uniqid();
+		$tax1 = Tax::create(['name' => $gstName, 'rate' => 10.00]);
+		$tax2 = Tax::create(['name' => $vatName, 'rate' => 5.00]);
 
 		// getTax should return the correct Tax model
 		$fetched = Utility::getTax($tax1->id);
@@ -6379,8 +6406,8 @@ class UtilityTest extends TestCase
 		// tax() should return array of Tax models given CSV
 		$taxModels = Utility::tax("{$tax1->id},{$tax2->id}");
 		$this->assertCount(2, $taxModels);
-		$this->assertEquals('GST', $taxModels[0]->name);
-		$this->assertEquals('VAT', $taxModels[1]->name);
+		$this->assertEquals($gstName, $taxModels[0]->name);
+		$this->assertEquals($vatName, $taxModels[1]->name);
 
 		// taxRate: base = (price * quantity) - discount = (100 * 2) - 10 = 190
 		// taxRate = 190 * (10% * 0.01) = 19
@@ -8315,10 +8342,16 @@ class UtilityTest extends TestCase
 	 */
 	public function it_fetches_gdpr_values_using_get_val_by_name1()
 	{
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'gdpr_cookie', 'value' => 'yes'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'cookie_text', 'value' => 'We use cookies.']
-		]);
+		foreach ([
+			'gdpr_cookie' => 'yes',
+			'cookie_text' => 'We use cookies.',
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+		Utility::resetSettingsCache();
 
 		$this->assertEquals('yes', Utility::getValByName1('gdpr_cookie'));
 		$this->assertEquals('We use cookies.', Utility::getValByName1('cookie_text'));
@@ -8370,12 +8403,17 @@ class UtilityTest extends TestCase
 	 */
 	public function it_fetches_cookie_gdpr_seo_settings_from_db_directly()
 	{
-		// Prepare rows
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'enable_cookie', 'value' => 'off'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'cookie_description', 'value' => 'Desc'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'meta_desc', 'value' => 'SEO Desc']
-		]);
+		foreach ([
+			'enable_cookie'      => 'off',
+			'cookie_description' => 'Desc',
+			'meta_desc'          => 'SEO Desc',
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+		Utility::resetSettingsCache();
 		$cookie = Utility::getCookieSetting();
 		$this->assertEquals('off', $cookie['enable_cookie']);
 		$this->assertEquals('Desc', $cookie['cookie_description']);
@@ -8492,9 +8530,10 @@ class UtilityTest extends TestCase
 	 */
 	public function it_handles_tax_retrieval_and_rate_calculation()
 	{
-		// Create two Tax records (UUID auto-generated since Tax uses UsesUuids + id is guarded)
-		$tax1 = Tax::create(['name' => 'Tax16_1', 'rate' => 10]);
-		$tax2 = Tax::create(['name' => 'Tax17_2', 'rate' => 5]);
+		// Use uniqid suffixes — taxes.name is UNIQUE; pre-existing rows
+		// from prior test runs would otherwise cause a duplicate-entry error.
+		$tax1 = Tax::create(['name' => 'Tax16_1_' . uniqid(), 'rate' => 10]);
+		$tax2 = Tax::create(['name' => 'Tax17_2_' . uniqid(), 'rate' => 5]);
 		$this->resetUtilityCache();
 
 		// getTax should return the model
@@ -8974,10 +9013,16 @@ class UtilityTest extends TestCase
 	 */
 	public function it_fetches_gdpr_settings_and_gets_values_by_name1()
 	{
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'gdpr_cookie', 'value' => 'accepted'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'cookie_text', 'value' => 'Our cookie policy.']
-		]);
+		foreach ([
+			'gdpr_cookie' => 'accepted',
+			'cookie_text' => 'Our cookie policy.',
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+		Utility::resetSettingsCache();
 		$gdpr = Utility::getGdpr();
 		$this->assertEquals('accepted', $gdpr['gdpr_cookie']);
 		$this->assertEquals('Our cookie policy.', $gdpr['cookie_text']);
@@ -10069,9 +10114,9 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_handles_tax_retrieval_and_rate_calculations()
 	{
-		// Create two Tax records (UUID auto-generated)
-		$t1 = Tax::create(['name' => 'Tax18_1', 'rate' => 5.0]);
-		$t2 = Tax::create(['name' => 'Tax19_2', 'rate' => 10.0]);
+		// uniqid suffix — taxes.name is UNIQUE.
+		$t1 = Tax::create(['name' => 'Tax18_1_' . uniqid(), 'rate' => 5.0]);
+		$t2 = Tax::create(['name' => 'Tax19_2_' . uniqid(), 'rate' => 10.0]);
 		$this->resetUtilityCache();
 
 		// getTax() returns the correct model
@@ -11560,11 +11605,17 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_returns_seo_settings_filtered_from_db()
 	{
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'meta_title', 'value' => 'MyTitle'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'meta_desc', 'value' => 'MyDesc'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'unrelated', 'value' => 'Nope']
-		]);
+		foreach ([
+			'meta_title' => 'MyTitle',
+			'meta_desc'  => 'MyDesc',
+			'unrelated'  => 'Nope',
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+		Utility::resetSettingsCache();
 		$seo = Utility::getSeoSetting();
 		$this->assertEquals('MyTitle', $seo['meta_title']);
 		$this->assertEquals('MyDesc', $seo['meta_desc']);
@@ -12530,9 +12581,11 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_returns_company_data_by_key()
 	{
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'company_key', 'value' => 'company_val']
-		]);
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'company_key'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => 'company_val']
+		);
+		Utility::resetSettingsCache();
 		$val = Utility::companyData(DatabaseConstants::DEFAULT_UUID, 'company_key');
 		$this->assertEquals('company_val', $val);
 		$empty = Utility::companyData(DatabaseConstants::DEFAULT_UUID, 'nonexistent');
@@ -12546,13 +12599,18 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_fetches_seo_settings_from_database()
 	{
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'meta_title', 'value' => 'SEO Title'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'meta_desc', 'value' => 'Description'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'meta_image', 'value' => 'image.png'],
-			// Extra row should be ignored
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'other', 'value' => 'value']
-		]);
+		foreach ([
+			'meta_title' => 'SEO Title',
+			'meta_desc'  => 'Description',
+			'meta_image' => 'image.png',
+			'other'      => 'value',
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+		Utility::resetSettingsCache();
 		$seo = Utility::getSeoSetting();
 		$this->assertEquals('SEO Title', $seo['meta_title']);
 		$this->assertEquals('Description', $seo['meta_desc']);

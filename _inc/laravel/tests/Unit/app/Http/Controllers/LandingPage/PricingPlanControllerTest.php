@@ -31,6 +31,12 @@ class PricingPlanControllerTest extends TestCase
 	{
 		$user = User::factory()->create(['type' => 'super admin']);
 
+		// Clear any pre-seeded `plan_*` rows so the test's freshly-seeded
+		// values are the ones LandingPageSetting::settings() returns.
+		LandingPageSetting::whereIn('name', [
+			'plan_title', 'plan_heading', 'plan_description', 'plan_status',
+		])->delete();
+
 		// seed some settings
 		LandingPageSetting::create(['name' => 'plan_title',       'value' => 'Title1']);
 		LandingPageSetting::create(['name' => 'plan_heading',     'value' => 'Heading1']);
@@ -73,6 +79,8 @@ class PricingPlanControllerTest extends TestCase
 	public function show_displays_setting_for_valid_key()
 	{
 		$user = User::factory()->create(['type' => 'super admin']);
+		// Clear any pre-existing rows so this test's value wins.
+		LandingPageSetting::where('name', 'plan_title')->delete();
 		LandingPageSetting::create(['name' => 'plan_title', 'value' => 'MyPlan']);
 
 		$response = $this->actingAs($user)

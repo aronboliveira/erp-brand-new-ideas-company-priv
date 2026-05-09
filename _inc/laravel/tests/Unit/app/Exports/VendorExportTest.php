@@ -27,6 +27,19 @@ class VendorExportTest extends TestCase
 	 **/
 	public function collection_returns_only_users_vendors_in_expected_shape(): void
 	{
+		// Seed currency settings — User::priceFormat() reads them and
+		// otherwise relies on the row not existing to apply 'R$' default.
+		// A leaked empty-string row defeats the default, so seed explicitly.
+		\Illuminate\Support\Facades\DB::table('settings')->updateOrInsert(
+			['created_by' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'name' => 'site_currency_symbol'],
+			['user_id' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'value' => 'R$']
+		);
+		\Illuminate\Support\Facades\DB::table('settings')->updateOrInsert(
+			['created_by' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'name' => 'site_currency_symbol_position'],
+			['user_id' => \App\Config\Constants\DatabaseConstants::DEFAULT_UUID, 'value' => 'pre']
+		);
+		\App\Models\Utility::resetSettingsCache();
+
 		$user = User::factory()->create();
 		$other = User::factory()->create();
 
