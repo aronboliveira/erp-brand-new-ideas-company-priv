@@ -4,7 +4,7 @@
  * @module ac-datepicker
  */
 
-/* global $, jQuery */
+/* global Datepicker, DateRangePicker */
 "use strict";
 (function () {
     const _d_week = new Datepicker(document.querySelector("#d_week"), {

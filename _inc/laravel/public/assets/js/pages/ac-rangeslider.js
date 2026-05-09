@@ -5,11 +5,11 @@
  */
 // @ts-nocheck
 
-/* global $, jQuery */
+/* global Slider */
 "use strict";
 // [ basic-Slider ]
 (function () {
-    const slider = new Slider("#ex1", {
+    const _slider = new Slider("#ex1", {
         formatter: function (value) {
             return "Current value: " + value;
         },
@@ -17,7 +17,7 @@
 })();
 // [ Selector-Slider ]
 (function () {
-    var slider = new Slider("#ex2", {});
+    const _slider2 = new Slider("#ex2", {});
     const RGBChange = function () {
         document.querySelector("#RGB").style.background =
             "rgb(" + r.getValue() + "," + g.getValue() + "," + b.getValue() + ")";
@@ -30,7 +30,7 @@
         reversed: true,
     }).on("slide", RGBChange);
     // [ vertical-slider ]
-    var slider = new Slider("#ex4", {
+    const _slider4 = new Slider("#ex4", {
         reversed: true,
     });
 })();
@@ -66,24 +66,24 @@
 })();
 // [ Tooltip-Slider ]
 (function () {
-    const slider = new Slider("#ex8", {
+    const _slider = new Slider("#ex8", {
         tooltip: "always",
     });
 })();
 // [ Precision-slider ]
 (function () {
-    const slider = new Slider("#ex9", {
+    const _slider = new Slider("#ex9", {
         precision: 2,
         value: 8.115, // Slider will instantiate showing 8.12 due to specified precision
     });
 })();
 // [ handlers-slider ]
 (function () {
-    const slider = new Slider("#ex10", {});
+    const _slider = new Slider("#ex10", {});
 })();
 // [ step-slider ]
 (function () {
-    const slider = new Slider("#ex11", {
+    const _slider = new Slider("#ex11", {
         step: 20000,
         min: 0,
         max: 200000,
@@ -91,18 +91,18 @@
 })();
 //[ low & high-slider ]
 (function () {
-    const sliderA = new Slider("#ex12a", {
+    const _sliderA = new Slider("#ex12a", {
         id: "slider12a",
         min: 0,
         max: 10,
         value: 5,
-    }), sliderB = new Slider("#ex12b", {
+    }), _sliderB = new Slider("#ex12b", {
         id: "slider12b",
         min: 0,
         max: 10,
         range: true,
         value: [3, 7],
-    }), sliderC = new Slider("#ex12c", {
+    }), _sliderC = new Slider("#ex12c", {
         id: "slider12c",
         min: 0,
         max: 10,
@@ -112,7 +112,7 @@
 })();
 // [ labels-slider ]
 (function () {
-    const slider = new Slider("#ex13", {
+    const _slider = new Slider("#ex13", {
         ticks: [0, 10, 20, 30, 40],
         ticks_labels: ["$0", "$10", "$20", "$30", "$40"],
         ticks_snap_bounds: 95,
@@ -120,7 +120,7 @@
 })();
 // [ positions-slider ]
 (function () {
-    const slider = new Slider("#ex14", {
+    const _slider = new Slider("#ex14", {
         ticks: [0, 10, 20, 30, 40],
         ticks_positions: [0, 30, 60, 80, 100],
         ticks_labels: ["$0", "$10", "$20", "$30", "$40"],
@@ -129,7 +129,7 @@
 })();
 // [ logarithmic-slider ]
 (function () {
-    const slider = new Slider("#ex15", {
+    const _slider = new Slider("#ex15", {
         min: 1000,
         max: 10000000,
         scale: "logarithmic",
@@ -138,12 +138,12 @@
 })();
 // [ Focus-slider ]
 (function () {
-    const sliderA = new Slider("#ex16a", {
+    const _sliderA = new Slider("#ex16a", {
         min: 0,
         max: 10,
         value: 0,
         focus: true,
-    }), sliderB = new Slider("#ex16b", {
+    }), _sliderB = new Slider("#ex16b", {
         min: 0,
         max: 10,
         value: [0, 10],
@@ -152,12 +152,12 @@
 })();
 // [ Unusual-slider ]
 (function () {
-    const sliderA = new Slider("#ex17a", {
+    const _sliderA = new Slider("#ex17a", {
         min: 0,
         max: 10,
         value: 0,
         tooltip_position: "bottom",
-    }), sliderB = new Slider("#ex17b", {
+    }), _sliderB = new Slider("#ex17b", {
         min: 0,
         max: 10,
         value: 0,
@@ -167,12 +167,12 @@
 })();
 // [ Accessibility-slider ]
 (function () {
-    const sliderA = new Slider("#ex18a", {
+    const _sliderA = new Slider("#ex18a", {
         min: 0,
         max: 10,
         value: 5,
         labelledby: "ex18-label-1",
-    }), sliderB = new Slider("#ex18b", {
+    }), _sliderB = new Slider("#ex18b", {
         min: 0,
         max: 10,
         value: [3, 6],
@@ -181,7 +181,7 @@
 })();
 // [ Highlight-slider ]
 (function () {
-    const slider = new Slider("#ex22", {
+    const _slider = new Slider("#ex22", {
         id: "slider22",
         min: 0,
         max: 20,
@@ -215,7 +215,7 @@
 })();
 // [ Tick-slider ]
 (function () {
-    const slider = new Slider("#ex23", {
+    const _slider = new Slider("#ex23", {
         ticks: [0, 1, 2, 3, 4],
         ticks_positions: [0, 30, 70, 90, 100],
         ticks_snap_bounds: 200,
@@ -228,6 +228,6 @@
 })();
 // [ auto-slider ]
 (function () {
-    const slider = new Slider("#ex24");
+    const _slider = new Slider("#ex24");
 })();
 //# sourceMappingURL=ac-rangeslider.js.map

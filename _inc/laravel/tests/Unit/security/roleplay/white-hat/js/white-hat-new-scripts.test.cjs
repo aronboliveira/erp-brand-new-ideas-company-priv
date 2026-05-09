@@ -3,7 +3,7 @@
 // PULL REQUEST START
 "use strict";
 
-const { execSync } = require("child_process");
+const { execSync: _execSync } = require("child_process");
 const path = require("path");
 
 const SCRIPTS = path.resolve(__dirname, "../../../../../Feature/security/roleplay/white-hat");

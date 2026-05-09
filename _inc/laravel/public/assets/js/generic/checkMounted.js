@@ -4,7 +4,7 @@
  * @module checkMounted
  */
 
-/* global bootstrap, $, jQuery */
+/* global bootstrap */
 (() => {
     const checkMounted = () => {
         const isModal = !document.body ||

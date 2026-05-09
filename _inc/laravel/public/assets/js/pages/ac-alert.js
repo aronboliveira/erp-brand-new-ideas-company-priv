@@ -5,7 +5,7 @@
  */
 // @ts-nocheck
 /* eslint-disable no-console */
-/* global bootstrap, Swal */
+/* global Swal */
 "use strict";
 document
     .querySelector(".bs-message")

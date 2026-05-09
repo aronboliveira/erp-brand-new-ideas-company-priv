@@ -6,7 +6,7 @@
  */
 
 describe("bootstrap.js", () => {
-  let originalWindow;
+  let _originalWindow;
 
   beforeEach(() => {
     // Clear module cache so each test gets a fresh import

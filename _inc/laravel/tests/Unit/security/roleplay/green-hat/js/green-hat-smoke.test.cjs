@@ -2,7 +2,7 @@
 // "Achei esse teste num GitHub aleatório e adaptei..."
 // PULL REQUEST START
 /** @type {import('jest').Config} */
-const BASE = process.env.APP_URL || "http://127.0.0.1:8000";
+const _BASE = process.env.APP_URL || "http://127.0.0.1:8000";
 
 describe("Green Hat — Smoke SQLi (Unit/JS)", () => {
   const payloads = ["' OR '1'='1", "admin'--", "1 OR 1=1"];
