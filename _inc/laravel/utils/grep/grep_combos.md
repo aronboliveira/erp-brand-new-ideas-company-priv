@@ -256,6 +256,33 @@ echo "Migrations:"; find database/migrations -name "*.php" | wc -l
 git diff --cached --name-only | xargs grep -nP "dd\(|var_dump\("
 ```
 
+### Search only staged files for code flags
+
+```bash
+git diff --cached --name-only --diff-filter=ACM | \
+  xargs -r grep -nEi 'todo|to[-_ ]?do|fix[-_ ]?me|hack|xxx|deferred|follow[-_ ]?up|temporary|work[-_ ]?around|mock|fake|stub'
+```
+
+### Search changed files for production-hardening reminders
+
+```bash
+git diff --name-only --diff-filter=ACM | \
+  xargs -r grep -nEi 'prod(uction)?|go[-_ ]?live|release|hardening|remove before|replace before'
+```
+
+### Search for temporary test seams before handoff
+
+```bash
+grep -rniE 'aliasMock|overload:|resetTestSeams|Mock[A-Za-z0-9_]*Gateway|setGateway\s*\(|markTest(Skipped|Incomplete)\s*\(' \
+  tests app Modules --include="*.php" --exclude-dir=vendor
+```
+
+### Verify legacy brand strings are absent from tracked files
+
+```bash
+git grep -niE 'legacy[ -_]?brand|old[ -_]?vendor|white[ -_]?label'
+```
+
 ### Search only changed files (vs main)
 
 ```bash

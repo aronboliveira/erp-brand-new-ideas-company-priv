@@ -105,3 +105,17 @@
 `grep -rn 'password\|secret\|token' .env` — Sensitive values in env
 
 `grep -rn 'sleep(' app/ --include='*.php'` — Sleep calls (performance)
+
+## Agent handoff / code flags
+
+`grep -rniE 'todo|to[-_ ]?do|fix[-_ ]?me|hack|xxx|deferred|follow[-_ ]?up|todo[-_ ]?later' app Modules resources routes tests utils --exclude-dir=vendor --exclude-dir=node_modules` — TODO/fix/deferred markers with casing and separator variants
+
+`grep -rniE 'temp(orary)?|work[-_ ]?around|wip|stub|fake|mock(ed|ing)?|test[-_ ]?seam|fallback' app Modules resources routes tests utils --exclude-dir=vendor --exclude-dir=node_modules` — Temporary mocks, fake gateways, stubs, and workaround seams
+
+`grep -rniE 'prod(uction)?|go[-_ ]?live|release|hardening|remove before|replace before' app Modules resources routes tests utils --exclude-dir=vendor --exclude-dir=node_modules` — Production-hardening reminders
+
+`grep -rnE 'markTest(Skipped|Incomplete)\\s*\\(' tests --include='*.php'` — PHPUnit skipped/incomplete markers
+
+`grep -rniE 'aliasMock|overload:|resetTestSeams|Mock[A-Za-z0-9_]*Gateway|setGateway\\s*\\(' tests app Modules --include='*.php'` — Hot-loaded class mocks and static test seams
+
+`grep -rniE 'storage_setting|local_storage_validation|local_max_upload_size|resetSettingsCache' app Modules tests --include='*.php'` — Storage/settings cache leakage hotspots

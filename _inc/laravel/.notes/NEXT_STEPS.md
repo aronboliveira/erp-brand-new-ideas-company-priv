@@ -1,0 +1,155 @@
+# NEXT STEPS
+
+> Last updated: 2026-05-09
+> **Cross-references:** [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) (open issues list) · [`CURRENT_WORKING_ISSUES.md`](CURRENT_WORKING_ISSUES.md) (completed sessions) · [`CURRENT_WORKING_ISSUES_WORK.md`](CURRENT_WORKING_ISSUES_WORK.md) (work journal) · [`RESOLVED_ISSUES.md`](RESOLVED_ISSUES.md) (resolved archive) · [`TODO_LATER.MD`](TODO_LATER.MD) (deferred items) · [`README.md`](README.md) (notes overview) · `_inc/laravel/.notes/.llms/.guidelines/` (coding patterns) · [`.tmp/claude/20260808/HANDOFF.md`](../../../.tmp/claude/20260808/HANDOFF.md) (latest agent handoff)
+
+---
+
+## REMAINING TEST-SUITE WORK (Codex continuation state)
+
+Claude session `d9570c96-1845-40c3-b642-65229ebd51b9` continued past the
+older `a0243988d` handoff and stopped at HEAD `157145304` because of
+usage/token limits while waiting on PHPUnit verification. Codex continued from
+that state on 2026-05-09 and fixed the remaining PHPUnit error/failures.
+
+Latest local full unit result:
+
+```text
+Tests: 10575, Assertions: 20354, Errors: 0, Failures: 0,
+Deprecations: 38, Skipped: 8, Incomplete: 4.
+```
+
+The up-to-date Codex handoff lives in
+[`.tmp/codex/20260509/handsoff.md`](../../../.tmp/codex/20260509/handsoff.md).
+
+| Cluster | Sites | Disposition |
+|---|---:|---|
+| Order UUID primary-key test | 0 current failures | RT-007 — resolved 2026-05-09 with unique per-test fields |
+| LandingPage Discover upload-failure test | 0 current failures | RT-008 — resolved 2026-05-09 with explicit local storage settings fixture |
+| LandingPage Features featureStore test | 0 current failures | RT-009 — resolved 2026-05-09 with explicit local storage settings fixture |
+| ProjectTaskTest aliasMock(User/DB) | 2 skips | RT-010 — needs real-fixture refactor |
+| ProjectReportTest aliasMock(User/Milestone/TaskStage) | 3 skips | RT-010 — needs real-fixture refactor |
+| ProductServiceCategoryTest aliasMock(PSC/Bill/DB) | 3 skips | RT-010 — needs real-fixture refactor |
+| `markTestIncomplete` placeholders | 4 incomplete | RT-011 — re-enumerate before changing |
+
+Stale items now closed by later Claude commits:
+
+- Old RT-004 (`UtilityTest` 6 failures) — closed; final
+  `tests/Unit/app/Models/utils` tally is clean.
+- Old RT-005 (PHPStan 12 stale `App\Models\Bills\BillProduct` errors) —
+  closed by `1e73c3e13`.
+- Old ESLint 34 warnings — closed by `1e73c3e13`.
+
+---
+
+## IMMEDIATE
+
+1. ~~**Run Playwright E2E**~~ — ✅ DONE (9 passed, 3 skipped, 3.6 min)
+2. ~~**Run curl timing**~~ — ✅ DONE (40+ routes tested, no 5xx, all security headers present)
+3. ~~**Fix BillProduct class redeclaration**~~ — ✅ RESOLVED (commit `c28f9474e`)
+4. ~~**Fix MessagesController missing**~~ — ✅ RESOLVED (stale flag — class loads correctly)
+5. ~~**Test shared-link password flow**~~ — ✅ RESOLVED 2026-05-07 (legacy base64 fallback added at `ProjectController::projectLink` — strict base64-decode + bcrypt-prefix gate + on-the-fly rehash; only project copy-link had a gate, invoice/proposal share URLs have none)
+6. ~~**Replace JS route files**~~ — ✅ RESOLVED (commits `1312ce60`, `cf8bf4f9`, `941ebb14`; verified 2026-05-07; `dist-iife/` is stale build artifact, do not re-rsync)
+7. ~~**ESLint ignores**~~ — ✅ RESOLVED 2026-05-07 (added `frontend/**` and `.history/**`; the AGENTS.md-listed `ts/**`, `.backup/**`, `Modules/**` were already present; 14,867 errors → 0 errors at HEAD `ebda9acd7`)
+8. ~~**Fix 7 PHPUnit failures**~~ — ✅ RESOLVED 2026-05-07 (verified at HEAD `ebda9acd7`; all 7 pass in isolation; archived in `RESOLVED_ISSUES.md`)
+9. ~~**Finish Claude's remaining Unit-suite failures**~~ — ✅ RESOLVED 2026-05-09 (RT-007..RT-009 fixed; `tests/Unit` now 0 errors / 0 failures)
+10. **3-way merge of 531 overlapping files** — PHPStan annotations + agent crash-prevention patterns. See `AGENT_BRANCH_MERGE_LOG.md`.
+11. **Review and apply agent's 2,832 file deletions** — Mainly TS rollback from agent branch.
+
+---
+
+## RECENTLY COMPLETED (2026-05-02)
+
+### Documentation Synchronization
+
+- **`where-to-update-and-read.yml`** — Updated tree to include all `_inc/laravel/utils/` sub-items (`cmds/`, `assets/`, `caches/`, `containers/`, file pattern docs), added root `notes/`, `.notes/`, `utils/` directories, fixed CSS reference (`.toml` → `.md`), fixed RESOLVED_ISSUES.md path, cleaned audit formatting.
+- **Root `README.md`** — Fixed `_inc/utils/` tree (was showing non-existent files), removed non-existent files from `notes/` listing, updated utility scripts table (regexes.md→regexes.txt, added cli/grep/find/regex dirs), fixed the old upstream subpath to `origin/erp/`, added `.notes/` section.
+- **`.notes/README.md`** — Removed references to non-existent `agents/` and `plans/` subdirectories. Added `.llms/.guidelines/` reference.
+- **`notes/` files** — Added stale-copy warnings pointing to canonical `_inc/laravel/.notes/` versions.
+- **`_inc/laravel/README.md`** — Updated test results to current baselines, expanded project structure with `Services/`, `Contracts/`, `Exceptions/`, `tests/e2e/`, `tests/python/`, `utils/`, `.notes/`.
+- **`_inc/laravel/utils/README.md`** — Fixed regex reference (`regexes/`→`regex/` + `regexes.txt`), added `cmds/`, `caches/`, `js/`, `php/`, `ts-harness/` entries.
+- **`_inc/laravel/.notes/*`** — Updated timestamps to 2026-05-02, marked BillProduct and MessagesController as resolved in CURRENT_WORKING_ISSUES.md and NEXT_STEPS.md.
+
+## RECENTLY COMPLETED (2026-03-15)
+
+### Utility Delegation + Problems Panel Cleanup + Import DRYing
+
+- **68 methods** extracted from `Utility.php` into 6 service classes under `app/Services/Utility/`
+- **Utility.php** reduced from 4,282 to 1,828 lines; all stubs preserved with `@see` references
+- **Problems Panel**: 895+ errors → **0 errors** across all PHP files
+- **30+ unused imports** removed from `Utility.php`, `FinanceBillingService.php`, `UtilityTest.php`
+- **Type fixes**: `(int)$areaCode`, `(string) rand()` for `str_pad`, `@var` annotations for Mockery/Storage
+- **IDE fixes**: 10+ files — missing imports, unused imports, wrong namespace references
+- **mysql-schema.sql**: Suppressed 72 false-positive SQL linter errors via `.vscode/settings.json`
+- **Chart of Account seeding**: `ChartOfAccountType` UUID-guarded ID fix (`$rec->id = $id; $rec->saveQuietly()`)
+- **Test assertion fixes**: 13+ number format prefix mismatches (`#` → `INV-`, `BILL-`, etc.)
+- **Cache/logs**: Full clear (composer, artisan, PHPStan, npm, view, bootstrap, debugbar, storage/tmp)
+- **File archival**: 9 outdated scan files moved to `.notes/.history/` and `.notes/.llms/.history/reports/`
+
+## RECENTLY COMPLETED (2026-03-14)
+
+### Calendar Mock Infrastructure + Test Rewrites
+
+- **CalendarGateway pattern**: Interface + `GoogleCalendarGateway` + `MockCalendarGateway` + `CalendarService` with DI
+- **14/14 calendar tests passing**: All rewritten to use `CalendarService::setGateway()`, `MockCalendarGateway` fixtures, `updateOrInsert()` + `resetSettingsCache()`
+- **IDE error fixes**: AllowanceController, unused imports, DB imports
+- **Test suite**: 395/422 passed (93.6%), 0 risky, 21 accounting failures (pre-existing)
+- **Notes/docs**: 14 files moved to `.history/`, 4 files updated (KNOWN_ISSUES, CURRENT_WORKING_ISSUES, NEXT_STEPS, typescript-migration)
+
+## RECENTLY COMPLETED (2026-03-11)
+
+### TypeScript Migration — Gap Closure (7-point plan)
+
+- **1,097/1,097 TS routes** — Full parity with JS routes, 0 tsc errors
+- **Core singletons:** `erp-bootstrap.ts`, `erp-guard.ts`, `erp-utils.ts` + barrel `index.ts` (dedup 601 toast, 420 guard, 204 Window augmentation patterns)
+- **ESM→IIFE script:** `ts/scripts/esm-to-iife.cjs` — converts 1,102 ESM files to IIFE; output in `ts/dist-iife/`
+- **Guidelines:** `.notes/.llms/.guidelines/frontend/esm-iife-strategy.md`, `template-literal-testing.md`
+- **Integration tests:** Mock API server (22 endpoints) + 20 Playwright specs — all passing
+- **Rollback scripts:** `.backup/scripts/{bash,python,node,php}/20260309_014820/`
+- **Harness + tests:** 204 new harness HTML pages, 204 Playwright specs, 204 Jest unit tests
+- **Jest totals:** 319/322 suites, 1,458/1,458 tests (3 pre-existing failures unrelated to migration)
+- **Build:** 1,127 JS files in `ts/dist/`, 1,102 IIFE files in `ts/dist-iife/`
+
+---
+
+## DEFERRED (monitoring only)
+
+| Item                                        | Effort  | Notes                                                                                      |
+| ------------------------------------------- | ------- | ------------------------------------------------------------------------------------------ |
+| RoleController Permission scoping           | Trivial | Spatie permissions are global; not a true IDOR                                             |
+| ProjectController::projectLink tenant scope | N/A     | Public endpoint by design — encrypted URL is access control                                |
+| Individual seeder testing (184 seeders)     | Medium  | Originals in `.backup/database/seeders/`. Live copies can be edited for current test needs |
+| CSP nonce-based implementation (D-1)        | Major   | Requires nonce injection in all Blade views                                                |
+
+## RECENTLY COMPLETED (2026-03-07)
+
+### Readonly Scan + Log Archival
+
+- **PHP lint:** 0 errors / 1,417 files
+- **ESLint:** 0 errors 0 warnings ✅
+- **Jest:** 10 / 10 ✅
+- **Pytest (bash):** 53 / 53 ✅
+- **HTTP smoke (20 routes):** 0 × 500 ✅
+- **Log archival:** `.notes/*.txt/log` → `.notes/.llms/.history/reports/`; `_inc/laravel/.notes/` all dated logs → `_inc/laravel/.notes/.history/` (created)
+- **Codex report integrated:** see `.tmp/codex/report-20260305-2/` and CURRENT_WORKING_ISSUES.md
+
+## RECENTLY COMPLETED (2026-03-07 — ESLint + RBAC + HTTP 500 fix batch)
+
+- ESLint 758 warnings → 0; Playwright RBAC 5 tests fixed; HTTP 500s fixed (4 routes); `.gitignore` cleanup
+
+## RECENTLY COMPLETED (2026-03-04)
+
+### PHPUnit & PHPStan Stabilization
+
+- **PHPUnit Feature (DashboardDataTest):** 26/26 tests, 88 assertions, 0 failures
+- **PHPStan Level 2:** 0 errors on BillController (down from 80 — @property annotations on 8 models)
+- **PHPStan Level 3:** Module-by-module runner created (`scripts/phpstan-modules.sh`)
+- **Test DB:** `erp_brand_new_ideas_company_test` — 210 tables, 215 migrations, all passing
+- **Factory files:** 7 created (Bill, Customer, Vendor, Employee, Invoice, Revenue, BankAccount)
+- **Scripts:** Added PHPStan/PHPUnit/pytest/curl commands to `composer.json` and `package.json`
+
+### Prior: Intelephense / VS Code (2026-03-06)
+
+14 fixes across 12 files — import aliases, static properties, case fixes, types, test bugs.
+
+---

@@ -97,3 +97,21 @@
 `APP_DEBUG=true` — Debug mode enabled
 
 `DB_PASSWORD=test|DB_PASSWORD=root|DB_PASSWORD=password` — Weak DB passwords
+
+## Agent handoff / code flags
+
+`(?i)\b(todo|to[-_ ]?do|fix[-_ ]?me|hack|xxx|bug|revisit|follow[-_ ]?up|defer(?:red)?|todo[-_ ]?later)\b` — TODO/fix/deferred markers with casing and separator variants
+
+`(?i)\b(temp(?:orary)?|work[-_ ]?around|wip|stub|fake|mock(?:ed|ing)?|test[-_ ]?seam|fixture|fallback)\b` — Temporary mocks, stubs, fixtures, and workaround seams
+
+`(?i)\b(prod(?:uction)?|go[-_ ]?live|release|hardening)\b.{0,100}\b(todo|remove|replace|mock|fake|temporary|before|after)\b` — Production-hardening reminders near action words
+
+`markTest(Skipped|Incomplete)\s*\(` — PHPUnit runtime skip/incomplete markers
+
+`(aliasMock|overload:|resetTestSeams|\?\s*\\Closure|Closure\|null|Override\s*=\s*null)` — Mockery alias/static seam risk markers
+
+`\b(Mock[A-Za-z0-9_]*Gateway|CalendarService::setGateway|setGateway\s*\(|GoogleCalendarGateway)\b` — Calendar/mock gateway seam points
+
+`\b(storage_setting|local_storage_validation|local_max_upload_size|resetSettingsCache)\b` — Settings cache and upload-validation leak hotspots
+
+`(?i)\b(old[-_ ]?brand|legacy[-_ ]?brand|vendor[-_ ]?brand|white[-_ ]?label)\b` — Generic legacy branding audit markers without embedding a specific retired name

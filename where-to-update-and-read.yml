@@ -1,7 +1,7 @@
 ## ──────────────────────────────────────────────────────────────
 ## FILESYSTEM ARCHITECTURE MAP
 ## ──────────────────────────────────────────────────────────────
-## Root: erp_brand_new_ideas_company/
+## Root: finance-admin-learning-erp/
 ##   ├── _inc/laravel/                     ⭐ Main application workspace
 ##   │   ├── .notes/                        Durable team notes (issues, plans, work journal)
 ##   │   │   ├── .llms/                    ★ Unified guideline tree (primary + app-specific)
@@ -72,6 +72,7 @@
 ##   ├── .notes/                           Root-level hidden notes (mostly migrated)
 ##   │   ├── .llms/.guidelines/            Legacy guideline tree (mirrored from _inc/laravel/.notes/)
 ##   │   ├── .history/                     Legacy archival
+##   │   ├── CODE_FLAGS.md                 Searchable markers for TODO/mock/deferred/prod-hardening audits
 ##   │   ├── MOVED_README.md               Migration notice
 ##   │   └── README.md                     Directory overview
 ##   ├── utils/                            Monorepo-level context
@@ -93,6 +94,7 @@ starters:
         - infra-os-utils: _inc/laravel/utils/*
     documentation:
         - README.md
+        - .notes/CODE_FLAGS.md                    # Searchable code flags for IDE/rg audits
         - .notes/*.md                             # Monorepo-wide notes (architecture, general infra)
         - _inc/laravel/.notes/{.llms/.guidelines/*,*.md} # App-specific notes (Laravel logic, bugs, tasks)
         - _inc/laravel/utils/{.llms/*,prompts/.guidelines/*,*.md}
@@ -348,4 +350,3 @@ starters:
                       - "CURRENT_WORKING_ISSUES_WORK.md documents the try/fail/✅success process for each fix"
                       - "Mark successful approaches with ✅ in the work journal"
                   testing-patterns: _inc/laravel/.notes/.llms/route-view-testing-pattern.md
-

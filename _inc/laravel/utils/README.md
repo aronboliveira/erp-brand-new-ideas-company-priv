@@ -35,6 +35,9 @@ _inc/laravel/utils/
 - Reusable scripts stay in [`scripts/`](scripts/).
 - One-off or host-specific scripts should be moved to [`.history/`](.history/) (for example, `.history/scripts/{lang}/YYYYMMDD-*`).
 - Keep `.history/` as local archival context and do not re-track it in git.
+- Reusable search recipes belong in [`cli/`](cli/), [`find/`](find/),
+  [`grep/`](grep/), and [`regex/`](regex/). Current code-flag and clean-tree
+  examples: [`cli/20260509/code-flag-and-clean-tree-audit.md`](cli/20260509/code-flag-and-clean-tree-audit.md).
 
 ## Scope
 

@@ -1,9 +1,15 @@
-# ERP Brand New Ideas Company
+# Finance/Admin Learning ERP
 
 <details>
 <summary>🇺🇸 English</summary>
 
-Laravel 10 ERP application — backend API, Blade frontend, modular architecture.
+> **Portfolio project notice:** this Laravel application is part of a developer
+> portfolio for learning finance, administration, banking, and accounting
+> workflows while training with Laravel, SQL, and Kubernetes. It is a learning
+> application, not a production financial, banking, or accounting system.
+
+Laravel 10 ERP-style learning application — backend API, Blade frontend,
+modular architecture, and test/tooling experiments.
 
 ---
 
@@ -11,7 +17,7 @@ Laravel 10 ERP application — backend API, Blade frontend, modular architecture
 
 | Dependency | Version |
 |---|---|
-| PHP | ≥ 8.1 (8.3 recommended) |
+| PHP | ≥ 8.1 (8.4 local runtime) |
 | Composer | ≥ 2.x |
 | Node.js | ≥ 18 (22 recommended) |
 | npm | ≥ 9 |
@@ -201,28 +207,29 @@ User IDs are **UUIDs** (string), not integers.
 
 ## Testing
 
-### Latest Results (2026-05-02)
+### Latest Results (2026-05-09)
 
 | Tool | Result |
 |------|--------|
-| PHPUnit | 12,177 tests, 21,156 assertions, 0 failures, 122 skipped, 5 incomplete |
-| Jest | 319/322 suites, ~1,458 tests passed |
-| PHPStan L5 | clean |
-| Playwright (E2E) | 478 passed, 13 skipped, 0 failed |
-| Playwright (mock pages) | 41 passed, 0 failed |
-| curl (287 routes) | 240 × 200, 43 × 302, 0 × fail |
-| tsc | clean |
-| ESLint | clean |
-| pytest | 53/53 |
+| PHPUnit Unit | 10,575 tests, 20,354 assertions, 0 errors, 0 failures, 8 skipped, 4 incomplete |
+| PHPStan | clean (`composer phpstan`) |
+| ESLint | clean (`npx --no-install eslint . --max-warnings=50`) |
+| Jest | see current CI / package scripts |
+| Playwright | see current CI / package scripts |
+| tsc | see current CI / package scripts |
+| pytest | see current CI / package scripts |
 
 ### PHPUnit (backend)
 
 ```bash
-php artisan test                           # all suites
-php artisan test --filter=UserTest         # specific class
-php artisan test --testsuite=Unit          # unit only
-php artisan test --testsuite=Feature       # feature only
+php vendor/bin/phpunit --testsuite=Unit --no-coverage
+php vendor/bin/phpunit tests/Unit --no-coverage
+php vendor/bin/phpunit --filter=UserTest --no-coverage
+php vendor/bin/phpunit tests/Unit/app/Models/bills --no-coverage
 ```
+
+Do not run `php artisan test` here; it can target the wrong database for this
+project's seeded local workflow.
 
 ### Jest (frontend)
 

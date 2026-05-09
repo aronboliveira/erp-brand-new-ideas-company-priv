@@ -111,3 +111,15 @@
 `find . -name '*.php' -path '*/Models/*' -type f -exec basename {} \; | sort | uniq -d` — Duplicate model filenames
 
 `find . -name '*.blade.php' -type f -exec basename {} \; | sort | uniq -cd | sort -rn | head -10` — Most duplicated Blade names
+
+## Agent handoff / cleanup checks
+
+`find . -path './vendor' -prune -o -path './node_modules' -prune -o -path './storage/framework' -prune -o -path './bootstrap/cache' -prune -o -name '*.log' -type f -print` — Runtime logs to clear before handoff
+
+`find . -path './vendor' -prune -o -path './node_modules' -prune -o -path './.git' -prune -o -type f \( -name '*.rej' -o -name '*.orig' -o -name '*~' -o -name '*.bak' \) -print` — Patch leftovers and backup files
+
+`find tests -type f \( -name '*.php' -o -name '*.cjs' -o -name '*.js' -o -name '*.ts' \) -newer .phpunit.result.cache 2>/dev/null | sort` — Tests changed after the local PHPUnit cache
+
+`find _inc/laravel/.notes .notes -type f -name '*.md' -mtime -2 | sort` — Recently updated durable notes
+
+`find _inc/laravel/utils -maxdepth 3 -type f -mtime -7 | sort` — Recent utility notes/scripts worth checking before duplicating tooling

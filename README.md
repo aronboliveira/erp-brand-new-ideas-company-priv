@@ -1,9 +1,16 @@
-# ERP Brand New Ideas Company — Monorepo
+# Finance/Admin Learning ERP — Portfolio Monorepo
 
 <details>
 <summary>🇺🇸 English</summary>
 
-Enterprise Resource Planning system for **Nova Brand New Ideas Company**. This repository is the team-wide monorepo that holds the production Laravel application, original reference code, working notes, utility scripts and LLM prompts used during development.
+> **Portfolio project notice:** this repository is a portfolio project by a
+> developer learning technology for finance, administration, banking, and
+> accounting procedures while training with Laravel, SQL, and Kubernetes. It
+> is not a production banking, accounting, or financial-advice system.
+
+Learning-focused Enterprise Resource Planning system. This monorepo holds the
+active Laravel application, working notes, utility scripts, infrastructure
+experiments, and LLM prompts used during development.
 
 ---
 
@@ -12,7 +19,7 @@ Enterprise Resource Planning system for **Nova Brand New Ideas Company**. This r
 ```
 .
 ├── _inc/                          # Active development
-│   ├── laravel/                   # ⭐ Main application (Laravel 10 + PHP 8.3)
+│   ├── laravel/                   # ⭐ Main application (Laravel 10 + PHP 8.4 runtime)
 │   │   ├── app/                   #    Backend: Controllers, Models, Traits, Providers
 │   │   ├── Modules/LandingPage/   #    nWidart module (landing, terms, privacy, about)
 │   │   ├── resources/views/       #    Blade templates
@@ -83,11 +90,11 @@ See [`where-to-update-and-read.yml`](where-to-update-and-read.yml) for the canon
 
 ---
 
-## Tech stack
+## Tech Stack
 
 | Layer              | Technology                                   | Version |
 | ------------------ | -------------------------------------------- | ------- |
-| Language           | PHP                                          | 8.3     |
+| Language           | PHP                                          | 8.4 runtime; composer allows >=8.1 |
 | Framework          | Laravel                                      | 10.x    |
 | Module system      | nWidart/laravel-modules                      | 10.x    |
 | Database           | MySQL / MariaDB                              | 8.0+    |
@@ -119,7 +126,7 @@ See [`where-to-update-and-read.yml`](where-to-update-and-read.yml) for the canon
 
 ```bash
 # 1. Clone
-git clone <repo-url> && cd erp_brand_new_ideas_company
+git clone <repo-url> && cd finance-admin-learning-erp
 
 # 2. Enter the project
 cd _inc/laravel
@@ -158,11 +165,10 @@ See [\_inc/laravel/README.md](_inc/laravel/README.md) for the full project-speci
 
 ```bash
 cd _inc/laravel
-composer run test:unit                    # unit suite (safe — uses test DB)
-composer run test:feature                 # feature suite (safe — uses test DB)
 php -d memory_limit=1G vendor/bin/phpunit --testsuite Unit --no-coverage
+php -d memory_limit=1G vendor/bin/phpunit tests/Unit --no-coverage
 php -d memory_limit=1G vendor/bin/phpunit --filter=UserTest --no-coverage
-# ⚠️  Never run `php artisan test` — it uses the live DB and may wipe data
+# Never run `php artisan test` in this project; use vendor/bin/phpunit directly.
 ```
 
 ### Frontend (Jest)
@@ -211,13 +217,15 @@ See [`_inc/laravel/tests/Feature/security/roleplay/README.md`](_inc/laravel/test
 
 ---
 
-## Notes for the team
+## Notes For Developers And Agents
 
 - **`_old/`** contains a manually-edited fork kept for diffing against the new codebase. Do not develop here.
 - **`origin/erp/`** is the untouched upstream source. Do not modify — use it for `diff` comparisons.
 - **`notes/`** holds older copies of working issues. The canonical versions live in **`_inc/laravel/.notes/`**. Update those instead.
 - **`obf.js`** is a route-map obfuscation file. **Must be git-ignored in production deployments** (see the security alert inside the file).
 - **`_test.*` files** at root are scratch pads for quick experiments. They are git-ignored.
+- **`AGENTS.md`** is the short fork document for new agents. Keep it current when
+  test baselines, hard constraints, or handoff locations change.
 
 ---
 
