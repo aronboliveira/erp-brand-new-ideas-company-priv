@@ -1551,12 +1551,19 @@ class UtilityTest extends TestCase
 	 **/
 	public function test_project_currency_format_with_and_without_project()
 	{
-		// No project exists
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'site_currency_symbol', 'value' => '$'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'site_currency_symbol_position', 'value' => 'pre'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'decimal_number', 'value' => '2']
-		]);
+		// updateOrInsert (not insertOrIgnore) — pre-existing rows with
+		// different values would otherwise win and skew the assertion.
+		foreach ([
+			'site_currency_symbol'          => '$',
+			'site_currency_symbol_position' => 'pre',
+			'decimal_number'                => '2',
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+		Utility::resetSettingsCache();
 		$formatted = Utility::projectCurrencyFormat(999, 1234.5, true);
 		$this->assertEquals('$1,234.50', $formatted);
 
@@ -10398,13 +10405,20 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_handles_cookie_gdpr_seo_and_company_data_retrieval()
 	{
-		// Seed settings for created_by=1
-		DB::table('settings')->insertOrIgnore([
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'enable_cookie', 'value' => 'on'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'cookie_title', 'value' => 'MyCookie'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'meta_title', 'value' => 'MetaTitle'],
-			['created_by' => DatabaseConstants::DEFAULT_UUID, 'user_id' => DatabaseConstants::DEFAULT_UUID, 'name' => 'company_key', 'value' => 'CompVal']
-		]);
+		// updateOrInsert (not insertOrIgnore) — pre-existing rows would
+		// otherwise win and skew the assertions.
+		foreach ([
+			'enable_cookie' => 'on',
+			'cookie_title'  => 'MyCookie',
+			'meta_title'    => 'MetaTitle',
+			'company_key'   => 'CompVal',
+		] as $name => $value) {
+			DB::table('settings')->updateOrInsert(
+				['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => $name],
+				['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => $value]
+			);
+		}
+		Utility::resetSettingsCache();
 
 		$cookie = Utility::getCookieSetting();
 		$this->assertEquals('on', $cookie['enable_cookie']);
@@ -10646,12 +10660,18 @@ class UtilityTest extends TestCase
 	 **/
 	public function it_formats_project_currency_if_project_missing_else_null()
 	{
+		// Pin decimal_number to 2 — pre-existing seed rows otherwise drive
+		// 0-decimal formatting, which fails the contains-decimal check.
+		DB::table('settings')->updateOrInsert(
+			['created_by' => DatabaseConstants::DEFAULT_UUID, 'name' => 'decimal_number'],
+			['user_id' => DatabaseConstants::DEFAULT_UUID, 'value' => '2']
+		);
+		Utility::resetSettingsCache();
+
 		Auth::login(User::factory()->create());
-		// No project with ID 999
 		$formatted = Utility::projectCurrencyFormat(999, 123.456, true);
 		$this->assertStringContainsString(number_format(123.456, 2), $formatted);
 
-		// Create a project => should return null
 		$proj = Project::factory()->create();
 		$res = Utility::projectCurrencyFormat($proj->id, 50, true);
 		$this->assertNull($res);
