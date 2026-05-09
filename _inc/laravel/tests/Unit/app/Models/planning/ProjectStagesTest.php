@@ -54,16 +54,10 @@ class ProjectStagesTest extends TestCase
 	 **/
 	public function get_chart_data_returns_expected_structure(): void
 	{
-		// Login a real company user; ProjectStage::getChartData() runs
-		// projectStageChartData() which scopes by created_by = creatorId.
-		// Note: production builds a SQL `where stage = ?` against the
-		// `tasks` table — but the actual `tasks` schema has a JSON
-		// `stages` column, no scalar `stage` column. The internal
-		// try/catch swallows the QueryException and returns
-		// ['label' => [], 'dataset' => []]. This is a real production
-		// bug; until the constant `ProjectsConstants::COL_STG = 'stage'`
-		// is reconciled with the schema, the dataset will be empty.
-		// Assert on the structural contract only (label + dataset keys).
+		// PJC::COL_STG was reconciled with the migration source-of-truth
+		// (JSON `stages` column on tasks); SQL inside projectStageChartData
+		// now uses JSON_CONTAINS+JSON_QUOTE, so the dataset is populated
+		// with one entry per ProjectStage row.
 		$company = \App\Models\User::factory()->create(['type' => 'company', 'lang' => 'en']);
 		\Illuminate\Support\Facades\Auth::login($company);
 
@@ -74,7 +68,7 @@ class ProjectStagesTest extends TestCase
 
 		$this->assertArrayHasKey('label', $data);
 		$this->assertArrayHasKey('dataset', $data);
-		$this->assertIsArray($data['dataset']);
+		$this->assertCount(2, $data['dataset']);
 	}
 
 	protected function tearDown(): void

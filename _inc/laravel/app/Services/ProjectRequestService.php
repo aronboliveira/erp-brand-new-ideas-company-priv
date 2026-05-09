@@ -357,8 +357,10 @@ class ProjectRequestService
 		if (trim($stageId) === '') return 0;
 
 		try {
+			// PJC::COL_STG ('stages') is a JSON column on `tasks`; use
+			// JSON_CONTAINS + JSON_QUOTE for membership checks.
 			$sql = 'select count(*) as c from ' . DC::TABLE_TASKS .
-				' where ' . PJC::COL_STG . ' = ?' .
+				' where JSON_CONTAINS(' . PJC::COL_STG . ', JSON_QUOTE(?))' .
 				' and ' . PJC::COL_PJ_ID . ' = ?';
 
 			$bindings = [$stageId, (string) $projectId];
@@ -391,7 +393,7 @@ class ProjectRequestService
 		$user = Auth::user();
 		$stageId = (string) ($stage->getAttribute('id') ?? '');
 		$q = Task::query()
-			->where(PJC::COL_STG, $stageId)
+			->whereJsonContains(PJC::COL_STG, $stageId)
 			->where(PJC::COL_PJ_ID, (string) $projectId);
 		if ($this->shouldRestrictTasksToAssignee($user))
 			$q->where(PJC::COL_ASGN, (string) ($user?->id ?? ''));
@@ -451,9 +453,10 @@ class ProjectRequestService
 				$data = [];
 
 				foreach ($arrDate as $d) {
+					// PJC::COL_STG ('stages') is JSON; use JSON_CONTAINS.
 					if ($ut === PMC::CPN) {
 						$sql = 'select count(*) as c from ' . DC::TABLE_TASKS .
-							' where ' . PJC::COL_STG . ' = ?' .
+							' where JSON_CONTAINS(' . PJC::COL_STG . ', JSON_QUOTE(?))' .
 							' and date(' . DC::COL_U_AT . ') = ?';
 						$row = DB::selectOne($sql, [$stageId, $d]);
 						$data[] = (int) (is_object($row) ? ($row->c ?? 0) : 0);
@@ -465,7 +468,7 @@ class ProjectRequestService
                             from ' . DC::TABLE_TASKS . ' t
                             join ' . DC::TABLE_PROJECTS . ' p on t.' . PJC::COL_PJ_ID . ' = p.id
                             where p.' . PMC::CL . ' = ?
-                              and t.' . PJC::COL_STG . ' = ?
+                              and JSON_CONTAINS(t.' . PJC::COL_STG . ', JSON_QUOTE(?))
                               and date(t.' . DC::COL_U_AT . ') = ?';
 						$row = DB::selectOne($sql, [(string) ($user->id ?? ''), $stageId, $d]);
 						$data[] = (int) (is_object($row) ? ($row->c ?? 0) : 0);
@@ -474,7 +477,7 @@ class ProjectRequestService
 
 					$sql = 'select count(*) as c from ' . DC::TABLE_TASKS .
 						' where ' . PJC::COL_ASGN . ' = ?' .
-						' and ' . PJC::COL_STG . ' = ?' .
+						' and JSON_CONTAINS(' . PJC::COL_STG . ', JSON_QUOTE(?))' .
 						' and date(' . DC::COL_U_AT . ') = ?';
 					$row = DB::selectOne($sql, [(string) ($user->id ?? ''), $stageId, $d]);
 					$data[] = (int) (is_object($row) ? ($row->c ?? 0) : 0);

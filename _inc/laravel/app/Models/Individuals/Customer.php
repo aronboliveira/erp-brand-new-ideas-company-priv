@@ -23,6 +23,7 @@ use App\Traits\{
 };
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\{
@@ -33,8 +34,10 @@ use Illuminate\Support\Facades\{
 use Spatie\Permission\Traits\HasRoles;
 
 /**
+ * @property string|null $user_id  Optional FK to users.id — set when this
+ *   customer authenticates as a User row (User->type === 'customer').
+ *   When null, the customer is record-only and does not log in.
  * @property string|null $lang
- * @property string|null $type
  * @property string|null $avatar
  * @property string|null $billing_address
  * @property string|null $billing_city
@@ -80,6 +83,10 @@ class Customer extends Authenticatable
     protected $table = DC::TABLE_CUSTOMERS;
 
     protected $fillable = [
+        // optional bridge to the canonical User row (a "customer who can
+        // log in" is a User with `type = customer`; see App\Enums\UserType)
+        UC::COL_USER_ID,
+
         // user-like
         UC::COL_NM,
         UC::COL_EM,
@@ -321,9 +328,17 @@ class Customer extends Authenticatable
 
     public function creatorId(): string
     {
-        return ($this->type === PC::CPN || $this->type === PC::SA)
-            ? $this->id
-            : ($this->{DC::COL_TABLE_CREATOR} ?? $this->id);
+        // A Customer is the *kind of person* the business engages with —
+        // it has no `type` column (that lives on `users`). When this
+        // customer is linked to a User row (via $this->user_id), its
+        // role-based scoping defers to that User; otherwise the customer
+        // is record-only and creatorId is simply created_by.
+        $linked = $this->relationLoaded('user') ? $this->getRelation('user') : $this->user;
+        if ($linked instanceof User
+            && ($linked->type === PC::CPN || $linked->type === PC::SA)) {
+            return (string) $linked->id;
+        }
+        return (string) ($this->{DC::COL_TABLE_CREATOR} ?? $this->id);
     }
 
     public function currentLanguage(): string
@@ -521,5 +536,15 @@ class Customer extends Authenticatable
             ->where(UC::COL_NM, $customerName)
             ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
             ->value('id') ?? 0;
+    }
+
+    /**
+     * Optional bridge to the canonical User row. When this customer
+     * authenticates, the User (type='customer') is the source of role
+     * and identity; when null, the customer is a record-only entity.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, UC::COL_USER_ID);
     }
 }

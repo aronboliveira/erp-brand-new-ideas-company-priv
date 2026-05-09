@@ -16,7 +16,11 @@ class ProjectsConstants
 	public const COL_LB_NM = 'name';
 	public const COL_STG_NM = 'name';
 	public const COL_PPL_NM = 'name';
-	public const COL_STG = 'stage';
+	// Source of truth: the migration `2025_06_03_233499_create_tasks_table`
+	// declares this as a JSON column `stages` (list of TaskStage ids).
+	// Callers reading this constant must use whereJsonContains() / the raw
+	// JSON_CONTAINS()+JSON_QUOTE() form, not a scalar equality.
+	public const COL_STG = 'stages';
 	public const COL_S_DT = 'start_date';
 	public const COL_E_DT = 'end_date';
 	public const COL_E_EDT = self::COL_E_DT;

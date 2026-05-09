@@ -90,12 +90,18 @@ class CustomerTest extends TestCase
 	 **/
 	public function creator_id_for_company_or_super_admin_is_self_id()
 	{
-		// The Customer schema has no `type` column (only User does). The
-		// production creatorId() branches on $this->type — but reading a
-		// nonexistent attribute returns null, so the company/super-admin
-		// branch is unreachable from a pure Customer instance. Document
-		// the gap so it's picked up by /inspect rather than running silently.
-		$this->markTestIncomplete('Customer table has no `type` column; creatorId() branches on $this->type and so the CPN/SA branch is unreachable from a Customer fixture. Either add a `type` column or move this contract to a User-as-customer fixture.');
+		// A Customer is the *kind of person* the business engages with;
+		// authentication and role live on the linked User row. Set the
+		// optional user_id bridge to a User with type=company / type=super
+		// admin and assert creatorId() defers to that User->id.
+		$companyUser = User::factory()->create(['type' => 'company', 'lang' => 'en']);
+		$saUser      = User::factory()->create(['type' => 'super admin', 'lang' => 'en']);
+
+		$companyCust = Customer::factory()->create(['user_id' => $companyUser->id]);
+		$saCust      = Customer::factory()->create(['user_id' => $saUser->id]);
+
+		$this->assertSame($companyUser->id, $companyCust->creatorId());
+		$this->assertSame($saUser->id,     $saCust->creatorId());
 	}
 
 	/**
