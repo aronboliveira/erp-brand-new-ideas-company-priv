@@ -4,6 +4,16 @@
          bootstrap="vendor/autoload.php"
          colors="true"
 >
+    <source restrictDeprecations="true">
+        <include>
+            <directory suffix=".php">./app</directory>
+            <directory suffix=".php">./config</directory>
+            <directory suffix=".php">./database/seeders</directory>
+            <directory suffix=".php">./Modules</directory>
+            <directory suffix=".php">./routes</directory>
+            <directory suffix=".php">./tests</directory>
+        </include>
+    </source>
     <testsuites>
         <!-- ── Unit: Models (split to avoid OOM) ──────────────────── -->
         <testsuite name="Models-Activity">
