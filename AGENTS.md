@@ -114,11 +114,14 @@ green (275 tests, 288 assertions), full `tests/Unit --no-coverage` is green
 Latest retry/circuit breaker reliability check (2026-05-10, Codex): added
 Spring-like `Retry` and `CircuitBreaker` builders, durable
 `circuit_breaker_states` / `circuit_breaker_calls`, retry/circuit operational
-events, and finance outbox guard integration. `tests/Unit/app/Services/Reliability`
-is green (17 tests, 106 assertions), invoice/bill controller reliability paths
-are green (290 tests, 348 assertions), `composer phpstan` is clean, and
+events, and finance outbox guard integration. Retry delays now default to capped
+exponential backoff (30s, 60s, 120s, 240s, 300s cap), including bare retry
+builders without `intervalUsing()`. `tests/Unit/app/Services/Reliability` is
+green (19 tests, 115 assertions), invoice/bill controller reliability paths are
+green (290 tests, 348 assertions), `composer phpstan` is clean, and
 `npx --no-install eslint . --max-warnings=50` is clean. Full
-`tests/Unit --no-coverage` is green (10,598 tests, 20,492 assertions).
+`tests/Unit --no-coverage` previous broad baseline is green (10,598 tests,
+20,492 assertions) before the retry-backoff test additions.
 
 ---
 
@@ -357,7 +360,7 @@ Added:
 - Services: `Retry`, `RetryBuilder`, `CircuitBreaker`, `CircuitBreakerBuilder`.
 - Exception: `CircuitBreakerOpenException`.
 - Policy updates for circuit states/statuses, retention, half-open defaults,
-  and low/trivial no-overhead defaults.
+  capped exponential retry backoff, and low/trivial no-overhead defaults.
 - Finance adoption: `FinanceOutboxDispatcher` wraps signal resolution in retry
   and circuit breaker guards before durable outbox retry/dead-letter handling.
 

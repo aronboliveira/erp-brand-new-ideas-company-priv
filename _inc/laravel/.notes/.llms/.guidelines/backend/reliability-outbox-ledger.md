@@ -92,6 +92,12 @@ Retry emits `reliability.retry.success`, `reliability.retry.retrying`, and
 `reliability.circuit.state_changed`, `reliability.circuit.opened`, and
 `reliability.circuit.rejected`.
 
+Retry intervals default to capped exponential backoff through
+`ReliabilityPolicy::retryDelaySeconds()`: 30s, 60s, 120s, 240s, then 300s.
+Use `intervalUsing()` only when a specific guarded call needs a different
+cadence; `onInterval()` receives the computed delay so a caller can log,
+schedule, or notify without duplicating the policy.
+
 Circuit breakers are disabled by default for `trivial` and `low` criticality
 so lightweight UI/customization work does not pay durable tracking overhead.
 `medium` and above persist state/calls. High and critical builders default to
@@ -164,9 +170,10 @@ Latest local check after the retry/circuit breaker slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-17 tests, 106 assertions, 0 errors, 0 failures.
+19 tests, 115 assertions, 0 errors, 0 failures.
 
-tests/Unit --no-coverage:
+previous broad tests/Unit --no-coverage baseline before the retry backoff
+test additions:
 10,598 tests, 20,492 assertions, 0 errors, 0 failures.
 ```
 

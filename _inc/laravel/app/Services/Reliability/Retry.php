@@ -144,7 +144,7 @@ class Retry extends AbstractReliabilityGuard
     private function intervalSeconds(int $attempt, Throwable $throwable, array $context): int
     {
         if (!is_callable($this->intervalResolver)) {
-            return 0;
+            return ReliabilityPolicy::retryDelaySeconds($attempt);
         }
 
         $seconds = ($this->intervalResolver)($attempt, $throwable, $context);

@@ -82,7 +82,10 @@ Stale items now closed by later Claude commits:
   medium/high/critical guarded paths; trivial/low paths stay disabled by
   default.
 - Retry now emits success, retrying, and final-failure operational events.
-  Circuit breaker emits state-change, opened, and rejected-call events.
+  Retry intervals default to capped exponential backoff through
+  `ReliabilityPolicy::retryDelaySeconds()` unless a caller explicitly
+  overrides the interval resolver. Circuit breaker emits state-change, opened,
+  and rejected-call events.
 - Finance outbox signal dispatch now uses retry plus circuit breaker guards
   before durable outbox retry/dead-letter/compensation handling.
 - Retention now prunes expired circuit calls and closed/disabled circuit

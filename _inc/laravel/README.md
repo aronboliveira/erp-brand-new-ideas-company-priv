@@ -203,9 +203,10 @@ operations:
 - `OperationalEventService` stores volatile low-impact events in memory and
   persists medium/high/critical events to `operational_events`.
 - `Retry` and `CircuitBreaker` provide Spring-like builder APIs for guarded
-  call paths. Retry emits success/retry/failure events; circuit breaker persists
-  state and sliding-window calls for medium+ work, emits state-change/opened/
-  rejected events, and stays disabled by default for trivial/low work.
+  call paths. Retry emits success/retry/failure events and defaults to capped
+  exponential backoff; circuit breaker persists state and sliding-window calls
+  for medium+ work, emits state-change/opened/rejected events, and stays
+  disabled by default for trivial/low work.
 - `ReliabilityRetentionService` prunes expired finished rows and can compress
   verbose event timelines.
 - `app/Services/Ledger/LedgerActionService.php` is the first production
@@ -254,8 +255,8 @@ User IDs are **UUIDs** (string), not integers.
 
 | Tool | Result |
 |------|--------|
-| PHPUnit Unit | 10,598 tests, 20,492 assertions, 0 errors, 0 failures |
-| Reliability service tests | 17 tests, 106 assertions, 0 errors, 0 failures |
+| PHPUnit Unit | previous broad baseline before retry-backoff test additions: 10,598 tests, 20,492 assertions, 0 errors, 0 failures |
+| Reliability service tests | 19 tests, 115 assertions, 0 errors, 0 failures |
 | Ledger service test | 2 tests, 2 assertions, 0 errors, 0 failures |
 | PHPStan | clean (`composer phpstan`) |
 | ESLint | clean (`npx --no-install eslint . --max-warnings=50`) |

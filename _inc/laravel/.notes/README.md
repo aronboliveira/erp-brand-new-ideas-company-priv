@@ -22,7 +22,7 @@ operation step, outbox/inbox, operational event, and circuit breaker tables
 plus the service layer under `app/Services/Reliability/`. Focused checks:
 
 ```text
-Reliability service tests: 17 tests, 106 assertions, 0 errors, 0 failures.
+Reliability service tests: 19 tests, 115 assertions, 0 errors, 0 failures.
 Ledger service test: 2 tests, 2 assertions, 0 errors, 0 failures.
 composer phpstan: no errors.
 ESLint: clean with max-warnings=50.

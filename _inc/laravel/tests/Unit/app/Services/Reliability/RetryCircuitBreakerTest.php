@@ -26,11 +26,24 @@ use Throwable;
 #[CoversClass(CircuitBreakerBuilder::class)]
 #[CoversClass(Retry::class)]
 #[CoversClass(RetryBuilder::class)]
+#[CoversClass(ReliabilityPolicy::class)]
 #[Group('services')]
 #[Group('reliability')]
 class RetryCircuitBreakerTest extends TestCase
 {
     use DatabaseTransactions;
+
+    #[Test]
+    public function retry_policy_uses_capped_exponential_backoff(): void
+    {
+        $this->assertSame(30, ReliabilityPolicy::retryDelaySeconds(0));
+        $this->assertSame(30, ReliabilityPolicy::retryDelaySeconds(1));
+        $this->assertSame(60, ReliabilityPolicy::retryDelaySeconds(2));
+        $this->assertSame(120, ReliabilityPolicy::retryDelaySeconds(3));
+        $this->assertSame(240, ReliabilityPolicy::retryDelaySeconds(4));
+        $this->assertSame(300, ReliabilityPolicy::retryDelaySeconds(5));
+        $this->assertSame(300, ReliabilityPolicy::retryDelaySeconds(99));
+    }
 
     #[Test]
     public function retry_builder_retries_configured_exception_and_emits_events(): void
@@ -62,6 +75,34 @@ class RetryCircuitBreakerTest extends TestCase
         $this->assertSame([[1, 'temporary-1', 5], [2, 'temporary-2', 10]], $intervals);
         $this->assertSame(2, OperationalEvent::where('event_type', 'reliability.retry.retrying')->where('channel', 'finance.retry')->count());
         $this->assertSame(1, OperationalEvent::where('event_type', 'reliability.retry.success')->where('channel', 'finance.retry')->count());
+    }
+
+    #[Test]
+    public function retry_builder_uses_default_exponential_backoff_when_no_interval_resolver_is_configured(): void
+    {
+        $attempts = 0;
+        $intervals = [];
+
+        $result = Retry::builder('test.retry.default-backoff.' . Str::uuid())
+            ->maxAttempts(3)
+            ->retryOn(RuntimeException::class)
+            ->onInterval(function (int $attempt, Throwable $throwable, int $seconds) use (&$intervals): void {
+                $intervals[] = [$attempt, $throwable->getMessage(), $seconds];
+            })
+            ->criticality(ReliabilityPolicy::CRITICALITY_HIGH)
+            ->channel('finance.retry.default-backoff')
+            ->build()
+            ->run(function () use (&$attempts): string {
+                $attempts++;
+                if ($attempts < 3) {
+                    throw new RuntimeException('temporary-' . $attempts);
+                }
+
+                return 'ok';
+            });
+
+        $this->assertSame('ok', $result);
+        $this->assertSame([[1, 'temporary-1', 30], [2, 'temporary-2', 60]], $intervals);
     }
 
     #[Test]

@@ -131,10 +131,11 @@ integrated paths. Finance outbox dispatch is currently monolith-local: it
 accepts journal, banking-shell, communication-shell, ledger-reversal, and
 webhook signals without requiring a broker. Dispatch is guarded by Spring-like
 `Retry` and `CircuitBreaker` builders that emit operational events for success,
-retry, final failure, state changes, and rejected calls. The same pattern is
-intended for any high-impact workflow: employee status decisions, irreversible
-project closures, warehouse commits, heavy I/O tasks, and other state changes
-where replay, auditability, or retry control matters.
+retry, final failure, state changes, and rejected calls. Retry intervals default
+to capped exponential backoff. The same pattern is intended for any high-impact
+workflow: employee status decisions, irreversible project closures, warehouse
+commits, heavy I/O tasks, and other state changes where replay, auditability,
+or retry control matters.
 
 Use the severity policy consistently: trivial/low work can stay in memory,
 medium-and-up work gets durable operation rows, and critical operations should

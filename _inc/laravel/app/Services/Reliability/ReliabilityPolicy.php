@@ -54,6 +54,10 @@ final class ReliabilityPolicy
         self::CRITICALITY_CRITICAL => 4,
     ];
 
+    private const RETRY_BASE_DELAY_SECONDS = 30;
+
+    private const RETRY_MAX_DELAY_SECONDS = 300;
+
     public static function normalizeCriticality(?string $criticality): string
     {
         $normalized = strtolower(trim((string) ($criticality ?: self::CRITICALITY_MEDIUM)));
@@ -134,8 +138,9 @@ final class ReliabilityPolicy
     public static function retryDelaySeconds(int $attempt): int
     {
         $attempt = max(1, $attempt);
+        $exponent = min(10, $attempt - 1);
 
-        return min(300, $attempt * 30);
+        return (int) min(self::RETRY_MAX_DELAY_SECONDS, self::RETRY_BASE_DELAY_SECONDS * (2 ** $exponent));
     }
 
     public static function circuitBreakerRequired(string $criticality): bool
