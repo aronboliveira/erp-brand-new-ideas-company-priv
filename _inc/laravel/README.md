@@ -202,6 +202,10 @@ operations:
   receive-side tracking.
 - `OperationalEventService` stores volatile low-impact events in memory and
   persists medium/high/critical events to `operational_events`.
+- `Retry` and `CircuitBreaker` provide Spring-like builder APIs for guarded
+  call paths. Retry emits success/retry/failure events; circuit breaker persists
+  state and sliding-window calls for medium+ work, emits state-change/opened/
+  rejected events, and stays disabled by default for trivial/low work.
 - `ReliabilityRetentionService` prunes expired finished rows and can compress
   verbose event timelines.
 - `app/Services/Ledger/LedgerActionService.php` is the first production
@@ -209,8 +213,9 @@ operations:
 - `FinanceOperationService` and `FinanceOutboxDispatcher` now cover the
   finance-only monolith callback slice for invoice/bill payment create/delete:
   the payment mutation, operation ledger, step log, and outbox intent commit
-  together; post-commit signals are accepted for journal control, banking API
-  shells, communication API shells, ledger reversal review, and webhook shells.
+  together; post-commit signals are guarded by retry/circuit breaker controls
+  and then accepted for journal control, banking API shells, communication API
+  shells, ledger reversal review, and webhook shells.
 - `php artisan reliability:dispatch-finance-outbox` drains pending finance
   outbox rows without requiring a broker. The named status route is
   `reliability.operations.show`; the app route pluralizer renders the URI as
@@ -221,10 +226,11 @@ highest controls, but HR decisions, project finalization/deletion, warehouse
 commits, and heavy system operations should use the same layer when their
 business impact is comparable.
 
-Post-commit dispatch failures use simple retry scheduling. Exhausted attempts
-move the outbox row to `dead_letter`, mark the operation ledger
-`compensating`, and create a durable `finance.compensation.required` event so
-rollback/reversal work is visible to operators and later workers.
+Post-commit dispatch failures first pass through the in-process retry/circuit
+guards, then use durable outbox retry scheduling. Exhausted attempts move the
+outbox row to `dead_letter`, mark the operation ledger `compensating`, and
+create a durable `finance.compensation.required` event so rollback/reversal
+work is visible to operators and later workers.
 
 ---
 
@@ -248,8 +254,8 @@ User IDs are **UUIDs** (string), not integers.
 
 | Tool | Result |
 |------|--------|
-| PHPUnit Unit | 10,586 tests, 20,432 assertions, 0 errors, 0 failures |
-| Reliability service tests | 11 tests, 73 assertions, 0 errors, 0 failures |
+| PHPUnit Unit | 10,598 tests, 20,492 assertions, 0 errors, 0 failures |
+| Reliability service tests | 17 tests, 106 assertions, 0 errors, 0 failures |
 | Ledger service test | 2 tests, 2 assertions, 0 errors, 0 failures |
 | PHPStan | clean (`composer phpstan`) |
 | ESLint | clean (`npx --no-install eslint . --max-warnings=50`) |

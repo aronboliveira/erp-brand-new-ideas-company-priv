@@ -15,6 +15,8 @@ Durable notes, instructions, and structured references for agents and developers
 - The 2026-05-10 reliability passes added generic outbox/inbox, operation
   ledger, operation step, operational event support, and the first finance-only
   monolith outbox dispatcher/compensation slice for invoice and bill payments.
+  The same day, retry/circuit breaker builders were added with durable circuit
+  state/call tables and event emission for guarded finance outbox signals.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 

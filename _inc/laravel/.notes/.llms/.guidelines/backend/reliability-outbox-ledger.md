@@ -13,6 +13,8 @@ more than normal Laravel logs:
 - `outbox_messages` — durable publish-after-commit intent.
 - `inbox_messages` — durable receive-side idempotency guard.
 - `operational_events` — durable operational event timeline for medium+ work.
+- `circuit_breaker_states` — durable state for guarded critical call paths.
+- `circuit_breaker_calls` — sliding-window call history for circuit decisions.
 
 These tables are not finance-only. Finance postings are the first integration
 because they are mission-critical, but employee status decisions, irreversible
@@ -53,6 +55,49 @@ Wrap critical business work in `CriticalOperationService::run()` and pass:
 For low-impact work, prefer `OperationalEventService` or `OutboxService` with
 `criticality => low`; this keeps the event in memory and avoids DB bloat.
 
+## Retry and circuit breaker guards
+
+Use builder APIs when a critical operation calls a fragile local integration,
+shell adapter, webhook, or other expensive/externally influenced path:
+
+```php
+Retry::builder('finance.outbox.dispatch.payment.created')
+    ->maxAttempts(3)
+    ->retryOn(RuntimeException::class)
+    ->abortOn(CircuitBreakerOpenException::class)
+    ->intervalUsing(fn(int $attempt): int => ReliabilityPolicy::retryDelaySeconds($attempt))
+    ->criticality(ReliabilityPolicy::CRITICALITY_HIGH)
+    ->channel('finance.outbox')
+    ->build()
+    ->run(fn(): mixed => $guardedWork());
+```
+
+```php
+CircuitBreaker::builder('finance.outbox.payment.created')
+    ->slidingWindowSize(20)
+    ->slidingWindowSeconds(300)
+    ->failureRateThreshold(50.0)
+    ->minimumCalls(5)
+    ->openStateDurationSeconds(60)
+    ->halfOpenAllowedCalls(3)
+    ->halfOpenConservative(true)
+    ->criticality(ReliabilityPolicy::CRITICALITY_CRITICAL)
+    ->channel('finance.outbox')
+    ->build()
+    ->call(fn(): mixed => $guardedWork());
+```
+
+Retry emits `reliability.retry.success`, `reliability.retry.retrying`, and
+`reliability.retry.failed`. Circuit breaker emits
+`reliability.circuit.state_changed`, `reliability.circuit.opened`, and
+`reliability.circuit.rejected`.
+
+Circuit breakers are disabled by default for `trivial` and `low` criticality
+so lightweight UI/customization work does not pay durable tracking overhead.
+`medium` and above persist state/calls. High and critical builders default to
+conservative half-open behavior; percentage half-open mode is available for
+lower-severity cases, with the threshold clamped to at least 25%.
+
 ## Finance dispatcher slice
 
 The first functional outbox dispatch slice is finance-only and monolith-local.
@@ -64,6 +109,8 @@ There is no broker requirement yet.
   commit and records accepted internal signals for journal control, banking
   API shells, communication API shells, ledger reversal review, and webhook
   shells.
+- Each finance outbox signal is guarded by `Retry` and `CircuitBreaker` before
+  the durable outbox row is marked processed, failed, or dead-lettered.
 - `DispatchFinanceOutboxCommand` exposes the same flow through
   `php artisan reliability:dispatch-finance-outbox`.
 - Invoice and bill payment create/delete controller actions now use the
@@ -86,8 +133,9 @@ Two rollback surfaces are now defined:
   completes, so Laravel rolls back the mutation and the operation ledger is
   marked `failed`.
 - Failures after commit, during finance outbox dispatch, cannot undo the
-  original SQL commit. The dispatcher applies simple retry scheduling first;
-  once attempts are exhausted it marks the outbox `dead_letter`, records a
+  original SQL commit. The dispatcher first runs in-process retry/circuit
+  guards, then applies durable outbox retry scheduling; once attempts are
+  exhausted it marks the outbox `dead_letter`, records a
   `compensation.required:*` step, emits `finance.compensation.required`, and
   moves the operation ledger to `compensating`.
 
@@ -98,8 +146,9 @@ visible, and queryable instead of disappearing into normal Laravel logs.
 ## Retention
 
 Every durable row should have an `expires_at`. `ReliabilityRetentionService`
-currently prunes expired finished rows and can compress verbose operational
-events for a single operation. Do not introduce unbounded outbox/ledger writes
+currently prunes expired finished rows, circuit breaker calls, closed/disabled
+circuit breaker states, and can compress verbose operational events for a
+single operation. Do not introduce unbounded outbox/ledger/circuit writes
 without a retention plan.
 
 ## Tests
@@ -111,14 +160,14 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local check after the finance dispatcher slice:
+Latest local check after the retry/circuit breaker slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-11 tests, 73 assertions, 0 errors, 0 failures.
+17 tests, 106 assertions, 0 errors, 0 failures.
 
 tests/Unit --no-coverage:
-10,590 tests, 20,457 assertions, 0 errors, 0 failures.
+10,598 tests, 20,492 assertions, 0 errors, 0 failures.
 ```
 
 Do not run `php artisan test`; this project uses `vendor/bin/phpunit` directly.

@@ -124,21 +124,25 @@ See [`where-to-update-and-read.yml`](where-to-update-and-read.yml) for the canon
 
 Critical business procedures now have a shared reliability layer under
 `_inc/laravel/app/Services/Reliability/` and durable tables for operation
-ledgers, operation steps, outbox/inbox messages, and operational events.
+ledgers, operation steps, outbox/inbox messages, operational events, and
+circuit breaker state/call history.
 Financial ledger posting and invoice/bill payment create/delete are the first
 integrated paths. Finance outbox dispatch is currently monolith-local: it
 accepts journal, banking-shell, communication-shell, ledger-reversal, and
-webhook signals without requiring a broker. The same pattern is intended for
-any high-impact workflow: employee status decisions, irreversible project
-closures, warehouse commits, heavy I/O tasks, and other state changes where
-replay, auditability, or retry control matters.
+webhook signals without requiring a broker. Dispatch is guarded by Spring-like
+`Retry` and `CircuitBreaker` builders that emit operational events for success,
+retry, final failure, state changes, and rejected calls. The same pattern is
+intended for any high-impact workflow: employee status decisions, irreversible
+project closures, warehouse commits, heavy I/O tasks, and other state changes
+where replay, auditability, or retry control matters.
 
 Use the severity policy consistently: trivial/low work can stay in memory,
 medium-and-up work gets durable operation rows, and critical operations should
 pair durable outbox records with a transaction isolation level appropriate to
-the underlying SQL procedure. Post-commit signal failures use simple retry
-scheduling and then move to durable compensation-required state when attempts
-are exhausted.
+the underlying SQL procedure. Circuit breakers stay disabled by default for
+trivial/low work. Post-commit signal failures first pass through the in-process
+retry/circuit guards, then use durable outbox retry scheduling and move to
+compensation-required state when attempts are exhausted.
 
 ---
 

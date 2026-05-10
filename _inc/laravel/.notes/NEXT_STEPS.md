@@ -74,6 +74,20 @@ Stale items now closed by later Claude commits:
   SweetAlert/progress-bar status modal and poll the operation status route.
 - New command: `php artisan reliability:dispatch-finance-outbox`.
 
+### Retry and Circuit Breaker Slice
+
+- Added Spring-like `Retry` and `CircuitBreaker` builder APIs under
+  `app/Services/Reliability/`.
+- Added durable `circuit_breaker_states` and `circuit_breaker_calls` tables for
+  medium/high/critical guarded paths; trivial/low paths stay disabled by
+  default.
+- Retry now emits success, retrying, and final-failure operational events.
+  Circuit breaker emits state-change, opened, and rejected-call events.
+- Finance outbox signal dispatch now uses retry plus circuit breaker guards
+  before durable outbox retry/dead-letter/compensation handling.
+- Retention now prunes expired circuit calls and closed/disabled circuit
+  states.
+
 Next finance-first reliability work before HR/project/warehouse adoption:
 
 1. Add domain-specific journal-entry posting callbacks behind the accepted

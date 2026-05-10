@@ -7,24 +7,25 @@ Durable repository-level notes and guidance for developers and agents.
 ## Current Agent Handoff
 
 The current Codex continuation handoff is
-[`../../../.tmp/codex/20260509/handsoff.md`](../../../.tmp/codex/20260509/handsoff.md).
-It finishes the PHPUnit work left by the recovered Claude token-limit session
-at `157145304`.
+[`../../../.tmp/codex/20260510/handsoff.md`](../../../.tmp/codex/20260510/handsoff.md).
+It covers the reliability foundation, finance outbox dispatcher, and latest
+retry/circuit breaker guard slice.
 
-Current full-unit baseline after the 2026-05-10 reliability pass:
+Current full-unit baseline after the 2026-05-10 retry/circuit breaker pass:
 
 ```text
-Tests: 10586, Assertions: 20432, Errors: 0, Failures: 0.
+Tests: 10598, Assertions: 20492, Errors: 0, Failures: 0.
 ```
 
 2026-05-10 reliability foundation work added generic operation ledger,
-operation step, outbox/inbox, and operational event tables plus the service
-layer under `app/Services/Reliability/`. Focused checks:
+operation step, outbox/inbox, operational event, and circuit breaker tables
+plus the service layer under `app/Services/Reliability/`. Focused checks:
 
 ```text
-Reliability service tests: 7 tests, 48 assertions, 0 errors, 0 failures.
+Reliability service tests: 17 tests, 106 assertions, 0 errors, 0 failures.
 Ledger service test: 2 tests, 2 assertions, 0 errors, 0 failures.
 composer phpstan: no errors.
+ESLint: clean with max-warnings=50.
 ```
 
 Guideline:

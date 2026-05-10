@@ -104,12 +104,21 @@ green (2 tests), full `tests/Unit --no-coverage` is green
 
 Latest finance reliability dispatcher check (2026-05-10, Codex): invoice/bill
 payment create/delete now use `FinanceOperationService`, local finance outbox
-dispatch, simple retry/dead-letter, compensation-required state, and client
+dispatch, durable retry/dead-letter, compensation-required state, and client
 status feedback. `tests/Unit/app/Services/Reliability` is green
 (11 tests, 73 assertions), `tests/Feature/FinancialRouteHardeningTest.php` is
 green (275 tests, 288 assertions), full `tests/Unit --no-coverage` is green
 (10,590 tests, 20,457 assertions), `composer phpstan` is clean, and
 `npx --no-install eslint . --max-warnings=50` is clean.
+
+Latest retry/circuit breaker reliability check (2026-05-10, Codex): added
+Spring-like `Retry` and `CircuitBreaker` builders, durable
+`circuit_breaker_states` / `circuit_breaker_calls`, retry/circuit operational
+events, and finance outbox guard integration. `tests/Unit/app/Services/Reliability`
+is green (17 tests, 106 assertions), invoice/bill controller reliability paths
+are green (290 tests, 348 assertions), `composer phpstan` is clean, and
+`npx --no-install eslint . --max-warnings=50` is clean. Full
+`tests/Unit --no-coverage` is green (10,598 tests, 20,492 assertions).
 
 ---
 
@@ -333,6 +342,44 @@ payroll, CRM, external imports, and long-running/heavy I/O jobs.
 
 ---
 
+## TASK J — Retry + Circuit Breaker Reliability Guards ✅ DONE
+
+**Status:** Implemented 2026-05-10 by Codex.
+
+Added:
+
+- New migration:
+  `database/migrations/2026_05_10_120000_create_reliability_circuit_breaker_tables.php`.
+- Durable tables: `circuit_breaker_states`, `circuit_breaker_calls`.
+- Models: `CircuitBreakerState`, `CircuitBreakerCall`.
+- Guard abstraction: `AbstractReliabilityGuard` and
+  `Concerns\EmitsReliabilityEvents`.
+- Services: `Retry`, `RetryBuilder`, `CircuitBreaker`, `CircuitBreakerBuilder`.
+- Exception: `CircuitBreakerOpenException`.
+- Policy updates for circuit states/statuses, retention, half-open defaults,
+  and low/trivial no-overhead defaults.
+- Finance adoption: `FinanceOutboxDispatcher` wraps signal resolution in retry
+  and circuit breaker guards before durable outbox retry/dead-letter handling.
+
+Retry events:
+
+- `reliability.retry.success`
+- `reliability.retry.retrying`
+- `reliability.retry.failed`
+
+Circuit breaker events:
+
+- `reliability.circuit.state_changed`
+- `reliability.circuit.opened`
+- `reliability.circuit.rejected`
+
+Use builders only where the business impact justifies the overhead. By
+default, circuit breakers persist for `medium`, `high`, and `critical`
+criticality, while `trivial` and `low` work stays unguarded unless a caller
+explicitly enables the breaker.
+
+---
+
 ## READING ORDER FOR NEW AGENTS
 
 1. `where-to-update-and-read.yml` — filesystem map
@@ -352,6 +399,8 @@ payroll, CRM, external imports, and long-running/heavy I/O jobs.
 - Leave OpenCode session notes in `.tmp/opencode/<agent-slug>/<YYYYMMDD>_<topic>.md`
 - Leave JSON status updates in `.tmp/opencode/<agent-slug>/<YYYYMMDD>_pending-issues-update.json`
 - Commit messages: `type(scope): description` (conventional commits)
-- **Never commit** to `database/migrations/` or `_inc/.seeders/`
+- **Never edit existing** `database/migrations/` files and never touch
+  `_inc/.seeders/`; add a new migration only for explicit schema-expansion
+  work.
 - Before forking to another agent, record the exact command results, dirty
   files, branch, HEAD, and any forbidden paths deliberately left untouched.
