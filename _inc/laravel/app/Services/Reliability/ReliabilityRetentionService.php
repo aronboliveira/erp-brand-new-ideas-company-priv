@@ -39,6 +39,15 @@ class ReliabilityRetentionService
                 ->where('expires_at', '<', $now)
                 ->whereIn('state', [ReliabilityPolicy::CIRCUIT_CLOSED, ReliabilityPolicy::CIRCUIT_DISABLED])
                 ->delete(),
+            'operation_quarantines' => DB::table(DC::TABLE_OPERATION_QUARANTINES)
+                ->whereNotNull('expires_at')
+                ->where('expires_at', '<', $now)
+                ->whereIn('status', [
+                    ReliabilityPolicy::QUARANTINE_RECOVERED,
+                    ReliabilityPolicy::QUARANTINE_ROLLED_BACK,
+                    ReliabilityPolicy::QUARANTINE_DISMISSED,
+                ])
+                ->delete(),
             'operation_steps' => DB::table(DC::TABLE_OPERATION_STEPS)
                 ->whereIn('operation_ledger_id', function ($query) use ($now): void {
                     $query->select('id')

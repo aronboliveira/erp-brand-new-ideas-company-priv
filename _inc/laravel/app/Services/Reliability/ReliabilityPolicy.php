@@ -36,6 +36,22 @@ final class ReliabilityPolicy
     public const OUTBOX_DEAD_LETTER = 'dead_letter';
     public const OUTBOX_CANCELLED = 'cancelled';
 
+    public const QUARANTINE_PENDING_REVIEW = 'pending_review';
+    public const QUARANTINE_MANUAL_REVIEW = 'manual_review';
+    public const QUARANTINE_RECOVERED = 'recovered';
+    public const QUARANTINE_ROLLED_BACK = 'rolled_back';
+    public const QUARANTINE_DISMISSED = 'dismissed';
+
+    public const QUARANTINE_DECISION_AUTO_RECOVER = 'auto_recover';
+    public const QUARANTINE_DECISION_MANUAL_REVIEW = 'manual_review';
+    public const QUARANTINE_DECISION_ROLLBACK = 'rollback';
+
+    public const QUARANTINE_ACTION_QUARANTINED = 'quarantined';
+    public const QUARANTINE_ACTION_JUDGE_DECISION = 'judge_decision';
+    public const QUARANTINE_ACTION_RECOVERED = 'recovered';
+    public const QUARANTINE_ACTION_ROLLED_BACK = 'rolled_back';
+    public const QUARANTINE_ACTION_MANUAL_REVIEW_REQUESTED = 'manual_review_requested';
+
     public const CIRCUIT_CLOSED = 'closed';
     public const CIRCUIT_OPEN = 'open';
     public const CIRCUIT_HALF_OPEN = 'half_open';
@@ -125,6 +141,11 @@ final class ReliabilityPolicy
                 self::CRITICALITY_HIGH => 180,
                 self::CRITICALITY_MEDIUM => 30,
                 default => 7,
+            },
+            'operation_quarantine' => match ($criticality) {
+                self::CRITICALITY_CRITICAL => 2555,
+                self::CRITICALITY_HIGH => 1825,
+                default => 365,
             },
             'circuit_breaker_state' => match ($criticality) {
                 self::CRITICALITY_CRITICAL, self::CRITICALITY_HIGH => 365,

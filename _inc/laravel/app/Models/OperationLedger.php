@@ -65,4 +65,9 @@ class OperationLedger extends Model
     {
         return $this->hasMany(OperationalEvent::class, 'operation_ledger_id');
     }
+
+    public function quarantines(): HasMany
+    {
+        return $this->hasMany(OperationQuarantine::class, 'operation_ledger_id');
+    }
 }

@@ -18,6 +18,8 @@ class FinanceOutboxDispatcher
 
     private FinanceCompensationService $compensation;
 
+    private QuarantineService $quarantine;
+
     /**
      * @var array<string, callable(OutboxMessage): array<int, array<string, mixed>>>
      */
@@ -31,12 +33,14 @@ class FinanceOutboxDispatcher
         ?CriticalOperationService $operations = null,
         ?OperationalEventService $events = null,
         ?FinanceCompensationService $compensation = null,
+        ?QuarantineService $quarantine = null,
         array $handlers = [],
     ) {
         $this->outbox = $outbox ?? new OutboxService();
         $this->operations = $operations ?? new CriticalOperationService();
         $this->events = $events ?? new OperationalEventService();
         $this->compensation = $compensation ?? new FinanceCompensationService($this->operations, $this->events);
+        $this->quarantine = $quarantine ?? new QuarantineService();
         $this->handlers = $handlers;
     }
 
@@ -80,6 +84,15 @@ class FinanceOutboxDispatcher
         }
 
         $ledger = $message->operationLedger;
+        if ($this->quarantine->hasBlockingQuarantineForLedger($ledger)) {
+            $this->events->record('finance.outbox.quarantine_blocked', 'Finance outbox blocked by quarantine', [
+                'message_key' => $message->message_key,
+                'event_type' => $message->event_type,
+            ], $this->eventOptions($message, $ledger, 'critical', 'finance.quarantine'));
+
+            return $this->report($message, 'skipped', ['reason' => 'quarantined_operation']);
+        }
+
         $step = $this->operations->recordStep($ledger, 'outbox.dispatch:' . $message->id, 'Dispatch finance outbox signal', [
             'step_type' => 'outbox',
             'sequence' => 700,

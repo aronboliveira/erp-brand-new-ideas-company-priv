@@ -223,6 +223,8 @@ class DatabaseConstants
 	public const TABLE_OPERATIONAL_EVENTS = 'operational_events';
 	public const TABLE_CIRCUIT_BREAKER_STATES = 'circuit_breaker_states';
 	public const TABLE_CIRCUIT_BREAKER_CALLS = 'circuit_breaker_calls';
+	public const TABLE_OPERATION_QUARANTINES = 'operation_quarantines';
+	public const TABLE_OPERATION_QUARANTINE_AUDITS = 'operation_quarantine_audits';
 	#endregion
 	// * ==== FIELD NAMES =====
 	#region
