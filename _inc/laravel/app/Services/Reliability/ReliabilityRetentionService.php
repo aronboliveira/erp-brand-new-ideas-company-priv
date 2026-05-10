@@ -30,6 +30,15 @@ class ReliabilityRetentionService
                 ->where('expires_at', '<', $now)
                 ->whereIn('status', ['processed', 'failed', 'ignored'])
                 ->delete(),
+            'circuit_breaker_calls' => DB::table(DC::TABLE_CIRCUIT_BREAKER_CALLS)
+                ->whereNotNull('expires_at')
+                ->where('expires_at', '<', $now)
+                ->delete(),
+            'circuit_breaker_states' => DB::table(DC::TABLE_CIRCUIT_BREAKER_STATES)
+                ->whereNotNull('expires_at')
+                ->where('expires_at', '<', $now)
+                ->whereIn('state', [ReliabilityPolicy::CIRCUIT_CLOSED, ReliabilityPolicy::CIRCUIT_DISABLED])
+                ->delete(),
             'operation_steps' => DB::table(DC::TABLE_OPERATION_STEPS)
                 ->whereIn('operation_ledger_id', function ($query) use ($now): void {
                     $query->select('id')

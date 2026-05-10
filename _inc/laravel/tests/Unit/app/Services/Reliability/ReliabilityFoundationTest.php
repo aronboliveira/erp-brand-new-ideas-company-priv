@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\app\Services\Reliability;
 
 use App\Config\Constants\DatabaseConstants as DC;
+use App\Models\CircuitBreakerCall;
+use App\Models\CircuitBreakerState;
 use App\Models\InboxMessage;
 use App\Models\OperationLedger;
 use App\Models\OperationalEvent;
@@ -289,6 +291,24 @@ class ReliabilityFoundationTest extends TestCase
             'occurred_at' => now()->subDays(2),
             'expires_at' => now()->subDay(),
         ]);
+        $expiredCircuitState = CircuitBreakerState::create([
+            'breaker_key' => 'expired-circuit-' . Str::uuid(),
+            'name' => 'Expired circuit',
+            'domain' => 'finance',
+            'criticality' => ReliabilityPolicy::CRITICALITY_HIGH,
+            'state' => ReliabilityPolicy::CIRCUIT_CLOSED,
+            'closed_at' => now()->subDays(2),
+            'expires_at' => now()->subDay(),
+        ]);
+        $expiredCircuitCall = CircuitBreakerCall::create([
+            'circuit_breaker_state_id' => $expiredCircuitState->id,
+            'breaker_key' => $expiredCircuitState->breaker_key,
+            'state_before' => ReliabilityPolicy::CIRCUIT_CLOSED,
+            'state_after' => ReliabilityPolicy::CIRCUIT_CLOSED,
+            'status' => ReliabilityPolicy::CIRCUIT_CALL_SUCCEEDED,
+            'occurred_at' => now()->subDays(2),
+            'expires_at' => now()->subDay(),
+        ]);
 
         $deleted = (new ReliabilityRetentionService())->pruneExpired();
 
@@ -297,11 +317,15 @@ class ReliabilityFoundationTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $deleted['outbox_messages']);
         $this->assertGreaterThanOrEqual(1, $deleted['inbox_messages']);
         $this->assertGreaterThanOrEqual(1, $deleted['operational_events']);
+        $this->assertGreaterThanOrEqual(1, $deleted['circuit_breaker_calls']);
+        $this->assertGreaterThanOrEqual(1, $deleted['circuit_breaker_states']);
         $this->assertFalse(OperationLedger::whereKey($expiredLedger->id)->exists());
         $this->assertTrue(OperationLedger::whereKey($activeLedger->id)->exists());
         $this->assertFalse(OutboxMessage::whereKey($expiredOutbox->id)->exists());
         $this->assertFalse(InboxMessage::whereKey($expiredInbox->id)->exists());
         $this->assertFalse(OperationalEvent::whereKey($expiredEvent->id)->exists());
+        $this->assertFalse(CircuitBreakerCall::whereKey($expiredCircuitCall->id)->exists());
+        $this->assertFalse(CircuitBreakerState::whereKey($expiredCircuitState->id)->exists());
     }
 
     #[Test]

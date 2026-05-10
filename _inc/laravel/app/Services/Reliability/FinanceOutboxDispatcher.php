@@ -2,6 +2,7 @@
 
 namespace App\Services\Reliability;
 
+use App\Exceptions\Reliability\CircuitBreakerOpenException;
 use App\Models\OperationLedger;
 use App\Models\OutboxMessage;
 use Illuminate\Support\Collection;
@@ -92,7 +93,7 @@ class FinanceOutboxDispatcher
         ]);
 
         try {
-            $signals = $this->resolveSignals($message);
+            $signals = $this->resolveSignalsWithGuards($message, $ledger);
             if ($signals === []) {
                 throw new \RuntimeException('No finance outbox handler signal was produced.');
             }
@@ -164,6 +165,44 @@ class FinanceOutboxDispatcher
     /**
      * @return array<int, array<string, mixed>>
      */
+    private function resolveSignalsWithGuards(OutboxMessage $message, ?OperationLedger $ledger): array
+    {
+        $context = [
+            'message_key' => $message->message_key,
+            'event_type' => $message->event_type,
+            'stream' => $message->stream,
+        ];
+
+        $circuitBreaker = CircuitBreaker::builder('finance.outbox.' . $this->breakerKeySegment($message->event_type))
+            ->name('Finance outbox ' . $message->event_type)
+            ->criticality($message->criticality)
+            ->channel('finance.outbox')
+            ->operationLedger($ledger)
+            ->outboxMessage($message)
+            ->slidingWindowSize(20)
+            ->slidingWindowSeconds(300)
+            ->failureRateThreshold(50.0)
+            ->minimumCalls(5)
+            ->openStateDurationSeconds(60)
+            ->halfOpenAllowedCalls(3)
+            ->halfOpenConservative($message->criticality === ReliabilityPolicy::CRITICALITY_CRITICAL)
+            ->build();
+
+        return Retry::builder('finance.outbox.dispatch.' . $message->event_type)
+            ->criticality($message->criticality)
+            ->channel('finance.outbox')
+            ->operationLedger($ledger)
+            ->outboxMessage($message)
+            ->maxAttempts((int) data_get($message->metadata, 'retry.max_attempts', 2))
+            ->intervalUsing(fn(int $attempt): int => ReliabilityPolicy::retryDelaySeconds($attempt))
+            ->abortOn(CircuitBreakerOpenException::class)
+            ->build()
+            ->run(fn(): array => $circuitBreaker->call(fn(): array => $this->resolveSignals($message), $context), $context);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private function resolveSignals(OutboxMessage $message): array
     {
         if (isset($this->handlers[$message->event_type])) {
@@ -173,6 +212,11 @@ class FinanceOutboxDispatcher
         }
 
         return $this->defaultSignals($message);
+    }
+
+    private function breakerKeySegment(string $eventType): string
+    {
+        return preg_replace('/[^a-zA-Z0-9_.-]+/', '-', $eventType) ?: 'unknown';
     }
 
     /**

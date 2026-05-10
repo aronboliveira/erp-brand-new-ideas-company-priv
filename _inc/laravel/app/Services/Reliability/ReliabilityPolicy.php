@@ -36,6 +36,16 @@ final class ReliabilityPolicy
     public const OUTBOX_DEAD_LETTER = 'dead_letter';
     public const OUTBOX_CANCELLED = 'cancelled';
 
+    public const CIRCUIT_CLOSED = 'closed';
+    public const CIRCUIT_OPEN = 'open';
+    public const CIRCUIT_HALF_OPEN = 'half_open';
+    public const CIRCUIT_DISABLED = 'disabled';
+
+    public const CIRCUIT_CALL_PERMITTED = 'permitted';
+    public const CIRCUIT_CALL_REJECTED = 'rejected';
+    public const CIRCUIT_CALL_SUCCEEDED = 'succeeded';
+    public const CIRCUIT_CALL_FAILED = 'failed';
+
     private const CRITICALITY_ORDER = [
         self::CRITICALITY_TRIVIAL => 0,
         self::CRITICALITY_LOW => 1,
@@ -106,11 +116,16 @@ final class ReliabilityPolicy
                 self::CRITICALITY_MEDIUM => 90,
                 default => 30,
             },
-            'operational_event' => match ($criticality) {
+            'operational_event', 'circuit_breaker_call' => match ($criticality) {
                 self::CRITICALITY_CRITICAL => 365,
                 self::CRITICALITY_HIGH => 180,
                 self::CRITICALITY_MEDIUM => 30,
                 default => 7,
+            },
+            'circuit_breaker_state' => match ($criticality) {
+                self::CRITICALITY_CRITICAL, self::CRITICALITY_HIGH => 365,
+                self::CRITICALITY_MEDIUM => 180,
+                default => 30,
             },
             default => 30,
         };
@@ -121,6 +136,22 @@ final class ReliabilityPolicy
         $attempt = max(1, $attempt);
 
         return min(300, $attempt * 30);
+    }
+
+    public static function circuitBreakerRequired(string $criticality): bool
+    {
+        return self::CRITICALITY_ORDER[self::normalizeCriticality($criticality)]
+            >= self::CRITICALITY_ORDER[self::CRITICALITY_MEDIUM];
+    }
+
+    public static function defaultHalfOpenSuccessThreshold(?string $criticality): float
+    {
+        return match (self::normalizeCriticality($criticality)) {
+            self::CRITICALITY_CRITICAL, self::CRITICALITY_HIGH => 100.0,
+            self::CRITICALITY_MEDIUM => 75.0,
+            self::CRITICALITY_LOW => 25.0,
+            default => 25.0,
+        };
     }
 
     public static function highestCriticality(iterable $criticalities): string

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\app\Services\Reliability;
 
 use App\Config\Constants\DatabaseConstants as DC;
+use App\Models\CircuitBreakerCall;
+use App\Models\CircuitBreakerState;
 use App\Models\OperationLedger;
 use App\Models\OutboxMessage;
 use App\Services\Reliability\CriticalOperationService;
@@ -70,6 +72,10 @@ class FinanceOutboxDispatcherTest extends TestCase
         $this->assertSame(ReliabilityPolicy::STATUS_CLOSED, $ledger->status);
         $this->assertNotNull($ledger->closed_at);
         $this->assertGreaterThanOrEqual(4, count($report['signals']));
+        $this->assertTrue(CircuitBreakerState::where('breaker_key', 'finance.outbox.finance.invoice.payment_created')->exists());
+        $this->assertTrue(CircuitBreakerCall::where('breaker_key', 'finance.outbox.finance.invoice.payment_created')
+            ->where('status', ReliabilityPolicy::CIRCUIT_CALL_SUCCEEDED)
+            ->exists());
         $this->assertDatabaseHas(DC::TABLE_OPERATION_STEPS, [
             'operation_ledger_id' => $ledger->id,
             'step_key' => 'outbox.dispatch:' . $message->id,
@@ -101,6 +107,19 @@ class FinanceOutboxDispatcherTest extends TestCase
         $this->assertSame(1, $message->retry_count);
         $this->assertNotNull($message->next_retry_at);
         $this->assertSame(ReliabilityPolicy::STATUS_COMMITTED, $ledger->status);
+        $this->assertSame(2, CircuitBreakerCall::where('breaker_key', 'finance.outbox.finance.bill.payment_created')
+            ->where('status', ReliabilityPolicy::CIRCUIT_CALL_FAILED)
+            ->count());
+        $this->assertDatabaseHas(DC::TABLE_OPERATIONAL_EVENTS, [
+            'operation_ledger_id' => $ledger->id,
+            'outbox_message_id' => $message->id,
+            'event_type' => 'reliability.retry.retrying',
+        ]);
+        $this->assertDatabaseHas(DC::TABLE_OPERATIONAL_EVENTS, [
+            'operation_ledger_id' => $ledger->id,
+            'outbox_message_id' => $message->id,
+            'event_type' => 'reliability.retry.failed',
+        ]);
         $this->assertDatabaseMissing(DC::TABLE_OPERATION_STEPS, [
             'operation_ledger_id' => $ledger->id,
             'step_name' => 'Finance compensation required',

@@ -221,6 +221,8 @@ class DatabaseConstants
 	public const TABLE_OUTBOX_MESSAGES = 'outbox_messages';
 	public const TABLE_INBOX_MESSAGES = 'inbox_messages';
 	public const TABLE_OPERATIONAL_EVENTS = 'operational_events';
+	public const TABLE_CIRCUIT_BREAKER_STATES = 'circuit_breaker_states';
+	public const TABLE_CIRCUIT_BREAKER_CALLS = 'circuit_breaker_calls';
 	#endregion
 	// * ==== FIELD NAMES =====
 	#region
