@@ -26,6 +26,7 @@ Verification:
 - `php artisan migrate --env=testing --path=database/migrations/2026_05_10_090000_create_reliability_outbox_and_operation_tables.php --force` — OK.
 - `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 7 tests, 48 assertions, OK.
 - `php vendor/bin/phpunit tests/Unit/Ledger/LedgerActionServiceTest.php --no-coverage` — 2 tests, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,586 tests, 20,432 assertions, OK.
 - `composer phpstan` — no errors.
 
 Guideline:

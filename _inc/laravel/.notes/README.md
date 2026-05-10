@@ -11,11 +11,10 @@ The current Codex continuation handoff is
 It finishes the PHPUnit work left by the recovered Claude token-limit session
 at `157145304`.
 
-Current full-unit baseline after the Codex pass:
+Current full-unit baseline after the 2026-05-10 reliability pass:
 
 ```text
-Tests: 10575, Assertions: 20354, Errors: 0, Failures: 0,
-Deprecations: 38, Skipped: 8, Incomplete: 4.
+Tests: 10586, Assertions: 20432, Errors: 0, Failures: 0.
 ```
 
 2026-05-10 reliability foundation work added generic operation ledger,

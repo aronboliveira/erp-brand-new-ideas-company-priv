@@ -234,7 +234,7 @@ User IDs are **UUIDs** (string), not integers.
 
 | Tool | Result |
 |------|--------|
-| PHPUnit Unit | 10,575 tests, 20,354 assertions, 0 errors, 0 failures, 8 skipped, 4 incomplete |
+| PHPUnit Unit | 10,586 tests, 20,432 assertions, 0 errors, 0 failures |
 | Reliability service tests | 7 tests, 48 assertions, 0 errors, 0 failures |
 | Ledger service test | 2 tests, 2 assertions, 0 errors, 0 failures |
 | PHPStan | clean (`composer phpstan`) |

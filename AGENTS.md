@@ -99,7 +99,8 @@ working-tree test/doc fixes): `tests/Unit --no-coverage` is green:
 Latest reliability foundation check (2026-05-10, Codex): new migration applied
 to app and test MySQL DBs; `tests/Unit/app/Services/Reliability` is green
 (7 tests, 48 assertions), `tests/Unit/Ledger/LedgerActionServiceTest.php` is
-green (2 tests), and `composer phpstan` is clean.
+green (2 tests), full `tests/Unit --no-coverage` is green
+(10,586 tests, 20,432 assertions), and `composer phpstan` is clean.
 
 ---
 
