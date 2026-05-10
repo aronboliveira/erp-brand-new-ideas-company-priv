@@ -1,8 +1,35 @@
 # Resolved Issues Archive
 
 > Issues that have been fully fixed and verified. Append new entries at the top.
-> Last updated: 2026-05-09
+> Last updated: 2026-05-10
 > **Cross-references:** [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) (formerly open issues) · [`CURRENT_WORKING_ISSUES.md`](CURRENT_WORKING_ISSUES.md) (bug-fix sessions) · [`CURRENT_WORKING_ISSUES_WORK.md`](CURRENT_WORKING_ISSUES_WORK.md) (try/fail journal) · [`NEXT_STEPS.md`](NEXT_STEPS.md) (remaining tasks) · [`README.md`](README.md) (notes overview)
+
+---
+
+## [2026-05-10] Reliability foundation: operation ledger + outbox/inbox
+
+Added a generic reliability layer for high-impact business operations:
+
+- New durable tables: `operation_ledgers`, `operation_steps`,
+  `outbox_messages`, `inbox_messages`, `operational_events`.
+- New models: `OperationLedger`, `OperationStep`, `OutboxMessage`,
+  `InboxMessage`, `OperationalEvent`.
+- New services under `app/Services/Reliability/` for critical operation
+  wrapping, outbox/inbox tracking, operational events, criticality policy, and
+  retention/compression.
+- `LedgerActionService` now wraps client invoice, supplier bill, and client
+  receipt postings as critical operations with step logs and outbox intent.
+
+Verification:
+
+- `php artisan migrate --path=database/migrations/2026_05_10_090000_create_reliability_outbox_and_operation_tables.php --force` — OK.
+- `php artisan migrate --env=testing --path=database/migrations/2026_05_10_090000_create_reliability_outbox_and_operation_tables.php --force` — OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 7 tests, 48 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/Ledger/LedgerActionServiceTest.php --no-coverage` — 2 tests, OK.
+- `composer phpstan` — no errors.
+
+Guideline:
+`_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 
 ---
 

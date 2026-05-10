@@ -12,6 +12,10 @@ Durable notes, instructions, and structured references for agents and developers
   should only contain redirect stubs.
 - The current continuation handoff is `.tmp/codex/20260509/handsoff.md`;
   `.tmp/claude/20260808/HANDOFF.md` is the recovered pre-continuation stop.
+- The 2026-05-10 reliability foundation pass added generic outbox/inbox,
+  operation ledger, operation step, and operational event support in the
+  Laravel app. Canonical guide:
+  `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 
 ## Formats
 

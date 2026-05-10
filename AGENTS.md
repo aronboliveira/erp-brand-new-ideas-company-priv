@@ -24,7 +24,8 @@
 ### Hard constraints (never violate)
 
 ```
-✗ NEVER modify database/migrations/
+✗ NEVER modify existing database/migrations/ files
+✓ Add a new migration only when the current task explicitly requires schema expansion
 ✗ NEVER modify _inc/.seeders/
 ✗ NEVER use php artisan test  (destroys seeded DB data — use vendor/bin/phpunit)
 ✗ NEVER run migrate:fresh unless explicitly asked
@@ -94,6 +95,11 @@ working-tree test/doc fixes): `tests/Unit --no-coverage` is green:
 10,575 tests, 20,354 assertions, 0 errors, 0 failures, 38 deprecations,
 8 skipped, 4 incomplete. `composer phpstan` and
 `npx --no-install eslint . --max-warnings=50` are also clean.
+
+Latest reliability foundation check (2026-05-10, Codex): new migration applied
+to app and test MySQL DBs; `tests/Unit/app/Services/Reliability` is green
+(7 tests, 48 assertions), `tests/Unit/Ledger/LedgerActionServiceTest.php` is
+green (2 tests), and `composer phpstan` is clean.
 
 ---
 
@@ -275,14 +281,45 @@ Verified:
 
 ---
 
+## TASK I — Reliability Foundation: Outbox/Inbox + Operation Ledger ✅ FIRST PASS DONE
+
+**Status:** Implemented 2026-05-10 by Codex.
+
+Added:
+
+- New migration:
+  `database/migrations/2026_05_10_090000_create_reliability_outbox_and_operation_tables.php`.
+- Durable tables: `operation_ledgers`, `operation_steps`, `outbox_messages`,
+  `inbox_messages`, `operational_events`.
+- Models: `OperationLedger`, `OperationStep`, `OutboxMessage`, `InboxMessage`,
+  `OperationalEvent`.
+- Services under `app/Services/Reliability/`: `CriticalOperationService`,
+  `ReliabilityPolicy`, `OutboxService`, `InboxService`,
+  `OperationalEventService`, `ReliabilityRetentionService`.
+- First production integration: `LedgerActionService` wraps IFRS client invoice,
+  supplier bill, and client receipt posting as critical operations with step
+  logs and outbox intent.
+- Tests: `tests/Unit/app/Services/Reliability/ReliabilityFoundationTest.php`.
+
+Guideline:
+`_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
+
+Next adoption targets should be high-impact non-finance workflows: employee
+status decisions, final project closure/deletion, warehouse commits, payroll,
+external imports, and long-running/heavy I/O jobs.
+
+---
+
 ## READING ORDER FOR NEW AGENTS
 
 1. `where-to-update-and-read.yml` — filesystem map
 2. `_inc/laravel/.notes/.llms/.guidelines/constraints.md` — hard rules
 3. `_inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md` — role-specific reading lists
-4. `.tmp/codex/20260509/handsoff.md` — latest Codex continuation state
-5. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state
-6. `.tmp/claude/20260504/handoff.md` — Claude's Bills migration context
+4. `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` — outbox/inbox + operation ledger policy
+5. `.tmp/codex/20260510/handsoff.md` — latest Codex reliability continuation state
+6. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
+7. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state
+8. `.tmp/claude/20260504/handoff.md` — Claude's Bills migration context
 
 ---
 

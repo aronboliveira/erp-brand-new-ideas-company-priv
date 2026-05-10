@@ -191,6 +191,29 @@ utils/                   # Developer tooling workspace
 
 ---
 
+## Reliability foundation
+
+The application now has a generic reliability layer for high-impact business
+operations:
+
+- `app/Services/Reliability/CriticalOperationService.php` wraps critical work
+  in an operation ledger, step log, DB transaction, and optional durable outbox.
+- `OutboxService` and `InboxService` cover publish-after-commit and idempotent
+  receive-side tracking.
+- `OperationalEventService` stores volatile low-impact events in memory and
+  persists medium/high/critical events to `operational_events`.
+- `ReliabilityRetentionService` prunes expired finished rows and can compress
+  verbose event timelines.
+- `app/Services/Ledger/LedgerActionService.php` is the first production
+  integration and records finance ledger postings as critical operations.
+
+The policy is intentionally domain-neutral. Finance commits usually need the
+highest controls, but HR decisions, project finalization/deletion, warehouse
+commits, and heavy system operations should use the same layer when their
+business impact is comparable.
+
+---
+
 ## Authentication
 
 The app uses **Laravel Fortify** with a custom route prefix:
@@ -207,11 +230,13 @@ User IDs are **UUIDs** (string), not integers.
 
 ## Testing
 
-### Latest Results (2026-05-09)
+### Latest Results (2026-05-10)
 
 | Tool | Result |
 |------|--------|
 | PHPUnit Unit | 10,575 tests, 20,354 assertions, 0 errors, 0 failures, 8 skipped, 4 incomplete |
+| Reliability service tests | 7 tests, 48 assertions, 0 errors, 0 failures |
+| Ledger service test | 2 tests, 2 assertions, 0 errors, 0 failures |
 | PHPStan | clean (`composer phpstan`) |
 | ESLint | clean (`npx --no-install eslint . --max-warnings=50`) |
 | Jest | see current CI / package scripts |

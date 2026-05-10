@@ -120,6 +120,21 @@ See [`where-to-update-and-read.yml`](where-to-update-and-read.yml) for the canon
 - **Middleware** constants: `MWC::AUTH`, `MWC::VF`, `MWC::XSS`, `MWC::REV`, `MWC::WEB`.
 - **Translations** use JSON files at `resources/lang/{en,pt-br,ru,…}.json` (16 languages, ~3,000 keys each).
 
+## Reliability foundation
+
+Critical business procedures now have a shared reliability layer under
+`_inc/laravel/app/Services/Reliability/` and durable tables for operation
+ledgers, operation steps, outbox/inbox messages, and operational events.
+Financial ledger posting is the first integrated path, but the same pattern is
+intended for any high-impact workflow: employee status decisions, irreversible
+project closures, warehouse commits, heavy I/O tasks, and other state changes
+where replay, auditability, or retry control matters.
+
+Use the severity policy consistently: trivial/low work can stay in memory,
+medium-and-up work gets durable operation rows, and critical operations should
+pair durable outbox records with a transaction isolation level appropriate to
+the underlying SQL procedure.
+
 ---
 
 ## Quick start (development)

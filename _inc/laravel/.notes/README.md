@@ -18,6 +18,19 @@ Tests: 10575, Assertions: 20354, Errors: 0, Failures: 0,
 Deprecations: 38, Skipped: 8, Incomplete: 4.
 ```
 
+2026-05-10 reliability foundation work added generic operation ledger,
+operation step, outbox/inbox, and operational event tables plus the service
+layer under `app/Services/Reliability/`. Focused checks:
+
+```text
+Reliability service tests: 7 tests, 48 assertions, 0 errors, 0 failures.
+Ledger service test: 2 tests, 2 assertions, 0 errors, 0 failures.
+composer phpstan: no errors.
+```
+
+Guideline:
+[`./.llms/.guidelines/backend/reliability-outbox-ledger.md`](./.llms/.guidelines/backend/reliability-outbox-ledger.md).
+
 ## Update order
 
 1. Read [`where-to-update-and-read.yml`](../../../where-to-update-and-read.yml).
