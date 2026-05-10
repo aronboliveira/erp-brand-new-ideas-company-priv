@@ -6,6 +6,9 @@ use Tests\TestCase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Http\Request;
+use Illuminate\Session\ArraySessionHandler;
+use Illuminate\Session\Store;
 
 class VerifyCsrfTokenTest extends TestCase
 {
@@ -50,11 +53,20 @@ class VerifyCsrfTokenTest extends TestCase
 	 **/
 	public function non_exempt_uris_require_csrf_token()
 	{
-		// Laravel's VerifyCsrfToken parent class bypasses CSRF when runningUnitTests() is true,
-		// so this assertion cannot be verified through the HTTP test pipeline.
-		$this->markTestIncomplete(
-			'Cannot test CSRF enforcement in PHPUnit: parent middleware bypasses check when runningUnitTests()'
-		);
+		$middleware = new VerifyCsrfToken(app(), app('encrypter'));
+		$request = Request::create('/protected', 'POST');
+		$session = new Store('csrf-test', new ArraySessionHandler(120));
+		$session->start();
+		$session->put('_token', 'known-token');
+		$request->setLaravelSession($session);
+
+		$inExceptArray = new \ReflectionMethod($middleware, 'inExceptArray');
+		$inExceptArray->setAccessible(true);
+		$this->assertFalse($inExceptArray->invoke($middleware, $request));
+
+		$tokensMatch = new \ReflectionMethod($middleware, 'tokensMatch');
+		$tokensMatch->setAccessible(true);
+		$this->assertFalse($tokensMatch->invoke($middleware, $request));
 	}
 
 	/**

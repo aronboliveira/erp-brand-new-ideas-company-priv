@@ -287,7 +287,9 @@ class ProjectTask extends Model
                         ->toArray();
                     Utility::checkFileExistsAndDelete($files);
                     TaskFile::where(AC::COL_TSK_ID, $task->id)->delete();
-                    $task->timesheets()->delete();
+                    // The current timesheets schema has no deleted_at column, so avoid
+                    // Timesheet's SoftDeletes path here and hard-delete task rows directly.
+                    DB::table(DC::TABLE_TMS)->where(AC::COL_TSK_ID, $task->id)->delete();
                     TaskChecklist::where(AC::COL_TSK_ID, $task->id)->delete();
                     TaskComment::where(AC::COL_TSK_ID, $task->id)->delete();
                     $task->delete();

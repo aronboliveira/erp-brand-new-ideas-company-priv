@@ -96,10 +96,22 @@ class LandingPageDataTableSeederTest extends TestCase
 	/**
 	 ** @test
 	 *
-	 ** Marks incomplete: cannot simulate valid JSON parsing success in unit test.
+	 ** Verifies JSON blob rows are loaded as UUID-backed records.
 	 **/
-	public function it_marks_json_success_parsing_as_incomplete()
+	public function it_loads_json_blob_rows_with_query_keys()
 	{
-		$this->markTestIncomplete('Cannot easily simulate successful JSON files loading in this environment.');
+		(new LandingPageDataTableSeeder())->run();
+
+		$row = \Illuminate\Support\Facades\DB::table('landing_page_settings')
+			->where('name', SettingsConstants::MB_PG_K)
+			->whereNotNull('query_key')
+			->first();
+
+		$this->assertNotNull($row, 'Expected at least one menubar row loaded from JSON blobs.');
+		$this->assertMatchesRegularExpression(
+			'/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
+			(string) $row->query_key
+		);
+		$this->assertIsArray(json_decode((string) $row->value, true, 512, JSON_THROW_ON_ERROR));
 	}
 }

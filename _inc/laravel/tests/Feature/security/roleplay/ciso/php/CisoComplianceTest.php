@@ -69,10 +69,6 @@ class CisoComplianceTest extends TestCase
     {
         $r = $this->get('/login');
         $xcto = $r->headers->get('X-Content-Type-Options');
-        // Pode não estar presente em dev, mas registramos
-        if ($xcto === null) {
-            $this->markTestIncomplete('[CISO-HEADER] X-Content-Type-Options ausente — recomendado: nosniff');
-        }
         $this->assertEquals('nosniff', $xcto);
     }
 
@@ -83,12 +79,8 @@ class CisoComplianceTest extends TestCase
         $r = $this->actingAs($this->auditor)->get('/rota-inexistente-ciso-test');
         $content = $r->getContent();
         // Mesmo que APP_DEBUG=true em dev, não deveria aparecer em produção
-        // Registramos como informativo
         $hasTrace = str_contains($content, 'vendor/') && str_contains($content, '.php');
-        if ($hasTrace) {
-            $this->markTestIncomplete('[CISO-DEBUG] Stack trace visível — APP_DEBUG pode estar ativo');
-        }
-        $this->assertTrue(true);
+        $this->assertFalse($hasTrace, '[CISO-DEBUG] Stack trace visível — APP_DEBUG pode estar ativo');
     }
 
     // ════════════ Authentication ════════════

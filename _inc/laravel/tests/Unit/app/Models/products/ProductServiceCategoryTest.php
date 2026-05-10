@@ -9,16 +9,14 @@
 namespace Tests\Unit\Models;
 
 use App\Models\ProductServiceCategory;
+use App\Services\ProductOrServiceRequestService;
 use Illuminate\Support\{Collection, Facades\Auth};
 use Mockery;
 use Tests\TestCase;
-use Tests\Concerns\SafeAliasMock;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductServiceCategoryTest extends TestCase
 {
-	use SafeAliasMock;
-
 	/** A fake “company” user reused in multiple tests */
 	private object $fakeUser;
 
@@ -112,37 +110,16 @@ class ProductServiceCategoryTest extends TestCase
 	 **/
 	public function income_category_revenue_amount_is_calculated(): void
 	{
-		// ➊  Stub static _checkLogin()
-		$this->aliasMock(ProductServiceCategory::class)
-			->shouldReceive('_checkLogin')
-			->andReturn($this->fakeUser);
+		$cat = new ProductServiceCategory;
+		$service = Mockery::mock(ProductOrServiceRequestService::class);
+		$this->app->instance(ProductOrServiceRequestService::class, $service);
 
-		// ➋  Create a partial mock of the category instance
-		$cat = Mockery::mock(ProductServiceCategory::class)->makePartial();
-		$cat->id = 5;
-
-		// Stub categories()->where*->sum => 100
-		$cat->shouldReceive('categories')
-			->andReturnSelf();
-		$cat->shouldReceive('where')
-			->andReturnSelf();
-		$cat->shouldReceive('whereRaw')
-			->andReturnSelf();
-		$cat->shouldReceive('sum')
-			->andReturn(100);
-
-		// Stub Invoice::where()->whereRaw()->get() → collection of two totals 50+30
-		$invoiceCollection = collect([
-			(object)['getTotal' => fn () => 50],
-			(object)['getTotal' => fn () => 30],
-		]);
-		$this->aliasMock('App\Models\Invoice')
-			->shouldReceive('where')
-			->andReturnSelf()
-			->getMock()->shouldReceive('whereRaw')
-			->andReturnSelf()
-			->getMock()->shouldReceive('get')
-			->andReturn($invoiceCollection);
+		// The model now delegates this calculation to the service; keep the
+		// model test focused on that contract instead of aliasing loaded models.
+		$service->shouldReceive('getIncomeCategoryRevenueAmount')
+			->once()
+			->with($cat)
+			->andReturn(180.0);
 
 		$this->assertSame(180.0, $cat->incomeCategoryRevenueAmount());
 	}
@@ -155,33 +132,14 @@ class ProductServiceCategoryTest extends TestCase
 	 **/
 	public function expense_category_amount_is_calculated(): void
 	{
-		// _checkLogin already mocked above; reuse fake user.
+		$cat = new ProductServiceCategory;
+		$service = Mockery::mock(ProductOrServiceRequestService::class);
+		$this->app->instance(ProductOrServiceRequestService::class, $service);
 
-		// Partial mock of category
-		$cat = Mockery::mock(ProductServiceCategory::class)->makePartial();
-		$cat->id = 7;
-
-		// Stub Payment::where()->whereRaw()->sum => 40
-		$this->aliasMock('App\Models\Payment')
-			->shouldReceive('where')
-			->andReturnSelf()
-			->getMock()->shouldReceive('whereRaw')
-			->andReturnSelf()
-			->getMock()->shouldReceive('sum')
-			->andReturn(40);
-
-		// Stub Bill::where()->whereRaw()->get() → two totals 20+10
-		$billCollection = collect([
-			(object)['getTotal' => fn () => 20],
-			(object)['getTotal' => fn () => 10],
-		]);
-		$this->aliasMock('App\Models\Bill')
-			->shouldReceive('where')
-			->andReturnSelf()
-			->getMock()->shouldReceive('whereRaw')
-			->andReturnSelf()
-			->getMock()->shouldReceive('get')
-			->andReturn($billCollection);
+		$service->shouldReceive('getExpenseCategoryAmount')
+			->once()
+			->with($cat)
+			->andReturn(70.0);
 
 		$this->assertSame(70.0, $cat->expenseCategoryAmount());
 	}
@@ -195,30 +153,12 @@ class ProductServiceCategoryTest extends TestCase
 	public function get_all_categories_returns_db_result(): void
 	{
 		$expected = new Collection(['dummy']);
+		$service = Mockery::mock(ProductOrServiceRequestService::class);
+		$this->app->instance(ProductOrServiceRequestService::class, $service);
 
-		// Stub DB::table()->select()->leftJoin()->where()->where()->groupBy()->orderBy()->get()
-		$this->aliasMock('Illuminate\Support\Facades\DB')
-			->shouldReceive('table')
+		$service->shouldReceive('getAllCategories')
 			->once()
-			->andReturnSelf()
-			->getMock()->shouldReceive('select')
-			->andReturnSelf()
-			->getMock()->shouldReceive('leftJoin')
-			->andReturnSelf()
-			->getMock()->shouldReceive('where')
-			->andReturnSelf()
-			->times(2) // two where calls
-			->getMock()->shouldReceive('groupBy')
-			->andReturnSelf()
-			->getMock()->shouldReceive('orderBy')
-			->andReturnSelf()
-			->getMock()->shouldReceive('get')
 			->andReturn($expected);
-
-		// Stub _checkLogin again for static call
-		$this->aliasMock(ProductServiceCategory::class)
-			->shouldReceive('_checkLogin')
-			->andReturn($this->fakeUser);
 
 		$result = ProductServiceCategory::getAllCategories();
 		$this->assertSame($expected, $result);

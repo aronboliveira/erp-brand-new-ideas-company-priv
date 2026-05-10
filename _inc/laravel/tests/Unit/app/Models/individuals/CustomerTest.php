@@ -44,8 +44,8 @@ class CustomerTest extends TestCase
 		\App\Models\Utility::resetSettingsCache();
 
 		// Customer schema has no `type` column despite the @property
-		// docblock and creatorId() branching on $this->type. Tests that
-		// depend on a non-default type bail out via markTestIncomplete().
+		// docblock and creatorId() branching on $this->type. Keep tests
+		// on the schema-backed default path unless that contract changes.
 		$this->user = Customer::factory()->create([
 			'lang'       => 'pt',
 			'created_by' => null,

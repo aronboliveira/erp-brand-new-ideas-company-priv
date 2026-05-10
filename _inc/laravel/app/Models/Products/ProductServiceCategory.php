@@ -16,12 +16,12 @@ use App\Traits\{
     UsesUuids
 };
 use Illuminate\Database\Eloquent\{
-    Collection,
     Factories\HasFactory,
     Model,
     Relations\BelongsTo,
     Relations\HasMany
 };
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Http\RedirectResponse;
 

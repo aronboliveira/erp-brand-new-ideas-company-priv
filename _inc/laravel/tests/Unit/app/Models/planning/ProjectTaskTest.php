@@ -2,11 +2,13 @@
 
 namespace Tests\Unit\Models;
 
+use App\Config\Constants\DatabaseConstants as DC;
 use App\Models\ProjectTask;
-use Illuminate\Support\Collection;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Mockery;
 use Tests\TestCase;
-use Tests\Concerns\SafeAliasMock;
 
 class ProjectTaskTest extends TestCase
 {
@@ -15,8 +17,6 @@ class ProjectTaskTest extends TestCase
         parent::setUp();
         \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
-
-	use SafeAliasMock;
 
 	/**
 	 ** @test
@@ -48,21 +48,29 @@ class ProjectTaskTest extends TestCase
 	public function users_method_builds_collection(): void
 	{
 		$task = new ProjectTask;
-		$task->assign_to = '1,2,3';
+		$first = User::create([
+			'name' => 'Project Task User A',
+			'email' => 'project-task-user-a-' . Str::uuid() . '@test.local',
+			'password' => bcrypt('secret'),
+			'lang' => 'en',
+		]);
+		$second = User::create([
+			'name' => 'Project Task User B',
+			'email' => 'project-task-user-b-' . Str::uuid() . '@test.local',
+			'password' => bcrypt('secret'),
+			'lang' => 'en',
+		]);
 
-		// Fake User::whereIn() chain
-		$fakeUsers = new Collection([(object)['id' => 1]]);
-		$this->aliasMock('App\Models\User')
-			->shouldReceive('whereIn')
-			->once()
-			->with('id', ['1', '2', '3'])
-			->andReturnSelf()
-			->getMock()
-			->shouldReceive('get')
-			->once()
-			->andReturn($fakeUsers);
+		try {
+			// DB-backed fixture avoids Mockery alias order dependence once User is autoloaded.
+			$task->assign_to = "not-a-uuid, {$first->id}, {$second->id}, {$first->id}";
 
-		$this->assertSame($fakeUsers, $task->users());
+			$result = $task->users();
+
+			$this->assertEqualsCanonicalizing([$first->id, $second->id], $result->pluck('id')->all());
+		} finally {
+			DB::table('users')->whereIn('id', [$first->id, $second->id])->delete();
+		}
 	}
 
 	/**
@@ -74,22 +82,26 @@ class ProjectTaskTest extends TestCase
 	 **/
 	public function delete_task_returns_true_on_success(): void
 	{
-		// Stub many collaborators to bypass DB.
-		$this->aliasMock('Illuminate\Support\Facades\DB')
-			->shouldReceive('transaction')
-			->once()
-			->andReturnUsing(fn ($closure) => $closure());
+		$taskId = (string) Str::uuid();
+		$now = now();
 
-		$this->aliasMock('App\Models\ProjectTask')
-			->shouldReceive('find')->andReturn(null); // each loop skip
-		$this->aliasMock('App\Models\TaskFile')
-			->shouldReceive('where')->andReturnSelf()
-			->getMock()->shouldReceive('pluck')->andReturnSelf()
-			->getMock()->shouldReceive('toArray')->andReturn([]);
-		$this->aliasMock('App\Models\Utility')
-			->shouldReceive('checkFileExistsnDelete');
+		DB::table('project_tasks')->insert([
+			'id' => $taskId,
+			'code' => 'PT-' . Str::upper(Str::random(12)),
+			'name' => 'Delete task fixture',
+			'created_by' => DC::DEFAULT_UUID,
+			'updated_by' => DC::DEFAULT_UUID,
+			'created_at' => $now,
+			'updated_at' => $now,
+		]);
 
-		$this->assertTrue(ProjectTask::deleteTask([7, 8]));
+		try {
+			// DB-backed fixture keeps deleteTask() inside its real transaction path.
+			$this->assertTrue(ProjectTask::deleteTask([$taskId]));
+			$this->assertDatabaseMissing('project_tasks', ['id' => $taskId]);
+		} finally {
+			DB::table('project_tasks')->where('id', $taskId)->delete();
+		}
 	}
 
 	protected function tearDown(): void

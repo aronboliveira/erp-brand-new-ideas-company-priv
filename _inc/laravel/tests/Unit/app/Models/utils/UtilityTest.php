@@ -3428,7 +3428,11 @@ class UtilityTest extends TestCase
 			@unlink($tempDir . '/.env.testing');
 			unlink($tempDir . '/.env');
 			rmdir($tempDir);
-			$this->markTestIncomplete('Cannot test chmod-based failure as root');
+
+			$missingDir = sys_get_temp_dir() . '/missing_env_' . uniqid();
+			app()->setBasePath($missingDir);
+			$this->assertFalse(Utility::setEnvironmentValue(['NEW' => 'val']));
+			app()->setBasePath($origBasePath);
 			return;
 		}
 		chmod($tempDir . '/.env.testing', 0000);

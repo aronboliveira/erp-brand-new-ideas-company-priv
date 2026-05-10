@@ -40,8 +40,8 @@ class UsersTableSeederTest extends TestCase
 	/**
 	 ** @test
 	 *
-	 ** Seeds permissions, roles, users, settings, chart accounts, and bank accounts
-	 ** when run() is invoked (no return value).
+	 ** Seeds permissions, roles, users, settings, chart accounts, bank accounts,
+	 ** and persists collision-free user UUIDs.
 	 **/
 	public function it_seeds_permissions_roles_users_and_related_entities()
 	{
@@ -57,7 +57,7 @@ class UsersTableSeederTest extends TestCase
 		$this->assertDatabaseCount((new BankAccount)->getTable(), 0);
 		$this->assertDatabaseCount(DatabaseConstants::TABLE_SETTINGS, 0);
 
-		// Run the seeder (returns void)
+		// Run the seeder.
 		(new UsersTableSeeder())->run();
 
 		// USERS: super-admin, admin, company, accountant, client => 5
@@ -101,15 +101,19 @@ class UsersTableSeederTest extends TestCase
 
 		// SETTINGS: 3 disks × 2 settings = 6
 		$this->assertDatabaseCount(DatabaseConstants::TABLE_SETTINGS, 6);
-	}
+		$uuids = \DB::table(DatabaseConstants::TABLE_USERS)
+			->pluck('id')
+			->all();
 
-	/**
-	 ** @test
-	 *
-	 ** Marks incomplete: cannot simulate exceeding the UUID retry limit.
-	 **/
-	public function it_marks_uuid_retry_limit_as_incomplete()
-	{
-		$this->markTestIncomplete('Cannot simulate >100,000 duplicate UUID attempts in a unit test.');
+		$this->assertIsArray($uuids);
+		$this->assertContains(DatabaseConstants::DEFAULT_UUID, $uuids);
+		$this->assertSame($uuids, array_values(array_unique($uuids)));
+
+		foreach ($uuids as $uuid) {
+			$this->assertMatchesRegularExpression(
+				'/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
+				(string) $uuid
+			);
+		}
 	}
 }

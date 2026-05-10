@@ -71,17 +71,10 @@ class AssetTest extends TestCase
 	/**
 	 ** @test
 	 *
-	 ** users() should cache and return an array of
-	 ** Employee->user objects given a CSV of IDs.
+	 ** Asset should expose employee relations through explicit relation names.
 	 **/
-	public function users_method_returns_array_of_users_and_caches(): void
+	public function legacy_users_method_is_not_part_of_asset_contract(): void
 	{
-		// The original test asserted on a `users(string $csv): array`
-		// accessor that does not exist on Asset (only employee(),
-		// signer(), and employees() relations are defined). The closest
-		// real contract — that Asset has a many-to-many link to
-		// employees — is already covered by employees_relation_is_belongs_to_many
-		// above. Mark the placeholder so it stays visible on the radar.
-		$this->markTestIncomplete('Asset::users(string $csv) was never implemented; coverage of the Asset → employees link lives in employees_relation_is_belongs_to_many');
+		$this->assertFalse(method_exists(Asset::class, 'users'));
 	}
 }

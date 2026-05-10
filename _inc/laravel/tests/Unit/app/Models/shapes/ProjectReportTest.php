@@ -2,10 +2,12 @@
 
 namespace Tests\Unit\Models;
 
+use App\Config\Constants\DatabaseConstants as DC;
 use App\Models\ProjectReport;
-use Mockery;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
-use Tests\Concerns\SafeAliasMock;
 
 class ProjectReportTest extends TestCase
 {
@@ -15,14 +17,6 @@ class ProjectReportTest extends TestCase
         \DB::unprepared('SET FOREIGN_KEY_CHECKS=0');
     }
 
-	use SafeAliasMock;
-
-	protected function tearDown(): void
-	{
-		Mockery::close();
-        parent::tearDown();
-	}
-
 	/**
 	 ** @test
 	 **
@@ -31,24 +25,27 @@ class ProjectReportTest extends TestCase
 	 **/
 	public function assign_user_returns_concatenated_names(): void
 	{
-		$user1 = (object)['name' => 'Alice'];
-		$user2 = (object)['name' => 'Bob'];
+		$user1 = User::create([
+			'name' => 'Alice',
+			'email' => 'project-report-alice-' . Str::uuid() . '@test.local',
+			'password' => bcrypt('secret'),
+			'lang' => 'en',
+		]);
+		$user2 = User::create([
+			'name' => 'Bob',
+			'email' => 'project-report-bob-' . Str::uuid() . '@test.local',
+			'password' => bcrypt('secret'),
+			'lang' => 'en',
+		]);
+		$missingId = (string) Str::uuid();
 
-		$this->aliasMock('App\Models\User')
-			->shouldReceive('find')
-			->with('u1')
-			->andReturn($user1)
-			->getMock()
-			->shouldReceive('find')
-			->with('u2')
-			->andReturn($user2)
-			->getMock()
-			->shouldReceive('find')
-			->with('u3')
-			->andReturnNull();
-
-		$result = ProjectReport::assignUser('u1,u2,u3');
-		$this->assertSame('Alice,Bob,', $result);
+		try {
+			// DB-backed fixture avoids Mockery alias order dependence once User is autoloaded.
+			$result = ProjectReport::assignUser("{$user1->id},{$user2->id},{$missingId}");
+			$this->assertSame('Alice,Bob,', $result);
+		} finally {
+			DB::table('users')->whereIn('id', [$user1->id, $user2->id])->delete();
+		}
 	}
 
 	/**
@@ -58,18 +55,25 @@ class ProjectReportTest extends TestCase
 	 **/
 	public function milestone_returns_title_or_empty(): void
 	{
-		$m = (object)['title' => 'Phase 1'];
-		$this->aliasMock('App\Models\Milestone')
-			->shouldReceive('find')
-			->with(10)
-			->andReturn($m)
-			->getMock()
-			->shouldReceive('find')
-			->with(99)
-			->andReturnNull();
+		$milestoneId = (string) Str::uuid();
+		$missingId = (string) Str::uuid();
+		$now = now();
 
-		$this->assertSame('Phase 1', ProjectReport::milestone(10));
-		$this->assertSame('',       ProjectReport::milestone(99));
+		DB::table('milestones')->insert([
+			'id' => $milestoneId,
+			'title' => 'Phase 1',
+			'created_by' => DC::DEFAULT_UUID,
+			'updated_by' => DC::DEFAULT_UUID,
+			'created_at' => $now,
+			'updated_at' => $now,
+		]);
+
+		try {
+			$this->assertSame('Phase 1', ProjectReport::milestone($milestoneId));
+			$this->assertSame('', ProjectReport::milestone($missingId));
+		} finally {
+			DB::table('milestones')->where('id', $milestoneId)->delete();
+		}
 	}
 
 	/**
@@ -79,17 +83,24 @@ class ProjectReportTest extends TestCase
 	 **/
 	public function status_returns_name_or_empty(): void
 	{
-		$s = (object)['name' => 'Done'];
-		$this->aliasMock('App\Models\TaskStage')
-			->shouldReceive('find')
-			->with(5)
-			->andReturn($s)
-			->getMock()
-			->shouldReceive('find')
-			->with(0)
-			->andReturnNull();
+		$stageId = (string) Str::uuid();
+		$missingId = (string) Str::uuid();
+		$now = now();
 
-		$this->assertSame('Done', ProjectReport::status(5));
-		$this->assertSame('',     ProjectReport::status(0));
+		DB::table('task_stages')->insert([
+			'id' => $stageId,
+			'name' => 'Done',
+			'created_by' => DC::DEFAULT_UUID,
+			'updated_by' => DC::DEFAULT_UUID,
+			'created_at' => $now,
+			'updated_at' => $now,
+		]);
+
+		try {
+			$this->assertSame('Done', ProjectReport::status($stageId));
+			$this->assertSame('', ProjectReport::status($missingId));
+		} finally {
+			DB::table('task_stages')->where('id', $stageId)->delete();
+		}
 	}
 }
