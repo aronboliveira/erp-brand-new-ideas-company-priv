@@ -123,6 +123,14 @@ green (290 tests, 348 assertions), `composer phpstan` is clean, and
 `tests/Unit --no-coverage` previous broad baseline is green (10,598 tests,
 20,492 assertions) before the retry-backoff test additions.
 
+Latest finance quarantine check (2026-05-10, Codex): added finance-only
+post-write quarantine overlay/audit tables, opt-in payment post-write
+validation, strict invalid rollback before outbox dispatch, and dispatcher
+blocking for quarantined operation ledgers. Migration applied to app and test
+MySQL DBs. `tests/Unit/app/Services/Reliability` is green
+(21 tests, 127 assertions), full `tests/Unit --no-coverage` is green
+(10,604 tests, 20,515 assertions), and `composer phpstan` is clean.
+
 ---
 
 ## TASK A — Bills Models Namespace Finalization ✅ DONE
@@ -380,6 +388,34 @@ Use builders only where the business impact justifies the overhead. By
 default, circuit breakers persist for `medium`, `high`, and `critical`
 criticality, while `trivial` and `low` work stays unguarded unless a caller
 explicitly enables the breaker.
+
+---
+
+## TASK K — Finance Post-Write Quarantine ✅ DONE
+
+**Status:** Implemented 2026-05-10 by Codex.
+
+Added:
+
+- New migration:
+  `database/migrations/2026_05_10_150000_create_operation_quarantine_tables.php`.
+- Durable overlay tables: `operation_quarantines` and
+  `operation_quarantine_audits`.
+- Models: `OperationQuarantine` and `OperationQuarantineAudit`.
+- Services: `FinancePostWriteValidator`, `QuarantineService`,
+  `QuarantineRemediationJudge`, `PostWriteValidationResult`, and
+  `QuarantineDecision`.
+- Exception: `QuarantineRollbackRequiredException`.
+- Finance adoption: invoice/bill payment create/delete opt into
+  `post_write_validation => true`; invalid finance state rolls back before
+  outbox creation, then writes quarantine/audit records against the operation
+  ledger.
+- Dispatcher gate: `FinanceOutboxDispatcher` refuses to dispatch finance
+  outbox messages for ledgers with unresolved quarantine overlays.
+
+Keep quarantine narrow. It is not a generic CRUD guard; use it only for extreme
+critical procedures where invalid business state would be worse than the
+additional DB reads, audit writes, and downstream blocking.
 
 ---
 

@@ -15,6 +15,9 @@ more than normal Laravel logs:
 - `operational_events` — durable operational event timeline for medium+ work.
 - `circuit_breaker_states` — durable state for guarded critical call paths.
 - `circuit_breaker_calls` — sliding-window call history for circuit decisions.
+- `operation_quarantines` — overlay records for extreme post-write validation
+  failures that must block downstream use.
+- `operation_quarantine_audits` — append-only quarantine decision timeline.
 
 These tables are not finance-only. Finance postings are the first integration
 because they are mission-critical, but employee status decisions, irreversible
@@ -131,6 +134,35 @@ This is still a monolithic callback/signal flow. Future queue, Redis, database
 queue, or stream/broker adoption should keep the same outbox table as the
 commit boundary and only replace how pending rows are drained.
 
+## Post-write quarantine
+
+Quarantine is intentionally narrower than the general reliability layer. It is
+for extreme critical procedures where the database can accept a schema-valid but
+business-invalid row, and where allowing the row to continue would be more
+dangerous than the overhead of extra validation/audit writes.
+
+Current production scope is finance payments only:
+
+- invoice payment create/delete
+- bill payment create/delete
+
+These paths opt into `FinanceOperationService` post-write validation through
+`post_write_validation => true`. The validator fetches the persisted payment and
+linked finance record after the write callback, before outbox creation. It checks
+critical payment fields, bank account references, payment ownership links,
+overpayment/imbalance, and payment-status consistency.
+
+If validation fails, `QuarantineRollbackRequiredException` rolls back the domain
+transaction before any outbox row is created. After rollback, `QuarantineService`
+writes the overlay quarantine record, audit entries, and a critical operational
+event against the existing operation ledger. Source finance rows are not marked
+directly; the overlay table is the canonical quarantine signal for this slice.
+
+Do not enable quarantine for routine CRUD, lightweight customization, ordinary
+imports, or non-critical stage movement. Use operation ledgers, outbox, retry, or
+normal validation first. Add quarantine only when a specific business invariant
+justifies the DB reads, audit writes, and downstream blocking.
+
 ## Rollback and compensation
 
 Two rollback surfaces are now defined:
@@ -153,9 +185,9 @@ visible, and queryable instead of disappearing into normal Laravel logs.
 
 Every durable row should have an `expires_at`. `ReliabilityRetentionService`
 currently prunes expired finished rows, circuit breaker calls, closed/disabled
-circuit breaker states, and can compress verbose operational events for a
-single operation. Do not introduce unbounded outbox/ledger/circuit writes
-without a retention plan.
+circuit breaker states, resolved quarantine overlays, and can compress verbose
+operational events for a single operation. Do not introduce unbounded
+outbox/ledger/circuit/quarantine writes without a retention plan.
 
 ## Tests
 
@@ -166,15 +198,14 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local check after the retry/circuit breaker slice:
+Latest local check after the finance quarantine slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-19 tests, 115 assertions, 0 errors, 0 failures.
+21 tests, 127 assertions, 0 errors, 0 failures.
 
-previous broad tests/Unit --no-coverage baseline before the retry backoff
-test additions:
-10,598 tests, 20,492 assertions, 0 errors, 0 failures.
+tests/Unit --no-coverage:
+10,604 tests, 20,515 assertions, 0 errors, 0 failures.
 ```
 
 Do not run `php artisan test`; this project uses `vendor/bin/phpunit` directly.
