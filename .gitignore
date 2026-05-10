@@ -254,6 +254,8 @@ tmp/
 tmp/**
 /utils/
 /utils/**
+AGENTS.md
+**/AGENTS.md
 
 # local runtime / backup noise
 all_branches_log.txt
