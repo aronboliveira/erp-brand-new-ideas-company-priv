@@ -1,6 +1,6 @@
 # NEXT STEPS
 
-> Last updated: 2026-05-09
+> Last updated: 2026-05-10
 > **Cross-references:** [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) (open issues list) · [`CURRENT_WORKING_ISSUES.md`](CURRENT_WORKING_ISSUES.md) (completed sessions) · [`CURRENT_WORKING_ISSUES_WORK.md`](CURRENT_WORKING_ISSUES_WORK.md) (work journal) · [`RESOLVED_ISSUES.md`](RESOLVED_ISSUES.md) (resolved archive) · [`TODO_LATER.MD`](TODO_LATER.MD) (deferred items) · [`README.md`](README.md) (notes overview) · `_inc/laravel/.notes/.llms/.guidelines/` (coding patterns) · [`.tmp/claude/20260808/HANDOFF.md`](../../../.tmp/claude/20260808/HANDOFF.md) (latest agent handoff)
 
 ---
@@ -20,7 +20,7 @@ Deprecations: 38, Skipped: 8, Incomplete: 4.
 ```
 
 The up-to-date Codex handoff lives in
-[`.tmp/codex/20260509/handsoff.md`](../../../.tmp/codex/20260509/handsoff.md).
+[`.tmp/codex/20260510/handsoff.md`](../../../.tmp/codex/20260510/handsoff.md).
 
 | Cluster | Sites | Disposition |
 |---|---:|---|
@@ -55,6 +55,34 @@ Stale items now closed by later Claude commits:
 9. ~~**Finish Claude's remaining Unit-suite failures**~~ — ✅ RESOLVED 2026-05-09 (RT-007..RT-009 fixed; `tests/Unit` now 0 errors / 0 failures)
 10. **3-way merge of 531 overlapping files** — PHPStan annotations + agent crash-prevention patterns. See `AGENT_BRANCH_MERGE_LOG.md`.
 11. **Review and apply agent's 2,832 file deletions** — Mainly TS rollback from agent branch.
+
+## RECENTLY COMPLETED (2026-05-10)
+
+### Finance Reliability Dispatcher Slice
+
+- Finance invoice/bill payment create/delete now run through
+  `FinanceOperationService`, committing the domain mutation, operation ledger,
+  operation step, and finance outbox intent together.
+- `FinanceOutboxDispatcher` drains `finance.ledger` rows through monolith-local
+  signals for journal control, banking API shells, communication API shells,
+  ledger reversal review, and webhook shells.
+- Post-commit dispatch failures now use simple retry scheduling, then
+  `dead_letter` plus `finance.compensation.required` / `compensating` ledger
+  state when attempts are exhausted.
+- Client redirects flash `reliability_operation`; the admin footer loads
+  `public/assets/js/routes/reliability/operation-feedback.js` to show a
+  SweetAlert/progress-bar status modal and poll the operation status route.
+- New command: `php artisan reliability:dispatch-finance-outbox`.
+
+Next finance-first reliability work before HR/project/warehouse adoption:
+
+1. Add domain-specific journal-entry posting callbacks behind the accepted
+   journal-control signal.
+2. Add banking adapter shells that can be toggled between no-op, sandbox, and
+   real providers.
+3. Add actual reversal/compensation handlers for deleted/failed payment flows.
+4. Only after that, extend the pattern to HR decisions, project closure,
+   products, warehouse/stock, and CRM workflows.
 
 ---
 

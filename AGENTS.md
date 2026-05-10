@@ -102,6 +102,15 @@ to app and test MySQL DBs; `tests/Unit/app/Services/Reliability` is green
 green (2 tests), full `tests/Unit --no-coverage` is green
 (10,586 tests, 20,432 assertions), and `composer phpstan` is clean.
 
+Latest finance reliability dispatcher check (2026-05-10, Codex): invoice/bill
+payment create/delete now use `FinanceOperationService`, local finance outbox
+dispatch, simple retry/dead-letter, compensation-required state, and client
+status feedback. `tests/Unit/app/Services/Reliability` is green
+(11 tests, 73 assertions), `tests/Feature/FinancialRouteHardeningTest.php` is
+green (275 tests, 288 assertions), full `tests/Unit --no-coverage` is green
+(10,590 tests, 20,457 assertions), `composer phpstan` is clean, and
+`npx --no-install eslint . --max-warnings=50` is clean.
+
 ---
 
 ## TASK A — Bills Models Namespace Finalization ✅ DONE
@@ -282,7 +291,7 @@ Verified:
 
 ---
 
-## TASK I — Reliability Foundation: Outbox/Inbox + Operation Ledger ✅ FIRST PASS DONE
+## TASK I — Reliability Foundation: Outbox/Inbox + Operation Ledger ✅ FINANCE SLICE DONE
 
 **Status:** Implemented 2026-05-10 by Codex.
 
@@ -296,18 +305,31 @@ Added:
   `OperationalEvent`.
 - Services under `app/Services/Reliability/`: `CriticalOperationService`,
   `ReliabilityPolicy`, `OutboxService`, `InboxService`,
-  `OperationalEventService`, `ReliabilityRetentionService`.
+  `OperationalEventService`, `ReliabilityRetentionService`,
+  `FinanceOperationService`, `FinanceOutboxDispatcher`,
+  `FinanceCompensationService`, and client payload helpers.
 - First production integration: `LedgerActionService` wraps IFRS client invoice,
   supplier bill, and client receipt posting as critical operations with step
   logs and outbox intent.
-- Tests: `tests/Unit/app/Services/Reliability/ReliabilityFoundationTest.php`.
+- Finance controller integration: invoice/bill payment create/delete now commit
+  operation ledger + step + outbox intent with the payment mutation, then drain
+  local finance outbox signals after commit.
+- Client feedback: admin footer reads flashed `reliability_operation`, loads
+  `assets/js/routes/reliability/operation-feedback.js`, shows SweetAlert
+  progress, and polls `reliability.operations.show` (URI appears as
+  `reliabilities/operations/{operation}` after route pluralization).
+- Command: `php artisan reliability:dispatch-finance-outbox`.
+- Tests: `tests/Unit/app/Services/Reliability/ReliabilityFoundationTest.php`
+  and `tests/Unit/app/Services/Reliability/FinanceOutboxDispatcherTest.php`.
 
 Guideline:
 `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 
-Next adoption targets should be high-impact non-finance workflows: employee
-status decisions, final project closure/deletion, warehouse commits, payroll,
-external imports, and long-running/heavy I/O jobs.
+Next reliability work should stay finance-first until journal callbacks,
+banking adapter shells, and real reversal/compensation handlers are hardened.
+Only then broaden to high-impact non-finance workflows: employee status
+decisions, final project closure/deletion, warehouse/stock commits, products,
+payroll, CRM, external imports, and long-running/heavy I/O jobs.
 
 ---
 

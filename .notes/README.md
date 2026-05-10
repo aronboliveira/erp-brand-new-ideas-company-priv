@@ -10,11 +10,12 @@ Durable notes, instructions, and structured references for agents and developers
 - Root-wide or historical monorepo context belongs here in `.notes/`.
 - The legacy `./notes/` directory has been merged into this directory and
   should only contain redirect stubs.
-- The current continuation handoff is `.tmp/codex/20260509/handsoff.md`;
+- The current continuation handoff is `.tmp/codex/20260510/handsoff.md`;
   `.tmp/claude/20260808/HANDOFF.md` is the recovered pre-continuation stop.
-- The 2026-05-10 reliability foundation pass added generic outbox/inbox,
-  operation ledger, operation step, and operational event support in the
-  Laravel app. Canonical guide:
+- The 2026-05-10 reliability passes added generic outbox/inbox, operation
+  ledger, operation step, operational event support, and the first finance-only
+  monolith outbox dispatcher/compensation slice for invoice and bill payments.
+  Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 
 ## Formats
