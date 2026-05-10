@@ -216,6 +216,11 @@ class DatabaseConstants
 	public const TABLE_MSG = 'messages';
 	public const TABLE_WEBHOOK_STG = 'webhook_settings';
 	public const TABLE_GEN_PSL_OPT = 'generate_payslip_options';
+	public const TABLE_OPERATION_LEDGERS = 'operation_ledgers';
+	public const TABLE_OPERATION_STEPS = 'operation_steps';
+	public const TABLE_OUTBOX_MESSAGES = 'outbox_messages';
+	public const TABLE_INBOX_MESSAGES = 'inbox_messages';
+	public const TABLE_OPERATIONAL_EVENTS = 'operational_events';
 	#endregion
 	// * ==== FIELD NAMES =====
 	#region
