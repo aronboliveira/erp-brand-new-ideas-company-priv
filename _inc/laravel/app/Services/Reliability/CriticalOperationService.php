@@ -69,8 +69,11 @@ class CriticalOperationService
             $result = DB::transaction(function () use ($callback, $ledger, $options) {
                 $result = $this->invokeCallback($callback, $ledger);
 
-                if (isset($options['outbox']) && is_array($options['outbox'])) {
-                    $this->recordOutbox($ledger, $options['outbox']);
+                if (array_key_exists('outbox', $options)) {
+                    $outbox = $this->resolveOutboxOptions($options['outbox'], $result, $ledger);
+                    if ($outbox) {
+                        $this->recordOutbox($ledger, $outbox);
+                    }
                 }
 
                 return $result;
@@ -218,6 +221,24 @@ class CriticalOperationService
             'stream' => $ledger->domain,
             'status' => ReliabilityPolicy::OUTBOX_PENDING,
         ], $options));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function resolveOutboxOptions(mixed $outbox, mixed $result, OperationLedger $ledger): ?array
+    {
+        if (is_callable($outbox)) {
+            $callable = \Closure::fromCallable($outbox);
+            $parameters = (new ReflectionFunction($callable))->getNumberOfParameters();
+            $outbox = match (true) {
+                $parameters >= 2 => $callable($result, $ledger),
+                $parameters === 1 => $callable($result),
+                default => $callable(),
+            };
+        }
+
+        return is_array($outbox) ? $outbox : null;
     }
 
     private function runVolatile(string $operationType, callable $callback, string $criticality, string $storageMode, array $options): mixed

@@ -69,6 +69,8 @@ class OutboxService
         $message->forceFill([
             'status' => ReliabilityPolicy::OUTBOX_DISPATCHED,
             'dispatched_at' => now(),
+            'failed_at' => null,
+            'next_retry_at' => null,
             'last_error' => null,
         ])->save();
 
@@ -77,11 +79,14 @@ class OutboxService
 
     public function markFailed(OutboxMessage $message, string $error, bool $deadLetter = false): OutboxMessage
     {
+        $retryCount = ((int) $message->retry_count) + 1;
+
         $message->forceFill([
             'status' => $deadLetter ? ReliabilityPolicy::OUTBOX_DEAD_LETTER : ReliabilityPolicy::OUTBOX_FAILED,
             'failed_at' => now(),
             'last_error' => $error,
-            'retry_count' => ((int) $message->retry_count) + 1,
+            'retry_count' => $retryCount,
+            'next_retry_at' => $deadLetter ? null : now()->addSeconds(ReliabilityPolicy::retryDelaySeconds($retryCount)),
         ])->save();
 
         return $message;

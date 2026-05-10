@@ -70,6 +70,7 @@ use App\Http\Controllers\{
     OtherPaymentController,
     OvertimeController,
     PaymentController,
+    Reliability\OperationStatusController,
     PayslipController as PYSC,
     PayslipTypeController,
     PerformanceTypeController,
@@ -208,6 +209,9 @@ R::get(VW::INV . '/pdf/{id}', [InvoiceController::class, 'invoice'])->name(VW::I
 R::get('/dashboard', [DSBC::class, DSBC::ACC_DSB_IDX])
     ->name(DSBC::ENTITY)
     ->middleware([MWC::XSS, MWC::REV]);
+R::get('/reliability/operations/{operation}', [OperationStatusController::class, 'show'])
+    ->name('reliability.operations.show')
+    ->middleware([MWC::AUTH, MWC::XSS, MWC::REV]);
 
 // Footer public pages (stub routes to avoid ViewException in admin footer)
 R::get('/terms-and-conditions', fn() => redirect('/dashboard'))->name('terms_and_conditions');

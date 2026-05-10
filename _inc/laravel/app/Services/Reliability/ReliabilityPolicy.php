@@ -17,6 +17,9 @@ final class ReliabilityPolicy
     public const STATUS_COMMITTED = 'committed';
     public const STATUS_POSTED_TO_LEDGER = 'posted_to_ledger';
     public const STATUS_FAILED = 'failed';
+    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_COMPENSATING = 'compensating';
+    public const STATUS_COMPENSATED = 'compensated';
     public const STATUS_CLOSED = 'closed';
 
     public const STEP_PENDING = 'pending';
@@ -24,12 +27,14 @@ final class ReliabilityPolicy
     public const STEP_SUCCEEDED = 'succeeded';
     public const STEP_FAILED = 'failed';
     public const STEP_SKIPPED = 'skipped';
+    public const STEP_COMPENSATED = 'compensated';
 
     public const OUTBOX_PENDING = 'pending';
     public const OUTBOX_READY = 'ready';
     public const OUTBOX_DISPATCHED = 'dispatched';
     public const OUTBOX_FAILED = 'failed';
     public const OUTBOX_DEAD_LETTER = 'dead_letter';
+    public const OUTBOX_CANCELLED = 'cancelled';
 
     private const CRITICALITY_ORDER = [
         self::CRITICALITY_TRIVIAL => 0,
@@ -109,6 +114,13 @@ final class ReliabilityPolicy
             },
             default => 30,
         };
+    }
+
+    public static function retryDelaySeconds(int $attempt): int
+    {
+        $attempt = max(1, $attempt);
+
+        return min(300, $attempt * 30);
     }
 
     public static function highestCriticality(iterable $criticalities): string

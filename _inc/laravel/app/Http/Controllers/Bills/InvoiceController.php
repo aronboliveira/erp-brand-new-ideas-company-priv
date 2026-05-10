@@ -24,6 +24,7 @@ use App\Models\{
     InvoiceBankTransfer,
     InvoicePayment,
     InvoiceProduct,
+    OperationLedger,
     Plan,
     ProductService,
     ProductServiceCategory,
@@ -32,6 +33,14 @@ use App\Models\{
     Transaction,
     User,
     Utility
+};
+use App\Services\Reliability\{
+    CriticalOperationService,
+    FinanceOperationResult,
+    FinanceOperationService,
+    FinanceOutboxDispatcher,
+    ReliabilityClientPayloadService,
+    ReliabilityPolicy
 };
 use App\Traits\ChecksLogin;
 use App\Traits\ChecksPermissions;
@@ -582,7 +591,7 @@ final class InvoiceController extends Controller
             if (($invoice->getSubTotal() ?? 0) < ($req->amount ?? 0)) return back()->with('error', 'Amount exceeds subtotal.');
             if ($r = self::_validate($req->all(), ['date' => 'required', 'amount' => 'required', 'account_id' => 'required'])) return $r;
             try {
-                DB::transaction(function () use ($req, $invoice, $base, $action) {
+                $financeOperation = (new FinanceOperationService())->run('finance.invoice.payment.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($req, $invoice, $base, $action): array {
                     $pay = InvoicePayment::create([
                         'invoice_id'     => $invoice->id,
                         'date'           => $req->date ?? now()->toDateString(),
@@ -593,10 +602,44 @@ final class InvoiceController extends Controller
                         'description'    => $req->description ?? null,
                         'add_receipt'    => $this->_handleReceipt($req),
                     ]);
-                    $this->_syncInvoiceAfterPayment($invoice, $pay, $req->amount ?? 0);
+                    $this->_syncInvoiceAfterPayment($invoice, $pay, (float) ($req->amount ?? 0));
+                    $operations->recordStep($ledger, 'finance.invoice_payment.persisted', 'Persist invoice payment and balances', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => [
+                            'invoice_id' => (string) $invoice->id,
+                            'payment_id' => (string) $pay->id,
+                            'amount' => (float) ($pay->amount ?? 0),
+                        ],
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
                     Log::info("[{$base}::{$action}] payment added", ['payment_id' => $pay->id ?? null, 'invoice_id' => $invoice->id ?? null]);
-                });
-                return back()->with('success', 'Payment successfully added.');
+
+                    return [
+                        'invoice_id' => (string) $invoice->id,
+                        'payment_id' => (string) $pay->id,
+                        'account_id' => isset($pay->account_id) ? (string) $pay->account_id : null,
+                        'amount' => (float) ($pay->amount ?? 0),
+                        'date' => (string) ($pay->date ?? ''),
+                        'direction' => 'client_receipt',
+                    ];
+                }, [
+                    'summary' => 'Create invoice payment',
+                    'subject_type' => Invoice::class,
+                    'subject_id' => (string) $invoice->id,
+                    'actor_id' => $req->user()?->id,
+                    'context' => ['invoice_id' => (string) $invoice->id, 'amount' => (float) ($req->amount ?? 0)],
+                    'event_type' => 'finance.invoice.payment_created',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'finance.invoice.payment_created:' . ($result['payment_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceOutbox($financeOperation);
+
+                return back()
+                    ->with('success', 'Payment successfully added.')
+                    ->with('reliability_operation', $this->financeReliabilityPayload($financeOperation, $dispatchReport));
             } catch (Throwable $e) {
                 Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
                 return defaultUndefinedException($req, $e, $class . '::' . $action);
@@ -615,9 +658,17 @@ final class InvoiceController extends Controller
             Log::debug("[{$base}::{$action}] start", ['payment_id' => $paymentId ?? null, 'invoice_id' => $invoiceId ?? null]);
             if (($r = self::guard($req, 'delete payment invoice', VW::INV . '.index')) !== true) return $r;
             try {
-                DB::transaction(function () use ($req, $invoiceId, $paymentId, $base, $action) {
+                $financeOperation = (new FinanceOperationService())->run('finance.invoice.payment.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($req, $invoiceId, $paymentId, $base, $action): array {
                     $pay     = InvoicePayment::findOrFail($paymentId);
                     $invoice = Invoice::findOrFail($invoiceId);
+                    $payload = [
+                        'invoice_id' => (string) $invoice->id,
+                        'payment_id' => (string) $pay->id,
+                        'account_id' => isset($pay->account_id) ? (string) $pay->account_id : null,
+                        'amount' => (float) ($pay->amount ?? 0),
+                        'date' => (string) ($pay->date ?? ''),
+                        'direction' => 'client_receipt_reversal',
+                    ];
                     $pay->delete();
                     InvoiceBankTransfer::where('payment_id', $paymentId)->delete();
                     $due = $invoice->getDue();
@@ -629,9 +680,33 @@ final class InvoiceController extends Controller
                     Transaction::destroyTransaction($paymentId, 'Partial', ucfirst(PermissionsConstants::CT));
                     Utility::updateUserBalance(PermissionsConstants::CT, $invoice->customer_id ?? null, $pay->amount ?? 0, 'credit');
                     Utility::bankAccountBalance($pay->account_id ?? null, $pay->amount ?? 0, 'debit');
+                    $operations->recordStep($ledger, 'finance.invoice_payment.deleted', 'Delete invoice payment and reverse balances', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'result' => ['invoice_status' => $invoice->status],
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
                     Log::info("[{$base}::{$action}] payment deleted", ['payment_id' => $paymentId ?? null]);
-                });
-                return back()->with('success', 'Payment successfully deleted.');
+
+                    return array_merge($payload, ['invoice_status' => $invoice->status]);
+                }, [
+                    'summary' => 'Delete invoice payment',
+                    'subject_type' => Invoice::class,
+                    'subject_id' => (string) $invoiceId,
+                    'actor_id' => $req->user()?->id,
+                    'context' => ['invoice_id' => (string) $invoiceId, 'payment_id' => (string) $paymentId],
+                    'event_type' => 'finance.invoice.payment_deleted',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'finance.invoice.payment_deleted:' . ($result['payment_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceOutbox($financeOperation);
+
+                return back()
+                    ->with('success', 'Payment successfully deleted.')
+                    ->with('reliability_operation', $this->financeReliabilityPayload($financeOperation, $dispatchReport));
             } catch (Throwable $e) {
                 Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
                 return defaultUndefinedException($req, $e, $class . '::' . $action);
@@ -1319,5 +1394,24 @@ final class InvoiceController extends Controller
         Log::info('syncInvoiceAfterPayment done', [
             'invoice_id' => $invoice->id
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function dispatchFinanceOutbox(FinanceOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new FinanceOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function financeReliabilityPayload(FinanceOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromFinanceResult($operation, $dispatchReport);
     }
 }

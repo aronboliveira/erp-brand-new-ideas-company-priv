@@ -55,6 +55,12 @@
         show_toastr('error', {!! json_encode($message) !!});
     </script>
 @endif
+@if($operation = Session::get('reliability_operation'))
+    <script>
+        window.__reliabilityOperation = @json($operation);
+    </script>
+    <script defer src="{{ asset('assets/js/routes/reliability/operation-feedback.js') }}"></script>
+@endif
 @if($settings['enable_cookie'] == 'on')
     @includeIf(ExtendingLayoutsConstants::CKC)
 @endif

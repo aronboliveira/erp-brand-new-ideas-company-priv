@@ -25,6 +25,7 @@ use App\Models\{
     ChartOfAccount,
     CustomField,
     DebitNote,
+    OperationLedger,
     ProductService,
     ProductServiceCategory,
     StockReport,
@@ -32,6 +33,14 @@ use App\Models\{
     User,
     Utility,
     Vendor
+};
+use App\Services\Reliability\{
+    CriticalOperationService,
+    FinanceOperationResult,
+    FinanceOperationService,
+    FinanceOutboxDispatcher,
+    ReliabilityClientPayloadService,
+    ReliabilityPolicy
 };
 use App\Traits\ChecksLogin;
 use App\Traits\ChecksPermissions;
@@ -845,9 +854,9 @@ final class BillController extends Controller
             $req->validate(['date' => 'required|date', 'amount' => 'required|numeric', 'account_id' => 'required|numeric']);
             $this->logExecutionTime($valStart, $action, 'validateRequest');
             try {
-                $result = null;
+                $mailResult = null;
                 $txnStart = microtime(true);
-                DB::transaction(function () use ($req, $billId, &$result, $user, $action, $base) {
+                $financeOperation = (new FinanceOperationService())->run('finance.bill.payment.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($req, $billId, &$mailResult, $user, $action, $base): array {
                     $createStart = microtime(true);
                     $bp = BillPayment::create([
                         'bill_id' => $billId,
@@ -922,13 +931,47 @@ final class BillController extends Controller
                             'company_name' => $vendor->name,
                         ];
                         $mailStart = microtime(true);
-                        $result = Utility::sendEmailTemplate('new_bill_payment', [$vendor->id => $vendor->email], $payload);
+                        $mailResult = Utility::sendEmailTemplate('new_bill_payment', [$vendor->id => $vendor->email], $payload);
                         $this->logExecutionTime($mailStart, $action, 'sendEmail');
-                        Log::info("[{$base}::{$action}] payment email sent", ['bill_id' => $bill->id, 'success' => $result['is_success'] ?? false]);
+                        Log::info("[{$base}::{$action}] payment email sent", ['bill_id' => $bill->id, 'success' => $mailResult['is_success'] ?? false]);
                     }
-                });
+                    $operations->recordStep($ledger, 'finance.bill_payment.persisted', 'Persist bill payment and balances', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => [
+                            'bill_id' => (string) $bill->id,
+                            'payment_id' => (string) $bp->id,
+                            'amount' => (float) ($bp->amount ?? 0),
+                        ],
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return [
+                        'bill_id' => (string) $bill->id,
+                        'payment_id' => (string) $bp->id,
+                        'account_id' => isset($bp->account_id) ? (string) $bp->account_id : null,
+                        'amount' => (float) ($bp->amount ?? 0),
+                        'date' => (string) ($bp->date ?? ''),
+                        'direction' => 'vendor_payment',
+                    ];
+                }, [
+                    'summary' => 'Create bill payment',
+                    'subject_type' => Bill::class,
+                    'subject_id' => (string) $billId,
+                    'actor_id' => $req->user()?->id,
+                    'context' => ['bill_id' => (string) $billId, 'amount' => (float) ($req->amount ?? 0)],
+                    'event_type' => 'finance.bill.payment_created',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'finance.bill.payment_created:' . ($result['payment_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                ]);
                 $this->logExecutionTime($txnStart, $action, 'transaction');
-                return back()->with('success', 'Payment successfully added.' . (($result['is_success'] ?? true) ? '' : '<br><span class="text-danger">' . $result['error'] . '</span>'));
+                $dispatchReport = $this->dispatchFinanceOutbox($financeOperation);
+
+                return back()
+                    ->with('success', 'Payment successfully added.' . (($mailResult['is_success'] ?? true) ? '' : '<br><span class="text-danger">' . $mailResult['error'] . '</span>'))
+                    ->with('reliability_operation', $this->financeReliabilityPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'bill_id' => $billId]);
                 Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName(), 'input_keys' => array_keys($req->all())]);
@@ -958,10 +1001,18 @@ final class BillController extends Controller
             Log::info("[{$base}::{$action}] start", [UC::COL_USER_ID => $user?->id, 'payment_id' => $paymentId, 'bill_id' => $billId, 'method' => $method]);
             try {
                 $txnStart = microtime(true);
-                DB::transaction(function () use ($billId, $paymentId, $user, $action, $base) {
+                $financeOperation = (new FinanceOperationService())->run('finance.bill.payment.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($billId, $paymentId, $user, $action, $base): array {
                     $findStart = microtime(true);
                     $payment = BillPayment::findOrFail($paymentId);
                     $bill = Bill::findOrFail($billId);
+                    $payload = [
+                        'bill_id' => (string) $bill->id,
+                        'payment_id' => (string) $payment->id,
+                        'account_id' => isset($payment->account_id) ? (string) $payment->account_id : null,
+                        'amount' => (float) ($payment->amount ?? 0),
+                        'date' => (string) ($payment->date ?? ''),
+                        'direction' => 'vendor_payment_reversal',
+                    ];
                     $this->logExecutionTime($findStart, $action, 'findModels');
                     $delStart = microtime(true);
                     BillPayment::destroy($paymentId);
@@ -985,9 +1036,33 @@ final class BillController extends Controller
                     $txDelStart = microtime(true);
                     Transaction::destroyTransaction($paymentId, 'Partial', 'Vendor');
                     $this->logExecutionTime($txDelStart, $action, 'destroyTransaction');
-                });
+                    $operations->recordStep($ledger, 'finance.bill_payment.deleted', 'Delete bill payment and reverse balances', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'result' => ['bill_status' => $bill->status],
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return array_merge($payload, ['bill_status' => $bill->status]);
+                }, [
+                    'summary' => 'Delete bill payment',
+                    'subject_type' => Bill::class,
+                    'subject_id' => (string) $billId,
+                    'actor_id' => $req->user()?->id,
+                    'context' => ['bill_id' => (string) $billId, 'payment_id' => (string) $paymentId],
+                    'event_type' => 'finance.bill.payment_deleted',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'finance.bill.payment_deleted:' . ($result['payment_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                ]);
                 $this->logExecutionTime($txnStart, $action, 'transaction');
-                return back()->with('success', 'Payment successfully deleted.');
+                $dispatchReport = $this->dispatchFinanceOutbox($financeOperation);
+
+                return back()
+                    ->with('success', 'Payment successfully deleted.')
+                    ->with('reliability_operation', $this->financeReliabilityPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'bill_id' => $billId, 'payment_id' => $paymentId]);
                 Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
@@ -1544,5 +1619,24 @@ final class BillController extends Controller
         $next = is_numeric($last) ? ((int)$last + 1) : $last;
         Log::info('Next Bill Identifier', [UC::COL_USER_ID => $user?->id, 'last' => $last, 'next' => $next]);
         return $next;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function dispatchFinanceOutbox(FinanceOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new FinanceOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function financeReliabilityPayload(FinanceOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromFinanceResult($operation, $dispatchReport);
     }
 }
