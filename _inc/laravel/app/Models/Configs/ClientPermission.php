@@ -431,6 +431,7 @@ class ClientPermission extends Model
             return self::$clientLikePermNamesLowerCache;
 
         $clsCandidates = [
+            'App\\Config\\Constants\\SeedersTemplating',
             'Database\\Seeders\\SeedersTemplating',
             'App\\Seeders\\SeedersTemplating',
             'App\\Support\\SeedersTemplating',

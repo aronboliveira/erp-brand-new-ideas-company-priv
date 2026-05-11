@@ -256,6 +256,8 @@ class CrmOperationService
     {
         $reference = $payload['deal_id']
             ?? $payload['lead_id']
+            ?? $payload['customer_id']
+            ?? $payload['vendor_id']
             ?? $payload['client_id']
             ?? $payload['permission_id']
             ?? $payload['reference']

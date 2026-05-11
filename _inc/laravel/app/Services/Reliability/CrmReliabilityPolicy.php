@@ -14,6 +14,7 @@ class CrmReliabilityPolicy
     public const CLUSTER_DEAL_STATUS = 'deal_status';
     public const CLUSTER_STAGE_PIPELINE = 'stage_pipeline_movement';
     public const CLUSTER_ACCESS_ASSIGNMENT = 'crm_access_assignment';
+    public const CLUSTER_RELATIONSHIP_RECORD = 'relationship_record';
     public const CLUSTER_CATALOG_CONTEXT = 'catalog_context';
     public const CLUSTER_CONFIGURATION = 'configuration';
     public const CLUSTER_TRANSIENT_ACTIVITY = 'transient_activity';
@@ -117,6 +118,9 @@ class CrmReliabilityPolicy
         if (preg_match('/permission|client_link|client_unlink|user_link|user_unlink|assign|owner|member|access/', $needle) === 1) {
             return self::CLUSTER_ACCESS_ASSIGNMENT;
         }
+        if (preg_match('/customer|vendor|relationship_record|crm\.client\.(created|updated|deleted)|client_record/', $needle) === 1) {
+            return self::CLUSTER_RELATIONSHIP_RECORD;
+        }
         if (preg_match('/stage|pipeline|order|move|kanban/', $needle) === 1) {
             return self::CLUSTER_STAGE_PIPELINE;
         }
@@ -172,7 +176,11 @@ class CrmReliabilityPolicy
         }
 
         if (
-            in_array($cluster, [self::CLUSTER_ACCESS_ASSIGNMENT, self::CLUSTER_STAGE_PIPELINE], true)
+            in_array($cluster, [
+                self::CLUSTER_ACCESS_ASSIGNMENT,
+                self::CLUSTER_STAGE_PIPELINE,
+                self::CLUSTER_RELATIONSHIP_RECORD,
+            ], true)
             || (float) $signals['deal_value'] >= self::DEAL_VALUE_ELEVATED
             || (int) $signals['bulk_items'] >= self::BULK_ITEMS_ELEVATED
             || (int) $signals['metadata_risk_score'] > 0
@@ -237,7 +245,7 @@ class CrmReliabilityPolicy
         $attempts = match ($cluster) {
             self::CLUSTER_LEAD_CONVERSION => 5,
             self::CLUSTER_DEAL_STATUS, self::CLUSTER_ACCESS_ASSIGNMENT => 4,
-            self::CLUSTER_DEAL_LIFECYCLE, self::CLUSTER_STAGE_PIPELINE => 3,
+            self::CLUSTER_DEAL_LIFECYCLE, self::CLUSTER_STAGE_PIPELINE, self::CLUSTER_RELATIONSHIP_RECORD => 3,
             self::CLUSTER_LEAD_LIFECYCLE, self::CLUSTER_CATALOG_CONTEXT => 2,
             default => 1,
         };
@@ -273,6 +281,7 @@ class CrmReliabilityPolicy
             self::CLUSTER_DEAL_STATUS,
             self::CLUSTER_ACCESS_ASSIGNMENT,
             self::CLUSTER_STAGE_PIPELINE,
+            self::CLUSTER_RELATIONSHIP_RECORD,
         ], true)) {
             return true;
         }
@@ -353,6 +362,7 @@ class CrmReliabilityPolicy
             self::CLUSTER_DEAL_STATUS,
             self::CLUSTER_DEAL_LIFECYCLE,
             self::CLUSTER_ACCESS_ASSIGNMENT,
+            self::CLUSTER_RELATIONSHIP_RECORD,
         ], true)) {
             return false;
         }
@@ -384,6 +394,17 @@ class CrmReliabilityPolicy
             'deal_client_link',
             'deal_user_link',
             'deal_permission',
+            'customer',
+            'customer_delete',
+            'customer_identity',
+            'customer_user_link',
+            'vendor',
+            'vendor_delete',
+            'vendor_identity',
+            'vendor_user_link',
+            'client',
+            'client_delete',
+            'client_identity',
         ];
 
         return array_intersect($coreKeys, array_keys($validation->validationErrors)) !== [];
@@ -546,7 +567,7 @@ class CrmReliabilityPolicy
             }
         }
 
-        if (preg_match('/convert|permission|client|status|won|loss|delete|destroy/', strtolower($eventType)) === 1) {
+        if (preg_match('/convert|permission|client|customer|vendor|relationship|status|won|loss|delete|destroy/', strtolower($eventType)) === 1) {
             $score++;
         }
 
@@ -565,6 +586,8 @@ class CrmReliabilityPolicy
     {
         $value = $payload['deal_id']
             ?? $payload['lead_id']
+            ?? $payload['customer_id']
+            ?? $payload['vendor_id']
             ?? $payload['client_id']
             ?? $payload['permission_id']
             ?? $payload['subject_id']

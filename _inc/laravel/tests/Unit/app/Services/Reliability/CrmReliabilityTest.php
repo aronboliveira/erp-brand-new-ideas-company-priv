@@ -15,6 +15,8 @@ use App\Models\{
     CircuitBreakerCall,
     CircuitBreakerState,
     ClientDeal,
+    ClientPermission,
+    Customer,
     Deal,
     Lead,
     LeadStage,
@@ -23,7 +25,9 @@ use App\Models\{
     OutboxMessage,
     Pipeline,
     Stage,
-    User
+    User,
+    UserDeal,
+    Vendor
 };
 use App\Services\Reliability\{
     CrmCompensationService,
@@ -153,6 +157,184 @@ class CrmReliabilityTest extends TestCase
 
         $this->assertTrue($validation->passed);
         $this->assertSame('crm', $validation->domain);
+    }
+
+    #[Test]
+    public function customer_relationship_operation_creates_crm_outbox_and_validation_step(): void
+    {
+        $customerId = (string) Str::uuid();
+
+        $result = (new CrmOperationService())->run(
+            'crm.customer.create',
+            function () use ($customerId): array {
+                Customer::forceCreate([
+                    'id' => $customerId,
+                    UC::COL_NM => 'CRM Customer ' . Str::uuid(),
+                    UC::COL_EM => 'crm-customer-' . Str::uuid() . '@example.test',
+                    'contact' => '11988887777',
+                    DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
+                ]);
+
+                return [
+                    'customer_id' => $customerId,
+                    'expected_creator_id' => DC::DEFAULT_UUID,
+                    'source_table' => DC::TABLE_CUSTOMERS,
+                ];
+            },
+            [
+                'summary' => 'Create CRM customer relationship record',
+                'subject_type' => Customer::class,
+                'subject_id' => $customerId,
+                'event_type' => 'crm.customer.created',
+                'post_write_validation' => true,
+                'payload' => fn(array $payload): array => $payload,
+            ],
+        );
+
+        $ledger = $result->ledger();
+        $outbox = $result->outboxMessage();
+
+        $this->assertInstanceOf(OperationLedger::class, $ledger);
+        $this->assertInstanceOf(OutboxMessage::class, $outbox);
+        $this->assertSame('relationship_record', data_get($outbox?->metadata, 'crm_reliability.cluster'));
+        $this->assertTrue((bool) data_get($outbox?->metadata, 'circuit_breaker.eligible'));
+        $this->assertDatabaseHas(DC::TABLE_OPERATION_STEPS, [
+            'operation_ledger_id' => $ledger?->id,
+            'step_key' => 'crm.post_write_validation',
+            'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+        ]);
+    }
+
+    #[Test]
+    public function relationship_validator_rejects_persisted_customer_user_type_mismatch(): void
+    {
+        $linkedUser = $this->user('client');
+        $customer = Customer::forceCreate([
+            UC::COL_NM => 'CRM Customer Linked ' . Str::uuid(),
+            UC::COL_EM => 'crm-linked-customer-' . Str::uuid() . '@example.test',
+            UC::COL_USER_ID => $linkedUser->id,
+            'contact' => '11999990000',
+            DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
+        ]);
+
+        $validation = (new CrmPostWriteValidator())->validate('crm.customer.updated', [
+            'customer_id' => (string) $customer->id,
+            'expected_creator_id' => DC::DEFAULT_UUID,
+        ]);
+
+        $this->assertFalse($validation->passed);
+        $this->assertArrayHasKey('customer_user_link', $validation->validationErrors);
+    }
+
+    #[Test]
+    public function deal_relationship_validator_accepts_multiple_links_and_permission_changes(): void
+    {
+        $deal = $this->deal();
+        $clientA = $this->user('client');
+        $clientB = $this->user('client');
+        $member = $this->user('company');
+
+        foreach ([$clientA, $clientB] as $client) {
+            ClientDeal::create([
+                PJC::COL_DL_ID => $deal->id,
+                PJC::COL_CLIENT_ID => $client->id,
+            ]);
+        }
+        UserDeal::create([
+            PJC::COL_DL_ID => $deal->id,
+            UC::COL_USER_ID => $member->id,
+        ]);
+        $permission = ClientPermission::create([
+            PJC::COL_DL_ID => $deal->id,
+            PJC::COL_CLIENT_ID => $clientA->id,
+            DC::TABLE_PERMISSIONS => 'view task,view activity',
+        ]);
+
+        $validator = new CrmPostWriteValidator();
+
+        $this->assertTrue($validator->validate('crm.deal.client_linked', [
+            'deal_id' => (string) $deal->id,
+            'client_ids' => [(string) $clientA->id, (string) $clientB->id],
+        ])->passed);
+        $this->assertTrue($validator->validate('crm.deal.user_linked', [
+            'deal_id' => (string) $deal->id,
+            'user_ids' => [(string) $member->id],
+        ])->passed);
+        $this->assertTrue($validator->validate('crm.deal.permission_changed', [
+            'permission_id' => (string) $permission->id,
+            'deal_id' => (string) $deal->id,
+            'client_id' => (string) $clientA->id,
+            'expected_permissions_count' => 2,
+        ])->passed);
+    }
+
+    #[Test]
+    public function persistent_vendor_relationship_corruption_routes_to_crm_quarantine_manual_review(): void
+    {
+        $vendorId = (string) Str::uuid();
+        $operationKey = 'crm-vendor-quarantine-' . Str::uuid();
+
+        for ($i = 0; $i < 4; $i++) {
+            OperationLedger::create([
+                'operation_key' => 'crm-vendor-prior-failure-' . $i . '-' . Str::uuid(),
+                'operation_type' => 'crm.vendor.update',
+                'domain' => 'crm',
+                'criticality' => ReliabilityPolicy::CRITICALITY_CRITICAL,
+                'status' => ReliabilityPolicy::STATUS_FAILED,
+                'subject_type' => Vendor::class,
+                'subject_id' => $vendorId,
+                'summary' => 'Prior failed CRM vendor reconciliation attempt',
+                'started_at' => now()->subMinutes(20),
+                'failed_at' => now()->subMinutes(10),
+                'expires_at' => now()->addDay(),
+            ]);
+        }
+
+        try {
+            (new CrmOperationService())->run(
+                'crm.vendor.update',
+                function () use ($vendorId): array {
+                    Vendor::forceCreate([
+                        'id' => $vendorId,
+                        UC::COL_NM => 'CRM Vendor ' . Str::uuid(),
+                        UC::COL_EM => '',
+                        'contact' => '11977776666',
+                        DC::COL_TABLE_CREATOR => DC::DEFAULT_UUID,
+                    ]);
+
+                    return [
+                        'vendor_id' => $vendorId,
+                        'expected_creator_id' => DC::DEFAULT_UUID,
+                        'source_table' => DC::TABLE_VENDORS,
+                    ];
+                },
+                [
+                    'operation_key' => $operationKey,
+                    'summary' => 'Update CRM vendor with persistent identity corruption',
+                    'subject_type' => Vendor::class,
+                    'subject_id' => $vendorId,
+                    'event_type' => 'crm.vendor.updated',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $payload): array => $payload,
+                ],
+            );
+
+            $this->fail('Persistent CRM vendor relationship corruption should route to quarantine.');
+        } catch (QuarantineRollbackRequiredException $exception) {
+            $this->assertNotNull($exception->quarantine());
+            $this->assertSame('crm', $exception->quarantine()?->domain);
+            $this->assertSame(ReliabilityPolicy::QUARANTINE_MANUAL_REVIEW, $exception->quarantine()?->status);
+        }
+
+        $ledger = OperationLedger::where('operation_key', $operationKey)->firstOrFail();
+        $this->assertDatabaseHas(DC::TABLE_OPERATION_QUARANTINES, [
+            'operation_ledger_id' => $ledger->id,
+            'source_table' => DC::TABLE_VENDORS,
+            'source_record_id' => $vendorId,
+            'domain' => 'crm',
+            'status' => ReliabilityPolicy::QUARANTINE_MANUAL_REVIEW,
+            'remediation_decision' => ReliabilityPolicy::QUARANTINE_DECISION_MANUAL_REVIEW,
+        ]);
     }
 
     #[Test]

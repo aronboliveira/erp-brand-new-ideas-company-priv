@@ -25,6 +25,12 @@ use App\Models\{
     User,
     Utility
 };
+use App\Services\Reliability\{
+    CrmOperationResult,
+    CrmOperationService,
+    CrmOutboxDispatcher,
+    ReliabilityClientPayloadService
+};
 use Illuminate\Http\{
     JsonResponse,
     RedirectResponse,
@@ -165,33 +171,61 @@ class ClientController extends Controller
                 }
 
                 $t = microtime(true);
-                $client = User::create([
-                    'name'              => $request->name,
-                    'email'             => $request->email,
-                    'job_title'         => $request->job_title,
-                    'password'          => Hash::make($request->password),
-                    UC::COL_TP => self::SINGULAR,
-                    'lang'              => $defaultLang,
-                    DC::COL_TABLE_CREATOR => $creator->creatorId(),
-                    'email_verified_at' => now()->toDateTimeString(),
-                ]);
+                $operation = (new CrmOperationService())->run(
+                    'crm.client.create',
+                    function () use ($request, $creator, $defaultLang): array {
+                        $client = User::create([
+                            'name'              => $request->name,
+                            'email'             => $request->email,
+                            'job_title'         => $request->job_title,
+                            'password'          => Hash::make($request->password),
+                            UC::COL_TP => self::SINGULAR,
+                            'lang'              => $defaultLang,
+                            DC::COL_TABLE_CREATOR => $creator->creatorId(),
+                            'email_verified_at' => now()->toDateTimeString(),
+                        ]);
+
+                        if ((Utility::settings()['new_client'] ?? 0) == 1) {
+                            $client->assignRole(Role::findByName(self::SINGULAR));
+                        }
+
+                        return [
+                            'client_id' => (string) $client->id,
+                            'expected_creator_id' => (string) $creator->creatorId(),
+                            'source_table' => DC::TABLE_USERS,
+                            'send_email' => (Utility::settings()['new_client'] ?? 0) == 1,
+                            'client_name' => (string) $client->name,
+                            'client_email' => (string) $client->email,
+                            'client_password' => (string) $request->password,
+                        ];
+                    },
+                    [
+                        'summary' => 'Create CRM client relationship record',
+                        'subject_type' => User::class,
+                        'actor_id' => $creator->id,
+                        'event_type' => 'crm.client.created',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
                 $this->logExecutionTime($t, $action . '::persistClient', 'completed');
 
                 $resp = [];
-                if ((Utility::settings()['new_client'] ?? 0) == 1) {
+                $operationPayload = is_array($operation->value()) ? $operation->value() : [];
+                if (($operationPayload['send_email'] ?? false) === true) {
                     $t = microtime(true);
-                    $client->assignRole(Role::findByName(self::SINGULAR));
                     $resp = Utility::sendEmailTemplate(
                         'new_client',
-                        [$client->email],
+                        [(string) $operationPayload['client_email']],
                         [
-                            'client_name'     => $client->name,
-                            'client_email'    => $client->email,
-                            'client_password' => $request->password,
+                            'client_name'     => $operationPayload['client_name'],
+                            'client_email'    => $operationPayload['client_email'],
+                            'client_password' => $operationPayload['client_password'],
                         ]
                     );
                     $this->logExecutionTime($t, $action . '::sendEmail', 'completed');
                 }
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
 
                 return redirect()->route(VW::CLT . '.index')->with(
                     'success',
@@ -200,7 +234,7 @@ class ClientController extends Controller
                             ? '<br><span class="text-danger">' . $resp['error'] . '</span>'
                             : ''
                         )
-                );
+                )->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (AuthorizationException $e) {
                 return (method_exists($request, 'ajax') ? $request->ajax() : ($request->ajax ?? false))
                     ? response()->json(['error' => __('Permission Denied.')], 401)
@@ -351,20 +385,42 @@ class ClientController extends Controller
                 $this->logExecutionTime($t, $action . '::validate', 'completed');
 
                 $t = microtime(true);
-                $client->fill([
-                    'name'  => $request->name,
-                    'email' => $request->email,
-                    'password' => $request->filled('password')
-                        ? Hash::make($request->password)
-                        : $client->password,
-                ])->save();
+                $operation = (new CrmOperationService())->run(
+                    'crm.client.update',
+                    function () use ($request, $client): array {
+                        $client->fill([
+                            'name'  => $request->name,
+                            'email' => $request->email,
+                            'password' => $request->filled('password')
+                                ? Hash::make($request->password)
+                                : $client->password,
+                        ])->save();
+
+                        CustomField::saveData($client, $request->customField);
+
+                        return [
+                            'client_id' => (string) $client->id,
+                            'expected_creator_id' => (string) $client->created_by,
+                            'source_table' => DC::TABLE_USERS,
+                        ];
+                    },
+                    [
+                        'summary' => 'Update CRM client relationship record',
+                        'subject_type' => User::class,
+                        'subject_id' => (string) $client->id,
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'crm.client.updated',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
                 $this->logExecutionTime($t, $action . '::persistClient', 'completed');
 
-                $t = microtime(true);
-                CustomField::saveData($client, $request->customField);
-                $this->logExecutionTime($t, $action . '::persistCustomFields', 'completed');
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
 
-                return redirect()->back()->with('success', __('Client Updated Successfully!'));
+                return redirect()->back()
+                    ->with('success', __('Client Updated Successfully!'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 return redirect()->back()->with('error', $e->getMessage());
             }
@@ -394,10 +450,33 @@ class ClientController extends Controller
                 $this->logExecutionTime($t, $action . '::checkDependencies', 'ok');
 
                 $t = microtime(true);
-                $client->delete();
+                $clientId = (string) $client->id;
+                $operation = (new CrmOperationService())->run(
+                    'crm.client.delete',
+                    function () use ($client, $clientId): array {
+                        $client->delete();
+
+                        return [
+                            'client_id' => $clientId,
+                            'source_table' => DC::TABLE_USERS,
+                        ];
+                    },
+                    [
+                        'summary' => 'Delete CRM client relationship record',
+                        'subject_type' => User::class,
+                        'subject_id' => $clientId,
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'crm.client.deleted',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
                 $this->logExecutionTime($t, $action . '::delete', 'completed');
 
-                return redirect()->back()->with('success', __('Client Deleted Successfully!'));
+                return redirect()->back()
+                    ->with('success', __('Client Deleted Successfully!'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 return redirect()->back()->with('error', $e->getMessage());
             }
@@ -473,6 +552,22 @@ class ClientController extends Controller
                 return redirect()->back()->with('error', $e->getMessage());
             }
         }, ['client_id' => $id, 'uri' => $request->getRequestUri()]);
+    }
+
+    private function dispatchCrmOutbox(CrmOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new CrmOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function crmReliabilityPayload(CrmOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromCrmResult($operation, $dispatchReport);
     }
 
     protected static function _authorize(

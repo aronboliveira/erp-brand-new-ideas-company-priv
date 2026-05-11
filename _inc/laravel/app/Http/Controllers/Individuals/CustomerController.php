@@ -21,6 +21,12 @@ use App\Models\{
     Transaction,
     Utility
 };
+use App\Services\Reliability\{
+    CrmOperationResult,
+    CrmOperationService,
+    CrmOutboxDispatcher,
+    ReliabilityClientPayloadService
+};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{
@@ -172,13 +178,34 @@ class CustomerController extends Controller
                 }
 
                 $t = microtime(true);
-                $payload  = self::buildCustomerPayload($req, $u->creatorId());
-                $customer = Customer::create($payload);
-                CustomField::saveData($customer, $req->input('customField', []));
+                $operation = (new CrmOperationService())->run(
+                    'crm.customer.create',
+                    function () use ($req, $u): array {
+                        $payload  = self::buildCustomerPayload($req, $u->creatorId());
+                        $customer = Customer::create($payload);
+                        CustomField::saveData($customer, $req->input('customField', []));
+
+                        return [
+                            'customer_id' => (string) $customer->id,
+                            'expected_creator_id' => (string) $u->creatorId(),
+                            'source_table' => DC::TABLE_CUSTOMERS,
+                        ];
+                    },
+                    [
+                        'summary' => 'Create CRM customer relationship record',
+                        'subject_type' => Customer::class,
+                        'actor_id' => $u->id,
+                        'event_type' => 'crm.customer.created',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
                 $this->logExecutionTime($t, $action . '::persist', 'completed');
 
                 return redirect()->route(VW::CST . '.index')
-                    ->with('success', __('Customer successfully created.'));
+                    ->with('success', __('Customer successfully created.'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("$action failed: " . $e->getMessage());
                 return defaultUndefinedException($req, $e, $action);
@@ -258,12 +285,34 @@ class CustomerController extends Controller
 
             try {
                 $t = microtime(true);
-                $customer->update(self::buildCustomerPayload($req, $user->creatorId()));
-                CustomField::saveData($customer, $req->input('customField', []));
+                $operation = (new CrmOperationService())->run(
+                    'crm.customer.update',
+                    function () use ($req, $customer, $user): array {
+                        $customer->update(self::buildCustomerPayload($req, $user->creatorId()));
+                        CustomField::saveData($customer, $req->input('customField', []));
+
+                        return [
+                            'customer_id' => (string) $customer->id,
+                            'expected_creator_id' => (string) $user->creatorId(),
+                            'source_table' => DC::TABLE_CUSTOMERS,
+                        ];
+                    },
+                    [
+                        'summary' => 'Update CRM customer relationship record',
+                        'subject_type' => Customer::class,
+                        'subject_id' => (string) $customer->id,
+                        'actor_id' => $user->id,
+                        'event_type' => 'crm.customer.updated',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
                 $this->logExecutionTime($t, $action . '::persist', 'completed');
 
                 return redirect()->route(VW::CST . '.index')
-                    ->with('success', __('Customer successfully updated.'));
+                    ->with('success', __('Customer successfully updated.'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("$action failed: " . $e->getMessage());
                 return defaultUndefinedException($req, $e, $action);
@@ -284,11 +333,33 @@ class CustomerController extends Controller
 
             try {
                 $t = microtime(true);
-                $customer->delete();
+                $customerId = (string) $customer->id;
+                $operation = (new CrmOperationService())->run(
+                    'crm.customer.delete',
+                    function () use ($customer, $customerId): array {
+                        $customer->delete();
+
+                        return [
+                            'customer_id' => $customerId,
+                            'source_table' => DC::TABLE_CUSTOMERS,
+                        ];
+                    },
+                    [
+                        'summary' => 'Delete CRM customer relationship record',
+                        'subject_type' => Customer::class,
+                        'subject_id' => $customerId,
+                        'actor_id' => $user->id,
+                        'event_type' => 'crm.customer.deleted',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
                 $this->logExecutionTime($t, $action . '::delete', 'completed');
 
                 return redirect()->route(VW::CST . '.index')
-                    ->with('success', __('Customer successfully deleted.'));
+                    ->with('success', __('Customer successfully deleted.'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("$action failed: " . $e->getMessage());
                 return defaultUndefinedException($req, $e, $action);
@@ -761,6 +832,22 @@ class CustomerController extends Controller
                 return defaultUndefinedException($req, $e, $action);
             }
         }, ['uri' => $req->getRequestUri(), 'ip' => $req->ip(), 'q' => $req->input('search')]);
+    }
+
+    private function dispatchCrmOutbox(CrmOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new CrmOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function crmReliabilityPayload(CrmOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromCrmResult($operation, $dispatchReport);
     }
 
     private static function _authorize(Request $req, string $perm): ?RedirectResponse

@@ -267,6 +267,12 @@ class CrmOutboxDispatcher
             $signals[] = $this->signal('access-projection', 'crm.access', 'crm_access_projection_shell', 'CRM access projections can reconcile user/client permissions.');
         }
 
+        if (str_contains($eventType, 'customer') || str_contains($eventType, 'vendor') || str_contains($eventType, 'crm.client.')) {
+            $signals[] = $this->signal('relationship-projection', 'crm.relationships', 'crm_relationship_projection_shell', 'CRM relationship projections can refresh durable customer/vendor/client records.');
+            $signals[] = $this->signal('finance-relationship-bridge', 'finance.crm_relationship_bridge', 'finance_relationship_context_shell', 'Finance can reconcile billing and payable context after CRM relationship changes.');
+            $signals[] = $this->signal('project-relationship-bridge', 'project.crm_relationship_bridge', 'project_relationship_context_shell', 'Project planning can reconcile client context after CRM relationship changes.');
+        }
+
         if (str_contains($eventType, 'deal.') || str_contains($eventType, 'lead.')) {
             $signals[] = $this->signal('project-crm-bridge', 'project.crm_bridge', 'project_crm_signal_shell', 'Project planning can observe accepted CRM lifecycle decisions.');
         }

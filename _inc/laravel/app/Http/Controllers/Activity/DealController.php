@@ -649,24 +649,56 @@ class DealController extends Controller
         $this->logExecutionTime($dealLoadStart, $action, 'loadDeal');
         if ($deal->created_by !== $user?->ownerId()) throw new AuthorizationException;
         $uids = array_filter((array)$req->users);
+        if ($uids === []) {
+          return redirect()->back()->with('success', __('Users successfully updated!'));
+        }
         $emailLoadStart = microtime(true);
         $emails = User::whereIn('id', $uids)->pluck('email', 'id')->toArray();
         $this->logExecutionTime($emailLoadStart, $action, 'loadEmails');
-        DB::beginTransaction();
-        $assignStart = microtime(true);
-        foreach ($uids as $uid) UserDeal::create(['deal_id' => $deal->id, UC::COL_USER_ID => $uid]);
-        $this->logExecutionTime($assignStart, $action, 'assignUsers');
+        $operation = (new CrmOperationService())->run(
+          'crm.deal.user_link',
+          function () use ($deal, $uids, $emails, $user, $action): array {
+            $assignStart = microtime(true);
+            foreach ($uids as $uid) UserDeal::create(['deal_id' => $deal->id, UC::COL_USER_ID => $uid]);
+            $this->logExecutionTime($assignStart, $action, 'assignUsers');
+
+            return [
+              'deal_id' => (string) $deal->id,
+              'user_ids' => array_values(array_map('strval', $uids)),
+              'emails' => $emails,
+              'email_payload' => [
+                'deal_name' => $deal->name,
+                'deal_pipeline' => $deal->pipeline->name,
+                'deal_stage' => $deal->stage->name,
+                'deal_status' => $deal->status,
+                'deal_price' => $user?->priceFormat($deal->price),
+              ],
+              'source_table' => DC::TABLE_USR_DLS,
+            ];
+          },
+          [
+            'summary' => 'Link CRM deal users',
+            'subject_type' => Deal::class,
+            'subject_id' => (string) $deal->id,
+            'actor_id' => $user?->id,
+            'event_type' => 'crm.deal.user_linked',
+            'post_write_validation' => true,
+            'payload' => fn(array $payload): array => $payload,
+          ],
+        );
+        $operationPayload = is_array($operation->value()) ? $operation->value() : [];
+        $resp = [];
         if ($emails) {
           $emailSendStart = microtime(true);
-          $dArr = ['deal_name' => $deal->name, 'deal_pipeline' => $deal->pipeline->name, 'deal_stage' => $deal->stage->name, 'deal_status' => $deal->status, 'deal_price' => $user?->priceFormat($deal->price)];
-          $resp = Utility::sendEmailTemplate('Assign Deal', $emails, $dArr);
+          $resp = Utility::sendEmailTemplate('Assign Deal', $emails, is_array($operationPayload['email_payload'] ?? null) ? $operationPayload['email_payload'] : []);
           $this->logExecutionTime($emailSendStart, $action, 'sendAssignEmails');
           Log::info("[{$class}::{$action}] users assigned", ['deal_id' => $deal->id, DC::TABLE_USERS => $uids]);
         }
-        DB::commit();
-        return redirect()->back()->with('success', __('Users successfully updated!') . (!empty($resp['error']) ? '<br><span class="text-danger">' . $resp['error'] . '</span>' : ''));
+        $dispatchReport = $this->dispatchCrmOutbox($operation);
+        return redirect()->back()
+          ->with('success', __('Users successfully updated!') . (!empty($resp['error']) ? '<br><span class="text-danger">' . $resp['error'] . '</span>' : ''))
+          ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
       } catch (\Throwable $e) {
-        DB::rollBack();
         Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'deal_id' => $id, 'method' => $method]);
         Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode()]);
         return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
@@ -690,10 +722,33 @@ class DealController extends Controller
         $this->logExecutionTime($dealLoadStart, $action, 'loadDeal');
         if ($deal->created_by !== $user?->ownerId()) throw new AuthorizationException;
         $delStart = microtime(true);
-        UserDeal::where([['deal_id', $id], [UC::COL_USER_ID, $userId]])->delete();
+        $operation = (new CrmOperationService())->run(
+          'crm.deal.user_unlink',
+          function () use ($id, $userId): array {
+            UserDeal::where([['deal_id', $id], [UC::COL_USER_ID, $userId]])->delete();
+
+            return [
+              'deal_id' => (string) $id,
+              'user_id' => (string) $userId,
+              'source_table' => DC::TABLE_USR_DLS,
+            ];
+          },
+          [
+            'summary' => 'Unlink CRM deal user',
+            'subject_type' => Deal::class,
+            'subject_id' => (string) $id,
+            'actor_id' => $user?->id,
+            'event_type' => 'crm.deal.user_unlinked',
+            'post_write_validation' => true,
+            'payload' => fn(array $payload): array => $payload,
+          ],
+        );
+        $dispatchReport = $this->dispatchCrmOutbox($operation);
         $this->logExecutionTime($delStart, $action, 'deleteUserLink');
         Log::info("[{$class}::{$action}] user removed", ['deal_id' => $id, UC::COL_USER_ID => $userId, 'method' => $method]);
-        return redirect()->back()->with('success', __('User successfully deleted!'));
+        return redirect()->back()
+          ->with('success', __('User successfully deleted!'))
+          ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
       } catch (\Throwable $e) {
         Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'deal_id' => $id, UC::COL_USER_ID => $userId]);
         Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -759,15 +814,40 @@ class DealController extends Controller
         if (($r = $this->authorizeOwner($request, $deal, 'edit deal')) instanceof RedirectResponse) return $r;
         $this->logExecutionTime($authStart, $action, 'authorizeOwner');
         $clients = array_filter($request->clients ?? []);
+        if ($clients === []) {
+          return redirect()->back()->with('error', __('Please Select Valid Clients!'))->with('status', DC::TABLE_CLIENTS);
+        }
         $txnStart = microtime(true);
-        DB::transaction(function () use ($deal, $clients, $action) {
-          $assignStart = microtime(true);
-          foreach ($clients as $cid) ClientDeal::create(['deal_id' => $deal->id, 'client_id' => $cid]);
-          $this->logExecutionTime($assignStart, $action, 'assignClientsLoop');
-        });
+        $operation = (new CrmOperationService())->run(
+          'crm.deal.client_link',
+          function () use ($deal, $clients, $action): array {
+            $assignStart = microtime(true);
+            foreach ($clients as $cid) ClientDeal::create(['deal_id' => $deal->id, 'client_id' => $cid]);
+            $this->logExecutionTime($assignStart, $action, 'assignClientsLoop');
+
+            return [
+              'deal_id' => (string) $deal->id,
+              'client_ids' => array_values(array_map('strval', $clients)),
+              'source_table' => 'client_deals',
+            ];
+          },
+          [
+            'summary' => 'Link CRM deal clients',
+            'subject_type' => Deal::class,
+            'subject_id' => (string) $deal->id,
+            'actor_id' => $request->user()?->id,
+            'event_type' => 'crm.deal.client_linked',
+            'post_write_validation' => true,
+            'payload' => fn(array $payload): array => $payload,
+          ],
+        );
+        $dispatchReport = $this->dispatchCrmOutbox($operation);
         $this->logExecutionTime($txnStart, $action, 'clientUpdateTransaction');
         Log::info("[{$class}::{$action}] assigned clients", ['deal_id' => $deal->id, DC::TABLE_CLIENTS => $clients]);
-        return $clients ? redirect()->back()->with('success', __('Clients successfully updated!'))->with('status', DC::TABLE_CLIENTS) : redirect()->back()->with('error', __('Please Select Valid Clients!'))->with('status', DC::TABLE_CLIENTS);
+        return redirect()->back()
+          ->with('success', __('Clients successfully updated!'))
+          ->with('status', DC::TABLE_CLIENTS)
+          ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
       } catch (AuthorizationException $e) {
         return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
       } catch (\Throwable $e) {
@@ -795,10 +875,34 @@ class DealController extends Controller
         if (($r = $this->authorizeOwner($request, $deal, 'edit deal')) instanceof RedirectResponse) return $r;
         $this->logExecutionTime($authStart, $action, 'authorizeOwner');
         $delStart = microtime(true);
-        ClientDeal::where('deal_id', $deal->id)->where('client_id', $clientId)->delete();
+        $operation = (new CrmOperationService())->run(
+          'crm.deal.client_unlink',
+          function () use ($deal, $clientId): array {
+            ClientDeal::where('deal_id', $deal->id)->where('client_id', $clientId)->delete();
+
+            return [
+              'deal_id' => (string) $deal->id,
+              'client_id' => (string) $clientId,
+              'source_table' => 'client_deals',
+            ];
+          },
+          [
+            'summary' => 'Unlink CRM deal client',
+            'subject_type' => Deal::class,
+            'subject_id' => (string) $deal->id,
+            'actor_id' => $request->user()?->id,
+            'event_type' => 'crm.deal.client_unlinked',
+            'post_write_validation' => true,
+            'payload' => fn(array $payload): array => $payload,
+          ],
+        );
+        $dispatchReport = $this->dispatchCrmOutbox($operation);
         $this->logExecutionTime($delStart, $action, 'deleteClientLink');
         Log::info("[{$class}::{$action}] removed client", ['deal_id' => $deal->id, 'client_id' => $clientId]);
-        return redirect()->back()->with('success', __('Client successfully deleted!'))->with('status', DC::TABLE_CLIENTS);
+        return redirect()->back()
+          ->with('success', __('Client successfully deleted!'))
+          ->with('status', DC::TABLE_CLIENTS)
+          ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
       } catch (AuthorizationException $e) {
         return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
       } catch (\Throwable $e) {
@@ -1498,14 +1602,43 @@ class DealController extends Controller
         $list = array_filter($request->permissions ?? []);
         $this->logExecutionTime($prepStart, $action, 'preparePermissionsList');
         $txnStart = microtime(true);
-        DB::transaction(function () use ($perm, $list, $clientId, $deal, $action) {
-          $persistStart = microtime(true);
-          $perm ? $perm->update([DC::TABLE_PERMISSIONS => implode(',', $list)]) : ($list && ClientPermission::create(['client_id' => $clientId, 'deal_id' => $deal->id, DC::TABLE_PERMISSIONS => implode(',', $list)]));
-          $this->logExecutionTime($persistStart, $action, 'persistPermissions');
-        });
+        $operation = (new CrmOperationService())->run(
+          'crm.deal.permission_change',
+          function () use ($perm, $list, $clientId, $deal, $action): array {
+            $persistStart = microtime(true);
+            $permission = $perm;
+            if ($permission) {
+              $permission->update([DC::TABLE_PERMISSIONS => implode(',', $list)]);
+            } elseif ($list) {
+              $permission = ClientPermission::create(['client_id' => $clientId, 'deal_id' => $deal->id, DC::TABLE_PERMISSIONS => implode(',', $list)]);
+            }
+            $this->logExecutionTime($persistStart, $action, 'persistPermissions');
+
+            return [
+              'permission_id' => $permission ? (string) $permission->id : null,
+              'deal_id' => (string) $deal->id,
+              'client_id' => (string) $clientId,
+              'expected_permissions_count' => count($list),
+              'source_table' => DC::TABLE_CLT_PRM,
+            ];
+          },
+          [
+            'summary' => 'Change CRM deal client permissions',
+            'subject_type' => Deal::class,
+            'subject_id' => (string) $deal->id,
+            'actor_id' => $request->user()?->id,
+            'event_type' => 'crm.deal.permission_changed',
+            'post_write_validation' => true,
+            'payload' => fn(array $payload): array => $payload,
+          ],
+        );
+        $dispatchReport = $this->dispatchCrmOutbox($operation);
         $this->logExecutionTime($txnStart, $action, 'permissionStoreTransaction');
         Log::info("[{$class}::{$action}] updated permissions", ['deal_id' => $deal->id, 'client_id' => $clientId, DC::TABLE_PERMISSIONS => $list]);
-        return redirect()->back()->with('success', __(ucfirst(DC::TABLE_PERMISSIONS) . ' successfully updated!'))->with('status', DC::TABLE_CLIENTS);
+        return redirect()->back()
+          ->with('success', __(ucfirst(DC::TABLE_PERMISSIONS) . ' successfully updated!'))
+          ->with('status', DC::TABLE_CLIENTS)
+          ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
       } catch (AuthorizationException $e) {
         return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
       } catch (\Throwable $e) {

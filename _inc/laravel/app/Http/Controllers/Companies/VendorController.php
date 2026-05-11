@@ -18,6 +18,12 @@ use App\Models\{
     Utility,
     Vendor
 };
+use App\Services\Reliability\{
+    CrmOperationResult,
+    CrmOperationService,
+    CrmOutboxDispatcher,
+    ReliabilityClientPayloadService
+};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{Cache, Crypt, DB, Log, Route, Validator, View as ViewFacade};
@@ -127,35 +133,63 @@ class VendorController extends Controller
                 if ($totalVendor >= $maxVendors && $maxVendors != -1) {
                     return back()->with('error', __('Your user limit is over, Please upgrade plan.'));
                 }
-                DB::transaction(function () use ($data, $request, $user, $base, $action) {
-                    $vendor = new Vendor();
-                    $vendor->vendor_id = $this->vendorNumber();
-                    $vendor->name = $data['name'];
-                    $vendor->contact = $data['contact'];
-                    $vendor->email = $data['email'];
-                    $vendor->tax_number = $request->tax_number;
-                    $vendor[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
-                    foreach (['billing', 'shipping'] as $zone) {
-                        foreach (['name', 'country', 'state', 'city', 'phone', 'zip', 'address'] as $field) {
-                            $key = "{$zone}_{$field}";
-                            $vendor->{$key} = $request->{$key} ?? '';
+                $operation = (new CrmOperationService())->run(
+                    'crm.vendor.create',
+                    function () use ($data, $request, $user, $base, $action): array {
+                        $vendor = new Vendor();
+                        $vendor->vendor_id = $this->vendorNumber();
+                        $vendor->name = $data['name'];
+                        $vendor->contact = $data['contact'];
+                        $vendor->email = $data['email'];
+                        $vendor->tax_number = $request->tax_number;
+                        $vendor[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
+                        foreach (['billing', 'shipping'] as $zone) {
+                            foreach (['name', 'country', 'state', 'city', 'phone', 'zip', 'address'] as $field) {
+                                $key = "{$zone}_{$field}";
+                                $vendor->{$key} = $request->{$key} ?? '';
+                            }
                         }
-                    }
-                    $vendor->lang = Utility::settingsById($user?->creatorId())[SettingsConstants::DEF_LNG] ?? '';
-                    $vendor->save();
-                    CustomField::saveData($vendor, $request->customField);
-                    $vendor->assignRole(Role::where('name', 'vendor')->firstOrFail());
-                    Log::info("[$base::$action] vendor created", ['id' => $vendor->id]);
-                    $notify = [
-                        'user_name' => $user?->name,
-                        'vendor_name' => $vendor->name,
-                        'vendor_email' => $vendor->email
-                    ];
-                    if (Utility::settingsById($user?->creatorId())['twilio_vendor_notification'] ?? false) {
-                        Utility::sendTwilioMsg($vendor->contact, 'new_vendor', $notify);
-                    }
-                });
-                return redirect()->route(self::ROUTE_INDEX)->with('success', __('Vendor successfully created.'));
+                        $vendor->lang = Utility::settingsById($user?->creatorId())[SettingsConstants::DEF_LNG] ?? '';
+                        $vendor->save();
+                        CustomField::saveData($vendor, $request->customField);
+                        $vendor->assignRole(Role::where('name', 'vendor')->firstOrFail());
+                        Log::info("[$base::$action] vendor created", ['id' => $vendor->id]);
+
+                        return [
+                            'vendor_id' => (string) $vendor->id,
+                            'expected_creator_id' => (string) $user?->creatorId(),
+                            'source_table' => DatabaseConstants::TABLE_VENDORS,
+                            'send_twilio' => (bool) (Utility::settingsById($user?->creatorId())['twilio_vendor_notification'] ?? false),
+                            'vendor_contact' => (string) $vendor->contact,
+                            'notify' => [
+                                'user_name' => $user?->name,
+                                'vendor_name' => $vendor->name,
+                                'vendor_email' => $vendor->email,
+                            ],
+                        ];
+                    },
+                    [
+                        'summary' => 'Create CRM vendor relationship record',
+                        'subject_type' => Vendor::class,
+                        'actor_id' => $user?->id,
+                        'event_type' => 'crm.vendor.created',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $operationPayload = is_array($operation->value()) ? $operation->value() : [];
+                if (($operationPayload['send_twilio'] ?? false) === true) {
+                    Utility::sendTwilioMsg(
+                        (string) $operationPayload['vendor_contact'],
+                        'new_vendor',
+                        is_array($operationPayload['notify'] ?? null) ? $operationPayload['notify'] : [],
+                    );
+                }
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
+
+                return redirect()->route(self::ROUTE_INDEX)
+                    ->with('success', __('Vendor successfully created.'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[$base::$action] error", ['exception' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $base . '::' . $action, route(self::ROUTE_INDEX));
@@ -225,21 +259,43 @@ class VendorController extends Controller
                     'contact' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/'
                 ];
                 $data = Validator::make($request->all(), $rules)->validate();
-                DB::transaction(function () use ($vendor, $request, $data, $base, $action) {
-                    $vendor->name = $data['name'];
-                    $vendor->contact = $data['contact'];
-                    $vendor->tax_number = $request->tax_number;
-                    foreach (['billing', 'shipping'] as $zone) {
-                        foreach (['name', 'country', 'state', 'city', 'phone', 'zip', 'address'] as $field) {
-                            $key = "{$zone}_{$field}";
-                            $vendor->{$key} = $request->{$key} ?? $vendor->{$key};
+                $operation = (new CrmOperationService())->run(
+                    'crm.vendor.update',
+                    function () use ($vendor, $request, $data, $base, $action): array {
+                        $vendor->name = $data['name'];
+                        $vendor->contact = $data['contact'];
+                        $vendor->tax_number = $request->tax_number;
+                        foreach (['billing', 'shipping'] as $zone) {
+                            foreach (['name', 'country', 'state', 'city', 'phone', 'zip', 'address'] as $field) {
+                                $key = "{$zone}_{$field}";
+                                $vendor->{$key} = $request->{$key} ?? $vendor->{$key};
+                            }
                         }
-                    }
-                    $vendor->save();
-                    CustomField::saveData($vendor, $request->customField);
-                    Log::info("[$base::$action] vendor updated", ['id' => $vendor->id]);
-                });
-                return redirect()->route(self::ROUTE_INDEX)->with('success', __('Vendor successfully updated.'));
+                        $vendor->save();
+                        CustomField::saveData($vendor, $request->customField);
+                        Log::info("[$base::$action] vendor updated", ['id' => $vendor->id]);
+
+                        return [
+                            'vendor_id' => (string) $vendor->id,
+                            'expected_creator_id' => (string) $vendor[DatabaseConstants::COL_TABLE_CREATOR],
+                            'source_table' => DatabaseConstants::TABLE_VENDORS,
+                        ];
+                    },
+                    [
+                        'summary' => 'Update CRM vendor relationship record',
+                        'subject_type' => Vendor::class,
+                        'subject_id' => (string) $vendor->id,
+                        'actor_id' => $user?->id,
+                        'event_type' => 'crm.vendor.updated',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
+
+                return redirect()->route(self::ROUTE_INDEX)
+                    ->with('success', __('Vendor successfully updated.'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[$base::$action] error", ['exception' => $e->getMessage()]);
                 return $e->getMessage() === 'owner'
@@ -260,8 +316,32 @@ class VendorController extends Controller
                 if (($c = self::guard($request, 'delete vendor', self::ROUTE_INDEX)) !== true) return $c;
                 $user = $request->user();
                 if ($vendor[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) throw new \Exception('owner');
-                DB::transaction(fn() => $vendor->delete());
-                return redirect()->route(self::ROUTE_INDEX)->with('success', __('Vendor successfully deleted.'));
+                $vendorId = (string) $vendor->id;
+                $operation = (new CrmOperationService())->run(
+                    'crm.vendor.delete',
+                    function () use ($vendor, $vendorId): array {
+                        $vendor->delete();
+
+                        return [
+                            'vendor_id' => $vendorId,
+                            'source_table' => DatabaseConstants::TABLE_VENDORS,
+                        ];
+                    },
+                    [
+                        'summary' => 'Delete CRM vendor relationship record',
+                        'subject_type' => Vendor::class,
+                        'subject_id' => $vendorId,
+                        'actor_id' => $user?->id,
+                        'event_type' => 'crm.vendor.deleted',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
+
+                return redirect()->route(self::ROUTE_INDEX)
+                    ->with('success', __('Vendor successfully deleted.'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[$base::$action] error", ['exception' => $e->getMessage()]);
                 return $e->getMessage() === 'owner'
@@ -570,6 +650,22 @@ class VendorController extends Controller
                 return defaultUndefinedException($request, $e, $base . '::' . $action, route(self::ROUTE_INDEX)); // ! ALERT
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
+    }
+
+    private function dispatchCrmOutbox(CrmOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new CrmOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function crmReliabilityPayload(CrmOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromCrmResult($operation, $dispatchReport);
     }
 
     private function vendorNumber(): int|string|RedirectResponse

@@ -10,6 +10,7 @@ use App\Config\Constants\{
 use App\Models\{
     ClientDeal,
     ClientPermission,
+    Customer,
     Deal,
     Lead,
     LeadStage,
@@ -18,7 +19,8 @@ use App\Models\{
     Stage,
     User,
     UserDeal,
-    UserLead
+    UserLead,
+    Vendor
 };
 
 class CrmPostWriteValidator
@@ -46,6 +48,15 @@ class CrmPostWriteValidator
             'crm.deal.permission_changed' => $this->validateDealPermissionChanged($payload, $ledger),
             'crm.deal.product_context_changed' => $this->validateCsvContextChanged($payload, $ledger, 'products'),
             'crm.deal.source_context_changed' => $this->validateCsvContextChanged($payload, $ledger, 'sources'),
+            'crm.customer.created',
+            'crm.customer.updated' => $this->validateCustomerPresent($eventType, $payload, $ledger),
+            'crm.customer.deleted' => $this->validateCustomerDeleted($payload, $ledger),
+            'crm.vendor.created',
+            'crm.vendor.updated' => $this->validateVendorPresent($eventType, $payload, $ledger),
+            'crm.vendor.deleted' => $this->validateVendorDeleted($payload, $ledger),
+            'crm.client.created',
+            'crm.client.updated' => $this->validateClientPresent($eventType, $payload, $ledger),
+            'crm.client.deleted' => $this->validateClientDeleted($payload, $ledger),
             default => PostWriteValidationResult::pass(
                 'crm',
                 (string) ($payload['source_table'] ?? 'crm'),
@@ -263,29 +274,44 @@ class CrmPostWriteValidator
     private function validateDealLinkChanged(array $payload, ?OperationLedger $ledger, string $linkType, bool $shouldExist): PostWriteValidationResult
     {
         $dealId = $this->stringOrNull($payload['deal_id'] ?? $payload['id'] ?? null);
-        $relatedId = $this->stringOrNull(
-            $linkType === 'client'
-                ? ($payload['client_id'] ?? null)
-                : ($payload['user_id'] ?? null)
-        );
+        $relatedIds = $this->relatedIds($payload, $linkType);
         $deal = $dealId ? Deal::query()->find($dealId) : null;
-        $related = $relatedId ? User::query()->find($relatedId) : null;
-        $exists = $dealId && $relatedId
-            ? ($linkType === 'client'
-                ? ClientDeal::query()->where(PJC::COL_DL_ID, $dealId)->where(PJC::COL_CLIENT_ID, $relatedId)->exists()
-                : UserDeal::query()->where(PJC::COL_DL_ID, $dealId)->where(UC::COL_USER_ID, $relatedId)->exists())
-            : false;
+        $related = $relatedIds === [] ? collect() : User::query()->whereIn('id', $relatedIds)->get()->keyBy('id');
+        $linkExists = [];
         $errors = [];
 
         if (!$deal) {
             $errors['deal'] = 'Deal referenced by CRM link change was not found.';
         }
-        if (!$related) {
+        if ($relatedIds === []) {
+            $errors[$linkType === 'client' ? 'deal_client_link' : 'deal_user_link'] = ucfirst($linkType) . ' link change did not include a related id.';
+        }
+
+        foreach ($relatedIds as $relatedId) {
+            $found = $related->get($relatedId);
+            $exists = $dealId
+                ? ($linkType === 'client'
+                    ? ClientDeal::query()->where(PJC::COL_DL_ID, $dealId)->where(PJC::COL_CLIENT_ID, $relatedId)->exists()
+                    : UserDeal::query()->where(PJC::COL_DL_ID, $dealId)->where(UC::COL_USER_ID, $relatedId)->exists())
+                : false;
+            $linkExists[$relatedId] = $exists;
+
+            if (!$found) {
+                $errors[$linkType === 'client' ? 'deal_client_link' : 'deal_user_link'] = ucfirst($linkType) . ' referenced by CRM link change was not found.';
+                continue;
+            }
+            if ($linkType === 'client' && $found->getAttribute(UC::COL_TP) !== 'client') {
+                $errors['deal_client_link'] = 'CRM client link references a non-client user.';
+            }
+            if ($shouldExist && !$exists) {
+                $errors[$linkType === 'client' ? 'deal_client_link' : 'deal_user_link'] = ucfirst($linkType) . ' link was not persisted.';
+            } elseif (!$shouldExist && $exists) {
+                $errors[$linkType === 'client' ? 'deal_client_link' : 'deal_user_link'] = ucfirst($linkType) . ' link still exists after unlink operation.';
+            }
+        }
+
+        if ($relatedIds !== [] && $related->count() !== count($relatedIds)) {
             $errors[$linkType === 'client' ? 'deal_client_link' : 'deal_user_link'] = ucfirst($linkType) . ' referenced by CRM link change was not found.';
-        } elseif ($shouldExist && !$exists) {
-            $errors[$linkType === 'client' ? 'deal_client_link' : 'deal_user_link'] = ucfirst($linkType) . ' link was not persisted.';
-        } elseif (!$shouldExist && $exists) {
-            $errors[$linkType === 'client' ? 'deal_client_link' : 'deal_user_link'] = ucfirst($linkType) . ' link still exists after unlink operation.';
         }
 
         return $this->result(
@@ -296,8 +322,9 @@ class CrmPostWriteValidator
             [
                 'payload' => $payload,
                 'deal' => $deal?->getAttributes(),
-                'related_user' => $related?->only(['id', UC::COL_TP, DC::COL_TABLE_CREATOR]),
-                'link_exists' => $exists,
+                'related_ids' => $relatedIds,
+                'related_users' => $related->map(fn(User $user): array => $user->only(['id', UC::COL_TP, DC::COL_TABLE_CREATOR]))->values()->all(),
+                'link_exists' => $linkExists,
             ],
             $this->originEvent('crm.deal.' . $linkType . ($shouldExist ? '_linked' : '_unlinked'), $payload, $ledger),
         );
@@ -311,6 +338,9 @@ class CrmPostWriteValidator
         $permissionId = $this->stringOrNull($payload['permission_id'] ?? $payload['id'] ?? null);
         $dealId = $this->stringOrNull($payload['deal_id'] ?? null);
         $clientId = $this->stringOrNull($payload['client_id'] ?? null);
+        $expectedPermissionCount = isset($payload['expected_permissions_count'])
+            ? max(0, (int) $payload['expected_permissions_count'])
+            : null;
         $permission = $permissionId
             ? ClientPermission::query()->find($permissionId)
             : ClientPermission::query()
@@ -319,11 +349,25 @@ class CrmPostWriteValidator
                 ->first();
         $errors = [];
 
-        if (!$permission) {
+        if (!$dealId || !Deal::query()->whereKey($dealId)->exists()) {
+            $errors['deal'] = 'Client permission change references a missing deal.';
+        }
+        if (!$clientId || !User::query()->whereKey($clientId)->where(UC::COL_TP, 'client')->exists()) {
+            $errors['deal_client_link'] = 'Client permission change references a missing client user.';
+        }
+        if (
+            $dealId
+            && $clientId
+            && !ClientDeal::query()->where(PJC::COL_DL_ID, $dealId)->where(PJC::COL_CLIENT_ID, $clientId)->exists()
+        ) {
+            $errors['deal_client_link'] = 'Client permission change references a client that is not linked to the deal.';
+        }
+
+        if (!$permission && ($expectedPermissionCount === null || $expectedPermissionCount > 0)) {
             $errors['deal_permission'] = 'Client permission row was not persisted.';
-        } else {
+        } elseif ($permission) {
             $raw = trim((string) $permission->getAttribute('permissions'));
-            if ($raw === '') {
+            if ($raw === '' && ($expectedPermissionCount === null || $expectedPermissionCount > 0)) {
                 $errors['deal_permission'] = 'Client permission row has no permissions after save.';
             }
 
@@ -343,6 +387,175 @@ class CrmPostWriteValidator
                 'permission' => $permission?->getAttributes(),
             ],
             $this->originEvent('crm.deal.permission_changed', $payload, $ledger),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function validateCustomerPresent(string $eventType, array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $customerId = $this->stringOrNull($payload['customer_id'] ?? $payload['id'] ?? null);
+        $customer = $customerId ? Customer::query()->find($customerId) : null;
+        $errors = [];
+
+        if (!$customer) {
+            $errors['customer'] = 'Customer relationship record was not persisted.';
+        } else {
+            $this->validateRelationshipCore($customer, 'customer', $payload, $errors);
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_CUSTOMERS,
+            Customer::class,
+            $customerId,
+            [
+                'payload' => $payload,
+                'customer' => $customer?->getAttributes(),
+            ],
+            $this->originEvent($eventType, $payload, $ledger),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function validateCustomerDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $customerId = $this->stringOrNull($payload['customer_id'] ?? $payload['id'] ?? null);
+        $customer = $customerId ? Customer::query()->find($customerId) : null;
+        $errors = [];
+
+        if ($customer) {
+            $errors['customer_delete'] = 'Customer relationship record still exists after delete operation.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_CUSTOMERS,
+            Customer::class,
+            $customerId,
+            [
+                'payload' => $payload,
+                'customer_exists_after_delete' => (bool) $customer,
+            ],
+            $this->originEvent('crm.customer.deleted', $payload, $ledger),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function validateVendorPresent(string $eventType, array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $vendorId = $this->stringOrNull($payload['vendor_id'] ?? $payload['id'] ?? null);
+        $vendor = $vendorId ? Vendor::query()->find($vendorId) : null;
+        $errors = [];
+
+        if (!$vendor) {
+            $errors['vendor'] = 'Vendor relationship record was not persisted.';
+        } else {
+            $this->validateRelationshipCore($vendor, 'vendor', $payload, $errors);
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_VENDORS,
+            Vendor::class,
+            $vendorId,
+            [
+                'payload' => $payload,
+                'vendor' => $vendor?->getAttributes(),
+            ],
+            $this->originEvent($eventType, $payload, $ledger),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function validateVendorDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $vendorId = $this->stringOrNull($payload['vendor_id'] ?? $payload['id'] ?? null);
+        $vendor = $vendorId ? Vendor::query()->find($vendorId) : null;
+        $errors = [];
+
+        if ($vendor) {
+            $errors['vendor_delete'] = 'Vendor relationship record still exists after delete operation.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_VENDORS,
+            Vendor::class,
+            $vendorId,
+            [
+                'payload' => $payload,
+                'vendor_exists_after_delete' => (bool) $vendor,
+            ],
+            $this->originEvent('crm.vendor.deleted', $payload, $ledger),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function validateClientPresent(string $eventType, array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $clientId = $this->stringOrNull($payload['client_id'] ?? $payload['id'] ?? null);
+        $client = $clientId ? User::query()->find($clientId) : null;
+        $errors = [];
+
+        if (!$client) {
+            $errors['client'] = 'Client user relationship record was not persisted.';
+        } else {
+            $this->validateClientCore($client, $payload, $errors);
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_USERS,
+            User::class,
+            $clientId,
+            [
+                'payload' => $payload,
+                'client' => $client?->only(['id', UC::COL_NM, UC::COL_EM, UC::COL_TP, DC::COL_TABLE_CREATOR]),
+            ],
+            $this->originEvent($eventType, $payload, $ledger),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function validateClientDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $clientId = $this->stringOrNull($payload['client_id'] ?? $payload['id'] ?? null);
+        $client = $clientId ? User::query()->find($clientId) : null;
+        $clientDeals = $clientId ? ClientDeal::query()->where(PJC::COL_CLIENT_ID, $clientId)->count() : 0;
+        $clientPermissions = $clientId ? ClientPermission::query()->where(PJC::COL_CLIENT_ID, $clientId)->count() : 0;
+        $errors = [];
+
+        if ($client) {
+            $errors['client_delete'] = 'Client user relationship record still exists after delete operation.';
+        }
+        if ($clientDeals > 0 || $clientPermissions > 0) {
+            $errors['client_identity'] = 'Client CRM relationship rows still reference the deleted client.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_USERS,
+            User::class,
+            $clientId,
+            [
+                'payload' => $payload,
+                'client_exists_after_delete' => (bool) $client,
+                'client_deals_after_delete' => $clientDeals,
+                'client_permissions_after_delete' => $clientPermissions,
+            ],
+            $this->originEvent('crm.client.deleted', $payload, $ledger),
         );
     }
 
@@ -463,6 +676,64 @@ class CrmPostWriteValidator
     }
 
     /**
+     * @param array<string, mixed> $payload
+     * @param array<string, string> $errors
+     */
+    private function validateRelationshipCore(Customer|Vendor $record, string $kind, array $payload, array &$errors): void
+    {
+        if (trim((string) $record->getAttribute(UC::COL_NM)) === '') {
+            $errors[$kind] = ucfirst($kind) . ' name cannot be empty after write.';
+        }
+
+        if (trim((string) $record->getAttribute(UC::COL_EM)) === '') {
+            $errors[$kind . '_identity'] = ucfirst($kind) . ' email cannot be empty after write.';
+        }
+
+        if (trim((string) $record->getAttribute('contact')) === '') {
+            $errors[$kind . '_identity'] = ucfirst($kind) . ' contact cannot be empty after write.';
+        }
+
+        $expectedCreator = $this->stringOrNull($payload['expected_creator_id'] ?? null);
+        if ($expectedCreator && $this->stringOrNull($record->getAttribute(DC::COL_TABLE_CREATOR)) !== $expectedCreator) {
+            $errors[$kind . '_identity'] = ucfirst($kind) . ' creator does not match the operation owner.';
+        }
+
+        $linkedUserId = $this->stringOrNull($record->getAttribute(UC::COL_USER_ID));
+        if ($linkedUserId) {
+            $linkedUser = User::query()->find($linkedUserId);
+            if (!$linkedUser) {
+                $errors[$kind . '_user_link'] = ucfirst($kind) . ' user_id points to a missing user.';
+            } elseif ($linkedUser->getAttribute(UC::COL_TP) !== $kind) {
+                $errors[$kind . '_user_link'] = ucfirst($kind) . ' user_id points to a user with an unexpected type.';
+            }
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<string, string> $errors
+     */
+    private function validateClientCore(User $client, array $payload, array &$errors): void
+    {
+        if ($client->getAttribute(UC::COL_TP) !== 'client') {
+            $errors['client_identity'] = 'Client relationship record points to a non-client user.';
+        }
+
+        if (trim((string) $client->getAttribute(UC::COL_NM)) === '') {
+            $errors['client'] = 'Client name cannot be empty after write.';
+        }
+
+        if (trim((string) $client->getAttribute(UC::COL_EM)) === '') {
+            $errors['client_identity'] = 'Client email cannot be empty after write.';
+        }
+
+        $expectedCreator = $this->stringOrNull($payload['expected_creator_id'] ?? null);
+        if ($expectedCreator && $this->stringOrNull($client->getAttribute(DC::COL_TABLE_CREATOR)) !== $expectedCreator) {
+            $errors['client_identity'] = 'Client creator does not match the operation owner.';
+        }
+    }
+
+    /**
      * @param array<string, string> $errors
      * @param array<string, mixed> $snapshot
      * @param array<string, mixed> $originEvent
@@ -515,9 +786,29 @@ class CrmPostWriteValidator
             'payload_reference' => [
                 'lead_id' => $payload['lead_id'] ?? null,
                 'deal_id' => $payload['deal_id'] ?? null,
+                'customer_id' => $payload['customer_id'] ?? null,
+                'vendor_id' => $payload['vendor_id'] ?? null,
                 'client_id' => $payload['client_id'] ?? null,
             ],
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array<int, string>
+     */
+    private function relatedIds(array $payload, string $linkType): array
+    {
+        $raw = $linkType === 'client'
+            ? ($payload['client_ids'] ?? $payload['clients'] ?? $payload['client_id'] ?? null)
+            : ($payload['user_ids'] ?? $payload['users'] ?? $payload['user_id'] ?? null);
+
+        $items = is_array($raw) ? $raw : [$raw];
+
+        return array_values(array_unique(array_filter(
+            array_map(fn(mixed $item): ?string => $this->stringOrNull($item), $items),
+            static fn(?string $item): bool => $item !== null,
+        )));
     }
 
     private function stringOrNull(mixed $value): ?string
