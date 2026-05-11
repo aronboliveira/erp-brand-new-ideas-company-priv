@@ -249,6 +249,23 @@ logic smoke covering bcrypt-prefix detection + strict base64 garbage rejection.
 Open follow-up: a Feature test against a real DB Project with a base64
 password would lock the migration path. Out of scope for the fix.
 
+## [2026-05-11] CRM reliability first slice
+
+Implemented CRM operation/outbox/retry/circuit/quarantine support for durable
+lead/deal decisions. Added `CrmOperationService`, `CrmReliabilityPolicy`,
+`CrmPostWriteValidator`, `CrmOutboxDispatcher`, `CrmCompensationService`,
+`CrmOperationResult`, `CrmReliabilityAssessment`, and
+`reliability:dispatch-crm-outbox`.
+
+Adopted in `LeadController::store/update/destroy/order/convertToDeal()` and
+`DealController::store/update/destroy/order/changeStatus()`. Transient notes,
+files, calls, emails, discussions, labels, and basic CRM configuration remain
+low-overhead unless a future task ties them to durable lifecycle decisions.
+
+Verification: CRM service tests 5/5, touched Lead/Deal controller tests 609/609,
+all reliability service tests 40/40, full Unit suite 10,623/10,623, and
+`composer phpstan` clean.
+
 ## [2026-05-07] JS Routes IIFE deployment (Task D from AGENTS.md)
 
 Verified resolved before this session via git history:

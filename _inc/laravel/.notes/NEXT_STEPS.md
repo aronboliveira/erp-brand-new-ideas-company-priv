@@ -271,3 +271,14 @@ Next reliability work after the finance and first HRM slices:
 14 fixes across 12 files — import aliases, static properties, case fixes, types, test bugs.
 
 ---
+## Reliability follow-ups (updated 2026-05-11)
+
+- CRM: `DealController` user/client link sub-actions and `permissionStore()`
+  can now be wired to the validator-supported
+  `crm.deal.user_*`, `crm.deal.client_*`, and
+  `crm.deal.permission_changed` events.
+- CRM-adjacent relationship records: scan customer/vendor/client lifecycle
+  controllers separately; do not treat transient communications or labels as
+  quarantine candidates by default.
+- Project/planning: next high-impact cluster should prioritize irreversible
+  project closure/finalization/deletion and any approval/final state workflows.

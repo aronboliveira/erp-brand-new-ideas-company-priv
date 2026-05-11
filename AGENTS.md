@@ -161,6 +161,21 @@ assertions), touched warehouse/product controller tests are green (410 tests,
 486 assertions), full `tests/Unit --no-coverage` is green (10,618 tests,
 20,591 assertions), and `composer phpstan` is clean.
 
+Latest CRM reliability slice check (2026-05-11, Codex): lead create/update/
+delete, lead stage movement, lead-to-deal conversion, deal create/update/delete,
+deal stage movement, and deal status changes now use `CrmOperationService`,
+`crm.operations` outbox rows, post-write validation where the policy requires
+it, and retry/circuit dispatcher support. CRM outbox dispatch emits local
+projection, client projection, pipeline reconciliation, forecasting, access,
+project bridge, finance opportunity bridge, communication, catalog-context, and
+webhook shells. Quarantine remains narrow: only persistent instability plus core
+corruption in conversion, final status, deal lifecycle, or CRM access state can
+route to manual review. `CrmReliabilityTest` is green (5 tests, 28 assertions),
+touched Lead/Deal controller tests are green (609 tests, 747 assertions), and
+all reliability service tests are green (40 tests, 231 assertions). Full
+`tests/Unit --no-coverage` is green (10,623 tests, 20,619 assertions), and
+`composer phpstan` is clean.
+
 ---
 
 ## TASK A — Bills Models Namespace Finalization ✅ DONE
@@ -544,13 +559,55 @@ closure/finalization and CRM decision workflows.
 
 ---
 
+## TASK N — CRM Reliability Slice ✅ DONE
+
+**Status:** Implemented 2026-05-11 by Codex.
+
+Added:
+
+- Services: `CrmOperationService`, `CrmReliabilityPolicy`,
+  `CrmPostWriteValidator`, `CrmOutboxDispatcher`, `CrmCompensationService`,
+  `CrmOperationResult`, and `CrmReliabilityAssessment`.
+- Exception: `CrmPostWriteValidationFailedException`.
+- Command: `php artisan reliability:dispatch-crm-outbox`.
+- Adoption: `LeadController::store/update/destroy/order/convertToDeal()` and
+  `DealController::store/update/destroy/order/changeStatus()`.
+- Client feedback: `ReliabilityClientPayloadService::fromCrmResult()`.
+- Shared quarantine routing now emits CRM-domain manual-review events for
+  persistent lead/deal/access corruption signals.
+
+Policy notes:
+
+- CRM has many transient payloads. Calls, emails, discussions, files, notes,
+  dashboards, labels, and lightweight source/configuration work should not pay
+  heavy guard costs unless tied to durable lead/deal lifecycle state.
+- Lead conversion, deal final/status decisions, deal lifecycle changes, stage
+  movement, and CRM access assignment are the first durable CRM clusters.
+- CRM quarantine requires persistent instability after normal rollback,
+  validation, retry, and circuit-breaker paths fail; a single bad CRM write
+  rolls back/fails without quarantine.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/CrmReliabilityTest.php --no-coverage` — 5 tests, 28 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Http/Controllers/activity/LeadControllerTest.php tests/Unit/app/Http/Controllers/activity/DealControllerTest.php --no-coverage` — 609 tests, 747 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 40 tests, 231 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,623 tests, 20,619 assertions, OK.
+- `composer phpstan` — no errors.
+
+Next: wire `DealController` user/client/permission sub-actions to the
+validator-supported CRM events, then scan customer/vendor/client lifecycle
+controllers and project closure/finalization workflows.
+
+---
+
 ## READING ORDER FOR NEW AGENTS
 
 1. `where-to-update-and-read.yml` — filesystem map
 2. `_inc/laravel/.notes/.llms/.guidelines/constraints.md` — hard rules
 3. `_inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md` — role-specific reading lists
 4. `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` — outbox/inbox + operation ledger policy
-5. `.tmp/codex/20260511/handsoff.md` — latest Codex warehouse reliability continuation state
+5. `.tmp/codex/20260511/handsoff.md` — latest Codex warehouse/CRM reliability continuation state
 6. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
 7. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
 8. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state

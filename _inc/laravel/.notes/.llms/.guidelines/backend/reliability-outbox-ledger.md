@@ -234,6 +234,48 @@ quarantine-worthy alone, but they keep committed stock changes visible to local
 projection/replica/reconciliation shells and provide signal context when
 persistent retry/circuit/dead-letter instability appears.
 
+## CRM dispatcher slice
+
+CRM reliability is intentionally more selective than finance or inventory:
+many CRM rows are communications, notes, labels, files, dashboard payloads, or
+other transient activity. The current slice covers durable business decisions:
+
+- `CrmOperationService` wraps CRM mutations and records durable ledgers,
+  post-write validation steps, and `crm.operations` outbox messages.
+- `LeadController::store/update/destroy/order/convertToDeal()` now covers lead
+  lifecycle, lead stage movement, and lead-to-deal conversion.
+- `DealController::store/update/destroy/order/changeStatus()` now covers deal
+  lifecycle, deal stage movement, and final/status-changing deal decisions.
+- `CrmPostWriteValidator` validates lead/deal persistence, conversion,
+  stage/status movement, deal client/user links, client permissions, and
+  product/source context when those event types are used.
+- `CrmOutboxDispatcher` drains `crm.operations` rows through monolith-local
+  projection, client projection, pipeline reconciliation, forecasting,
+  access-projection, project bridge, finance opportunity bridge,
+  communication, catalog-context, and webhook signal shells.
+- `php artisan reliability:dispatch-crm-outbox` exposes the same dispatcher
+  without requiring Redis, database queues, Kafka, or another broker.
+
+CRM policy clusters:
+
+- `lead_conversion`, `deal_status`, and `crm_access_assignment` validate after
+  write and get retry/circuit protection because they affect downstream
+  customer, finance, project, and access decisions.
+- `deal_lifecycle` is medium/high by value and operation type; delete/final
+  paths and high-value deals get stronger validation and retry settings.
+- `stage_pipeline_movement` validates after write because stage movement is a
+  durable business signal, especially for deals.
+- `lead_lifecycle` is medium by default; critical leads and deletes validate,
+  while routine lead edits stay lower overhead.
+- `catalog_context`, `configuration`, and `transient_activity` avoid heavy
+  guard costs unless a caller explicitly promotes the operation.
+
+CRM quarantine remains rare. It requires persistent retry/circuit/dead-letter
+or repeated failed-operation instability plus core corruption in conversion,
+final deal status, deal lifecycle, or CRM access state. Simple notes, files,
+calls, emails, discussions, labels, and dashboards should not route to
+quarantine by default.
+
 ## Post-write quarantine
 
 Quarantine is intentionally narrower than the general reliability layer. It is
