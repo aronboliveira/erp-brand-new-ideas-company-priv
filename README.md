@@ -126,16 +126,17 @@ Critical business procedures now have a shared reliability layer under
 `_inc/laravel/app/Services/Reliability/` and durable tables for operation
 ledgers, operation steps, outbox/inbox messages, operational events, and
 circuit breaker state/call history.
-Financial ledger posting and invoice/bill payment create/delete are the first
-integrated paths. Finance outbox dispatch is currently monolith-local: it
-accepts journal, banking-shell, communication-shell, ledger-reversal, and
-webhook signals without requiring a broker. Dispatch is guarded by Spring-like
-`Retry` and `CircuitBreaker` builders that emit operational events for success,
-retry, final failure, state changes, and rejected calls. Retry intervals default
-to capped exponential backoff. The same pattern is intended for any high-impact
-workflow: employee status decisions, irreversible project closures, warehouse
-commits, heavy I/O tasks, and other state changes where replay, auditability,
-or retry control matters.
+Financial ledger posting and invoice/bill payment create/delete were the first
+integrated paths. The HRM slice now covers salary/payroll updates, termination
+lifecycle decisions, and leave status decisions. Finance and HRM outbox
+dispatch are currently monolith-local: they accept journal, banking-shell,
+payroll, RBAC/access-control, calendar, communication, and webhook signals
+without requiring a broker. Dispatch is guarded by Spring-like `Retry` and
+`CircuitBreaker` builders that emit operational events for success, retry,
+final failure, state changes, and rejected calls. Retry intervals default to
+capped exponential backoff. The same pattern is intended for any high-impact
+workflow: irreversible project closures, warehouse commits, heavy I/O tasks,
+and other state changes where replay, auditability, or retry control matters.
 
 Use the severity policy consistently: trivial/low work can stay in memory,
 medium-and-up work gets durable operation rows, and critical operations should
@@ -152,6 +153,11 @@ actor, approval requirement, or high user risk score. Post-write validation
 starts at amount `3,200`; quarantine is not the default validation result and is
 reserved for persistent corrupted state after repeated failures, circuit
 instability, dead letters, or long stuck processing.
+
+HRM quarantine follows the same narrow standard. An employee without a linked
+login user is valid, but a persisted linked-user/RBAC mismatch can be escalated
+only after repeated retry/circuit/dead-letter/failed-ledger instability in a
+critical payroll, lifecycle, or identity/access procedure.
 
 ---
 

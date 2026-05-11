@@ -91,15 +91,35 @@ Stale items now closed by later Claude commits:
 - Retention now prunes expired circuit calls and closed/disabled circuit
   states.
 
-Next finance-first reliability work before HR/project/warehouse adoption:
+### HRM Reliability Slice
+
+- Salary/payroll updates now use `HrmOperationService`, committing the salary
+  mutation, operation ledger, validation step, and HRM outbox intent together.
+- Termination lifecycle create/update/delete now use the HRM reliability wrapper
+  and validate employee link, termination type, dates, and delete result before
+  outbox creation.
+- Leave status decisions now use the HRM wrapper and validate the leave row,
+  employee link, dates, total days, and non-empty status.
+- `HrmOutboxDispatcher` drains `hrm.operations` rows through monolith-local
+  payroll, finance payroll bridge, access/RBAC, calendar, communication,
+  employee-record, and webhook signals.
+- New command: `php artisan reliability:dispatch-hrm-outbox`.
+- HRM quarantine stays narrow: employees without linked users are valid;
+  linked-user/RBAC mismatches or payroll/lifecycle corruption can route to
+  manual review only after repeated retry/circuit/dead-letter/failed-ledger
+  instability.
+
+Next reliability work after the finance and first HRM slices:
 
 1. Add domain-specific journal-entry posting callbacks behind the accepted
    journal-control signal.
 2. Add banking adapter shells that can be toggled between no-op, sandbox, and
    real providers.
 3. Add actual reversal/compensation handlers for deleted/failed payment flows.
-4. Only after that, extend the pattern to HR decisions, project closure,
-   products, warehouse/stock, and CRM workflows.
+4. Add HRM-specific compensation handlers for payroll/access-control failures
+   instead of only marking `hrm.compensation.required`.
+5. Extend the pattern to project closure, products, warehouse/stock, and CRM
+   workflows using the same overhead discipline.
 
 ---
 

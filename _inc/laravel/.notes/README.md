@@ -8,22 +8,23 @@ Durable repository-level notes and guidance for developers and agents.
 
 The current Codex continuation handoff is
 [`../../../.tmp/codex/20260510/handsoff.md`](../../../.tmp/codex/20260510/handsoff.md).
-It covers the reliability foundation, finance outbox dispatcher, and latest
-retry/circuit breaker guard slice.
+It covers the reliability foundation, finance/HRM outbox dispatchers, and
+latest retry/circuit breaker guard slice.
 
-Current full-unit baseline after the 2026-05-10 retry/circuit breaker pass:
+Current broad unit baseline after the 2026-05-10 HRM reliability slice:
 
 ```text
-Tests: 10598, Assertions: 20492, Errors: 0, Failures: 0.
+Tests: 10613, Assertions: 20560, Errors: 0, Failures: 0.
 ```
 
-2026-05-10 reliability foundation work added generic operation ledger,
-operation step, outbox/inbox, operational event, and circuit breaker tables
-plus the service layer under `app/Services/Reliability/`. Focused checks:
+2026-05-10 reliability work added generic operation ledger, operation step,
+outbox/inbox, operational event, circuit breaker, and quarantine tables plus
+the service layer under `app/Services/Reliability/`. Finance payment flows and
+the first HRM slice are wired. Focused checks:
 
 ```text
-Reliability service tests: 19 tests, 115 assertions, 0 errors, 0 failures.
-Ledger service test: 2 tests, 2 assertions, 0 errors, 0 failures.
+Reliability service tests: 30 tests, 172 assertions, 0 errors, 0 failures.
+Touched HRM controller tests: 136 tests, 163 assertions, 0 errors, 0 failures.
 composer phpstan: no errors.
 ESLint: clean with max-warnings=50.
 ```

@@ -6,6 +6,38 @@
 
 ---
 
+## [2026-05-10] HRM reliability slice: payroll/lifecycle/leave controls
+
+Added the first HRM adoption of the reliability layer without broadening
+quarantine to routine HR screens:
+
+- New HRM services: `HrmOperationService`, `HrmReliabilityPolicy`,
+  `HrmPostWriteValidator`, `HrmOutboxDispatcher`, `HrmCompensationService`,
+  `HrmOperationResult`, and `HrmReliabilityAssessment`.
+- New command: `php artisan reliability:dispatch-hrm-outbox`.
+- Salary/payroll updates, termination lifecycle create/update/delete, and leave
+  status decisions now commit a ledger, post-write validation step, and
+  `hrm.operations` outbox intent together.
+- Shared quarantine routing now emits domain-specific events such as
+  `hrm.quarantine.manual_review`.
+- HRM post-write validation treats employees without linked users as valid;
+  only non-null linked-user/RBAC mismatches can fail the invariant, and
+  quarantine requires persistent retry/circuit/dead-letter/failed-ledger
+  instability.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/HrmReliabilityTest.php --no-coverage` — 6 tests, 30 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 30 tests, 172 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Http/Controllers/planning/SetSalaryControllerTest.php tests/Unit/app/Http/Controllers/planning/LeaveControllerTest.php tests/Unit/app/Http/Controllers/planning/TerminationControllerTest.php --no-coverage` — 136 tests, 163 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,613 tests, 20,560 assertions, OK.
+- `composer phpstan` — no errors.
+
+Guideline:
+`_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
+
+---
+
 ## [2026-05-10] Reliability foundation: operation ledger + outbox/inbox
 
 Added a generic reliability layer for high-impact business operations:

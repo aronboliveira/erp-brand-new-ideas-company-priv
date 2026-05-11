@@ -221,17 +221,28 @@ operations:
   outbox rows without requiring a broker. The named status route is
   `reliability.operations.show`; the app route pluralizer renders the URI as
   `reliabilities/operations/{operation}`.
+- `HrmOperationService` and `HrmOutboxDispatcher` cover the first HRM slice:
+  salary/payroll updates, termination lifecycle create/update/delete, and leave
+  status decisions. HRM outbox signals target payroll, finance payroll bridge,
+  RBAC/access reconciliation, calendar availability, communication, employee
+  record projections, and webhook shells.
+- `php artisan reliability:dispatch-hrm-outbox` drains pending HRM outbox rows.
+  HRM quarantine accepts employees without linked users, but can route
+  persistent linked-user/RBAC mismatches or payroll/lifecycle corruption to
+  manual review after repeated instability signals.
 
-The policy is intentionally domain-neutral. Finance commits usually need the
-highest controls, but HR decisions, project finalization/deletion, warehouse
-commits, and heavy system operations should use the same layer when their
-business impact is comparable.
+The policy is intentionally domain-neutral. Finance commits and payroll/lifecycle
+HR decisions usually need the highest controls, but project
+finalization/deletion, warehouse commits, product/stock commits, CRM decisions,
+and heavy system operations should use the same layer when their business impact
+is comparable.
 
 Post-commit dispatch failures first pass through the in-process retry/circuit
 guards, then use durable outbox retry scheduling. Exhausted attempts move the
 outbox row to `dead_letter`, mark the operation ledger `compensating`, and
-create a durable `finance.compensation.required` event so rollback/reversal
-work is visible to operators and later workers.
+create a durable domain compensation event such as
+`finance.compensation.required` or `hrm.compensation.required` so
+rollback/reversal work is visible to operators and later workers.
 
 ---
 
@@ -255,9 +266,9 @@ User IDs are **UUIDs** (string), not integers.
 
 | Tool | Result |
 |------|--------|
-| PHPUnit Unit | previous broad baseline before retry-backoff test additions: 10,598 tests, 20,492 assertions, 0 errors, 0 failures |
-| Reliability service tests | 19 tests, 115 assertions, 0 errors, 0 failures |
-| Ledger service test | 2 tests, 2 assertions, 0 errors, 0 failures |
+| PHPUnit Unit | 10,613 tests, 20,560 assertions, 0 errors, 0 failures |
+| Reliability service tests | 30 tests, 172 assertions, 0 errors, 0 failures |
+| HRM touched controller tests | 136 tests, 163 assertions, 0 errors, 0 failures |
 | PHPStan | clean (`composer phpstan`) |
 | ESLint | clean (`npx --no-install eslint . --max-warnings=50`) |
 | Jest | see current CI / package scripts |

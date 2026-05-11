@@ -13,11 +13,13 @@ Durable notes, instructions, and structured references for agents and developers
 - The current continuation handoff is `.tmp/codex/20260510/handsoff.md`;
   `.tmp/claude/20260808/HANDOFF.md` is the recovered pre-continuation stop.
 - The 2026-05-10 reliability passes added generic outbox/inbox, operation
-  ledger, operation step, operational event support, and the first finance-only
-  monolith outbox dispatcher/compensation slice for invoice and bill payments.
-  The same day, retry/circuit breaker builders were added with durable circuit
-  state/call tables, capped exponential backoff, and event emission for guarded
-  finance outbox signals.
+  ledger, operation step, operational event support, retry/circuit breaker
+  builders, quarantine overlays, and monolith outbox dispatcher/compensation
+  slices for finance and the first HRM procedures. Finance covers invoice/bill
+  payment create/delete. HRM covers salary/payroll updates, termination
+  lifecycle decisions, and leave status decisions. HRM quarantine explicitly
+  treats employees without linked users as valid and reserves quarantine for
+  persistent linked-user/RBAC/payroll/lifecycle corruption signals.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 

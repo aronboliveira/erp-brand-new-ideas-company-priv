@@ -143,6 +143,47 @@ This is still a monolithic callback/signal flow. Future queue, Redis, database
 queue, or stream/broker adoption should keep the same outbox table as the
 commit boundary and only replace how pending rows are drained.
 
+## HRM dispatcher slice
+
+The first HRM adoption now covers the highest-impact employee administration
+paths without treating every HR screen as quarantine-worthy:
+
+- `HrmOperationService` wraps HRM mutations and records durable operation
+  ledgers, post-write validation steps, and `hrm.operations` outbox messages.
+- `SetSalaryController::employeeSalaryUpdate()` uses the HRM wrapper for
+  salary/payroll mutations. The policy classifies this as `payroll`, keeps it
+  critical, validates the persisted employee salary/salary type, and emits
+  payroll/finance-bridge/communication/webhook signals through the dispatcher.
+- `TerminationController::store/update/destroy()` uses the HRM wrapper for
+  employee lifecycle decisions. The validator checks the persisted termination,
+  employee link, dates, and delete result before outbox creation.
+- `LeaveController::changeAction()` uses the HRM wrapper for leave decisions.
+  The validator checks the leave record, employee link, dates, total days, and
+  non-empty status, but leave decisions do not reach quarantine unless a future
+  policy explicitly promotes a specific leave invariant to lifecycle severity.
+- `HrmOutboxDispatcher` drains `hrm.operations` rows through monolith-local
+  callbacks for employee record projections, payroll shells, finance payroll
+  bridge shells, access-control/RBAC reconciliation shells, calendar shells,
+  communication APIs, and webhooks.
+- `php artisan reliability:dispatch-hrm-outbox` exposes the same dispatcher
+  without requiring Redis, database queues, Kafka, or another broker.
+
+HRM post-write validation deliberately accepts an employee with no linked user:
+`employees.user_id` is nullable and an employee can exist without login access.
+Validation only fails the identity/access invariant when a non-null linked user
+is missing or mismatched, such as wrong user type, creator mismatch, email
+mismatch, or missing `Employee` role when that role exists in the RBAC tables.
+
+HRM retry/circuit behavior follows the business cluster:
+
+- `payroll` and `employee_lifecycle` are critical and get durable retry plus
+  circuit breaker protection.
+- `identity_access` is high by default and becomes critical for delete/final
+  access-affecting operations or persistent instability.
+- `hr_decision` is medium/high depending on the action and gets ledgers/outbox
+  when state-changing.
+- `configuration` avoids retry/circuit overhead unless explicitly forced.
+
 ## Post-write quarantine
 
 Quarantine is intentionally narrower than the general reliability layer. It is
@@ -150,12 +191,15 @@ for extreme critical procedures where the database can accept a schema-valid but
 business-invalid row, and where allowing the row to continue would be more
 dangerous than the overhead of extra validation/audit writes.
 
-Current production scope is finance payments only:
+Current production scope:
 
 - invoice payment create/delete
 - bill payment create/delete
+- HRM salary/payroll, employee lifecycle, and identity/access post-write
+  validation, with quarantine only for persistent instability in critical
+  payroll/lifecycle/identity cases
 
-These paths opt into `FinanceOperationService` post-write validation through
+Finance paths opt into `FinanceOperationService` post-write validation through
 `post_write_validation => true`, but that flag now delegates to
 `FinanceReliabilityPolicy`; it does not mean "validate every payment." Post-write
 validation starts at amount `3,200` or an explicit force flag. The validator
@@ -176,6 +220,15 @@ and a critical operational event against the existing operation ledger. Source
 finance rows are not marked directly; the overlay table is the canonical
 quarantine signal for this slice.
 
+HRM quarantine uses the same overlay tables and persistence rules but a distinct
+domain/event channel (`hrm.quarantine.*`). A single HRM validation failure is not
+enough: retry sets, circuit-breaker instability, dead letters, prior failed
+operation ledgers, or long unresolved processing must show persistent
+instability first. When HRM quarantine is triggered, the remediation judge sends
+the source signal to `manual_review`, because employee/payroll/lifecycle state
+usually needs a human decision before additional access or payroll actions are
+allowed.
+
 Do not enable quarantine for routine CRUD, lightweight customization, ordinary
 imports, or non-critical stage movement. Use operation ledgers, outbox, retry, or
 normal validation first. Add quarantine only when a specific business invariant
@@ -194,6 +247,8 @@ Two rollback surfaces are now defined:
   exhausted it marks the outbox `dead_letter`, records a
   `compensation.required:*` step, emits `finance.compensation.required`, and
   moves the operation ledger to `compensating`.
+- HRM post-commit dispatch follows the same durable pattern and emits
+  `hrm.compensation.required` when HRM outbox retries are exhausted.
 
 Actual domain reversal remains a later, domain-specific implementation. The
 important current guarantee is that post-commit signal failure becomes durable,
@@ -216,14 +271,14 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local reliability check after the finance quarantine policy tightening:
+Latest local reliability check after the HRM reliability slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-24 tests, 142 assertions, 0 errors, 0 failures.
+30 tests, 172 assertions, 0 errors, 0 failures.
 
 tests/Unit --no-coverage:
-10,607 tests, 20,530 assertions, 0 errors, 0 failures.
+10,613 tests, 20,560 assertions, 0 errors, 0 failures.
 ```
 
 Do not run `php artisan test`; this project uses `vendor/bin/phpunit` directly.

@@ -134,6 +134,17 @@ Migration applied to app and test MySQL DBs.
 full `tests/Unit --no-coverage` is green (10,607 tests, 20,530 assertions),
 and `composer phpstan` is clean.
 
+Latest HRM reliability slice check (2026-05-10, Codex): salary/payroll update,
+termination lifecycle create/update/delete, and leave status decisions now use
+`HrmOperationService`, `hrm.operations` outbox rows, post-write validation, and
+HRM retry/circuit dispatcher support. Employee records without linked users are
+valid; only persisted linked-user/RBAC mismatches can fail validation, and HRM
+quarantine requires persistent retry/circuit/dead-letter/failed-ledger
+instability before manual review. `tests/Unit/app/Services/Reliability` is
+green (30 tests, 172 assertions), touched HRM controller tests are green
+(136 tests, 163 assertions), full `tests/Unit --no-coverage` is green
+(10,613 tests, 20,560 assertions), and `composer phpstan` is clean.
+
 ---
 
 ## TASK A — Bills Models Namespace Finalization ✅ DONE
@@ -422,6 +433,47 @@ Keep quarantine narrow. It is not a generic CRUD guard; use it only for extreme
 critical procedures where invalid business state persists after retries,
 circuit-breaker instability, rollback/recovery attempts, or long unresolved
 processing.
+
+---
+
+## TASK L — HRM Reliability Slice ✅ DONE
+
+**Status:** Implemented 2026-05-10 by Codex.
+
+Added:
+
+- Services: `HrmOperationService`, `HrmReliabilityPolicy`,
+  `HrmPostWriteValidator`, `HrmOutboxDispatcher`, `HrmCompensationService`,
+  `HrmOperationResult`, and `HrmReliabilityAssessment`.
+- Exception: `HrmPostWriteValidationFailedException`.
+- Command: `php artisan reliability:dispatch-hrm-outbox`.
+- Adoption: `SetSalaryController::employeeSalaryUpdate`,
+  `TerminationController::store/update/destroy`, and
+  `LeaveController::changeAction`.
+- Shared quarantine routing now emits domain-specific events such as
+  `hrm.quarantine.manual_review`.
+
+Policy notes:
+
+- Employees may legitimately have `employees.user_id = null`; do not treat a
+  missing login account as corruption.
+- A non-null linked user can fail validation when the link, user type, creator,
+  email, or known `Employee` role/RBAC state is mismatched.
+- HRM quarantine is manual-review only for now and requires persistent
+  instability signals in critical payroll, lifecycle, or identity/access work.
+  A single failed validation rolls back without quarantine.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/HrmReliabilityTest.php --no-coverage` — 6 tests, 30 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 30 tests, 172 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Http/Controllers/planning/SetSalaryControllerTest.php tests/Unit/app/Http/Controllers/planning/LeaveControllerTest.php tests/Unit/app/Http/Controllers/planning/TerminationControllerTest.php --no-coverage` — 136 tests, 163 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,613 tests, 20,560 assertions, OK.
+- `composer phpstan` — no errors.
+
+Next: add real HRM compensation handlers for payroll/access-control failures,
+then move to project closure, warehouse/stock/product commits, and CRM
+decision workflows.
 
 ---
 
