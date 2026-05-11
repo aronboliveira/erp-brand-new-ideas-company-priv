@@ -58,6 +58,12 @@ use Symfony\Component\HttpFoundation\{
     BinaryFileResponse,
     Response
 };
+use App\Services\Reliability\{
+    CrmOperationResult,
+    CrmOperationService,
+    CrmOutboxDispatcher,
+    ReliabilityClientPayloadService
+};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
@@ -196,13 +202,38 @@ class LeadController extends Controller
                 $stage = LeadStage::where(ProjectsConstants::COL_PPL_ID, $pipeline->id)->first();
                 $this->logExecutionTime($stageStart, $action, 'fetchStage');
                 if (!$stage) return redirect()->back()->with('error', __('Please Create Stage for This Pipeline.'));
-                $createStart = microtime(true);
-                $lead = Lead::create(['name' => $data['name'], 'email' => $data['email'], 'phone' => $req->input('phone'), 'subject' => $data['subject'], UC::COL_USER_ID => $req->input(UC::COL_USER_ID), ProjectsConstants::COL_PPL_ID => $pipeline->id, 'stage_id' => $stage->id, DC::COL_TABLE_CREATOR => $creatorId, 'date' => now()->toDateString()]);
-                $this->logExecutionTime($createStart, $action, 'createLead');
-                $uidsStart = microtime(true);
-                $userIds = array_unique(array_filter([$user?->id, $req->input(UC::COL_USER_ID) !== $user?->id ? $req->input(UC::COL_USER_ID) : null]));
-                foreach ($userIds as $uid) UserLead::create([UC::COL_USER_ID => $uid, 'lead_id' => $lead->id]);
-                $this->logExecutionTime($uidsStart, $action, 'linkUsersToLead');
+                $operation = (new CrmOperationService())->run(
+                    'crm.lead.create',
+                    function () use ($req, $data, $pipeline, $stage, $creatorId, $user, $action): array {
+                        $createStart = microtime(true);
+                        $lead = Lead::create(['name' => $data['name'], 'email' => $data['email'], 'phone' => $req->input('phone'), 'subject' => $data['subject'], UC::COL_USER_ID => $req->input(UC::COL_USER_ID), ProjectsConstants::COL_PPL_ID => $pipeline->id, 'stage_id' => $stage->id, DC::COL_TABLE_CREATOR => $creatorId, 'date' => now()->toDateString()]);
+                        $this->logExecutionTime($createStart, $action, 'createLead');
+                        $uidsStart = microtime(true);
+                        $userIds = array_unique(array_filter([$user?->id, $req->input(UC::COL_USER_ID) !== $user?->id ? $req->input(UC::COL_USER_ID) : null]));
+                        foreach ($userIds as $uid) UserLead::create([UC::COL_USER_ID => $uid, 'lead_id' => $lead->id]);
+                        $this->logExecutionTime($uidsStart, $action, 'linkUsersToLead');
+
+                        return [
+                            'lead' => $lead,
+                            'payload' => [
+                                'lead_id' => (string) $lead->id,
+                                'expected_stage_id' => (string) $stage->id,
+                                'expected_user_id' => $req->input(UC::COL_USER_ID) ? (string) $req->input(UC::COL_USER_ID) : null,
+                                'webhook' => (bool) Utility::webhookSetting('New Lead'),
+                            ],
+                        ];
+                    },
+                    [
+                        'summary' => 'Create CRM lead',
+                        'subject_type' => Lead::class,
+                        'subject_id' => 'lead:create:' . (string) ($req->input('email') ?? ''),
+                        'event_type' => 'crm.lead.created',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $result): array => $result['payload'],
+                    ],
+                );
+                $lead = $operation->value()['lead'];
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
                 $mailCheckStart = microtime(true);
                 if (Utility::settingsById($creatorId)['lead_assigned'] ?? 0) Utility::sendEmailTemplate('lead_assigned', [$lead->user_id => User::find($lead->user_id)->email], ['lead_name' => $lead->name, 'lead_email' => $lead->email, 'lead_subject' => $lead->subject, 'lead_pipeline' => $pipeline->name, 'lead_stage' => $stage->name]);
                 $this->logExecutionTime($mailCheckStart, $action, 'maybeSendAssignedEmail');
@@ -219,7 +250,9 @@ class LeadController extends Controller
                 }
                 $this->logExecutionTime($hookStart, $action, 'maybeCallWebhook');
                 Log::info("[{$class}::{$action}] created", ['lead_id' => $lead->id, 'pipeline_id' => $pipeline->id, 'stage_id' => $stage->id]);
-                return redirect()->back()->with('success', __('Lead successfully created!'));
+                return redirect()->back()
+                    ->with('success', __('Lead successfully created!'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (ValidationException $e) {
                 Log::debug("[{$class}::{$action}] validation exception", ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'message' => $e->getMessage()]);
                 return redirect()->back()->with('error', $e->getMessage());
@@ -326,11 +359,34 @@ class LeadController extends Controller
                 $data = $req->validate(['subject' => 'required', 'name' => 'required', 'email' => 'required|unique:leads,email,' . $lead->id, ProjectsConstants::COL_PPL_ID => 'required', UC::COL_USER_ID => 'required', 'stage_id' => 'required', 'sources' => 'required', 'products' => 'required']);
                 $this->logExecutionTime($valStart, $action, 'validate');
                 $payload = ['name' => $data['name'], 'email' => $data['email'], 'phone' => $req->input('phone'), 'subject' => $data['subject'], UC::COL_USER_ID => $data[UC::COL_USER_ID], ProjectsConstants::COL_PPL_ID => $data[ProjectsConstants::COL_PPL_ID], 'stage_id' => $data['stage_id'], 'sources' => implode(',', array_filter($req->input('sources'))), 'products' => implode(',', array_filter($req->input('products'))), 'notes' => $req->input('notes')];
-                $saveStart = microtime(true);
-                $lead->fill($payload)->save();
-                $this->logExecutionTime($saveStart, $action, 'saveLead');
+                $operation = (new CrmOperationService())->run(
+                    'crm.lead.update',
+                    function () use ($lead, $payload, $action): array {
+                        $saveStart = microtime(true);
+                        $lead->fill($payload)->save();
+                        $this->logExecutionTime($saveStart, $action, 'saveLead');
+
+                        return [
+                            'lead_id' => (string) $lead->id,
+                            'expected_stage_id' => (string) $payload['stage_id'],
+                            'expected_user_id' => (string) $payload[UC::COL_USER_ID],
+                            'is_critical' => (bool) $lead->getAttribute(ProjectsConstants::COL_CRT),
+                        ];
+                    },
+                    [
+                        'summary' => 'Update CRM lead',
+                        'subject_type' => Lead::class,
+                        'subject_id' => (string) $lead->id,
+                        'event_type' => 'crm.lead.updated',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
                 Log::info("[{$class}::{$action}] updated", ['lead_id' => $lead->id]);
-                return redirect()->back()->with('success', __('Lead successfully updated!'));
+                return redirect()->back()
+                    ->with('success', __('Lead successfully updated!'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (ValidationException $e) {
                 Log::debug("[{$class}::{$action}] validation exception", ['lead_id' => $lead->id, 'message' => $e->getMessage(), 'route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class]);
                 return redirect()->back()->with('error', $e->getMessage());
@@ -356,23 +412,42 @@ class LeadController extends Controller
                 self::_authorizeOwner($req, $lead, 'delete lead');
                 $this->logExecutionTime($authStart, $action, 'authorizeOwner');
                 Log::info("[{$class}::{$action}] start", ['lead_id' => $lead->id]);
-                $t1 = microtime(true);
-                LeadDiscussion::where('lead_id', $lead->id)->delete();
-                $this->logExecutionTime($t1, $action, 'deleteLeadDiscussions');
-                $t2 = microtime(true);
-                LeadFile::where('lead_id', $lead->id)->delete();
-                $this->logExecutionTime($t2, $action, 'deleteLeadFiles');
-                $t3 = microtime(true);
-                UserLead::where('lead_id', $lead->id)->delete();
-                $this->logExecutionTime($t3, $action, 'deleteUserLeads');
-                $t4 = microtime(true);
-                LeadActivityLog::where('lead_id', $lead->id)->delete();
-                $this->logExecutionTime($t4, $action, 'deleteLeadActivityLogs');
-                $t5 = microtime(true);
-                $lead->delete();
-                $this->logExecutionTime($t5, $action, 'deleteLead');
+                $leadId = (string) $lead->id;
+                $operation = (new CrmOperationService())->run(
+                    'crm.lead.delete',
+                    function () use ($lead, $leadId, $action): array {
+                        $t1 = microtime(true);
+                        LeadDiscussion::where('lead_id', $lead->id)->delete();
+                        $this->logExecutionTime($t1, $action, 'deleteLeadDiscussions');
+                        $t2 = microtime(true);
+                        LeadFile::where('lead_id', $lead->id)->delete();
+                        $this->logExecutionTime($t2, $action, 'deleteLeadFiles');
+                        $t3 = microtime(true);
+                        UserLead::where('lead_id', $lead->id)->delete();
+                        $this->logExecutionTime($t3, $action, 'deleteUserLeads');
+                        $t4 = microtime(true);
+                        LeadActivityLog::where('lead_id', $lead->id)->delete();
+                        $this->logExecutionTime($t4, $action, 'deleteLeadActivityLogs');
+                        $t5 = microtime(true);
+                        $lead->delete();
+                        $this->logExecutionTime($t5, $action, 'deleteLead');
+
+                        return ['lead_id' => $leadId];
+                    },
+                    [
+                        'summary' => 'Delete CRM lead',
+                        'subject_type' => Lead::class,
+                        'subject_id' => $leadId,
+                        'event_type' => 'crm.lead.deleted',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
                 Log::info("[{$class}::{$action}] deleted", ['lead_id' => $lead->id]);
-                return redirect()->back()->with('success', __('Lead successfully deleted!'));
+                return redirect()->back()
+                    ->with('success', __('Lead successfully deleted!'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (AuthorizationException $e) {
                 Log::debug("[{$class}::{$action}] auth exception", ['lead_id' => $lead->id, 'route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'message' => $e->getMessage()]);
                 return defaultPermissionDenial($req, $e, $class . '::' . $action);
@@ -1043,7 +1118,7 @@ class LeadController extends Controller
                 $leadFetchStart = microtime(true);
                 $lead = $this->lead($post['lead_id']);
                 $this->logExecutionTime($leadFetchStart, $action, 'fetchLead');
-                if ($lead->stageId != $post['stage_id']) {
+                if ($lead->stage_id != $post['stage_id']) {
                     $newStageStart = microtime(true);
                     $new = LeadStage::findOrFail($post['stage_id']);
                     $this->logExecutionTime($newStageStart, $action, 'findNewStage');
@@ -1054,16 +1129,39 @@ class LeadController extends Controller
                     Utility::sendEmailTemplate('Move Lead', $lead->users->pluck('email', 'id')->toArray(), ['lead_name' => $lead->name, 'lead_pipeline' => $lead->pipeline->name, 'lead_stage' => $lead->stage->name, 'lead_old_stage' => $lead->stage->name, 'lead_new_stage' => $new->name]);
                     $this->logExecutionTime($emailStart, $action, 'sendMoveEmail');
                 }
-                $updateStart = microtime(true);
-                foreach ($post['order'] as $k => $item) {
-                    $l = $this->lead($item);
-                    $l->order = $k;
-                    $l->stageId = $post['stage_id'];
-                    $l->save();
-                }
-                $this->logExecutionTime($updateStart, $action, 'reorderAndSaveLeads');
+                $operation = (new CrmOperationService())->run(
+                    'crm.lead.stage_move',
+                    function () use ($post, $action): array {
+                        $updateStart = microtime(true);
+                        foreach ($post['order'] as $k => $item) {
+                            $l = $this->lead($item);
+                            $l->order = $k;
+                            $l->stage_id = $post['stage_id'];
+                            $l->save();
+                        }
+                        $this->logExecutionTime($updateStart, $action, 'reorderAndSaveLeads');
+
+                        return [
+                            'lead_id' => (string) $post['lead_id'],
+                            'expected_stage_id' => (string) $post['stage_id'],
+                            'bulk_items' => is_countable($post['order'] ?? null) ? count($post['order']) : 0,
+                        ];
+                    },
+                    [
+                        'summary' => 'Move CRM lead stage',
+                        'subject_type' => Lead::class,
+                        'subject_id' => (string) $post['lead_id'],
+                        'event_type' => 'crm.lead.stage_moved',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
                 Log::info("[{$class}::{$action}] completed", ['stage_id' => $post['stage_id'] ?? null]);
-                return response()->json(['success' => true], 200);
+                return response()->json([
+                    'success' => true,
+                    'reliability_operation' => $this->crmReliabilityPayload($operation, $dispatchReport),
+                ], 200);
             } catch (AuthorizationException $e) {
                 Log::debug("[{$class}::{$action}] auth exception", ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'message' => $e->getMessage()]);
                 return response()->json(['error' => __('Permission Denied.')], 401);
@@ -1129,6 +1227,9 @@ class LeadController extends Controller
                 $user = $req->user();
                 $creatorId = $user?->creatorId();
                 Log::info("[{$class}::{$action}] start", ['lead_id' => $lead->id, 'creator_id' => $creatorId, 'client_check' => $req->input('client_check')]);
+                $operation = (new CrmOperationService())->run(
+                    'crm.lead.convert',
+                    function () use ($req, $lead, $user, $creatorId, $action): array {
                 if ($req->input('client_check') === 'exist') {
                     $tValExist = microtime(true);
                     $clientId = $req->validate(['clients' => 'required'])['clients'];
@@ -1189,7 +1290,7 @@ class LeadController extends Controller
                     $this->logExecutionTime($tTransEmails, $action, 'transferEmails');
                 }
                 $tMarkConverted = microtime(true);
-                $lead->isConverted = $deal->id;
+                $lead->{ProjectsConstants::COL_CNV} = true;
                 $lead->save();
                 $this->logExecutionTime($tMarkConverted, $action, 'markLeadConverted');
                 $notif = Utility::settingsById($creatorId);
@@ -1210,8 +1311,32 @@ class LeadController extends Controller
                     $this->logExecutionTime($tWebhook, $action, 'webhookCall');
                     $hookOk ?: redirect()->back()->with('error', __('Webhook call failed.'));
                 }
-                Log::info("[{$class}::{$action}] converted", ['lead_id' => $lead->id, 'deal_id' => $deal->id, 'client_id' => $client->id]);
-                return redirect()->back()->with('success', __('Lead successfully converted'));
+                        return [
+                            'lead_id' => (string) $lead->id,
+                            'deal_id' => (string) $deal->id,
+                            'client_id' => (string) $client->id,
+                            'expected_client_id' => (string) $client->id,
+                            'price' => (float) $deal->price,
+                            'creates_client' => $req->input('client_check') !== 'exist',
+                            'webhook' => (bool) Utility::webhookSetting('Lead to Deal Conversion'),
+                            'bulk_items' => is_countable($req->input('is_transfer', [])) ? count($req->input('is_transfer', [])) : 0,
+                        ];
+                    },
+                    [
+                        'summary' => 'Convert CRM lead to deal',
+                        'subject_type' => Lead::class,
+                        'subject_id' => (string) $lead->id,
+                        'event_type' => 'crm.lead.converted',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchCrmOutbox($operation);
+                $operationPayload = $operation->value();
+                Log::info("[{$class}::{$action}] converted", ['lead_id' => $lead->id, 'deal_id' => $operationPayload['deal_id'] ?? null, 'client_id' => $operationPayload['client_id'] ?? null]);
+                return redirect()->back()
+                    ->with('success', __('Lead successfully converted'))
+                    ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
             } catch (ValidationException $e) {
                 Log::debug("[{$class}::{$action}] validation exception", ['lead_id' => $id, 'route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'message' => $e->getMessage()]);
                 return redirect()->back()->with('error', $e->getMessage());
@@ -1502,6 +1627,25 @@ class LeadController extends Controller
                 throw $e;
             }
         }, ['method' => $method, 'class' => $class, 'lead_id' => $leadId]);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function dispatchCrmOutbox(CrmOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new CrmOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function crmReliabilityPayload(CrmOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromCrmResult($operation, $dispatchReport);
     }
 
     protected static function _authorize(Request $request, string $permission): void

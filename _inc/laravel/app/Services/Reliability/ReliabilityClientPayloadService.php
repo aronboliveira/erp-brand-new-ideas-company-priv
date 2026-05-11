@@ -56,6 +56,30 @@ class ReliabilityClientPayloadService
         ];
     }
 
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    public function fromCrmResult(CrmOperationResult $result, ?array $dispatchReport = null): array
+    {
+        $ledger = $result->ledger()?->fresh();
+        $outbox = $result->outboxMessage()?->fresh();
+
+        return [
+            'operation_key' => $ledger?->operation_key,
+            'operation_type' => $ledger?->operation_type,
+            'summary' => $ledger?->summary ?? 'CRM operation',
+            'ledger_status' => $ledger?->status,
+            'outbox_status' => $outbox?->status,
+            'dispatch_status' => $dispatchReport['status'] ?? null,
+            'message_key' => $outbox?->message_key,
+            'progress' => $this->progress($ledger, $outbox),
+            'status_url' => $ledger && Route::has('reliability.operations.show')
+                ? route('reliability.operations.show', ['operation' => $ledger->operation_key])
+                : null,
+        ];
+    }
+
     private function progress(?OperationLedger $ledger, ?OutboxMessage $outbox): int
     {
         if (!$ledger) {

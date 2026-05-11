@@ -24,6 +24,12 @@ class QuarantineRemediationJudge
             );
         }
 
+        if ($validation->domain === 'crm') {
+            return QuarantineDecision::manualReview(
+                'CRM post-write validation failed after persistent retry/circuit instability; keep the lead, deal, or access signal in manual review before further customer-impacting actions.'
+            );
+        }
+
         return QuarantineDecision::manualReview(
             'The quarantine decision is ambiguous outside the mature domain slices and requires manual review.'
         );

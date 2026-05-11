@@ -53,6 +53,12 @@ use Illuminate\Support\Facades\{
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use App\Services\Reliability\{
+  CrmOperationResult,
+  CrmOperationService,
+  CrmOutboxDispatcher,
+  ReliabilityClientPayloadService
+};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
@@ -223,7 +229,7 @@ class DealController extends Controller
       }
       try {
         $txnStart = microtime(true);
-        DB::transaction(function () use ($req, $user, $pipeline, $stage, $action, $class) {
+        $operation = (new CrmOperationService())->run('crm.deal.create', function () use ($req, $user, $pipeline, $stage, $action, $class): array {
           $createStart = microtime(true);
           $deal = Deal::create([
             'name' => $req->name,
@@ -236,7 +242,7 @@ class DealController extends Controller
           ]);
           $this->logExecutionTime($createStart, $action, 'createDeal');
           Log::info("[{$class}::{$action}] deal created", ['deal_id' => $deal->id]);
-          $cids = array_filter((array)$req->clients);
+          $cids = array_values(array_filter((array)$req->clients));
           $cliStart = microtime(true);
           foreach ($cids as $cid) ClientDeal::create(['deal_id' => $deal->id, 'client_id' => $cid]);
           $this->logExecutionTime($cliStart, $action, 'assignClients');
@@ -249,9 +255,27 @@ class DealController extends Controller
           $cfStart = microtime(true);
           CustomField::saveData($deal, $req->customField ?? []);
           $this->logExecutionTime($cfStart, $action, 'saveCustomFields');
-        });
+
+          return [
+            'deal_id' => (string) $deal->id,
+            'expected_stage_id' => (string) $stage->id,
+            'expected_client_id' => isset($cids[0]) ? (string) $cids[0] : null,
+            'price' => (float) $deal->price,
+            'bulk_items' => count($cids) + count($uids),
+          ];
+        }, [
+          'summary' => 'Create CRM deal',
+          'subject_type' => Deal::class,
+          'subject_id' => 'deal:create:' . (string) ($req->input('name') ?? ''),
+          'event_type' => 'crm.deal.created',
+          'post_write_validation' => true,
+          'payload' => fn(array $payload): array => $payload,
+        ]);
+        $dispatchReport = $this->dispatchCrmOutbox($operation);
         $this->logExecutionTime($txnStart, $action, 'storeTransaction');
-        return redirect()->route(self::ROUTE_INDEX)->with('success', __('Deal successfully created!'));
+        return redirect()->route(self::ROUTE_INDEX)
+          ->with('success', __('Deal successfully created!'))
+          ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
       } catch (\Throwable $e) {
         Log::error("[{$class}::{$action}] transaction failed", ['err' => $e->getMessage()]);
         Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -324,33 +348,49 @@ class DealController extends Controller
         return redirect()->back()->with('error', $v->errors()->first());
       }
       $this->logExecutionTime($valStart, $action, 'validateUpdate');
-      DB::beginTransaction();
       $txnStart = microtime(true);
       try {
-        $prepStart = microtime(true);
-        $data = [
-          'name' => $req->name,
-          'phone' => $req->phone,
-          'price' => $req->price ?: 0,
-          'pipeline_id' => $req->pipeline_id,
-          'stage_id' => $req->stage_id,
-          'sources' => implode(',', array_filter($req->sources ?? [])),
-          DC::TABLE_PRODUCTS => implode(',', array_filter($req->products ?? [])),
-          'notes' => $req->notes,
-        ];
-        $this->logExecutionTime($prepStart, $action, 'prepareUpdatePayload');
-        $updStart = microtime(true);
-        $deal->update($data);
-        $this->logExecutionTime($updStart, $action, 'persistDealUpdate');
-        $cfStart = microtime(true);
-        CustomField::saveData($deal, $req->customField ?? []);
-        $this->logExecutionTime($cfStart, $action, 'saveCustomFields');
-        DB::commit();
+        $operation = (new CrmOperationService())->run('crm.deal.update', function () use ($req, $deal, $action): array {
+          $prepStart = microtime(true);
+          $data = [
+            'name' => $req->name,
+            'phone' => $req->phone,
+            'price' => $req->price ?: 0,
+            'pipeline_id' => $req->pipeline_id,
+            'stage_id' => $req->stage_id,
+            'sources' => implode(',', array_filter($req->sources ?? [])),
+            DC::TABLE_PRODUCTS => implode(',', array_filter($req->products ?? [])),
+            'notes' => $req->notes,
+          ];
+          $this->logExecutionTime($prepStart, $action, 'prepareUpdatePayload');
+          $updStart = microtime(true);
+          $deal->update($data);
+          $this->logExecutionTime($updStart, $action, 'persistDealUpdate');
+          $cfStart = microtime(true);
+          CustomField::saveData($deal, $req->customField ?? []);
+          $this->logExecutionTime($cfStart, $action, 'saveCustomFields');
+
+          return [
+            'deal_id' => (string) $deal->id,
+            'expected_stage_id' => (string) $data['stage_id'],
+            'price' => (float) $deal->price,
+            'bulk_items' => count(array_filter($req->sources ?? [])) + count(array_filter($req->products ?? [])),
+          ];
+        }, [
+          'summary' => 'Update CRM deal',
+          'subject_type' => Deal::class,
+          'subject_id' => (string) $deal->id,
+          'event_type' => 'crm.deal.updated',
+          'post_write_validation' => true,
+          'payload' => fn(array $payload): array => $payload,
+        ]);
+        $dispatchReport = $this->dispatchCrmOutbox($operation);
         $this->logExecutionTime($txnStart, $action, 'updateTransaction');
         Log::info("[{$class}::{$action}] updated", ['deal_id' => $deal->id]);
-        return redirect()->back()->with('success', __('Deal successfully updated!'));
+        return redirect()->back()
+          ->with('success', __('Deal successfully updated!'))
+          ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
       } catch (\Throwable $e) {
-        DB::rollBack();
         Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'deal_id' => $deal->id]);
         Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
         return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
@@ -371,36 +411,48 @@ class DealController extends Controller
         Log::warning("[{$class}::{$action}] unauthorized", [UC::COL_USER_ID => $user?->id, 'deal_id' => $deal->id]);
         return defaultPermissionDenial($req, new AuthorizationException, '', '');
       }
-      DB::beginTransaction();
       $txnStart = microtime(true);
       try {
-        $disStart = microtime(true);
-        DealDiscussion::where('deal_id', $deal->id)->delete();
-        $this->logExecutionTime($disStart, $action, 'deleteDiscussions');
-        $fileStart = microtime(true);
-        DealFile::where('deal_id', $deal->id)->delete();
-        $this->logExecutionTime($fileStart, $action, 'deleteFiles');
-        $cliStart = microtime(true);
-        ClientDeal::where('deal_id', $deal->id)->delete();
-        $this->logExecutionTime($cliStart, $action, 'deleteClientLinks');
-        $userStart = microtime(true);
-        UserDeal::where('deal_id', $deal->id)->delete();
-        $this->logExecutionTime($userStart, $action, 'deleteUserLinks');
-        $taskStart = microtime(true);
-        DealTask::where('deal_id', $deal->id)->delete();
-        $this->logExecutionTime($taskStart, $action, 'deleteTasks');
-        $logStart = microtime(true);
-        ActivityLog::where('deal_id', $deal->id)->delete();
-        $this->logExecutionTime($logStart, $action, 'deleteActivityLogs');
-        $rowStart = microtime(true);
-        $deal->delete();
-        $this->logExecutionTime($rowStart, $action, 'deleteDealRow');
-        DB::commit();
+        $dealId = (string) $deal->id;
+        $operation = (new CrmOperationService())->run('crm.deal.delete', function () use ($deal, $dealId, $action): array {
+          $disStart = microtime(true);
+          DealDiscussion::where('deal_id', $deal->id)->delete();
+          $this->logExecutionTime($disStart, $action, 'deleteDiscussions');
+          $fileStart = microtime(true);
+          DealFile::where('deal_id', $deal->id)->delete();
+          $this->logExecutionTime($fileStart, $action, 'deleteFiles');
+          $cliStart = microtime(true);
+          ClientDeal::where('deal_id', $deal->id)->delete();
+          $this->logExecutionTime($cliStart, $action, 'deleteClientLinks');
+          $userStart = microtime(true);
+          UserDeal::where('deal_id', $deal->id)->delete();
+          $this->logExecutionTime($userStart, $action, 'deleteUserLinks');
+          $taskStart = microtime(true);
+          DealTask::where('deal_id', $deal->id)->delete();
+          $this->logExecutionTime($taskStart, $action, 'deleteTasks');
+          $logStart = microtime(true);
+          ActivityLog::where('deal_id', $deal->id)->delete();
+          $this->logExecutionTime($logStart, $action, 'deleteActivityLogs');
+          $rowStart = microtime(true);
+          $deal->delete();
+          $this->logExecutionTime($rowStart, $action, 'deleteDealRow');
+
+          return ['deal_id' => $dealId];
+        }, [
+          'summary' => 'Delete CRM deal',
+          'subject_type' => Deal::class,
+          'subject_id' => $dealId,
+          'event_type' => 'crm.deal.deleted',
+          'post_write_validation' => true,
+          'payload' => fn(array $payload): array => $payload,
+        ]);
+        $dispatchReport = $this->dispatchCrmOutbox($operation);
         $this->logExecutionTime($txnStart, $action, 'destroyTransaction');
         Log::info("[{$class}::{$action}] deleted", ['deal_id' => $deal->id]);
-        return redirect()->route(self::ROUTE_INDEX)->with('success', __('Deal successfully deleted!'));
+        return redirect()->route(self::ROUTE_INDEX)
+          ->with('success', __('Deal successfully deleted!'))
+          ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
       } catch (\Throwable $e) {
-        DB::rollBack();
         Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'deal_id' => $deal->id]);
         Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
         return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
@@ -423,36 +475,53 @@ class DealController extends Controller
       $v = Validator::make($req->all(), ['deal_id' => 'required', 'stage_id' => 'required', 'order' => 'required|array']);
       if ($v->fails()) return response()->json(['error' => $v->errors()->first()], 400);
       $this->logExecutionTime($valStart, $action, 'validateOrderPayload');
-      DB::beginTransaction();
       $txnStart = microtime(true);
       try {
-        $loadStart = microtime(true);
-        $deal = Deal::findOrFail($req->deal_id);
-        $clients = ClientDeal::where('deal_id', $deal->id)->pluck('client_id')->toArray();
-        $dealUsers = $deal->users->pluck('id')->toArray();
-        $usrs = User::whereIn('id', array_merge($dealUsers, $clients))->pluck('email', 'id')->toArray();
-        $this->logExecutionTime($loadStart, $action, 'loadDealAndParticipants');
-        if ($deal->stage_id !== $req->stage_id) {
-          $stageStart = microtime(true);
-          $newStage = Stage::findOrFail($req->stage_id);
-          ActivityLog::create([UC::COL_USER_ID => $user?->id, 'deal_id' => $deal->id, 'log_type' => 'Move', 'remark' => json_encode(['title' => $deal->name, 'oldStatus' => $deal->stage->name, 'newStatus' => $newStage->name])]);
-          Utility::sendEmailTemplate('Move Deal', $usrs, ['deal_name' => $deal->name, 'deal_pipeline' => $deal->pipeline->name, 'deal_stage' => $deal->stage->name, 'deal_status' => $deal->status, 'deal_price' => $user?->priceFormat($deal->price), 'deal_oldStage' => $deal->stage->name, 'deal_newStage' => $newStage->name]);
-          $this->logExecutionTime($stageStart, $action, 'handleStageMove');
-          Log::info("[{$class}::{$action}] moved", ['deal_id' => $deal->id, 'new_stage' => $newStage->id]);
-        }
-        $orderStart = microtime(true);
-        foreach ($req->order as $position => $item) {
-          $d = Deal::findOrFail($item);
-          $d->order = $position;
-          $d->stage_id = $req->stage_id;
-          $d->save();
-        }
-        $this->logExecutionTime($orderStart, $action, 'reorderDealsLoop');
-        DB::commit();
+        $operation = (new CrmOperationService())->run('crm.deal.stage_move', function () use ($req, $user, $action, $class): array {
+          $loadStart = microtime(true);
+          $deal = Deal::findOrFail($req->deal_id);
+          $clients = ClientDeal::where('deal_id', $deal->id)->pluck('client_id')->toArray();
+          $dealUsers = $deal->users->pluck('id')->toArray();
+          $usrs = User::whereIn('id', array_merge($dealUsers, $clients))->pluck('email', 'id')->toArray();
+          $this->logExecutionTime($loadStart, $action, 'loadDealAndParticipants');
+          if ($deal->stage_id !== $req->stage_id) {
+            $stageStart = microtime(true);
+            $newStage = Stage::findOrFail($req->stage_id);
+            ActivityLog::create([UC::COL_USER_ID => $user?->id, 'deal_id' => $deal->id, 'log_type' => 'Move', 'remark' => json_encode(['title' => $deal->name, 'oldStatus' => $deal->stage->name, 'newStatus' => $newStage->name])]);
+            Utility::sendEmailTemplate('Move Deal', $usrs, ['deal_name' => $deal->name, 'deal_pipeline' => $deal->pipeline->name, 'deal_stage' => $deal->stage->name, 'deal_status' => $deal->status, 'deal_price' => $user?->priceFormat($deal->price), 'deal_oldStage' => $deal->stage->name, 'deal_newStage' => $newStage->name]);
+            $this->logExecutionTime($stageStart, $action, 'handleStageMove');
+            Log::info("[{$class}::{$action}] moved", ['deal_id' => $deal->id, 'new_stage' => $newStage->id]);
+          }
+          $orderStart = microtime(true);
+          foreach ($req->order as $position => $item) {
+            $d = Deal::findOrFail($item);
+            $d->order = $position;
+            $d->stage_id = $req->stage_id;
+            $d->save();
+          }
+          $this->logExecutionTime($orderStart, $action, 'reorderDealsLoop');
+
+          return [
+            'deal_id' => (string) $deal->id,
+            'expected_stage_id' => (string) $req->stage_id,
+            'price' => (float) $deal->price,
+            'bulk_items' => count($req->order),
+          ];
+        }, [
+          'summary' => 'Move CRM deal stage',
+          'subject_type' => Deal::class,
+          'subject_id' => (string) $req->deal_id,
+          'event_type' => 'crm.deal.stage_moved',
+          'post_write_validation' => true,
+          'payload' => fn(array $payload): array => $payload,
+        ]);
+        $dispatchReport = $this->dispatchCrmOutbox($operation);
         $this->logExecutionTime($txnStart, $action, 'orderTransaction');
-        return response()->json(['success' => true]);
+        return response()->json([
+          'success' => true,
+          'reliability_operation' => $this->crmReliabilityPayload($operation, $dispatchReport),
+        ]);
       } catch (\Throwable $e) {
-        DB::rollBack();
         Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'deal_id' => $req->deal_id, 'stage_id' => $req->stage_id, 'order_count' => is_array($req->order) ? count($req->order) : null]);
         Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
         return response()->json(['error' => __('An error occurred.')], 500);
@@ -1577,10 +1646,28 @@ class DealController extends Controller
         $dealStart = microtime(true);
         $deal = Deal::findOrFail($id);
         $this->logExecutionTime($dealStart, $action, 'loadDeal');
-        $updStart = microtime(true);
-        $deal->update(['status' => $request->input('dealStatus')]);
-        $this->logExecutionTime($updStart, $action, 'persistStatus');
-        return redirect()->back();
+        $operation = (new CrmOperationService())->run('crm.deal.status_change', function () use ($deal, $request, $action): array {
+          $updStart = microtime(true);
+          $deal->update(['status' => $request->input('dealStatus')]);
+          $this->logExecutionTime($updStart, $action, 'persistStatus');
+
+          return [
+            'deal_id' => (string) $deal->id,
+            'expected_status' => (string) $request->input('dealStatus'),
+            'price' => (float) $deal->price,
+            'final_state' => in_array(strtolower((string) $request->input('dealStatus')), ['won', 'loss', 'lost'], true),
+          ];
+        }, [
+          'summary' => 'Change CRM deal status',
+          'subject_type' => Deal::class,
+          'subject_id' => (string) $deal->id,
+          'event_type' => 'crm.deal.status_changed',
+          'post_write_validation' => true,
+          'payload' => fn(array $payload): array => $payload,
+        ]);
+        $dispatchReport = $this->dispatchCrmOutbox($operation);
+        return redirect()->back()
+          ->with('reliability_operation', $this->crmReliabilityPayload($operation, $dispatchReport));
       } catch (AuthorizationException $e) {
         return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
       } catch (\Throwable $e) {
@@ -1925,6 +2012,25 @@ class DealController extends Controller
       );
     }
     return null;
+  }
+
+  /**
+   * @return array<string, mixed>|null
+   */
+  private function dispatchCrmOutbox(CrmOperationResult $operation): ?array
+  {
+    $message = $operation->outboxMessage();
+
+    return $message ? (new CrmOutboxDispatcher())->dispatchMessage($message) : null;
+  }
+
+  /**
+   * @param array<string, mixed>|null $dispatchReport
+   * @return array<string, mixed>
+   */
+  private function crmReliabilityPayload(CrmOperationResult $operation, ?array $dispatchReport): array
+  {
+    return (new ReliabilityClientPayloadService())->fromCrmResult($operation, $dispatchReport);
   }
 
   /**
