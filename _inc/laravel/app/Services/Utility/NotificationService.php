@@ -22,6 +22,7 @@ use App\Models\{
     Utility,
     WebhookSettings,
 };
+use App\Services\Reliability\HeavyIoOperationService;
 use App\Traits\ChecksLogin;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\{Auth, Config, Http, Log, Mail};
@@ -577,13 +578,23 @@ class NotificationService
     public static function webhookCall(?string $url, $parameter = null, string $method = 'POST'): bool
     {
         if (empty($url) || empty($parameter)) return false;
-        try {
-            $response = Http::withOptions(['verify' => false])
-                ->send(strtoupper($method), $url, ['form_params' => $parameter]);
-            return $response->successful();
-        } catch (\Throwable $e) {
-            return false;
-        }
+
+        return (new HeavyIoOperationService())->runWebhook(
+            $url,
+            $parameter,
+            $method,
+            static function () use ($url, $parameter, $method): bool {
+                try {
+                    $response = Http::withOptions(['verify' => false])
+                        ->send(strtoupper($method), $url, ['form_params' => $parameter]);
+
+                    return $response->successful();
+                } catch (\Throwable $e) {
+                    return false;
+                }
+            },
+            ['source_class' => static::class],
+        );
     }
 
     // ─────────────────────────────────────────────────────────

@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Services\Reliability\HeavyIoOperationService;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
@@ -28,6 +29,25 @@ trait DelegatesPythonImport
 	 * @return array      Decoded JSON response from the Python process
 	 */
 	protected static function _executePythonImporter(
+		string $importerName,
+		array $data
+	): array {
+		return (new HeavyIoOperationService())->runPythonImport(
+			$importerName,
+			$data,
+			fn(): array => self::_executePythonImporterRaw($importerName, $data),
+			['source_class' => static::class]
+		);
+	}
+
+	/**
+	 * Execute the Python import script without the reliability guard wrapper.
+	 *
+	 * @param string      $importerName  PascalCase importer class name (e.g. 'AttendanceImport')
+	 * @param array       $data          Payload to JSON-encode and send via stdin
+	 * @return array      Decoded JSON response from the Python process
+	 */
+	protected static function _executePythonImporterRaw(
 		string $importerName,
 		array $data
 	): array {

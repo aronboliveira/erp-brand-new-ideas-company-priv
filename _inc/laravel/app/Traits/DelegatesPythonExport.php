@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Services\Reliability\HeavyIoOperationService;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
@@ -12,6 +13,22 @@ trait DelegatesPythonExport
 	private const PROC_TIMEOUT        = 60;
 
 	protected static function _executePythonExporter(
+		string $exporterName,
+		array $data,
+		?string $outputPath = null
+	): string {
+		return (new HeavyIoOperationService())->runPythonExport(
+			$exporterName,
+			$data,
+			fn(): string => self::_executePythonExporterRaw($exporterName, $data, $outputPath),
+			[
+				'source_class' => static::class,
+				'output_path' => $outputPath,
+			]
+		);
+	}
+
+	protected static function _executePythonExporterRaw(
 		string $exporterName,
 		array $data,
 		?string $outputPath = null

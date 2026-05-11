@@ -36,6 +36,12 @@ class QuarantineRemediationJudge
             );
         }
 
+        if ($validation->domain === 'heavy_io') {
+            return QuarantineDecision::manualReview(
+                'Heavy I/O integration validation failed after persistent retry/circuit instability; keep the import, export, webhook, or callback signal in manual review before further downstream processing.'
+            );
+        }
+
         return QuarantineDecision::manualReview(
             'The quarantine decision is ambiguous outside the mature domain slices and requires manual review.'
         );
