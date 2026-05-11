@@ -18,6 +18,7 @@ use App\Models\{
     Purchase,
     PurchasePayment,
     PurchaseProduct,
+    OperationLedger,
     StockReport,
     Transaction,
     User,
@@ -26,6 +27,14 @@ use App\Models\{
     Warehouse,
     WarehouseProduct,
     WarehouseTransfer
+};
+use App\Services\Reliability\{
+    CriticalOperationService,
+    ReliabilityClientPayloadService,
+    ReliabilityPolicy,
+    WarehouseOperationResult,
+    WarehouseOperationService,
+    WarehouseOutboxDispatcher
 };
 use App\Traits\{
     ChecksLogin,
@@ -149,7 +158,7 @@ class PurchaseController extends Controller
             try {
                 Log::info("[{$class}::{$action}] starting DB transaction", [UsersConstants::COL_USER_ID => $user?->id]);
                 $txnStart = microtime(true);
-                $purchase = DB::transaction(function () use ($request, $user, $action, $class) {
+                $operation = (new WarehouseOperationService())->run('warehouse.purchase.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($request, $user, $action, $class): array {
                     $validator = Validator::make($request->all(), ['vendor_id' => 'required', 'warehouse_id' => 'required', 'purchase_date' => 'required', 'category_id' => 'required', 'items' => 'required']);
                     if ($validator->fails()) {
                         Log::warning("[{$class}::{$action}] validation failed", ['errors' => $validator->errors()->all()]);
@@ -167,6 +176,7 @@ class PurchaseController extends Controller
                     $purchase->save();
                     Log::info("[{$class}::{$action}] purchase created", ['purchase_id' => $purchase->id]);
                     $loopStart = microtime(true);
+                    $itemsPayload = [];
                     foreach ($request->items as $item) {
                         $pp = new PurchaseProduct();
                         $pp->purchase_id = $purchase->id;
@@ -182,13 +192,59 @@ class PurchaseController extends Controller
                         $desc = $item['quantity'] . '  quantity add in purchase ' . $user?->purchaseNumberFormat($purchase->purchase_id);
                         Utility::addProductStock($item['item'], $item['quantity'], 'purchase', $desc, $purchase->id);
                         Utility::addWarehouseStock($item['item'], $item['quantity'], $request->warehouse_id);
+                        $itemsPayload[] = [
+                            'product_id' => (string) $pp->product_id,
+                            'warehouse_id' => (string) $request->warehouse_id,
+                            'quantity' => (int) $pp->quantity,
+                            'expected_product_quantity' => (float) (ProductService::whereKey($pp->product_id)->value('quantity') ?? 0),
+                            'expected_warehouse_quantity' => (int) (WarehouseProduct::where('warehouse_id', $request->warehouse_id)->where('product_id', $pp->product_id)->value('quantity') ?? 0),
+                        ];
                     }
                     $this->logExecutionTime($loopStart, $action, 'storeItemsLoop');
-                    return $purchase;
-                });
+                    $payload = [
+                        'purchase_id' => (string) $purchase->id,
+                        'warehouse_id' => (string) $purchase->warehouse_id,
+                        'items_count' => count($itemsPayload),
+                        'total_quantity' => array_sum(array_column($itemsPayload, 'quantity')),
+                        'items' => $itemsPayload,
+                        'eventual_consistency_sensitive' => true,
+                        'replica_sync_sensitive' => true,
+                    ];
+                    $operations->recordStep($ledger, 'warehouse.purchase.persisted', 'Persist purchase and stock effects', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Create purchase and stock effects',
+                    'subject_type' => Purchase::class,
+                    'actor_id' => $request->user()?->id,
+                    'context' => [
+                        'warehouse_id' => (string) ($request->warehouse_id ?? ''),
+                        'items_count' => is_countable($request->items ?? null) ? count($request->items) : 0,
+                        'total_quantity' => is_array($request->items ?? null) ? array_sum(array_map(fn($item): int => (int) ($item['quantity'] ?? 0), $request->items)) : 0,
+                    ],
+                    'post_write_validation' => true,
+                    'event_type' => 'warehouse.purchase.created',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.purchase.created:' . ($result['purchase_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                    'replica_sync_sensitive' => true,
+                    'eventual_consistency_sensitive' => true,
+                ]);
                 $this->logExecutionTime($txnStart, $action, 'storeTransaction');
-                Log::info("[{$class}::{$action}] DB transaction committed", ['purchase_id' => $purchase->id, UsersConstants::COL_USER_ID => $user?->id]);
-                return redirect()->route(self::ROUTE_SHOW, ['purchase' => $purchase->id])->with('success', __('Purchase successfully created.'));
+                $dispatchReport = $this->dispatchWarehouseOutbox($operation);
+                $result = $operation->value();
+                $purchaseId = is_array($result) ? (string) ($result['purchase_id'] ?? '') : '';
+                Log::info("[{$class}::{$action}] DB transaction committed", ['purchase_id' => $purchaseId, UsersConstants::COL_USER_ID => $user?->id]);
+
+                return redirect()->route(self::ROUTE_SHOW, ['purchase' => $purchaseId])
+                    ->with('success', __('Purchase successfully created.'))
+                    ->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage()]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -308,6 +364,7 @@ class PurchaseController extends Controller
             $user = $userOrRedirect;
             if (($r = self::guard($request, 'edit purchase', self::ROUTE_INDEX)) !== true) return $r;
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'method' => $method, 'purchase_id' => $purchase->id]);
+            $transactionStarted = false;
             try {
                 if ($purchase[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) throw new AuthorizationException();
                 $valStart = microtime(true);
@@ -319,7 +376,7 @@ class PurchaseController extends Controller
                 $this->logExecutionTime($valStart, $action, 'validateUpdate');
                 Log::info("[{$class}::{$action}] starting DB transaction", ['purchase_id' => $purchase->id]);
                 $txnStart = microtime(true);
-                DB::transaction(function () use ($request, $purchase, $user, $action, $class) {
+                $operation = (new WarehouseOperationService())->run('warehouse.purchase.update', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($request, $purchase, $user, $action, $class): array {
                     $updStart = microtime(true);
                     $purchase->update(['vendor_id' => $request->vendor_id, 'purchase_date' => $request->purchase_date, 'category_id' => $request->category_id]);
                     $this->logExecutionTime($updStart, $action, 'updatePurchaseRow');
@@ -328,6 +385,7 @@ class PurchaseController extends Controller
                     StockReport::where('type', 'purchase')->where('type_id', $purchase->id)->delete();
                     $this->logExecutionTime($delStart, $action, 'deleteOldStockReports');
                     $loopStart = microtime(true);
+                    $itemsPayload = [];
                     foreach ($request->items as $item) {
                         $pp = PurchaseProduct::find($item['id'] ?? null) ?? new PurchaseProduct(['purchase_id' => $purchase->id]);
                         $oldQty = $pp->exists ? $pp->quantity : 0;
@@ -345,12 +403,59 @@ class PurchaseController extends Controller
                         Utility::addProductStock($pp->product_id, $pp->quantity, 'purchase', $desc, $purchase->id);
                         $diff = $pp->quantity - $oldQty;
                         Utility::addWarehouseStock($pp->product_id, $diff, $request->warehouse_id);
+                        $itemsPayload[] = [
+                            'product_id' => (string) $pp->product_id,
+                            'warehouse_id' => (string) $request->warehouse_id,
+                            'quantity' => (int) $pp->quantity,
+                            'quantity_delta' => (int) $diff,
+                            'expected_product_quantity' => (float) (ProductService::whereKey($pp->product_id)->value('quantity') ?? 0),
+                            'expected_warehouse_quantity' => (int) (WarehouseProduct::where('warehouse_id', $request->warehouse_id)->where('product_id', $pp->product_id)->value('quantity') ?? 0),
+                        ];
                     }
                     $this->logExecutionTime($loopStart, $action, 'upsertItemsLoop');
-                });
+                    $payload = [
+                        'purchase_id' => (string) $purchase->id,
+                        'warehouse_id' => (string) ($request->warehouse_id ?? $purchase->warehouse_id),
+                        'items_count' => count($itemsPayload),
+                        'total_quantity' => array_sum(array_column($itemsPayload, 'quantity')),
+                        'items' => $itemsPayload,
+                        'eventual_consistency_sensitive' => true,
+                        'replica_sync_sensitive' => true,
+                    ];
+                    $operations->recordStep($ledger, 'warehouse.purchase.updated', 'Update purchase and stock effects', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Update purchase and stock effects',
+                    'subject_type' => Purchase::class,
+                    'subject_id' => (string) $purchase->id,
+                    'actor_id' => $request->user()?->id,
+                    'context' => [
+                        'purchase_id' => (string) $purchase->id,
+                        'warehouse_id' => (string) ($request->warehouse_id ?? $purchase->warehouse_id),
+                        'items_count' => is_countable($request->items ?? null) ? count($request->items) : 0,
+                        'total_quantity' => is_array($request->items ?? null) ? array_sum(array_map(fn($item): int => (int) ($item['quantity'] ?? 0), $request->items)) : 0,
+                    ],
+                    'post_write_validation' => true,
+                    'event_type' => 'warehouse.purchase.updated',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.purchase.updated:' . ($result['purchase_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                    'replica_sync_sensitive' => true,
+                    'eventual_consistency_sensitive' => true,
+                ]);
                 $this->logExecutionTime($txnStart, $action, 'updateTransaction');
+                $dispatchReport = $this->dispatchWarehouseOutbox($operation);
                 Log::info("[{$class}::{$action}] DB transaction committed", ['purchase_id' => $purchase->id]);
-                return redirect()->route(self::ROUTE_INDEX)->with('success', __('Purchase successfully updated.'));
+                return redirect()->route(self::ROUTE_INDEX)
+                    ->with('success', __('Purchase successfully updated.'))
+                    ->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
             } catch (AuthorizationException $e) {
                 Log::warning("[{$class}::{$action}] authorization failed", [UsersConstants::COL_USER_ID => $user?->id, 'purchase_id' => $purchase->id]);
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
@@ -391,7 +496,7 @@ class PurchaseController extends Controller
             try {
                 Log::info("[{$class}::{$action}] starting DB transaction", ['purchase_id' => $purchase->id]);
                 $txnStart = microtime(true);
-                DB::transaction(function () use ($purchase, $action, $class) {
+                $operation = (new WarehouseOperationService())->run('warehouse.purchase.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($purchase, $action, $class): array {
                     $payLoopStart = microtime(true);
                     foreach ($purchase->payments as $pay) {
                         Log::debug("[{$class}::{$action}] deleting payment", ['pay_id' => $pay->id]);
@@ -399,6 +504,7 @@ class PurchaseController extends Controller
                     }
                     $this->logExecutionTime($payLoopStart, $action, 'deletePaymentsLoop');
                     $itemLoopStart = microtime(true);
+                    $itemsPayload = [];
                     foreach ($purchase->items as $item) {
                         foreach (WarehouseTransfer::where('product_id', $item->product_id)->where('from_warehouse', $purchase->warehouse_id)->get() as $t) {
                             Log::debug("[{$class}::{$action}] reversing warehouse transfer", ['transfer_id' => $t->id]);
@@ -412,6 +518,13 @@ class PurchaseController extends Controller
                         WarehouseProduct::where('warehouse_id', $purchase->warehouse_id)->where('product_id', $item->product_id)->where('quantity', '<=', 0)->delete();
                         ProductService::where('id', $item->product_id)->decrement('quantity', $item->quantity);
                         Log::debug("[{$class}::{$action}] deleting purchase item", ['item_id' => $item->id, 'product_id' => $item->product_id]);
+                        $itemsPayload[] = [
+                            'product_id' => (string) $item->product_id,
+                            'warehouse_id' => (string) $purchase->warehouse_id,
+                            'quantity' => (int) $item->quantity,
+                            'expected_product_quantity' => (float) (ProductService::whereKey($item->product_id)->value('quantity') ?? 0),
+                            'expected_warehouse_quantity' => (int) (WarehouseProduct::where('warehouse_id', $purchase->warehouse_id)->where('product_id', $item->product_id)->value('quantity') ?? 0),
+                        ];
                         $item->delete();
                     }
                     $this->logExecutionTime($itemLoopStart, $action, 'deleteItemsLoop');
@@ -419,10 +532,50 @@ class PurchaseController extends Controller
                     $purchase->delete();
                     $this->logExecutionTime($rowDelStart, $action, 'deletePurchaseRow');
                     Log::info("[{$class}::{$action}] purchase deleted", ['purchase_id' => $purchase->id]);
-                });
+                    $payload = [
+                        'purchase_id' => (string) $purchase->id,
+                        'warehouse_id' => (string) $purchase->warehouse_id,
+                        'items_count' => count($itemsPayload),
+                        'total_quantity' => array_sum(array_column($itemsPayload, 'quantity')),
+                        'items' => $itemsPayload,
+                        'closed_state_recovery' => true,
+                        'eventual_consistency_sensitive' => true,
+                        'replica_sync_sensitive' => true,
+                    ];
+                    $operations->recordStep($ledger, 'warehouse.purchase.deleted', 'Delete purchase and reverse stock effects', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Delete purchase and reverse stock effects',
+                    'subject_type' => Purchase::class,
+                    'subject_id' => (string) $purchase->id,
+                    'actor_id' => $request->user()?->id,
+                    'context' => [
+                        'purchase_id' => (string) $purchase->id,
+                        'warehouse_id' => (string) $purchase->warehouse_id,
+                        'closed_state_recovery' => true,
+                    ],
+                    'post_write_validation' => true,
+                    'event_type' => 'warehouse.purchase.deleted',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.purchase.deleted:' . ($result['purchase_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                    'closed_state_recovery' => true,
+                    'replica_sync_sensitive' => true,
+                    'eventual_consistency_sensitive' => true,
+                ]);
                 $this->logExecutionTime($txnStart, $action, 'destroyTransaction');
+                $dispatchReport = $this->dispatchWarehouseOutbox($operation);
                 Log::info("[{$class}::{$action}] DB transaction committed", ['purchase_id' => $purchase->id]);
-                return redirect()->route(self::ROUTE_INDEX)->with('success', __('Purchase successfully deleted.'));
+                return redirect()->route(self::ROUTE_INDEX)
+                    ->with('success', __('Purchase successfully deleted.'))
+                    ->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'purchase_id' => $purchase->id]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
@@ -1089,59 +1242,133 @@ class PurchaseController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             $user = $userOrRedirect;
             if (($r = self::guard($request, 'delete purchase', self::ROUTE_INDEX)) !== true) return $r;
-            Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'item_id' => $request->id, 'method' => $method]);
+            $itemId = (string) ($request->id ?? '');
+            Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'item_id' => $itemId, 'method' => $method]);
             try {
                 $txnStart = microtime(true);
-                DB::transaction(function () use ($request, $user, $action, $class) {
+                $operation = (new WarehouseOperationService())->run('warehouse.purchase.product.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($itemId, $user, $action, $class): array {
                     $ppLoadStart = microtime(true);
-                    $res = PurchaseProduct::findOrFail($request->id);
+                    $res = PurchaseProduct::where('id', $itemId)
+                        ->lockForUpdate()
+                        ->firstOrFail();
                     $this->logExecutionTime($ppLoadStart, $action, 'loadPurchaseProduct');
                     Log::debug("[{$class}::{$action}] purchase product loaded", ['id' => $res->id, 'product_id' => $res->product_id, 'qty' => $res->quantity]);
                     $purchaseLoadStart = microtime(true);
-                    $purchase = Purchase::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
+                    $purchase = Purchase::where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())
+                        ->whereKey($res->purchase_id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
                     $this->logExecutionTime($purchaseLoadStart, $action, 'loadPurchase');
                     $warehouseId = $purchase->warehouse_id;
+                    $productId = (string) $res->product_id;
+                    $quantity = (int) $res->quantity;
+                    $product = ProductService::whereKey($productId)->lockForUpdate()->first();
+                    if ($product) {
+                        $product->quantity = max(0, (int) ($product->quantity ?? 0) - $quantity);
+                        $product->save();
+                    }
                     $whpLoadStart = microtime(true);
-                    $warePro = WarehouseProduct::where(['warehouse_id' => $warehouseId, 'product_id' => $res->product_id])->firstOrFail();
+                    $warePro = WarehouseProduct::where(['warehouse_id' => $warehouseId, 'product_id' => $productId])
+                        ->lockForUpdate()
+                        ->firstOrFail();
                     $this->logExecutionTime($whpLoadStart, $action, 'loadWarehouseProduct');
-                    if ($res->quantity >= $warePro->quantity) {
+                    if ($quantity >= (int) $warePro->quantity) {
                         $whpDelStart = microtime(true);
                         $warePro->delete();
                         $this->logExecutionTime($whpDelStart, $action, 'deleteWarehouseProduct');
-                        Log::info("[{$class}::{$action}] warehouse product deleted", ['warehouse_id' => $warehouseId, 'product_id' => $res->product_id]);
+                        Log::info("[{$class}::{$action}] warehouse product deleted", ['warehouse_id' => $warehouseId, 'product_id' => $productId]);
                     } else {
                         $whpDecStart = microtime(true);
-                        $warePro->decrement('quantity', $res->quantity);
+                        $warePro->decrement('quantity', $quantity);
                         $this->logExecutionTime($whpDecStart, $action, 'decrementWarehouseQuantity');
-                        Log::info("[{$class}::{$action}] warehouse product decremented", ['warehouse_id' => $warehouseId, 'product_id' => $res->product_id, 'new_qty' => $warePro->quantity]);
+                        Log::info("[{$class}::{$action}] warehouse product decremented", ['warehouse_id' => $warehouseId, 'product_id' => $productId, 'new_qty' => $warePro->quantity]);
                     }
                     $ppDelStart = microtime(true);
                     $res->delete();
                     $this->logExecutionTime($ppDelStart, $action, 'deletePurchaseProduct');
                     Log::info("[{$class}::{$action}] purchase product deleted", ['id' => $res->id]);
-                });
+                    $payload = [
+                        'purchase_product_id' => $itemId,
+                        'purchase_id' => (string) $purchase->id,
+                        'warehouse_id' => (string) $warehouseId,
+                        'product_id' => $productId,
+                        'quantity' => $quantity,
+                        'items_count' => 1,
+                        'total_quantity' => $quantity,
+                        'items' => [[
+                            'purchase_product_id' => $itemId,
+                            'product_id' => $productId,
+                            'warehouse_id' => (string) $warehouseId,
+                            'quantity' => $quantity,
+                            'expected_product_quantity' => (float) (ProductService::whereKey($productId)->value('quantity') ?? 0),
+                            'expected_warehouse_quantity' => (int) (WarehouseProduct::where('warehouse_id', $warehouseId)->where('product_id', $productId)->value('quantity') ?? 0),
+                        ]],
+                        'eventual_consistency_sensitive' => true,
+                        'replica_sync_sensitive' => true,
+                    ];
+                    $operations->recordStep($ledger, 'warehouse.purchase.product.deleted', 'Delete purchase product and reverse stock effects', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Delete purchase product and reverse stock effects',
+                    'subject_type' => PurchaseProduct::class,
+                    'subject_id' => $itemId,
+                    'actor_id' => $request->user()?->id,
+                    'context' => [
+                        'purchase_product_id' => $itemId,
+                    ],
+                    'post_write_validation' => true,
+                    'event_type' => 'warehouse.purchase.product.deleted',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.purchase.product.deleted:' . ($result['purchase_product_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                    'replica_sync_sensitive' => true,
+                    'eventual_consistency_sensitive' => true,
+                ]);
                 $this->logExecutionTime($txnStart, $action, 'productDestroyTransaction');
-                return redirect()->back()->with('success', __('Purchase product successfully deleted.'));
+                $dispatchReport = $this->dispatchWarehouseOutbox($operation);
+                return redirect()->back()
+                    ->with('success', __('Purchase product successfully deleted.'))
+                    ->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
             } catch (ModelNotFoundException $e) {
-                if ($transactionStarted)
-                    DB::rollBack();
                 return $this->handleFailure($request, $e, $class, $action, $method, ['item_id' => $itemId], status: 404);
             } catch (QueryException $e) {
-                if ($transactionStarted)
-                    DB::rollBack();
                 return $this->handleFailure($request, $e, $class, $action, $method, ['item_id' => $itemId]);
             } catch (\RuntimeException $e) {
-                if ($transactionStarted)
-                    DB::rollBack();
                 return $this->handleFailure($request, $e, $class, $action, $method, ['item_id' => $itemId]);
             } catch (\Throwable $e) {
-                Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'item_id' => $request->id]);
+                Log::error("[{$class}::{$action}] failed", ['message' => $e->getMessage(), 'item_id' => $itemId]);
                 Log::debug("[{$class}::{$action}] debug", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'method' => $method]);
                 return defaultUndefinedException($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'item_id' => $request->id]);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function dispatchWarehouseOutbox(WarehouseOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new WarehouseOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function warehouseReliabilityPayload(WarehouseOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromWarehouseResult($operation, $dispatchReport);
     }
 
     private function purchaseNumber(): int

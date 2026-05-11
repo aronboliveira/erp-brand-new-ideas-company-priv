@@ -9,11 +9,19 @@ use App\Config\Constants\{
     ViewsConstants,
 };
 use App\Http\Controllers\Controller;
-use App\Models\{ProductService, Purchase, Utility, Warehouse, WarehouseProduct, WarehouseTransfer};
+use App\Models\{OperationLedger, ProductService, Purchase, Utility, Warehouse, WarehouseProduct, WarehouseTransfer};
+use App\Services\Reliability\{
+    CriticalOperationService,
+    ReliabilityClientPayloadService,
+    ReliabilityPolicy,
+    WarehouseOperationResult,
+    WarehouseOperationService,
+    WarehouseOutboxDispatcher
+};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
-use Illuminate\Support\Facades\{DB, Log, Route, Validator, View as ViewFacade};
+use Illuminate\Support\Facades\{Log, Route, Validator, View as ViewFacade};
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -152,6 +160,11 @@ class WarehouseTransferController extends Controller
             $user = $userOrRedirect;
             if (($redirect = self::guard($req, self::PERM_CREATE, self::REDIRECT_INDEX)) !== true) return $redirect;
             $valStart = microtime(true);
+            $req->merge([
+                'from_warehouse' => $req->input('from_warehouse', $req->input('fromWarehouse')),
+                'to_warehouse' => $req->input('to_warehouse', $req->input('toWarehouse')),
+                'product_id' => $req->input('product_id', $req->input('productId')),
+            ]);
             $validator = Validator::make($req->all(), ['from_warehouse' => 'required', 'to_warehouse' => 'required', 'product_id' => 'required', 'quantity' => 'required|integer|min:1']);
             $this->logExecutionTime($valStart, $action, 'buildValidator');
             if ($validator->fails()) {
@@ -159,32 +172,77 @@ class WarehouseTransferController extends Controller
                 return redirect()->back()->with('error', $validator->errors()->first());
             }
             try {
-                $fetchStart = microtime(true);
-                $from = WarehouseProduct::where('warehouse_id', $req->input('fromWarehouse'))->where('product_id', $req->input('productId'))->firstOrFail();
-                $this->logExecutionTime($fetchStart, $action, 'fetchFromStock');
-                if ($req->input('quantity') > $from->quantity) {
-                    Log::warning("[{$base}::{$action}] insufficient stock", ['available' => $from->quantity, 'requested' => $req->input('quantity')]);
-                    return redirect()->route(self::REDIRECT_INDEX)->with('error', __('Product out of stock!'));
-                }
-                $txnStart = microtime(true);
-                DB::transaction(function () use ($req, $user, $action, $base, &$transfer) {
+                $fromWarehouse = (string) ($req->input('fromWarehouse') ?? $req->input('from_warehouse'));
+                $toWarehouse = (string) ($req->input('toWarehouse') ?? $req->input('to_warehouse'));
+                $productId = (string) ($req->input('productId') ?? $req->input('product_id'));
+                $quantity = (int) $req->input('quantity');
+                $operation = (new WarehouseOperationService())->run('warehouse.transfer.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($req, $user, $action, $base, $fromWarehouse, $toWarehouse, $productId, $quantity): array {
+                    $fetchStart = microtime(true);
+                    $from = WarehouseProduct::where('warehouse_id', $fromWarehouse)
+                        ->where('product_id', $productId)
+                        ->lockForUpdate()
+                        ->firstOrFail();
+                    $this->logExecutionTime($fetchStart, $action, 'fetchFromStock');
+                    if ($quantity > $from->quantity) {
+                        Log::warning("[{$base}::{$action}] insufficient stock", ['available' => $from->quantity, 'requested' => $quantity]);
+                        throw new \RuntimeException(__('Product out of stock!'));
+                    }
                     $createStart = microtime(true);
                     $transfer = WarehouseTransfer::create([
-                        'from_warehouse' => $req->input('fromWarehouse'),
-                        'to_warehouse' => $req->input('toWarehouse'),
-                        'product_id' => $req->input('productId'),
-                        'quantity' => $req->input('quantity'),
+                        'from_warehouse' => $fromWarehouse,
+                        'to_warehouse' => $toWarehouse,
+                        'product_id' => $productId,
+                        'quantity' => $quantity,
                         'date' => $req->input('date'),
                         DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
                     ]);
                     $this->logExecutionTime($createStart, $action, 'createTransfer');
                     $invStart = microtime(true);
-                    Utility::warehouseTransferQty($req->input('fromWarehouse'), $req->input('toWarehouse'), $req->input('productId'), $req->input('quantity'));
+                    Utility::warehouseTransferQty($fromWarehouse, $toWarehouse, $productId, $quantity);
                     $this->logExecutionTime($invStart, $action, 'updateInventory');
                     Log::info("[{$base}::{$action}] success", ['transferId' => $transfer->id]);
-                });
-                $this->logExecutionTime($txnStart, $action, 'transaction');
-                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Warehouse Transfer successfully created.'));
+                    $sourceQuantity = (int) (WarehouseProduct::where('warehouse_id', $fromWarehouse)->where('product_id', $productId)->value('quantity') ?? 0);
+                    $destinationQuantity = (int) (WarehouseProduct::where('warehouse_id', $toWarehouse)->where('product_id', $productId)->value('quantity') ?? 0);
+                    $payload = [
+                        'transfer_id' => (string) $transfer->id,
+                        'product_id' => $productId,
+                        'from_warehouse_id' => $fromWarehouse,
+                        'to_warehouse_id' => $toWarehouse,
+                        'quantity' => $quantity,
+                        'expected_source_quantity' => $sourceQuantity,
+                        'expected_destination_quantity' => $destinationQuantity,
+                        'bulk' => $quantity >= 250,
+                        'eventual_consistency_sensitive' => true,
+                        'replica_sync_sensitive' => true,
+                    ];
+                    $operations->recordStep($ledger, 'warehouse.transfer.persisted', 'Persist warehouse transfer and stock movement', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Create warehouse transfer',
+                    'subject_type' => WarehouseTransfer::class,
+                    'subject_id' => $productId,
+                    'actor_id' => $req->user()?->id,
+                    'context' => ['product_id' => $productId, 'quantity' => $quantity, 'from_warehouse_id' => $fromWarehouse, 'to_warehouse_id' => $toWarehouse],
+                    'post_write_validation' => true,
+                    'event_type' => 'warehouse.transfer.created',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.transfer.created:' . ($result['transfer_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                    'replica_sync_sensitive' => true,
+                    'eventual_consistency_sensitive' => true,
+                ]);
+                $dispatchReport = $this->dispatchWarehouseOutbox($operation);
+
+                return redirect()->route(self::REDIRECT_INDEX)
+                    ->with('success', __('Warehouse Transfer successfully created.'))
+                    ->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
                 Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName(), 'input_keys' => array_keys($req->all())]);
@@ -207,18 +265,89 @@ class WarehouseTransferController extends Controller
             if ($transfer[DatabaseConstants::COL_TABLE_CREATOR] !== $user?->creatorId()) return defaultPermissionDenial($req, new AuthorizationException(), $class . '::' . $action, route(self::REDIRECT_INDEX));
             Log::info("[{$base}::{$action}] start", ['transfer_id' => $transfer->id, 'user_id' => $user?->id, 'method' => $method]);
             try {
-                $txnStart = microtime(true);
-                DB::transaction(function () use ($transfer, $action) {
+                $operation = (new WarehouseOperationService())->run('warehouse.transfer.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($transfer, $action, $user): array {
+                    $transferId = (string) $transfer->id;
+                    $fromWarehouse = (string) $transfer->getAttribute('from_warehouse');
+                    $toWarehouse = (string) $transfer->getAttribute('to_warehouse');
+                    $productId = (string) $transfer->getAttribute('product_id');
+                    $quantity = (int) $transfer->getAttribute('quantity');
                     $invStart = microtime(true);
-                    Utility::warehouseTransferQty($transfer->toWarehouse, $transfer->fromWarehouse, $transfer->productId, $transfer->quantity, 'delete');
+                    $destination = WarehouseProduct::where('warehouse_id', $toWarehouse)
+                        ->where('product_id', $productId)
+                        ->lockForUpdate()
+                        ->first();
+                    $source = WarehouseProduct::firstOrNew([
+                        'warehouse_id' => $fromWarehouse,
+                        'product_id' => $productId,
+                    ]);
+                    if (!$source->exists) {
+                        $source->quantity = 0;
+                        $source[DatabaseConstants::COL_TABLE_CREATOR] = $user?->creatorId();
+                    }
+                    $source->quantity = (int) $source->quantity + $quantity;
+                    $source->save();
+
+                    if ($destination) {
+                        $newDestinationQuantity = (int) $destination->quantity - $quantity;
+                        if ($newDestinationQuantity <= 0) {
+                            $destination->delete();
+                        } else {
+                            $destination->quantity = $newDestinationQuantity;
+                            $destination->save();
+                        }
+                    }
                     $this->logExecutionTime($invStart, $action, 'revertInventory');
                     $delStart = microtime(true);
                     $transfer->delete();
                     $this->logExecutionTime($delStart, $action, 'deleteTransfer');
-                });
-                $this->logExecutionTime($txnStart, $action, 'transaction');
+                    $sourceQuantity = (int) (WarehouseProduct::where('warehouse_id', $fromWarehouse)->where('product_id', $productId)->value('quantity') ?? 0);
+                    $destinationQuantity = (int) (WarehouseProduct::where('warehouse_id', $toWarehouse)->where('product_id', $productId)->value('quantity') ?? 0);
+                    $payload = [
+                        'transfer_id' => $transferId,
+                        'product_id' => $productId,
+                        'from_warehouse_id' => $fromWarehouse,
+                        'to_warehouse_id' => $toWarehouse,
+                        'quantity' => $quantity,
+                        'expected_source_quantity' => $sourceQuantity,
+                        'expected_destination_quantity' => $destinationQuantity,
+                        'closed_state_recovery' => true,
+                        'eventual_consistency_sensitive' => true,
+                        'replica_sync_sensitive' => true,
+                    ];
+                    $operations->recordStep($ledger, 'warehouse.transfer.reversed', 'Reverse warehouse transfer and stock movement', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Delete warehouse transfer and reverse stock',
+                    'subject_type' => WarehouseTransfer::class,
+                    'subject_id' => (string) $transfer->id,
+                    'actor_id' => $req->user()?->id,
+                    'context' => [
+                        'transfer_id' => (string) $transfer->id,
+                        'quantity' => (int) $transfer->getAttribute('quantity'),
+                        'closed_state_recovery' => true,
+                    ],
+                    'post_write_validation' => true,
+                    'event_type' => 'warehouse.transfer.deleted',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.transfer.deleted:' . ($result['transfer_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                    'closed_state_recovery' => true,
+                    'replica_sync_sensitive' => true,
+                    'eventual_consistency_sensitive' => true,
+                ]);
+                $dispatchReport = $this->dispatchWarehouseOutbox($operation);
                 Log::info("[{$base}::{$action}] deleted", ['id' => $transfer->id]);
-                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Warehouse Transfer successfully deleted.'));
+
+                return redirect()->route(self::REDIRECT_INDEX)
+                    ->with('success', __('Warehouse Transfer successfully deleted.'))
+                    ->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'transfer_id' => $transfer->id]);
                 Log::channel(SettingsConstants::ERR_TRACE)->debug("[{$base}::{$action}] failed", ['error' => $e->getMessage(), 'stack' => $e->getTraceAsString()]);
@@ -336,16 +465,85 @@ class WarehouseTransferController extends Controller
         return $this->measureProfile($action, function () use ($request, $transfer, $action, $class, $base) {
             if (($u = self::_checkLogin()) instanceof \Illuminate\Http\RedirectResponse) return $u;
             if (($r = self::guard($request, 'edit warehouse transfer')) !== true) return $r;
+            if ($transfer[DatabaseConstants::COL_TABLE_CREATOR] !== $u?->creatorId()) return defaultPermissionDenial($request, new AuthorizationException(), $class . '::' . $action, route(self::REDIRECT_INDEX));
             try {
+                $blockedFields = array_intersect(array_keys($request->all()), [
+                    'from_warehouse',
+                    'fromWarehouse',
+                    'to_warehouse',
+                    'toWarehouse',
+                    'product_id',
+                    'productId',
+                    'quantity',
+                ]);
+                if ($blockedFields !== []) {
+                    return redirect()->back()->with('error', __('Stock-defining transfer fields require a reversal/recreate operation.'));
+                }
                 \Illuminate\Support\Facades\Log::info("[$base::$action] updating transfer", ['id' => $transfer->id]);
-                $transfer->update($request->all());
+                $operation = (new WarehouseOperationService())->run('warehouse.transfer.update', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($request, $transfer): array {
+                    $transfer = WarehouseTransfer::whereKey($transfer->id)->lockForUpdate()->firstOrFail();
+                    $transfer->update($request->except(['fromWarehouse', 'toWarehouse', 'productId']));
+                    $transfer->refresh();
+                    $payload = [
+                        'transfer_id' => (string) $transfer->id,
+                        'product_id' => (string) $transfer->getAttribute('product_id'),
+                        'from_warehouse_id' => (string) $transfer->getAttribute('from_warehouse'),
+                        'to_warehouse_id' => (string) $transfer->getAttribute('to_warehouse'),
+                        'quantity' => (int) $transfer->getAttribute('quantity'),
+                        'status' => (string) $transfer->getAttribute('status'),
+                        'closed_state_recovery' => in_array((string) $transfer->getAttribute('status'), ['completed', 'approved', 'closed'], true),
+                    ];
+                    $operations->recordStep($ledger, 'warehouse.transfer.metadata_updated', 'Update warehouse transfer metadata/status', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Update warehouse transfer metadata/status',
+                    'subject_type' => WarehouseTransfer::class,
+                    'subject_id' => (string) $transfer->id,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['transfer_id' => (string) $transfer->id],
+                    'post_write_validation' => true,
+                    'event_type' => 'warehouse.transfer.updated',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.transfer.updated:' . ($result['transfer_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                    'replica_sync_sensitive' => true,
+                ]);
+                $dispatchReport = $this->dispatchWarehouseOutbox($operation);
+
                 return redirect()->route('warehouse_transfers.index')
-                    ->with('success', __('Warehouse transfer updated successfully.'));
+                    ->with('success', __('Warehouse transfer updated successfully.'))
+                    ->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::error("[$base::$action] failed", ['err' => $e->getMessage()]);
                 return redirect()->back()->with('error', $e->getMessage());
             }
         });
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function dispatchWarehouseOutbox(WarehouseOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new WarehouseOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function warehouseReliabilityPayload(WarehouseOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromWarehouseResult($operation, $dispatchReport);
     }
 
 }

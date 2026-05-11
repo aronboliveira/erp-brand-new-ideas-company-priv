@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Branch;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class BranchFactory extends Factory
 {
@@ -12,7 +13,7 @@ class BranchFactory extends Factory
 	public function definition(): array
 	{
 		return [
-			'name'          => $this->faker->unique()->company(),
+			'name'          => 'Branch ' . (string) Str::uuid(),
 			'country'       => 'Brazil',
 			'state'         => 'SP',
 			'city'          => 'São Paulo',

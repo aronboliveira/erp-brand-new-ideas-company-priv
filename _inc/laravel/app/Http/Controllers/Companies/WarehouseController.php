@@ -5,7 +5,15 @@ namespace App\Http\Controllers\Companies;
 use App\Http\Controllers\Abstracts\Controller;
 
 use App\Config\Constants\{DatabaseConstants as DC, PermissionsConstants as PMC, ViewsConstants as VW};
-use App\Models\{Warehouse, WarehouseProduct};
+use App\Models\{OperationLedger, Warehouse, WarehouseProduct, WarehouseTransfer};
+use App\Services\Reliability\{
+    CriticalOperationService,
+    ReliabilityClientPayloadService,
+    ReliabilityPolicy,
+    WarehouseOperationResult,
+    WarehouseOperationService,
+    WarehouseOutboxDispatcher
+};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\{RedirectResponse, Request};
@@ -174,16 +182,73 @@ class WarehouseController extends Controller
                 if (($c = self::guard($request, 'delete warehouse', self::ROUTE_INDEX)) !== true) return $c;
                 if ($warehouse->created_by !== $request->user()->creatorId()) return defaultPermissionDenial($request, null, __METHOD__, route(self::ROUTE_INDEX));
 
-                DB::transaction(function () use ($warehouse) {
+                $stockRows = WarehouseProduct::where('warehouse_id', $warehouse->id)->count();
+                $transferRows = WarehouseTransfer::where('from_warehouse', $warehouse->id)
+                    ->orWhere('to_warehouse', $warehouse->id)
+                    ->count();
+                if ($stockRows > 0 || $transferRows > 0) {
+                    return redirect()->back()->with('error', __('Warehouse still has stock or transfer history and cannot be deleted directly.'));
+                }
+
+                $operation = (new WarehouseOperationService())->run('warehouse.warehouse.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($warehouse): array {
+                    $warehouse = Warehouse::whereKey($warehouse->id)->lockForUpdate()->firstOrFail();
+                    $payload = [
+                        'warehouse_id' => (string) $warehouse->id,
+                        'closed_state_recovery' => true,
+                    ];
                     $warehouse->delete();
                     Log::info(__METHOD__ . ' deleted warehouse', ['id' => $warehouse->id]);
-                });
+                    $operations->recordStep($ledger, 'warehouse.warehouse.deleted', 'Delete empty warehouse', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
 
-                return redirect()->route(self::ROUTE_INDEX)->with('success', __('Warehouse successfully deleted.'));
+                    return $payload;
+                }, [
+                    'summary' => 'Delete empty warehouse',
+                    'subject_type' => Warehouse::class,
+                    'subject_id' => (string) $warehouse->id,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['warehouse_id' => (string) $warehouse->id, 'closed_state_recovery' => true],
+                    'post_write_validation' => true,
+                    'event_type' => 'warehouse.warehouse.deleted',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.warehouse.deleted:' . ($result['warehouse_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                    'closed_state_recovery' => true,
+                    'replica_sync_sensitive' => true,
+                ]);
+                $dispatchReport = $this->dispatchWarehouseOutbox($operation);
+
+                return redirect()->route(self::ROUTE_INDEX)
+                    ->with('success', __('Warehouse successfully deleted.'))
+                    ->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error(__METHOD__ . ' failed', ['exception' => $e]);
                 return defaultUndefinedException($request, $e, $action, route(self::ROUTE_INDEX));
             }
         }, ['method' => $method, 'class' => class_basename(static::class)]);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function dispatchWarehouseOutbox(WarehouseOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new WarehouseOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function warehouseReliabilityPayload(WarehouseOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromWarehouseResult($operation, $dispatchReport);
     }
 }

@@ -15,6 +15,7 @@ use App\Models\{
     ChartOfAccount,
     ChartOfAccountType,
     CustomField,
+    OperationLedger,
     Product,
     ProductService,
     ProductServiceCategory,
@@ -25,6 +26,14 @@ use App\Models\{
     Vendor,
     WarehouseProduct
 };
+use App\Services\Reliability\{
+    CriticalOperationService,
+    ReliabilityClientPayloadService,
+    ReliabilityPolicy,
+    WarehouseOperationResult,
+    WarehouseOperationService,
+    WarehouseOutboxDispatcher
+};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{
     JsonResponse,
@@ -33,7 +42,6 @@ use Illuminate\Http\{
 };
 use Illuminate\Support\Facades\{
     Auth,
-    DB,
     Log,
     Storage,
     Validator
@@ -152,10 +160,47 @@ final class ProductServiceController extends Controller
                     'created_by' => $user?->creatorId()
                 ])->all();
 
-                $product = ProductService::create($data);
-                CustomField::saveData($product, $req->customField);
+                $operation = (new WarehouseOperationService())->run('warehouse.product.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($data, $req): array {
+                    $product = ProductService::create($data);
+                    CustomField::saveData($product, $req->customField);
+                    $product->refresh();
+                    $payload = $this->productReliabilityPayload($product, [
+                        'expected_product_quantity' => (float) ($product->quantity ?? 0),
+                        'expected_sale_price' => (float) ($product->sale_price ?? 0),
+                        'expected_purchase_price' => (float) ($product->purchase_price ?? 0),
+                    ]);
+                    $operations->recordStep($ledger, 'warehouse.product.persisted', 'Persist product/service catalog row', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
 
-                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Product successfully created.'));
+                    return $payload;
+                }, [
+                    'summary' => 'Create product/service catalog row',
+                    'subject_type' => ProductService::class,
+                    'subject_id' => (string) ($data['sku'] ?? ''),
+                    'actor_id' => $req->user()?->id,
+                    'context' => [
+                        'sku' => (string) ($data['sku'] ?? ''),
+                        'quantity' => (int) ($data['quantity'] ?? 0),
+                        'sale_price' => (float) ($data['sale_price'] ?? 0),
+                        'purchase_price' => (float) ($data['purchase_price'] ?? 0),
+                    ],
+                    'post_write_validation' => true,
+                    'event_type' => 'warehouse.product.created',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.product.created:' . ($result['product_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                    'replica_sync_sensitive' => true,
+                ]);
+                $dispatchReport = $this->dispatchWarehouseOutbox($operation);
+
+                return redirect()->route(self::REDIRECT_INDEX)
+                    ->with('success', __('Product successfully created.'))
+                    ->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
             });
         } catch (\Throwable $e) {
             return defaultUndefinedException($e, __METHOD__);
@@ -242,10 +287,55 @@ final class ProductServiceController extends Controller
                     'pro_image' => $imageName
                 ])->all();
 
-                $product->update($data);
-                CustomField::saveData($product, $req->customField);
+                $productId = (string) $product->id;
+                $changedFields = array_values(array_filter(array_keys($data), fn(string $field): bool => (string) ($product->getAttribute($field) ?? '') !== (string) ($data[$field] ?? '')));
+                $operation = (new WarehouseOperationService())->run('warehouse.product.update', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($productId, $user, $data, $req, $changedFields): array {
+                    $product = ProductService::whereCreatedBy($user?->creatorId())
+                        ->whereKey($productId)
+                        ->lockForUpdate()
+                        ->firstOrFail();
+                    $product->update($data);
+                    CustomField::saveData($product, $req->customField);
+                    $product->refresh();
+                    $payload = $this->productReliabilityPayload($product, [
+                        'changed_fields' => $changedFields,
+                        'expected_product_quantity' => (float) ($product->quantity ?? 0),
+                        'expected_sale_price' => (float) ($product->sale_price ?? 0),
+                        'expected_purchase_price' => (float) ($product->purchase_price ?? 0),
+                    ]);
+                    $operations->recordStep($ledger, 'warehouse.product.updated', 'Update product/service catalog row', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
 
-                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Product successfully updated.'));
+                    return $payload;
+                }, [
+                    'summary' => 'Update product/service catalog row',
+                    'subject_type' => ProductService::class,
+                    'subject_id' => $productId,
+                    'actor_id' => $req->user()?->id,
+                    'context' => [
+                        'product_id' => $productId,
+                        'quantity' => (int) ($data['quantity'] ?? 0),
+                        'sale_price' => (float) ($data['sale_price'] ?? 0),
+                        'purchase_price' => (float) ($data['purchase_price'] ?? 0),
+                        'changed_fields' => $changedFields,
+                    ],
+                    'post_write_validation' => true,
+                    'event_type' => 'warehouse.product.updated',
+                    'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.product.updated:' . ($result['product_id'] ?? $ledger->operation_key),
+                    'payload' => fn(array $result): array => $result,
+                    'replica_sync_sensitive' => true,
+                ]);
+                $dispatchReport = $this->dispatchWarehouseOutbox($operation);
+
+                return redirect()->route(self::REDIRECT_INDEX)
+                    ->with('success', __('Product successfully updated.'))
+                    ->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
             });
         } catch (\Throwable $e) {
             return defaultUndefinedException($e, __METHOD__);
@@ -262,13 +352,49 @@ final class ProductServiceController extends Controller
         $user = $userOrRedirect;
         if (($c = self::guard($req, 'delete product & service', self::REDIRECT_INDEX)) !== true) return $c;
 
-        return $this->measureProfile($action, function () use ($id, $user) {
-            $product = ProductService::whereCreatedBy($user?->creatorId())->findOrFail($id);
-            if ($product->pro_image) {
-                Utility::changeStorageLimit($user?->creatorId(), '/uploads/pro_image/' . $product->pro_image);
-            }
-            $product->delete();
-            return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Product successfully deleted.'));
+        return $this->measureProfile($action, function () use ($req, $id, $user) {
+            $operation = (new WarehouseOperationService())->run('warehouse.product.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($id, $user): array {
+                $product = ProductService::whereCreatedBy($user?->creatorId())
+                    ->whereKey($id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                $payload = [
+                    'product_id' => (string) $product->id,
+                    'expect_no_warehouse_stock' => true,
+                    'closed_state_recovery' => true,
+                ];
+                if ($product->pro_image) {
+                    Utility::changeStorageLimit($user?->creatorId(), '/uploads/pro_image/' . $product->pro_image);
+                }
+                $product->delete();
+                $operations->recordStep($ledger, 'warehouse.product.deleted', 'Delete product/service catalog row', [
+                    'step_type' => 'db_write',
+                    'sequence' => 50,
+                    'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                    'payload' => $payload,
+                    'started_at' => now(),
+                    'finished_at' => now(),
+                ]);
+
+                return $payload;
+            }, [
+                'summary' => 'Delete product/service catalog row',
+                'subject_type' => ProductService::class,
+                'subject_id' => (string) $id,
+                'actor_id' => $req->user()?->id,
+                'context' => ['product_id' => (string) $id, 'closed_state_recovery' => true],
+                'post_write_validation' => true,
+                'event_type' => 'warehouse.product.deleted',
+                'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.product.deleted:' . ($result['product_id'] ?? $ledger->operation_key),
+                'payload' => fn(array $result): array => $result,
+                'closed_state_recovery' => true,
+                'replica_sync_sensitive' => true,
+            ]);
+            $dispatchReport = $this->dispatchWarehouseOutbox($operation);
+
+            return redirect()->route(self::REDIRECT_INDEX)
+                ->with('success', __('Product successfully deleted.'))
+                ->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
         });
     }
 
@@ -312,14 +438,16 @@ final class ProductServiceController extends Controller
             if ($missing) return back()->with('error', __('Missing columns: :cols', ['cols' => implode(', ', $missing)]));
 
             $rowsSkipped = 0;
-            DB::transaction(function () use ($sheet, $header, $user, &$rowsSkipped) {
+            $operation = (new WarehouseOperationService())->run('warehouse.product.import', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($sheet, $header, $user, &$rowsSkipped): array {
+                $productIds = [];
+                $importedRows = 0;
                 foreach ($sheet as $idx => $row) {
                     if (count($row) < count($header)) {
                         $rowsSkipped++;
                         continue;
                     }
                     $data = array_combine($header, $row);
-                    ProductService::updateOrCreate(
+                    $product = ProductService::updateOrCreate(
                         ['sku' => $data['sku'], 'created_by' => $user?->creatorId()],
                         array_merge(
                             collect($data)->only([
@@ -336,15 +464,48 @@ final class ProductServiceController extends Controller
                             ['created_by' => $user?->creatorId()]
                         )
                     );
+                    $productIds[] = (string) $product->id;
+                    $importedRows++;
                 }
-            });
+                $payload = [
+                    'product_ids' => array_values(array_unique($productIds)),
+                    'imported_rows' => $importedRows,
+                    'row_count' => count($sheet),
+                    'rows_skipped' => $rowsSkipped,
+                    'bulk' => true,
+                    'changed_fields' => ['sku', 'sale_price', 'purchase_price', 'quantity', 'tax_id', 'category_id', 'unit_id', 'type'],
+                ];
+                $operations->recordStep($ledger, 'warehouse.product.imported', 'Import product/service rows', [
+                    'step_type' => 'db_write',
+                    'sequence' => 50,
+                    'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                    'payload' => $payload,
+                    'started_at' => now(),
+                    'finished_at' => now(),
+                ]);
+
+                return $payload;
+            }, [
+                'summary' => 'Import product/service catalog rows',
+                'subject_type' => ProductService::class,
+                'actor_id' => $req->user()?->id,
+                'context' => ['row_count' => count($sheet), 'bulk' => true],
+                'post_write_validation' => true,
+                'event_type' => 'warehouse.product.imported',
+                'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.product.imported:' . ($result['product_ids'][0] ?? $ledger->operation_key),
+                'payload' => fn(array $result): array => $result,
+                'bulk' => true,
+                'replica_sync_sensitive' => true,
+                'eventual_consistency_sensitive' => true,
+            ]);
+            $dispatchReport = $this->dispatchWarehouseOutbox($operation);
 
             return back()->with(
                 $rowsSkipped ? 'error' : 'success',
                 $rowsSkipped
                     ? __('Imported with :n skipped malformed row(s).', ['n' => $rowsSkipped])
                     : __('Record successfully imported.')
-            );
+            )->with('reliability_operation', $this->warehouseReliabilityPayload($operation, $dispatchReport));
         });
     }
 
@@ -626,6 +787,44 @@ final class ProductServiceController extends Controller
             ->pluck('code_name', 'id')
             ->prepend('Select Account', '');
         return compact('category', 'unit', 'tax', 'income', 'expense');
+    }
+
+    /**
+     * @param array<string, mixed> $extra
+     * @return array<string, mixed>
+     */
+    private function productReliabilityPayload(ProductService $product, array $extra = []): array
+    {
+        return array_merge([
+            'product_id' => (string) $product->id,
+            'sku' => (string) ($product->sku ?? ''),
+            'quantity' => (int) ($product->quantity ?? 0),
+            'sale_price' => (float) ($product->sale_price ?? 0),
+            'purchase_price' => (float) ($product->purchase_price ?? 0),
+            'tax_id' => $product->tax_id,
+            'category_id' => $product->category_id,
+            'unit_id' => $product->unit_id,
+            'type' => $product->type,
+        ], $extra);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function dispatchWarehouseOutbox(WarehouseOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new WarehouseOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function warehouseReliabilityPayload(WarehouseOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromWarehouseResult($operation, $dispatchReport);
     }
 
     /**

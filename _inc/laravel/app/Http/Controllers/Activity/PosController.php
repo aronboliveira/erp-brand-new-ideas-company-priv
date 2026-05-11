@@ -13,6 +13,7 @@ use App\Config\Constants\{
 use App\Mail\SelledInvoice;
 use App\Models\{
   Customer,
+  OperationLedger,
   Pos,
   PosPayment,
   PosProduct,
@@ -22,6 +23,14 @@ use App\Models\{
   Utility,
   Warehouse,
   WarehouseProduct
+};
+use App\Services\Reliability\{
+  CriticalOperationService,
+  ReliabilityClientPayloadService,
+  ReliabilityPolicy,
+  WarehouseOperationResult,
+  WarehouseOperationService,
+  WarehouseOutboxDispatcher
 };
 use App\Traits\ChecksLogin;
 use Illuminate\Http\{
@@ -159,21 +168,21 @@ final class PosController extends Controller
       if (($r = self::_authorize($req, PermissionsConstants::MNG_POS)) !== null) return $r;
       try {
         $txnStart = microtime(true);
-        $result = DB::transaction(function () use ($req, $u, $action, $class) {
-          $creatorId = $u->creatorId();
-          $cart = session('pos', []);
-          if (empty($cart)) {
-            Log::warning("[{$class}::{$action}] empty cart during transaction");
-            return response()->json(['code' => 404, 'success' => 'Items not found!']);
-          }
-          $pid = self::invoiceNumber();
-          $dupStart = microtime(true);
-          $already = Pos::where('pos_id', $pid)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->exists();
-          $this->logExecutionTime($dupStart, $action, 'checkDuplicatePayment');
-          if ($already) {
-            Log::info("[{$class}::{$action}] duplicate payment", ['pos_id' => $pid]);
-            return response()->json(['code' => 200, 'success' => 'Payment is already completed!']);
-          }
+        $creatorId = $u->creatorId();
+        $cart = session('pos', []);
+        if (empty($cart)) {
+          Log::warning("[{$class}::{$action}] empty cart before transaction");
+          return response()->json(['code' => 404, 'success' => 'Items not found!']);
+        }
+        $pid = self::invoiceNumber();
+        $dupStart = microtime(true);
+        $already = Pos::where('pos_id', $pid)->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->exists();
+        $this->logExecutionTime($dupStart, $action, 'checkDuplicatePayment');
+        if ($already) {
+          Log::info("[{$class}::{$action}] duplicate payment", ['pos_id' => $pid]);
+          return response()->json(['code' => 200, 'success' => 'Payment is already completed!']);
+        }
+        $operation = (new WarehouseOperationService())->run('warehouse.pos.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($req, $u, $action, $class, $creatorId, $cart, $pid): array {
           $custIdStart = microtime(true);
           $customer_id = Customer::customerId($req->vc_name);
           $this->logExecutionTime($custIdStart, $action, 'resolveCustomerId');
@@ -184,6 +193,7 @@ final class PosController extends Controller
           $pos = Pos::create(['pos_id' => $pid, 'customer_id' => $customer_id, 'warehouse_id' => $warehouseId, 'pos_date' => now()->toDateString(), DatabaseConstants::COL_TABLE_CREATOR => $creatorId]);
           $this->logExecutionTime($createPosStart, $action, 'createPos');
           Log::info("[{$class}::{$action}] Pos record created", ['pos_id' => $pos->id]);
+          $itemsPayload = [];
           foreach ($cart as $item) {
             $lockStart = microtime(true);
             $prod = ProductService::where('id', $item['id'])->where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->lockForUpdate()->firstOrFail();
@@ -207,6 +217,14 @@ final class PosController extends Controller
             $srDelStart = microtime(true);
             StockReport::where('type', 'pos')->where('type_id', $pos->id)->delete();
             $this->logExecutionTime($srDelStart, $action, 'deleteStockReportDuplicates');
+            $prod->refresh();
+            $itemsPayload[] = [
+              'product_id' => (string) $prod->id,
+              'warehouse_id' => (string) $warehouseId,
+              'quantity' => (int) $item['quantity'],
+              'expected_product_quantity' => (float) ($prod->quantity ?? 0),
+              'expected_warehouse_quantity' => (int) (WarehouseProduct::where('warehouse_id', $warehouseId)->where('product_id', $prod->id)->value('quantity') ?? 0),
+            ];
             Log::info("[{$class}::{$action}] PosProduct created and stock updated", ['pos_id' => $pos->id, 'product_id' => $item['id']]);
           }
           $sumStart = microtime(true);
@@ -217,10 +235,50 @@ final class PosController extends Controller
           $this->logExecutionTime($payStart, $action, 'createPosPayment');
           session()->forget('pos');
           Log::info("[{$class}::{$action}] PosPayment created and cart cleared", ['pos_id' => $pos->id]);
-          return response()->json(['code' => 200, 'success' => 'Payment completed successfully!']);
-        });
+          $payload = [
+            'pos_id' => (string) $pos->id,
+            'warehouse_id' => (string) $warehouseId,
+            'items_count' => count($itemsPayload),
+            'total_quantity' => array_sum(array_column($itemsPayload, 'quantity')),
+            'items' => $itemsPayload,
+            'amount' => (float) $subtotal,
+            'eventual_consistency_sensitive' => true,
+            'replica_sync_sensitive' => true,
+          ];
+          $operations->recordStep($ledger, 'warehouse.pos.persisted', 'Persist POS and stock effects', [
+            'step_type' => 'db_write',
+            'sequence' => 50,
+            'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+            'payload' => $payload,
+            'started_at' => now(),
+            'finished_at' => now(),
+          ]);
+
+          return $payload;
+        }, [
+          'summary' => 'Create POS sale and stock effects',
+          'subject_type' => Pos::class,
+          'actor_id' => $req->user()?->id,
+          'context' => [
+            'pos_number' => $pid,
+            'items_count' => count($cart),
+            'total_quantity' => array_sum(array_map(fn($item): int => (int) ($item['quantity'] ?? 0), $cart)),
+          ],
+          'post_write_validation' => true,
+          'event_type' => 'warehouse.pos.created',
+          'message_key' => fn(array $result, OperationLedger $ledger): string => 'warehouse.pos.created:' . ($result['pos_id'] ?? $ledger->operation_key),
+          'payload' => fn(array $result): array => $result,
+          'replica_sync_sensitive' => true,
+          'eventual_consistency_sensitive' => true,
+        ]);
         $this->logExecutionTime($txnStart, $action, 'transaction');
-        return $result;
+        $dispatchReport = $this->dispatchWarehouseOutbox($operation);
+
+        return response()->json([
+          'code' => 200,
+          'success' => 'Payment completed successfully!',
+          'reliability_operation' => $this->warehouseReliabilityPayload($operation, $dispatchReport),
+        ]);
       } catch (Throwable $e) {
         Log::debug("[{$class}::{$action}] error context", ['route' => Route::getCurrentRoute()?->getName(), UsersConstants::COL_USER_ID => $req->user()?->id, 'message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
         return self::handleException($req, $e);
@@ -1033,6 +1091,25 @@ final class PosController extends Controller
       'method' => __METHOD__,
     ]);
     return defaultUndefinedException($req, $e, __CLASS__ . '::handleException');
+  }
+
+  /**
+   * @return array<string, mixed>|null
+   */
+  private function dispatchWarehouseOutbox(WarehouseOperationResult $operation): ?array
+  {
+    $message = $operation->outboxMessage();
+
+    return $message ? (new WarehouseOutboxDispatcher())->dispatchMessage($message) : null;
+  }
+
+  /**
+   * @param array<string, mixed>|null $dispatchReport
+   * @return array<string, mixed>
+   */
+  private function warehouseReliabilityPayload(WarehouseOperationResult $operation, ?array $dispatchReport): array
+  {
+    return (new ReliabilityClientPayloadService())->fromWarehouseResult($operation, $dispatchReport);
   }
 
   private static function invoiceNumber(): int

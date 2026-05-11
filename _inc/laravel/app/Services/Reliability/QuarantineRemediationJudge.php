@@ -18,6 +18,12 @@ class QuarantineRemediationJudge
             );
         }
 
+        if ($validation->domain === 'warehouse') {
+            return QuarantineDecision::manualReview(
+                'Warehouse post-write validation failed after persistent retry/circuit instability; keep the stock or product signal in manual review before further inventory-impacting actions.'
+            );
+        }
+
         return QuarantineDecision::manualReview(
             'The quarantine decision is ambiguous outside the mature domain slices and requires manual review.'
         );
