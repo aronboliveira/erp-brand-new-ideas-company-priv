@@ -222,8 +222,8 @@ Latest local reliability check after the finance quarantine policy tightening:
 tests/Unit/app/Services/Reliability --no-coverage:
 24 tests, 142 assertions, 0 errors, 0 failures.
 
-Previous broad Unit baseline before the policy-tightening test additions:
-10,604 tests, 20,515 assertions, 0 errors, 0 failures.
+tests/Unit --no-coverage:
+10,607 tests, 20,530 assertions, 0 errors, 0 failures.
 ```
 
 Do not run `php artisan test`; this project uses `vendor/bin/phpunit` directly.

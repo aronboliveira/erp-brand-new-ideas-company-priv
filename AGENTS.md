@@ -131,8 +131,8 @@ blocking for quarantined operation ledgers. Quarantine now requires persistent
 corrupted-state/instability signals rather than a single validation failure.
 Migration applied to app and test MySQL DBs.
 `tests/Unit/app/Services/Reliability` is green (24 tests, 142 assertions),
-full `tests/Unit --no-coverage` previous broad baseline is green
-(10,604 tests, 20,515 assertions), and `composer phpstan` is clean.
+full `tests/Unit --no-coverage` is green (10,607 tests, 20,530 assertions),
+and `composer phpstan` is clean.
 
 ---
 
