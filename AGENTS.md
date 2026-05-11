@@ -145,6 +145,22 @@ green (30 tests, 172 assertions), touched HRM controller tests are green
 (136 tests, 163 assertions), full `tests/Unit --no-coverage` is green
 (10,613 tests, 20,560 assertions), and `composer phpstan` is clean.
 
+Latest warehouse/products reliability slice check (2026-05-11, Codex): manual
+stock adjustments, decisive product/service catalog changes, product imports,
+warehouse transfer create/update/delete, guarded warehouse deletion, purchase
+stock commit/reversal including purchase-line deletion, and POS stock commit now
+use `WarehouseOperationService`, `warehouse.operations` outbox rows, post-write
+validation, and retry/circuit dispatcher support. Warehouse outbox dispatch emits
+monolith-local stock projection, reconciliation, replica-sync, logistics,
+valuation, catalog replica, finance bridge, customer/supplier projection, and
+webhook signals. Quarantine remains rare: only persistent retry/circuit/
+dead-letter/failed-ledger or long-running instability in high-impact stock,
+transfer, bulk import, purchase/POS, or warehouse lifecycle rows can route to
+manual review. `tests/Unit/app/Services/Reliability` is green (35 tests, 203
+assertions), touched warehouse/product controller tests are green (410 tests,
+486 assertions), full `tests/Unit --no-coverage` is green (10,618 tests,
+20,591 assertions), and `composer phpstan` is clean.
+
 ---
 
 ## TASK A — Bills Models Namespace Finalization ✅ DONE
@@ -477,16 +493,68 @@ decision workflows.
 
 ---
 
+## TASK M — Warehouse/Products Reliability Slice ✅ DONE
+
+**Status:** Implemented 2026-05-11 by Codex.
+
+Added:
+
+- Services: `WarehouseOperationService`, `WarehouseReliabilityPolicy`,
+  `WarehousePostWriteValidator`, `WarehouseOutboxDispatcher`,
+  `WarehouseCompensationService`, `WarehouseOperationResult`, and
+  `WarehouseReliabilityAssessment`.
+- Exception: `WarehousePostWriteValidationFailedException`.
+- Command: `php artisan reliability:dispatch-warehouse-outbox`.
+- Adoption: `ProductStockController::store/update/destroy`,
+  `ProductServiceController::store/update/destroy/import`,
+  `WarehouseTransferController::store/update/destroy`,
+  `WarehouseController::destroy`, `PurchaseController::store/update/destroy`,
+  `PurchaseController::productDestroy`, and `PosController::store`.
+- Shared quarantine routing now emits warehouse-domain manual-review events for
+  persistent high-impact stock/product/warehouse corruption signals.
+
+Policy notes:
+
+- Most durable stock/product/warehouse state changes get retry/circuit plus
+  outbox/ledger coverage, but routine metadata remains low overhead.
+- Warehouse transfer quantity/source/destination edits are blocked through the
+  update path; they need a new controlled stock movement.
+- Replica-sync and eventual-consistency-sensitive flags are recorded for stock
+  projection/reconciliation shells, but do not alone qualify a row for
+  quarantine.
+- Warehouse quarantine requires persistent instability signals after normal
+  rollback, validation, retry, and circuit-breaker paths fail.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/WarehouseReliabilityTest.php --no-coverage` — 5 tests, 31 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 35 tests, 203 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Http/Controllers/products/ProductStockControllerTest.php tests/Unit/app/Http/Controllers/products/ProductServiceControllerTest.php tests/Unit/app/Http/Controllers/activity/WarehouseTransferControllerTest.php tests/Unit/app/Http/Controllers/companies/WarehouseControllerTest.php tests/Unit/app/Http/Controllers/activity/PurchaseControllerTest.php tests/Unit/app/Http/Controllers/activity/PosControllerTest.php --no-coverage` — 410 tests, 486 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,618 tests, 20,591 assertions, OK.
+- `php artisan list --raw` — confirms `reliability:dispatch-warehouse-outbox`.
+- `composer phpstan` — no errors.
+
+Broad verification also closed two pre-existing factory uniqueness collisions
+without touching migrations or seeders: `CustomerFactory` now emits UUID-based
+emails, and `BranchFactory` now emits UUID-based names.
+
+Next: add domain-specific compensation/reconciliation handlers behind the
+accepted stock projection and replica-sync shells, then continue to project
+closure/finalization and CRM decision workflows.
+
+---
+
 ## READING ORDER FOR NEW AGENTS
 
 1. `where-to-update-and-read.yml` — filesystem map
 2. `_inc/laravel/.notes/.llms/.guidelines/constraints.md` — hard rules
 3. `_inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md` — role-specific reading lists
 4. `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` — outbox/inbox + operation ledger policy
-5. `.tmp/codex/20260510/handsoff.md` — latest Codex reliability continuation state
-6. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
-7. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state
-8. `.tmp/claude/20260504/handoff.md` — Claude's Bills migration context
+5. `.tmp/codex/20260511/handsoff.md` — latest Codex warehouse reliability continuation state
+6. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
+7. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
+8. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state
+9. `.tmp/claude/20260504/handoff.md` — Claude's Bills migration context
 
 ---
 

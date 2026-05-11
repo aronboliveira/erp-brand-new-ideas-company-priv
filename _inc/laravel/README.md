@@ -230,6 +230,16 @@ operations:
   HRM quarantine accepts employees without linked users, but can route
   persistent linked-user/RBAC mismatches or payroll/lifecycle corruption to
   manual review after repeated instability signals.
+- `WarehouseOperationService` and `WarehouseOutboxDispatcher` cover the first
+  warehouse/products slice: manual stock adjustments, decisive product/service
+  catalog changes, imports, warehouse transfer create/update/delete, guarded
+  warehouse deletion, purchase stock commits/reversals including purchase-line
+  deletion, and POS stock commit. Warehouse outbox signals target stock
+  projection, reconciliation, replica-sync, logistics, valuation, catalog
+  replica, finance bridges, customer/supplier stock projections, and webhooks.
+- `php artisan reliability:dispatch-warehouse-outbox` drains pending warehouse
+  outbox rows. Warehouse quarantine is manual-review only and requires
+  persistent instability in high-impact stock/product/warehouse rows.
 
 The policy is intentionally domain-neutral. Finance commits and payroll/lifecycle
 HR decisions usually need the highest controls, but project
@@ -241,8 +251,9 @@ Post-commit dispatch failures first pass through the in-process retry/circuit
 guards, then use durable outbox retry scheduling. Exhausted attempts move the
 outbox row to `dead_letter`, mark the operation ledger `compensating`, and
 create a durable domain compensation event such as
-`finance.compensation.required` or `hrm.compensation.required` so
-rollback/reversal work is visible to operators and later workers.
+`finance.compensation.required`, `hrm.compensation.required`, or
+`warehouse.compensation.required` so rollback/reversal work is visible to
+operators and later workers.
 
 ---
 
@@ -262,13 +273,14 @@ User IDs are **UUIDs** (string), not integers.
 
 ## Testing
 
-### Latest Results (2026-05-10)
+### Latest Results (2026-05-11)
 
 | Tool | Result |
 |------|--------|
-| PHPUnit Unit | 10,613 tests, 20,560 assertions, 0 errors, 0 failures |
-| Reliability service tests | 30 tests, 172 assertions, 0 errors, 0 failures |
+| PHPUnit Unit | 10,618 tests, 20,591 assertions, 0 errors, 0 failures |
+| Reliability service tests | 35 tests, 203 assertions, 0 errors, 0 failures |
 | HRM touched controller tests | 136 tests, 163 assertions, 0 errors, 0 failures |
+| Warehouse/product touched controller tests | 410 tests, 486 assertions, 0 errors, 0 failures |
 | PHPStan | clean (`composer phpstan`) |
 | ESLint | clean (`npx --no-install eslint . --max-warnings=50`) |
 | Jest | see current CI / package scripts |

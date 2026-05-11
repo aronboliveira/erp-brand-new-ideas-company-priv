@@ -1,6 +1,6 @@
 # NEXT STEPS
 
-> Last updated: 2026-05-10
+> Last updated: 2026-05-11
 > **Cross-references:** [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) (open issues list) · [`CURRENT_WORKING_ISSUES.md`](CURRENT_WORKING_ISSUES.md) (completed sessions) · [`CURRENT_WORKING_ISSUES_WORK.md`](CURRENT_WORKING_ISSUES_WORK.md) (work journal) · [`RESOLVED_ISSUES.md`](RESOLVED_ISSUES.md) (resolved archive) · [`TODO_LATER.MD`](TODO_LATER.MD) (deferred items) · [`README.md`](README.md) (notes overview) · `_inc/laravel/.notes/.llms/.guidelines/` (coding patterns) · [`.tmp/claude/20260808/HANDOFF.md`](../../../.tmp/claude/20260808/HANDOFF.md) (latest agent handoff)
 
 ---
@@ -55,6 +55,58 @@ Stale items now closed by later Claude commits:
 9. ~~**Finish Claude's remaining Unit-suite failures**~~ — ✅ RESOLVED 2026-05-09 (RT-007..RT-009 fixed; `tests/Unit` now 0 errors / 0 failures)
 10. **3-way merge of 531 overlapping files** — PHPStan annotations + agent crash-prevention patterns. See `AGENT_BRANCH_MERGE_LOG.md`.
 11. **Review and apply agent's 2,832 file deletions** — Mainly TS rollback from agent branch.
+
+## RECENTLY COMPLETED (2026-05-11)
+
+### Warehouse/Products Reliability Slice
+
+- Manual stock adjustments now use `WarehouseOperationService`, committing the
+  stock mutation, operation ledger, validation step, and `warehouse.operations`
+  outbox intent together.
+- Product/service create/update/delete/import now validate decisive catalog
+  fields such as SKU, quantity, sale/purchase price, tax, unit, category, type,
+  and chart accounts before outbox dispatch.
+- Warehouse transfer create/delete/update now use the warehouse wrapper. Quantity
+  and source/destination/product changes are blocked in update because they need
+  a new controlled stock movement.
+- Warehouse deletion is guarded against existing stock rows or transfer
+  references before the lifecycle operation is recorded.
+- Purchase create/update/delete and individual purchase-line deletion now cover
+  stock commits/reversals; POS finalization now covers stock consumption.
+- `WarehouseOutboxDispatcher` drains `warehouse.operations` rows through
+  monolith-local stock projection, reconciliation, replica-sync, logistics,
+  valuation, catalog replica, finance bridge, customer/supplier projection, and
+  webhook signals.
+- New command: `php artisan reliability:dispatch-warehouse-outbox`.
+- Warehouse quarantine stays narrow: only persistent retry/circuit/dead-letter/
+  failed-ledger or long-running instability in high-impact stock/product/
+  transfer/bulk-import/purchase/POS/warehouse lifecycle rows can route to manual
+  review.
+- Verification: focused warehouse reliability test is green (5 tests, 31
+  assertions), the reliability service suite is green (35 tests, 203
+  assertions), touched warehouse/product controller tests are green (410 tests,
+  486 assertions), full `tests/Unit --no-coverage` is green (10,618 tests,
+  20,591 assertions), `composer phpstan` has no errors, and `php artisan list
+  --raw` registers `reliability:dispatch-warehouse-outbox`.
+- Broad verification also closed two factory uniqueness fixture collisions:
+  `CustomerFactory` now emits UUID-based emails, and `BranchFactory` now emits
+  UUID-based names.
+
+Next reliability work after the finance, HRM, and warehouse/products slices:
+
+1. Add domain-specific journal-entry posting callbacks behind accepted
+   finance journal-control signals.
+2. Add banking adapter shells that can be toggled between no-op, sandbox, and
+   real providers.
+3. Add actual reversal/compensation handlers for deleted/failed payment flows.
+4. Add HRM-specific compensation handlers for payroll/access-control failures
+   instead of only marking `hrm.compensation.required`.
+5. Add warehouse-specific reconciliation/compensation handlers behind stock
+   projection, replica-sync, and catalog projection shells.
+6. Extend the pattern to project closure/finalization and CRM decision workflows
+   using the same overhead discipline.
+
+---
 
 ## RECENTLY COMPLETED (2026-05-10)
 
@@ -118,7 +170,8 @@ Next reliability work after the finance and first HRM slices:
 3. Add actual reversal/compensation handlers for deleted/failed payment flows.
 4. Add HRM-specific compensation handlers for payroll/access-control failures
    instead of only marking `hrm.compensation.required`.
-5. Extend the pattern to project closure, products, warehouse/stock, and CRM
+5. ~~Extend the pattern to products and warehouse/stock workflows~~ — resolved
+   2026-05-11. Remaining: project closure/finalization and CRM decision
    workflows using the same overhead discipline.
 
 ---

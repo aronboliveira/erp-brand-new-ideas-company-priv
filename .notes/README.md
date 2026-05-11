@@ -10,16 +10,20 @@ Durable notes, instructions, and structured references for agents and developers
 - Root-wide or historical monorepo context belongs here in `.notes/`.
 - The legacy `./notes/` directory has been merged into this directory and
   should only contain redirect stubs.
-- The current continuation handoff is `.tmp/codex/20260510/handsoff.md`;
+- The current continuation handoff is `.tmp/codex/20260511/handsoff.md`;
   `.tmp/claude/20260808/HANDOFF.md` is the recovered pre-continuation stop.
-- The 2026-05-10 reliability passes added generic outbox/inbox, operation
+- The 2026-05-10 and 2026-05-11 reliability passes added generic outbox/inbox, operation
   ledger, operation step, operational event support, retry/circuit breaker
   builders, quarantine overlays, and monolith outbox dispatcher/compensation
   slices for finance and the first HRM procedures. Finance covers invoice/bill
   payment create/delete. HRM covers salary/payroll updates, termination
   lifecycle decisions, and leave status decisions. HRM quarantine explicitly
   treats employees without linked users as valid and reserves quarantine for
-  persistent linked-user/RBAC/payroll/lifecycle corruption signals.
+  persistent linked-user/RBAC/payroll/lifecycle corruption signals. Warehouse/
+  products now covers stock adjustments, decisive product/service catalog
+  changes, warehouse transfers, guarded warehouse deletion, purchase stock
+  commits/reversals, and POS stock commits, with quarantine reserved for
+  persistent high-impact stock/warehouse instability.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 

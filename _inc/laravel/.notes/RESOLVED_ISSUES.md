@@ -1,8 +1,48 @@
 # Resolved Issues Archive
 
 > Issues that have been fully fixed and verified. Append new entries at the top.
-> Last updated: 2026-05-10
+> Last updated: 2026-05-11
 > **Cross-references:** [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) (formerly open issues) · [`CURRENT_WORKING_ISSUES.md`](CURRENT_WORKING_ISSUES.md) (bug-fix sessions) · [`CURRENT_WORKING_ISSUES_WORK.md`](CURRENT_WORKING_ISSUES_WORK.md) (try/fail journal) · [`NEXT_STEPS.md`](NEXT_STEPS.md) (remaining tasks) · [`README.md`](README.md) (notes overview)
+
+---
+
+## [2026-05-11] Warehouse/products reliability slice: stock/product/transfer controls
+
+Added the first warehouse/products adoption of the reliability layer without
+treating every catalog or warehouse screen as quarantine-worthy:
+
+- New warehouse services: `WarehouseOperationService`,
+  `WarehouseReliabilityPolicy`, `WarehousePostWriteValidator`,
+  `WarehouseOutboxDispatcher`, `WarehouseCompensationService`,
+  `WarehouseOperationResult`, and `WarehouseReliabilityAssessment`.
+- New command: `php artisan reliability:dispatch-warehouse-outbox`.
+- Stock adjustments, decisive product/service catalog changes, product imports,
+  warehouse transfers, guarded warehouse deletion, purchase stock
+  commits/reversals including purchase-line deletion, and POS stock commits now
+  commit a ledger, post-write validation step, and `warehouse.operations` outbox
+  intent together.
+- Warehouse outbox dispatch emits monolith-local stock projection,
+  reconciliation, replica-sync, logistics, valuation, catalog replica, finance
+  bridge, customer/supplier projection, and webhook signals.
+- Warehouse quarantine remains manual-review only and requires persistent
+  retry/circuit/dead-letter/failed-ledger or long-running instability in
+  high-impact stock/product/warehouse rows.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/WarehouseReliabilityTest.php --no-coverage` — 5 tests, 31 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 35 tests, 203 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Http/Controllers/products/ProductStockControllerTest.php tests/Unit/app/Http/Controllers/products/ProductServiceControllerTest.php tests/Unit/app/Http/Controllers/activity/WarehouseTransferControllerTest.php tests/Unit/app/Http/Controllers/companies/WarehouseControllerTest.php tests/Unit/app/Http/Controllers/activity/PurchaseControllerTest.php tests/Unit/app/Http/Controllers/activity/PosControllerTest.php --no-coverage` — 410 tests, 486 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,618 tests, 20,591 assertions, OK.
+- `php artisan list --raw` — confirms `reliability:dispatch-warehouse-outbox`.
+- `composer phpstan` — no errors.
+
+Broad verification surfaced two pre-existing factory uniqueness collisions and
+closed them without touching migrations or seeders: `CustomerFactory` now emits
+UUID-based emails, and `BranchFactory` now emits UUID-based names.
+
+Guideline:
+`_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 
 ---
 

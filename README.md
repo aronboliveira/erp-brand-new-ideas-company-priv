@@ -127,16 +127,21 @@ Critical business procedures now have a shared reliability layer under
 ledgers, operation steps, outbox/inbox messages, operational events, and
 circuit breaker state/call history.
 Financial ledger posting and invoice/bill payment create/delete were the first
-integrated paths. The HRM slice now covers salary/payroll updates, termination
-lifecycle decisions, and leave status decisions. Finance and HRM outbox
-dispatch are currently monolith-local: they accept journal, banking-shell,
-payroll, RBAC/access-control, calendar, communication, and webhook signals
-without requiring a broker. Dispatch is guarded by Spring-like `Retry` and
-`CircuitBreaker` builders that emit operational events for success, retry,
-final failure, state changes, and rejected calls. Retry intervals default to
-capped exponential backoff. The same pattern is intended for any high-impact
-workflow: irreversible project closures, warehouse commits, heavy I/O tasks,
-and other state changes where replay, auditability, or retry control matters.
+integrated paths. The HRM slice covers salary/payroll updates, termination
+lifecycle decisions, and leave status decisions. The warehouse/products slice
+now covers stock adjustments, decisive product/service catalog changes, product
+imports/deletes, warehouse transfer create/update/delete, warehouse deletion
+guards, purchase stock commits including purchase-line deletion, and POS stock
+commit. Finance, HRM, and warehouse outbox dispatch are currently
+monolith-local: they accept journal, banking-shell, payroll, RBAC/access-control,
+calendar, inventory replica-sync, stock reconciliation, catalog projection,
+communication, and webhook signals without requiring a broker. Dispatch is
+guarded by Spring-like `Retry` and `CircuitBreaker` builders that emit
+operational events for success, retry, final failure, state changes, and
+rejected calls. Retry intervals default to capped exponential backoff. The same
+pattern is intended for any high-impact workflow: irreversible project closures,
+warehouse commits, heavy I/O tasks, and other state changes where replay,
+auditability, or retry control matters.
 
 Use the severity policy consistently: trivial/low work can stay in memory,
 medium-and-up work gets durable operation rows, and critical operations should
@@ -158,6 +163,14 @@ HRM quarantine follows the same narrow standard. An employee without a linked
 login user is valid, but a persisted linked-user/RBAC mismatch can be escalated
 only after repeated retry/circuit/dead-letter/failed-ledger instability in a
 critical payroll, lifecycle, or identity/access procedure.
+
+Warehouse quarantine is even rarer than finance/HRM quarantine. Routine catalog
+metadata changes use ledger/outbox/retry/circuit controls only when their
+business effect warrants the overhead. Quarantine is reserved for persistent
+corruption or instability around high-impact stock quantities, warehouse
+transfers, purchase/POS stock commits, bulk imports, warehouse lifecycle
+actions, or replica/eventual-consistency-sensitive inventory flows after normal
+rollback, validation, retry, and circuit-breaker paths fail.
 
 ---
 

@@ -1,6 +1,6 @@
 # Reliability Outbox and Operation Ledger
 
-> Last updated: 2026-05-10. Applies to high-impact business operations across
+> Last updated: 2026-05-11. Applies to high-impact business operations across
 > finance, HR, planning, products/warehouse, and heavy system workflows.
 
 ## Purpose
@@ -184,6 +184,56 @@ HRM retry/circuit behavior follows the business cluster:
   when state-changing.
 - `configuration` avoids retry/circuit overhead unless explicitly forced.
 
+## Warehouse/products dispatcher slice
+
+Warehouse/products reliability is broader than quarantine but still follows the
+overhead discipline: routine metadata screens should not pay durable guard costs
+unless the business effect is material. The current slice covers stock-changing
+or stock-defining paths:
+
+- `WarehouseOperationService` wraps warehouse mutations and records durable
+  ledgers, post-write validation steps, and `warehouse.operations` outbox
+  messages.
+- `ProductStockController::store/update/destroy()` covers manual stock
+  adjustments and product stock deletion.
+- `ProductServiceController::store/update/destroy/import()` covers decisive
+  product/service catalog facts such as SKU, quantity, sale/purchase price, tax,
+  unit, category, product type, bulk imports, and product deletion.
+- `WarehouseTransferController::store/destroy/update()` covers transfer commit,
+  reversal, and metadata/status updates. Direct edits to source/destination
+  warehouse, product, or quantity are blocked because they would require a new
+  controlled stock movement rather than a metadata update.
+- `WarehouseController::destroy()` blocks direct warehouse deletion when stock
+  rows or transfer references still exist, then records the warehouse lifecycle
+  operation when deletion is valid.
+- `PurchaseController::store/update/destroy/productDestroy()` covers purchase
+  stock commits, full purchase reversal, and individual purchase-line deletion.
+- `PosController::store()` covers final POS stock consumption.
+- `WarehouseOutboxDispatcher` drains `warehouse.operations` rows through
+  monolith-local inventory signals: stock projection refresh, stock
+  reconciliation, inventory replica-sync, warehouse transfer projection,
+  logistics callback shells, valuation refresh, catalog replica-sync,
+  finance purchase/POS bridges, supplier/customer stock projections, and
+  webhooks.
+- `php artisan reliability:dispatch-warehouse-outbox` exposes the same
+  dispatcher without requiring Redis, database queues, Kafka, or another broker.
+
+Warehouse policy clusters:
+
+- `stock_mutation`, `warehouse_transfer`, `pos_commit`, `purchase_commit`, and
+  `warehouse_lifecycle` are high by default, validate after write, and get
+  retry/circuit protection.
+- `bulk_import` and `catalog_value` become high when quantities, prices, SKU,
+  tax, unit, category, type, chart accounts, or other decisive fields are
+  touched.
+- `routine_metadata` avoids retry/circuit overhead unless explicitly forced.
+
+The policy explicitly tracks `replica_sync_sensitive` and
+`eventual_consistency_sensitive` payload flags. They do not make a row
+quarantine-worthy alone, but they keep committed stock changes visible to local
+projection/replica/reconciliation shells and provide signal context when
+persistent retry/circuit/dead-letter instability appears.
+
 ## Post-write quarantine
 
 Quarantine is intentionally narrower than the general reliability layer. It is
@@ -198,6 +248,9 @@ Current production scope:
 - HRM salary/payroll, employee lifecycle, and identity/access post-write
   validation, with quarantine only for persistent instability in critical
   payroll/lifecycle/identity cases
+- warehouse/product stock quantities, warehouse transfers, purchase/POS stock
+  commits, bulk imports, and warehouse lifecycle rows, with quarantine only after
+  persistent retry/circuit/dead-letter/failed-ledger or long-running instability
 
 Finance paths opt into `FinanceOperationService` post-write validation through
 `post_write_validation => true`, but that flag now delegates to
@@ -229,6 +282,12 @@ the source signal to `manual_review`, because employee/payroll/lifecycle state
 usually needs a human decision before additional access or payroll actions are
 allowed.
 
+Warehouse quarantine also uses the shared overlay tables with domain-specific
+manual-review routing. A single stock mismatch or validation failure is not
+enough. The row must be in a high-impact warehouse cluster and show persistence
+signals first, such as repeated failed ledgers, retry failures, dead letters,
+several warehouse circuit-breaker events, or extreme unresolved processing time.
+
 Do not enable quarantine for routine CRUD, lightweight customization, ordinary
 imports, or non-critical stage movement. Use operation ledgers, outbox, retry, or
 normal validation first. Add quarantine only when a specific business invariant
@@ -241,14 +300,16 @@ Two rollback surfaces are now defined:
 - Failures inside `CriticalOperationService::run()` happen before the DB commit
   completes, so Laravel rolls back the mutation and the operation ledger is
   marked `failed`.
-- Failures after commit, during finance outbox dispatch, cannot undo the
-  original SQL commit. The dispatcher first runs in-process retry/circuit
-  guards, then applies durable outbox retry scheduling; once attempts are
-  exhausted it marks the outbox `dead_letter`, records a
-  `compensation.required:*` step, emits `finance.compensation.required`, and
-  moves the operation ledger to `compensating`.
+- Failures after commit, during finance/HRM/warehouse outbox dispatch, cannot
+  undo the original SQL commit. The dispatcher first runs in-process
+  retry/circuit guards, then applies durable outbox retry scheduling; once
+  attempts are exhausted it marks the outbox `dead_letter`, records a
+  `compensation.required:*` step, emits a domain-specific compensation-required
+  event, and moves the operation ledger to `compensating`.
 - HRM post-commit dispatch follows the same durable pattern and emits
   `hrm.compensation.required` when HRM outbox retries are exhausted.
+- Warehouse post-commit dispatch follows the same durable pattern and emits
+  `warehouse.compensation.required` when warehouse outbox retries are exhausted.
 
 Actual domain reversal remains a later, domain-specific implementation. The
 important current guarantee is that post-commit signal failure becomes durable,
@@ -271,14 +332,17 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local reliability check after the HRM reliability slice:
+Latest local reliability check after the warehouse/products reliability slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-30 tests, 172 assertions, 0 errors, 0 failures.
+35 tests, 203 assertions, 0 errors, 0 failures.
 
 tests/Unit --no-coverage:
-10,613 tests, 20,560 assertions, 0 errors, 0 failures.
+10,618 tests, 20,591 assertions, 0 errors, 0 failures.
+
+composer phpstan:
+No errors.
 ```
 
 Do not run `php artisan test`; this project uses `vendor/bin/phpunit` directly.

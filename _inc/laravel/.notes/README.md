@@ -7,24 +7,29 @@ Durable repository-level notes and guidance for developers and agents.
 ## Current Agent Handoff
 
 The current Codex continuation handoff is
-[`../../../.tmp/codex/20260510/handsoff.md`](../../../.tmp/codex/20260510/handsoff.md).
-It covers the reliability foundation, finance/HRM outbox dispatchers, and
-latest retry/circuit breaker guard slice.
+[`../../../.tmp/codex/20260511/handsoff.md`](../../../.tmp/codex/20260511/handsoff.md).
+It covers the reliability foundation, finance/HRM outbox dispatchers, retry/
+circuit breaker guards, quarantine overlays, and the warehouse/products
+reliability slice.
 
-Current broad unit baseline after the 2026-05-10 HRM reliability slice:
+Current broad unit baseline after the 2026-05-11 warehouse/products slice:
 
 ```text
-Tests: 10613, Assertions: 20560, Errors: 0, Failures: 0.
+Tests: 10618, Assertions: 20591, Errors: 0, Failures: 0.
 ```
 
 2026-05-10 reliability work added generic operation ledger, operation step,
 outbox/inbox, operational event, circuit breaker, and quarantine tables plus
 the service layer under `app/Services/Reliability/`. Finance payment flows and
-the first HRM slice are wired. Focused checks:
+the first HRM slice are wired. 2026-05-11 added the warehouse/products slice for
+stock adjustments, decisive product/service catalog changes, warehouse
+transfers, warehouse deletion guards, purchase stock commits/reversals, and POS
+stock commits. Focused checks:
 
 ```text
-Reliability service tests: 30 tests, 172 assertions, 0 errors, 0 failures.
-Touched HRM controller tests: 136 tests, 163 assertions, 0 errors, 0 failures.
+Reliability service tests: 35 tests, 203 assertions, 0 errors, 0 failures.
+Touched warehouse/product controller tests: 410 tests, 486 assertions, 0 errors, 0 failures.
+Full Unit suite: 10618 tests, 20591 assertions, 0 errors, 0 failures.
 composer phpstan: no errors.
 ESLint: clean with max-warnings=50.
 ```
