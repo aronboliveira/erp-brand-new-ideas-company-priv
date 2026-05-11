@@ -197,6 +197,22 @@ tests, 450 assertions), all reliability service tests are green (50 tests, 275
 assertions), `php artisan list --raw` confirms
 `reliability:dispatch-planning-outbox`, and `composer phpstan` is clean.
 
+Latest heavy I/O reliability slice check (2026-05-11, Codex): shared Python
+import delegation, shared Python export delegation, and shared webhook delivery
+now use `HeavyIoOperationService`, `heavy_io.operations` outbox rows,
+post-execution validation, and retry/circuit guard support while preserving
+legacy array/string/bool return shapes. Heavy I/O outbox dispatch emits
+integration health, audit, import reconciliation, replica-sync, data quality,
+report archive, webhook audit, dead-letter monitor, and frontend progress
+shells. Quarantine remains manual-review only and requires persistent
+instability plus invalid high-impact import/export/webhook/callback results.
+`HeavyIoReliabilityTest` is green (4 tests, 22 assertions), all reliability
+service tests are green (54 tests, 297 assertions), Python delegation trait
+tests are green (26 tests, 30 assertions), webhook utility tests are green (7
+tests, 25 assertions), `php artisan list --raw` confirms
+`reliability:dispatch-heavy-io-outbox`, full `tests/Unit --no-coverage` is
+green (10,637 tests, 20,685 assertions), and `composer phpstan` is clean.
+
 ---
 
 ## TASK A — Bills Models Namespace Finalization ✅ DONE
@@ -677,9 +693,55 @@ Verification:
 - `php artisan list --raw` — confirms `reliability:dispatch-planning-outbox`.
 - `composer phpstan` — no errors.
 
-Next: timesheet/expense approval/finalization, heavy business-impacting
-imports/exports, and real planning projection/bridge/webhook handlers behind
-the accepted outbox signal shells.
+Next: timesheet/expense approval/finalization and real planning
+projection/bridge/webhook handlers behind the accepted outbox signal shells.
+
+---
+
+## TASK P — Heavy I/O / Integrations Reliability Slice ✅ DONE
+
+**Status:** Implemented 2026-05-11 by Codex.
+
+Added:
+
+- Services: `HeavyIoOperationService`, `HeavyIoReliabilityPolicy`,
+  `HeavyIoPostWriteValidator`, `HeavyIoOutboxDispatcher`,
+  `HeavyIoCompensationService`, and `HeavyIoReliabilityAssessment`.
+- Command: `php artisan reliability:dispatch-heavy-io-outbox`.
+- Adoption: shared `DelegatesPythonImport`, shared `DelegatesPythonExport`, and
+  `NotificationService::webhookCall()`.
+- Shared quarantine routing now emits heavy-I/O manual-review events for
+  persistent invalid high-impact import/export/webhook/callback results.
+
+Policy notes:
+
+- The wrapper is boundary-based, not controller-scattered. It covers
+  subprocess imports/exports and configured webhook delivery without forcing
+  routine file reads, UI metadata, small previews, or transient notifications
+  into durable reliability overhead.
+- Python subprocess calls are not executed inside SQL transactions. Ledgers,
+  steps, outbox rows, retry/circuit events, and validation happen around the
+  external boundary.
+- Legacy return shapes are preserved: imports return arrays, exports return
+  strings, and webhooks return booleans.
+- Heavy-I/O quarantine requires persistent instability after normal retry,
+  circuit, validation, and failure handling; a single failed subprocess or
+  webhook delivery should not quarantine.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/HeavyIoReliabilityTest.php --no-coverage` — 4 tests, 22 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 54 tests, 297 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Traits/DelegatesPythonImportTest.php tests/Unit/app/Traits/DelegatesPythonExportTest.php --no-coverage` — 26 tests, 30 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Models/utils/UtilityTest.php --filter=webhook --no-coverage` — 7 tests, 25 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Imports/ImportSupplementaryTest.php --filter=customer_import_within_resource_limits --no-coverage` — 1 test, 2 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,637 tests, 20,685 assertions, OK.
+- `php artisan list --raw` — confirms `reliability:dispatch-heavy-io-outbox`.
+- `composer phpstan` — no errors.
+
+Next: timesheet/expense approval/finalization, broader finance flows beyond the
+first invoice/bill payment slice, and real domain compensation/reconciliation
+handlers behind the accepted signal shells.
 
 ---
 
@@ -689,7 +751,7 @@ the accepted outbox signal shells.
 2. `_inc/laravel/.notes/.llms/.guidelines/constraints.md` — hard rules
 3. `_inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md` — role-specific reading lists
 4. `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` — outbox/inbox + operation ledger policy
-5. `.tmp/codex/20260511/handsoff.md` — latest Codex warehouse/CRM reliability continuation state
+5. `.tmp/codex/20260511/handsoff.md` — latest Codex warehouse/CRM/planning/heavy-I/O reliability continuation state
 6. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
 7. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
 8. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state

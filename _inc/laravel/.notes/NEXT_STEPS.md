@@ -58,6 +58,34 @@ Stale items now closed by later Claude commits:
 
 ## RECENTLY COMPLETED (2026-05-11)
 
+### Heavy I/O / Integrations Reliability Slice
+
+- Shared Python import delegation now uses `HeavyIoOperationService`, keeping
+  the legacy array return shape while recording durable `heavy_io` ledgers,
+  retry/circuit events, post-execution validation, and `heavy_io.operations`
+  outbox rows for material imports.
+- Shared Python export delegation now uses the same wrapper, keeping the legacy
+  string return shape and validating generated file/stdout output.
+- `NotificationService::webhookCall()` now uses the heavy-I/O wrapper, keeping
+  the legacy boolean return shape while making configured webhook delivery
+  retry/circuit guarded and visible through durable ledgers/outbox when the call
+  reaches medium+ criticality.
+- `HeavyIoOutboxDispatcher` drains `heavy_io.operations` rows through
+  monolith-local integration-health, audit, import-reconciliation,
+  replica-sync, data-quality, report-archive, webhook-audit, dead-letter
+  monitor, and frontend-progress shells.
+- New command: `php artisan reliability:dispatch-heavy-io-outbox`.
+- Heavy-I/O quarantine is manual-review only and remains rare: it requires
+  persistent retry/circuit/dead-letter/failed-ledger/long-running instability
+  plus invalid high-impact import/export/webhook/callback results.
+- Verification: focused heavy-I/O reliability test is green (4 tests, 22
+  assertions), the reliability service suite is green (54 tests, 297
+  assertions), Python delegation trait tests are green (26 tests, 30
+  assertions), webhook utility tests are green (7 tests, 25 assertions),
+  full Unit is green (10,637 tests, 20,685 assertions),
+  `php artisan list --raw` registers `reliability:dispatch-heavy-io-outbox`,
+  and `composer phpstan` has no errors.
+
 ### Project Planning Reliability Slice
 
 - Project final status updates now use `PlanningOperationService`, committing
@@ -120,8 +148,8 @@ Stale items now closed by later Claude commits:
   `CustomerFactory` now emits UUID-based emails, and `BranchFactory` now emits
   UUID-based names.
 
-Next reliability work after the finance, HRM, warehouse/products, CRM, and
-project-planning slices:
+Next reliability work after the finance, HRM, warehouse/products, CRM,
+project-planning, and heavy-I/O slices:
 
 1. Add domain-specific journal-entry posting callbacks behind accepted
    finance journal-control signals.
@@ -134,8 +162,9 @@ project-planning slices:
    projection, replica-sync, and catalog projection shells.
 6. Scan timesheet and expense approval/finalization paths; those sit between
    planning, payroll, and finance semantics and need their own boundary.
-7. Scan heavy I/O/import/export and external integration workers with the same
-   overhead discipline.
+7. Expand beyond signal shells only where the business value justifies real
+   projector, replica-sync, webhook, import-reconciliation, and compensation
+   workers.
 
 ---
 

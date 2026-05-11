@@ -29,7 +29,9 @@ Durable notes, instructions, and structured references for agents and developers
   kept low-overhead. Project planning now covers final project status, project
   deletion, milestone final/delete paths, task completion/final progress, and
   completed/final task deletion, while routine project-board activity remains
-  outside durable overhead.
+  outside durable overhead. Heavy I/O now covers shared Python import/export
+  subprocesses and configured webhook delivery while ordinary file reads,
+  previews, and transient notifications remain outside durable overhead.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 

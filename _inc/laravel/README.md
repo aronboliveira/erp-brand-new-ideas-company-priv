@@ -240,6 +240,23 @@ operations:
 - `php artisan reliability:dispatch-warehouse-outbox` drains pending warehouse
   outbox rows. Warehouse quarantine is manual-review only and requires
   persistent instability in high-impact stock/product/warehouse rows.
+- `CrmOperationService` and `CrmOutboxDispatcher` cover durable lead/deal
+  lifecycle decisions, stage/status movement, lead conversion,
+  customer/vendor/client relationship records, and deal user/client/permission
+  sub-actions. Routine CRM activity stays low-overhead unless a caller promotes
+  it.
+- `PlanningOperationService` and `PlanningOutboxDispatcher` cover final project
+  status, project deletion, milestone final/delete paths, task completion/final
+  progress, and completed/final task deletion while routine project-board
+  metadata stays low-overhead.
+- `HeavyIoOperationService` and `HeavyIoOutboxDispatcher` cover shared Python
+  import/export subprocess boundaries and configured webhook delivery while
+  preserving legacy return shapes and keeping subprocess calls outside SQL
+  transactions.
+- `php artisan reliability:dispatch-crm-outbox`,
+  `php artisan reliability:dispatch-planning-outbox`, and
+  `php artisan reliability:dispatch-heavy-io-outbox` drain those pending
+  monolith-local outbox rows.
 
 The policy is intentionally domain-neutral. Finance commits and payroll/lifecycle
 HR decisions usually need the highest controls, but project
@@ -251,9 +268,10 @@ Post-commit dispatch failures first pass through the in-process retry/circuit
 guards, then use durable outbox retry scheduling. Exhausted attempts move the
 outbox row to `dead_letter`, mark the operation ledger `compensating`, and
 create a durable domain compensation event such as
-`finance.compensation.required`, `hrm.compensation.required`, or
-`warehouse.compensation.required` so rollback/reversal work is visible to
-operators and later workers.
+`finance.compensation.required`, `hrm.compensation.required`,
+`warehouse.compensation.required`, `crm.compensation.required`,
+`planning.compensation.required`, or `heavy_io.compensation.required` so
+rollback/reversal work is visible to operators and later workers.
 
 ---
 
@@ -277,10 +295,13 @@ User IDs are **UUIDs** (string), not integers.
 
 | Tool | Result |
 |------|--------|
-| PHPUnit Unit | 10,618 tests, 20,591 assertions, 0 errors, 0 failures |
-| Reliability service tests | 35 tests, 203 assertions, 0 errors, 0 failures |
+| PHPUnit Unit | 10,637 tests, 20,685 assertions, 0 errors, 0 failures |
+| Reliability service tests | 54 tests, 297 assertions, 0 errors, 0 failures |
 | HRM touched controller tests | 136 tests, 163 assertions, 0 errors, 0 failures |
 | Warehouse/product touched controller tests | 410 tests, 486 assertions, 0 errors, 0 failures |
+| CRM relationship touched controller tests | 594 tests, 703 assertions, 0 errors, 0 failures |
+| Planning touched controller tests | 354 tests, 450 assertions, 0 errors, 0 failures |
+| Heavy-I/O shared boundary tests | 37 tests, 77 assertions, 0 errors, 0 failures |
 | PHPStan | clean (`composer phpstan`) |
 | ESLint | clean (`npx --no-install eslint . --max-warnings=50`) |
 | Jest | see current CI / package scripts |

@@ -342,6 +342,58 @@ persistent retry/circuit/dead-letter or repeated failed-ledger instability plus
 core corruption in final project, milestone, or task state. A single bad
 planning write should roll back or fail validation without quarantine.
 
+## Heavy I/O and integrations dispatcher slice
+
+Heavy I/O reliability is implemented at shared boundaries instead of every
+controller that happens to read a file or call HTTP. This keeps overhead tied to
+business-impacting imports, exports, and integration delivery.
+
+Current adoption:
+
+- `HeavyIoOperationService` wraps selected subprocess/webhook work and records
+  durable `heavy_io` operation ledgers, retry/circuit events, post-execution
+  validation steps, and `heavy_io.operations` outbox messages. The subprocess
+  call is not placed inside a SQL transaction.
+- `App\Traits\DelegatesPythonImport` now routes Python importer calls through
+  the heavy-I/O wrapper while preserving the legacy array return shape.
+- `App\Traits\DelegatesPythonExport` now routes Python exporter calls through
+  the heavy-I/O wrapper while preserving the legacy string return shape.
+- `NotificationService::webhookCall()` now routes configured webhook delivery
+  through the heavy-I/O wrapper while preserving the legacy boolean return
+  shape.
+- `HeavyIoOutboxDispatcher` drains `heavy_io.operations` rows through
+  monolith-local shells for integration health, operational audit, import
+  reconciliation, domain replica-sync, data quality, report archive, reporting
+  delivery, webhook audit, dead-letter monitoring, and frontend progress.
+- `php artisan reliability:dispatch-heavy-io-outbox` exposes the same
+  dispatcher without requiring Redis, database queues, Kafka, or another
+  broker.
+
+Heavy-I/O policy clusters:
+
+- `python_import` covers shared bulk imports. High-impact names such as
+  customer, vendor, employee, attendance, product, service, stock, purchase,
+  payroll, invoice, bill, transaction, balance, and ledger receive high/critical
+  treatment when volume, payload size, or persistence signals justify it.
+- `python_export` covers generated reports. Regulated or decision-heavy exports
+  such as payroll, payslip, invoice, bill, transaction, balance, trial balance,
+  profit/loss, receivable, account, stock, and sales receive stronger retry and
+  circuit settings.
+- `webhook_delivery` covers the shared webhook escape hatch. Delivery failures
+  are retried/circuit-guarded and become durable outbox/ledger events when the
+  call is material enough to persist.
+- `external_callback` and `async_job` are policy slots for future adapters such
+  as calendar, public API, or long-running job callbacks when they become
+  state-changing or consistency-sensitive.
+- `routine_io` remains low-overhead; ordinary file reads, UI metadata, small
+  previews, and transient notifications should not use durable heavy-I/O guards.
+
+Heavy-I/O quarantine is manual-review only and remains rare. It requires
+persistent instability plus invalid high-impact import/export/webhook/callback
+results. One-off subprocess failures, empty exports, and webhook delivery
+failures should normally return the legacy failure value and mark the operation
+failed/retryable rather than quarantine.
+
 ## Post-write quarantine
 
 Quarantine is intentionally narrower than the general reliability layer. It is
@@ -365,6 +417,8 @@ Current production scope:
   corruption
 - project planning finalization/deletion rows, with quarantine only after
   persistent instability plus core final project/milestone/task corruption
+- heavy I/O import/export/webhook/callback completion signals, with quarantine
+  only after persistent instability plus invalid high-impact integration results
 
 Finance paths opt into `FinanceOperationService` post-write validation through
 `post_write_validation => true`, but that flag now delegates to
@@ -428,6 +482,8 @@ Two rollback surfaces are now defined:
   `crm.compensation.required` when CRM outbox retries are exhausted.
 - Planning post-commit dispatch follows the same durable pattern and emits
   `planning.compensation.required` when planning outbox retries are exhausted.
+- Heavy-I/O post-completion dispatch follows the same durable pattern and emits
+  `heavy_io.compensation.required` when heavy-I/O outbox retries are exhausted.
 
 Actual domain reversal remains a later, domain-specific implementation. The
 important current guarantee is that post-commit signal failure becomes durable,
@@ -450,14 +506,17 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local reliability check after the project planning reliability slice:
+Latest local reliability check after the heavy-I/O reliability slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-50 tests, 275 assertions, 0 errors, 0 failures.
+54 tests, 297 assertions, 0 errors, 0 failures.
 
-Planning touched controller tests:
-354 tests, 450 assertions, 0 errors, 0 failures.
+Python delegation trait tests:
+26 tests, 30 assertions, 0 errors, 0 failures.
+
+Webhook utility tests:
+7 tests, 25 assertions, 0 errors, 0 failures.
 
 composer phpstan:
 No errors.

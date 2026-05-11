@@ -11,7 +11,8 @@ The current Codex continuation handoff is
 It covers the reliability foundation, finance/HRM outbox dispatchers, retry/
 circuit breaker guards, quarantine overlays, and the warehouse/products
 reliability slice, CRM lead/deal and relationship-record slices, and the
-project-planning finalization/deletion slice.
+project-planning finalization/deletion slice, plus the shared heavy-I/O
+import/export/webhook slice.
 
 Current broad unit baseline before the CRM relationship-record slice:
 
@@ -30,15 +31,21 @@ movement, customer/vendor/client lifecycle rows, and deal user/client/
 permission relationship sub-actions. Project planning now covers final project
 status, project deletion, milestone final/delete paths, task completion/final
 progress, and completed/final task deletion while keeping routine project-board
-activity low-overhead. Focused checks:
+activity low-overhead. Heavy I/O now covers shared Python import/export
+subprocesses and configured webhook delivery while keeping routine file/HTTP
+helpers low-overhead. Focused checks:
 
 ```text
-Reliability service tests: 50 tests, 275 assertions, 0 errors, 0 failures.
+Reliability service tests: 54 tests, 297 assertions, 0 errors, 0 failures.
 Touched warehouse/product controller tests: 410 tests, 486 assertions, 0 errors, 0 failures.
 Touched CRM relationship controller tests: 594 tests, 703 assertions, 0 errors, 0 failures.
 Touched planning controller tests plus planning reliability: 354 tests, 450 assertions, 0 errors, 0 failures.
+Heavy-I/O reliability tests: 4 tests, 22 assertions, 0 errors, 0 failures.
+Python delegation trait tests: 26 tests, 30 assertions, 0 errors, 0 failures.
+Webhook utility tests: 7 tests, 25 assertions, 0 errors, 0 failures.
 Full Unit suite baseline before relationship-record slice: 10623 tests, 20619 assertions, 0 errors, 0 failures.
 Full Unit suite attempt after relationship-record slice: 10627 tests, 20632 assertions, 1 unrelated timing failure in ContractControllerTest::test_noteStore_performance_114; isolated rerun passed.
+Full Unit suite after heavy-I/O slice: 10637 tests, 20685 assertions, 0 errors, 0 failures.
 composer phpstan: no errors.
 ESLint: clean with max-warnings=50.
 ```

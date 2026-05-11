@@ -132,10 +132,15 @@ lifecycle decisions, and leave status decisions. The warehouse/products slice
 now covers stock adjustments, decisive product/service catalog changes, product
 imports/deletes, warehouse transfer create/update/delete, warehouse deletion
 guards, purchase stock commits including purchase-line deletion, and POS stock
-commit. Finance, HRM, and warehouse outbox dispatch are currently
-monolith-local: they accept journal, banking-shell, payroll, RBAC/access-control,
-calendar, inventory replica-sync, stock reconciliation, catalog projection,
-communication, and webhook signals without requiring a broker. Dispatch is
+commit. CRM covers durable lead/deal decisions and customer/vendor/client
+relationship records. Project planning covers final project status/deletion,
+milestone final/delete paths, and final task completion/deletion. Heavy I/O now
+covers shared Python import/export subprocesses and configured webhook delivery.
+Finance, HRM, warehouse, CRM, planning, and heavy-I/O outbox dispatch are
+currently monolith-local: they accept journal, banking-shell, payroll,
+RBAC/access-control, calendar, inventory replica-sync, stock reconciliation,
+catalog projection, CRM/project/finance bridge, import reconciliation, report
+archive, communication, and webhook signals without requiring a broker. Dispatch is
 guarded by Spring-like `Retry` and `CircuitBreaker` builders that emit
 operational events for success, retry, final failure, state changes, and
 rejected calls. Retry intervals default to capped exponential backoff. The same
@@ -171,6 +176,13 @@ corruption or instability around high-impact stock quantities, warehouse
 transfers, purchase/POS stock commits, bulk imports, warehouse lifecycle
 actions, or replica/eventual-consistency-sensitive inventory flows after normal
 rollback, validation, retry, and circuit-breaker paths fail.
+
+CRM, planning, and heavy-I/O quarantine follow the same narrow rule. Durable
+relationship identity/link corruption, final project/milestone/task corruption,
+or invalid high-impact import/export/webhook results can route to manual review
+only after repeated instability. Routine CRM activity, project-board metadata,
+ordinary file reads, small previews, and transient notifications should not pay
+durable heavy-I/O overhead.
 
 ---
 
