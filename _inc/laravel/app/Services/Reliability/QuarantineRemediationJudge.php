@@ -8,7 +8,7 @@ class QuarantineRemediationJudge
     {
         if ($validation->domain === 'finance') {
             return QuarantineDecision::rollback(
-                'Finance post-write validation failed; the domain write was rolled back before outbox dispatch.'
+                'Finance post-write validation failed after persistent instability signals; the domain write was rolled back before outbox dispatch.'
             );
         }
 

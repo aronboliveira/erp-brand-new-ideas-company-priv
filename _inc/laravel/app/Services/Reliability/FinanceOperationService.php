@@ -2,7 +2,7 @@
 
 namespace App\Services\Reliability;
 
-use App\Exceptions\Reliability\QuarantineRollbackRequiredException;
+use App\Exceptions\Reliability\{FinancePostWriteValidationFailedException, QuarantineRollbackRequiredException};
 use App\Models\OperationLedger;
 use App\Models\OutboxMessage;
 use Illuminate\Database\Eloquent\Model;
@@ -32,8 +32,33 @@ class FinanceOperationService
         $operationCallback = function (?OperationLedger $ledger, CriticalOperationService $operations) use ($callback, $options, $eventType): mixed {
             $result = $this->invokeOperationCallback($callback, $ledger, $operations);
 
-            if ($this->postWriteValidationEnabled($options)) {
+            if ($this->postWriteValidationRequested($options)) {
                 $payload = $this->resolveArray($options['payload'] ?? null, $result, $ledger, true);
+                $policy = $this->financeReliabilityPolicy($options);
+                $assessment = $policy->assess($eventType, $payload, $ledger, $options);
+
+                if (!$assessment->postWriteValidationRequired) {
+                    $operations->recordStep($ledger, 'finance.post_write_validation', 'Assess finance post-write validation threshold', [
+                        'step_type' => 'validation',
+                        'sequence' => 90,
+                        'status' => ReliabilityPolicy::STEP_SKIPPED,
+                        'payload' => [
+                            'event_type' => $eventType,
+                            'amount' => $assessment->amount,
+                            'amount_tier' => $assessment->amountTier,
+                        ],
+                        'result' => [
+                            'validated' => false,
+                            'reason' => 'below_finance_post_write_threshold',
+                            'assessment' => $assessment->toArray(),
+                        ],
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $result;
+                }
+
                 $validator = $options['post_write_validator'] ?? new FinancePostWriteValidator();
                 $validation = $validator instanceof FinancePostWriteValidator
                     ? $validator->validate($eventType, $payload, $ledger)
@@ -47,17 +72,23 @@ class FinanceOperationService
                         'event_type' => $eventType,
                         'source_table' => $validation->sourceTable,
                         'source_record_id' => $validation->sourceRecordId,
+                        'assessment' => $assessment->toArray(),
                     ],
                     'result' => $validation->passed ? ['validated' => true] : [
                         'failed_criteria' => $validation->failedCriteria,
                         'validation_errors' => $validation->validationErrors,
+                        'quarantine_candidate' => $assessment->quarantineCandidate,
                     ],
                     'started_at' => now(),
                     'finished_at' => now(),
                 ]);
 
                 if (!$validation->passed) {
-                    throw new QuarantineRollbackRequiredException($validation, $ledger);
+                    if ($policy->shouldQuarantine($validation, $assessment, $ledger)) {
+                        throw new QuarantineRollbackRequiredException($validation, $ledger);
+                    }
+
+                    throw new FinancePostWriteValidationFailedException($validation, $assessment, $ledger);
                 }
             }
 
@@ -72,7 +103,19 @@ class FinanceOperationService
                 'final_status' => $options['final_status'] ?? ReliabilityPolicy::STATUS_COMMITTED,
                 'outbox' => function (mixed $result, OperationLedger $ledger) use ($options, $eventType, $stream): array {
                     $payload = $this->resolveArray($options['payload'] ?? null, $result, $ledger, true);
+                    $assessment = $this->financeReliabilityPolicy($options)->assess($eventType, $payload, $ledger, $options);
                     $messageKey = $this->resolveValue($options['message_key'] ?? null, $result, $ledger);
+                    $metadata = array_merge(
+                        [
+                            'operation_key' => $ledger->operation_key,
+                            'finance_reliability' => $assessment->toArray(),
+                            'retry' => [
+                                'eligible' => true,
+                                'max_attempts' => $options['max_attempts'] ?? $assessment->maxAttempts,
+                            ],
+                        ],
+                        $this->resolveArray($options['metadata'] ?? null, $result, $ledger),
+                    );
 
                     return [
                         'message_key' => $this->normalizeMessageKey($messageKey ?: $this->defaultMessageKey($eventType, $payload, $ledger)),
@@ -82,11 +125,8 @@ class FinanceOperationService
                         'aggregate_id' => $options['aggregate_id'] ?? $options['subject_id'] ?? $ledger->subject_id,
                         'payload' => $payload,
                         'headers' => $this->resolveArray($options['headers'] ?? null, $result, $ledger),
-                        'metadata' => array_merge(
-                            ['operation_key' => $ledger->operation_key],
-                            $this->resolveArray($options['metadata'] ?? null, $result, $ledger),
-                        ),
-                        'max_attempts' => $options['max_attempts'] ?? 3,
+                        'metadata' => $metadata,
+                        'max_attempts' => $options['max_attempts'] ?? $assessment->maxAttempts,
                     ];
                 },
             ]));
@@ -153,9 +193,16 @@ class FinanceOperationService
         return $resolver;
     }
 
-    private function postWriteValidationEnabled(array $options): bool
+    private function postWriteValidationRequested(array $options): bool
     {
         return (bool) ($options['post_write_validation'] ?? false);
+    }
+
+    private function financeReliabilityPolicy(array $options): FinanceReliabilityPolicy
+    {
+        $policy = $options['finance_reliability_policy'] ?? null;
+
+        return $policy instanceof FinanceReliabilityPolicy ? $policy : new FinanceReliabilityPolicy();
     }
 
     private function invokeOperationCallback(callable $callback, ?OperationLedger $ledger, CriticalOperationService $operations): mixed
