@@ -62,7 +62,9 @@ class QuarantineService
             return $record;
         });
 
-        $this->events->record('finance.quarantine.' . $quarantine->status, 'Finance quarantine triggered', [
+        $domain = $validation->domain ?: 'system';
+
+        $this->events->record($domain . '.quarantine.' . $quarantine->status, ucfirst($domain) . ' quarantine triggered', [
             'quarantine_id' => $quarantine->id,
             'source_table' => $quarantine->source_table,
             'source_record_id' => $quarantine->source_record_id,
@@ -72,7 +74,7 @@ class QuarantineService
             'severity' => $validation->severity === ReliabilityPolicy::CRITICALITY_CRITICAL ? 'critical' : 'error',
             'criticality' => $validation->severity,
             'storage_mode' => ReliabilityPolicy::STORAGE_DATABASE,
-            'channel' => 'finance.quarantine',
+            'channel' => $domain . '.quarantine',
             'source' => static::class,
             'operation_ledger_id' => $ledger?->id,
             'subject_type' => $validation->sourceType,

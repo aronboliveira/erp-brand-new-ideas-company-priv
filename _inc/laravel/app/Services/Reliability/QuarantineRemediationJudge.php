@@ -12,8 +12,14 @@ class QuarantineRemediationJudge
             );
         }
 
+        if ($validation->domain === 'hrm') {
+            return QuarantineDecision::manualReview(
+                'HRM post-write validation failed after persistent retry/circuit instability; keep the source signal in manual review before further employee-impacting actions.'
+            );
+        }
+
         return QuarantineDecision::manualReview(
-            'The quarantine decision is ambiguous outside the finance slice and requires manual review.'
+            'The quarantine decision is ambiguous outside the mature domain slices and requires manual review.'
         );
     }
 }

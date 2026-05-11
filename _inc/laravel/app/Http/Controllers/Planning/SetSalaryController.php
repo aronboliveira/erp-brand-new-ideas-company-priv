@@ -9,7 +9,6 @@ use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\View\View as ViewContract;
 use Illuminate\Http\{RedirectResponse, Request};
 use Illuminate\Support\Facades\{
-    DB,
     Log,
     Validator,
     View as ViewFacade
@@ -26,6 +25,7 @@ use App\Models\{
     PayslipType
 };
 use App\Models\{DeductionOption, SaturationDeduction};
+use App\Services\Reliability\HrmOperationService;
 
 use function App\Http\Controllers\Helpers\defaultUndefinedException;
 use App\Traits\DefinesResourceActions;
@@ -221,7 +221,7 @@ class SetSalaryController extends Controller
             }
 
             try {
-                DB::transaction(function () use ($request, $id, $user) {
+                (new HrmOperationService())->run('hrm.salary.update', function () use ($request, $id, $user): array {
                     $emp = Employee::findOrFail($id);
                     $old = $emp->only('salary_type', 'salary');
                     $emp->fill($request->only('salary_type', 'salary'))->save();
@@ -231,7 +231,27 @@ class SetSalaryController extends Controller
                         'new_values' => $emp->only('salary_type', 'salary'),
                         'by_user'    => $user?->id
                     ]);
-                }, 3);
+
+                    return [
+                        'employee_id' => (string) $emp->id,
+                        'salary' => (float) $emp->salary,
+                        'salary_type' => (string) $emp->salary_type,
+                        'old_values' => $old,
+                    ];
+                }, [
+                    'summary' => 'Update employee salary',
+                    'actor_id' => $user?->id,
+                    'subject_type' => Employee::class,
+                    'subject_id' => (string) $id,
+                    'event_type' => 'hrm.salary.updated',
+                    'post_write_validation' => true,
+                    'context' => [
+                        'employee_id' => (string) $id,
+                        'salary' => (float) $request->input('salary'),
+                        'salary_type' => (string) $request->input('salary_type'),
+                    ],
+                    'payload' => fn(array $payload): array => $payload,
+                ]);
 
                 return redirect()->back()->with('success', __('Employee salary updated.'));
             } catch (\Throwable $e) {

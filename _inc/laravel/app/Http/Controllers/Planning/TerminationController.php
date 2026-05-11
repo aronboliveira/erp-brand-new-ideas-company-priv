@@ -11,10 +11,11 @@ use App\Models\{
     TerminationType,
     Utility
 };
+use App\Services\Reliability\HrmOperationService;
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\{RedirectResponse, Request};
-use Illuminate\Support\Facades\{DB, Log, Validator, View as ViewFacade};
+use Illuminate\Support\Facades\{Log, Validator, View as ViewFacade};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\DefinesResourceActions;
@@ -159,8 +160,8 @@ class TerminationController extends Controller
             }
 
             try {
-                DB::transaction(function () use ($request, $user) {
-                    Termination::create([
+                $result = (new HrmOperationService())->run('hrm.termination.create', function () use ($request, $user): array {
+                    $termination = Termination::create([
                         UC::COL_EMP_ID => $request->employee_id,
                         'termination_type'         => $request->termination_type,
                         'notice_date'              => $request->notice_date,
@@ -168,15 +169,41 @@ class TerminationController extends Controller
                         'description'              => $request->description,
                         DC::COL_TABLE_CREATOR => $user?->creatorId(),
                     ]);
-                });
+
+                    return [
+                        'termination_id' => (string) $termination->id,
+                        'employee_id' => (string) $termination->employee_id,
+                        'termination_type' => (string) $termination->termination_type,
+                        'notice_date' => (string) $termination->notice_date,
+                        'termination_date' => (string) $termination->termination_date,
+                    ];
+                }, [
+                    'summary' => 'Create employee termination',
+                    'actor_id' => $user?->id,
+                    'subject_type' => Employee::class,
+                    'subject_id' => (string) $request->employee_id,
+                    'event_type' => 'hrm.termination.created',
+                    'post_write_validation' => true,
+                    'context' => [
+                        'employee_id' => (string) $request->employee_id,
+                        'termination_type' => (string) $request->termination_type,
+                    ],
+                    'payload' => fn(array $payload): array => $payload,
+                ]);
 
                 Log::info("$action committed");
 
                 $settings = Utility::settings();
                 if (!empty($settings['termination_sent'])) {
-                    $termination = Termination::latest()
-                        ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
-                        ->first();
+                    $terminationId = is_array($result->value()) ? ($result->value()['termination_id'] ?? null) : null;
+                    $termination = $terminationId
+                        ? Termination::query()->find($terminationId)
+                        : Termination::latest()
+                            ->where(DC::COL_TABLE_CREATOR, $user?->creatorId())
+                            ->first();
+                    if (!$termination) {
+                        throw new \RuntimeException('Termination record was not found after creation.');
+                    }
 
                     $emp = Employee::find($termination->employee_id);
 
@@ -284,7 +311,7 @@ class TerminationController extends Controller
             }
 
             try {
-                DB::transaction(function () use ($request, $termination) {
+                (new HrmOperationService())->run('hrm.termination.update', function () use ($request, $termination): array {
                     $termination->update([
                         UC::COL_EMP_ID => $request->employee_id,
                         'termination_type'         => $request->termination_type,
@@ -292,7 +319,27 @@ class TerminationController extends Controller
                         'termination_date'         => $request->termination_date,
                         'description'              => $request->description,
                     ]);
-                });
+
+                    return [
+                        'termination_id' => (string) $termination->id,
+                        'employee_id' => (string) $termination->employee_id,
+                        'termination_type' => (string) $termination->termination_type,
+                        'notice_date' => (string) $termination->notice_date,
+                        'termination_date' => (string) $termination->termination_date,
+                    ];
+                }, [
+                    'summary' => 'Update employee termination',
+                    'actor_id' => $user?->id,
+                    'subject_type' => Termination::class,
+                    'subject_id' => (string) $termination->id,
+                    'event_type' => 'hrm.termination.updated',
+                    'post_write_validation' => true,
+                    'context' => [
+                        'termination_id' => (string) $termination->id,
+                        'employee_id' => (string) $request->employee_id,
+                    ],
+                    'payload' => fn(array $payload): array => $payload,
+                ]);
 
                 Log::info("$action committed", ['terminationId' => $termination->id]);
 
@@ -326,7 +373,30 @@ class TerminationController extends Controller
             Log::info("$action called", ['terminationId' => $termination->id]);
 
             try {
-                DB::transaction(fn() => $termination->delete());
+                (new HrmOperationService())->run('hrm.termination.delete', function () use ($termination): array {
+                    $payload = [
+                        'termination_id' => (string) $termination->id,
+                        'employee_id' => (string) $termination->employee_id,
+                        'termination_type' => (string) $termination->termination_type,
+                        'notice_date' => (string) $termination->notice_date,
+                        'termination_date' => (string) $termination->termination_date,
+                    ];
+                    $termination->delete();
+
+                    return $payload;
+                }, [
+                    'summary' => 'Delete employee termination',
+                    'actor_id' => $user?->id,
+                    'subject_type' => Termination::class,
+                    'subject_id' => (string) $termination->id,
+                    'event_type' => 'hrm.termination.deleted',
+                    'post_write_validation' => true,
+                    'context' => [
+                        'termination_id' => (string) $termination->id,
+                        'employee_id' => (string) $termination->employee_id,
+                    ],
+                    'payload' => fn(array $payload): array => $payload,
+                ]);
                 Log::info("$action committed", ['terminationId' => $termination->id]);
 
                 return redirect()

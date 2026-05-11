@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Planning;
 use App\Config\Constants\{DatabaseConstants as DC, PermissionsConstants as PMC, UsersConstants as UC, ViewsConstants as VW};
 use App\Http\Controllers\Abstracts\Controller;
 use App\Models\{Employee, Leave, LeaveType, Utility};
+use App\Services\Reliability\HrmOperationService;
 use App\Traits\{ChecksLogin, ChecksPermissions, ConsoleOutputs};
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -787,12 +788,35 @@ class LeaveController extends Controller
                     $upd['status'] = 'Approved';
                 }
 
-                DB::statement('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
-                DB::beginTransaction();
-                $inTransaction = true;
-                $leave->update($upd);
-                DB::commit();
-                $inTransaction = false;
+                $oldStatus = (string) $leave->status;
+                (new HrmOperationService())->run('hrm.leave.status.change', function () use ($leave, $upd, $oldStatus, $st): array {
+                    $leave->update($upd);
+                    $leave->refresh();
+
+                    return [
+                        'leave_id' => (string) $leave->id,
+                        'employee_id' => (string) $leave->employee_id,
+                        'previous_status' => $oldStatus,
+                        'requested_status' => $st,
+                        'status' => (string) $leave->status,
+                        'start_date' => (string) $leave->start_date,
+                        'end_date' => (string) $leave->end_date,
+                        'total_leave_days' => (string) $leave->total_leave_days,
+                    ];
+                }, [
+                    'summary' => 'Change employee leave status',
+                    'actor_id' => $user?->id,
+                    'subject_type' => Leave::class,
+                    'subject_id' => (string) $leave->id,
+                    'event_type' => 'hrm.leave.status_changed',
+                    'post_write_validation' => true,
+                    'context' => [
+                        'leave_id' => (string) $leave->id,
+                        'employee_id' => (string) $leave->employee_id,
+                        'requested_status' => $st,
+                    ],
+                    'payload' => fn(array $payload): array => $payload,
+                ]);
 
                 $set = Utility::settings();
                 if ($set['leave_status'] ?? 0) {
