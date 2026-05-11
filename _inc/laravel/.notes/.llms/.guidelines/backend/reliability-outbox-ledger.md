@@ -120,6 +120,15 @@ There is no broker requirement yet.
   shells.
 - Each finance outbox signal is guarded by `Retry` and `CircuitBreaker` before
   the durable outbox row is marked processed, failed, or dead-lettered.
+- Every finance transaction is retry-eligible. Retry attempts scale through
+  `FinanceReliabilityPolicy`: basic amounts start at 2 attempts, `>= 3,200`
+  starts at 3, `>= 25,000` at 4, `>= 100,000` at 5, `>= 250,000` at 6, and
+  `>= 1,000,000` at 8, with small increases for reversals and persistent
+  instability signals. High-risk metadata such as gateway/external origin,
+  approval requirement, privileged actor, high user risk score, or payroll/tax/
+  transfer/reversal direction can also increase attempts. Do not copy this rule
+  to non-finance CRUD; those modules may still skip retries when the business
+  impact is low.
 - `DispatchFinanceOutboxCommand` exposes the same flow through
   `php artisan reliability:dispatch-finance-outbox`.
 - Invoice and bill payment create/delete controller actions now use the
@@ -147,16 +156,25 @@ Current production scope is finance payments only:
 - bill payment create/delete
 
 These paths opt into `FinanceOperationService` post-write validation through
-`post_write_validation => true`. The validator fetches the persisted payment and
-linked finance record after the write callback, before outbox creation. It checks
-critical payment fields, bank account references, payment ownership links,
-overpayment/imbalance, and payment-status consistency.
+`post_write_validation => true`, but that flag now delegates to
+`FinanceReliabilityPolicy`; it does not mean "validate every payment." Post-write
+validation starts at amount `3,200` or an explicit force flag. The validator
+fetches the persisted payment and linked finance record after the write callback,
+before outbox creation. It checks critical payment fields, bank account
+references, payment ownership links, overpayment/imbalance, and payment-status
+consistency.
 
-If validation fails, `QuarantineRollbackRequiredException` rolls back the domain
-transaction before any outbox row is created. After rollback, `QuarantineService`
-writes the overlay quarantine record, audit entries, and a critical operational
-event against the existing operation ledger. Source finance rows are not marked
-directly; the overlay table is the canonical quarantine signal for this slice.
+If validation fails without persistence signals, the service throws
+`FinancePostWriteValidationFailedException`, the domain transaction rolls back,
+no outbox row is created, and no quarantine overlay is written. Quarantine is
+reserved for repeated/stuck corrupted-data scenarios: multiple recent failed
+operation ledgers, retry failures, dead letters, several finance circuit-breaker
+state/rejection events, or a long-running unresolved operation. Only then can
+`QuarantineRollbackRequiredException` route the failed validation to
+`QuarantineService`, which writes the overlay quarantine record, audit entries,
+and a critical operational event against the existing operation ledger. Source
+finance rows are not marked directly; the overlay table is the canonical
+quarantine signal for this slice.
 
 Do not enable quarantine for routine CRUD, lightweight customization, ordinary
 imports, or non-critical stage movement. Use operation ledgers, outbox, retry, or
@@ -198,13 +216,13 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local check after the finance quarantine slice:
+Latest local reliability check after the finance quarantine policy tightening:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-21 tests, 127 assertions, 0 errors, 0 failures.
+24 tests, 142 assertions, 0 errors, 0 failures.
 
-tests/Unit --no-coverage:
+Previous broad Unit baseline before the policy-tightening test additions:
 10,604 tests, 20,515 assertions, 0 errors, 0 failures.
 ```
 

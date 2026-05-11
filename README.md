@@ -145,6 +145,14 @@ trivial/low work. Post-commit signal failures first pass through the in-process
 retry/circuit guards, then use durable outbox retry scheduling and move to
 compensation-required state when attempts are exhausted.
 
+Finance has stricter defaults than ordinary modules: every financial
+transaction is retry-eligible, with retry attempts increasing by amount and
+other risk signals such as reversal/transfer type, external origin, privileged
+actor, approval requirement, or high user risk score. Post-write validation
+starts at amount `3,200`; quarantine is not the default validation result and is
+reserved for persistent corrupted state after repeated failures, circuit
+instability, dead letters, or long stuck processing.
+
 ---
 
 ## Quick start (development)
