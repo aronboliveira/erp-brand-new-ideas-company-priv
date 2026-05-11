@@ -291,6 +291,57 @@ identity/link state. Simple notes, files, calls, emails, discussions, labels,
 dashboards, and routine contact metadata should not route to quarantine by
 default.
 
+## Project planning dispatcher slice
+
+Project planning is intentionally the lightest reliability slice so far. Most
+planning activity is coordination metadata, not a financial/HR/stock commit, so
+routine project edits, comments, files, checklist toggles, board ordering,
+filters, and reporting views should not pay durable retry/circuit/outbox
+overhead by default.
+
+Current adoption:
+
+- `PlanningOperationService` wraps selected project-planning mutations and
+  records durable ledgers, post-write validation steps, and
+  `planning.operations` outbox messages.
+- `ProjectController::update()` uses the planning wrapper only when the project
+  status moves into a final state such as `complete` or `canceled`.
+- `ProjectController::destroy()` always uses the planning wrapper because
+  project deletion cascades durable project state.
+- `ProjectController::milestoneUpdate()` uses the planning wrapper for final
+  milestone status/progress or elevated milestone cost.
+- `ProjectController::milestoneDestroy()` uses the planning wrapper for
+  irreversible milestone deletion.
+- `ProjectTaskController::changeCom()` and final `changeProg()` paths use the
+  planning wrapper for task completion/final progress decisions.
+- `ProjectTaskController::destroy()` uses the wrapper only for completed/final
+  tasks; routine non-final task deletion stays on the legacy lightweight path.
+- `PlanningOutboxDispatcher` drains `planning.operations` rows through
+  monolith-local projection, progress, schedule/calendar, archive/access,
+  CRM/client bridge, finance project-context bridge, reporting,
+  communication, and webhook signal shells.
+- `php artisan reliability:dispatch-planning-outbox` exposes the same
+  dispatcher without requiring Redis, database queues, Kafka, or another
+  broker.
+
+Planning policy clusters:
+
+- `project_deletion` is critical because it is irreversible and can cascade
+  tasks, milestones, users, files, timesheets, and reports.
+- `project_final_status` is high by default and becomes critical for high
+  budgets or persistent instability.
+- `milestone_final_state` and `task_final_state` are medium/high depending on
+  cost, final progress/status, and priority.
+- `approval_finalization` is reserved for future timesheet/expense/final
+  approval paths after those controllers are scanned separately.
+- `routine_planning` avoids retry/circuit/outbox overhead unless explicitly
+  promoted by a future business rule.
+
+Planning quarantine is manual-review only and remains rare. It requires
+persistent retry/circuit/dead-letter or repeated failed-ledger instability plus
+core corruption in final project, milestone, or task state. A single bad
+planning write should roll back or fail validation without quarantine.
+
 ## Post-write quarantine
 
 Quarantine is intentionally narrower than the general reliability layer. It is
@@ -312,6 +363,8 @@ Current production scope:
   customer/vendor/client relationship identity rows, with quarantine only after
   persistent instability plus core conversion/status/access/relationship
   corruption
+- project planning finalization/deletion rows, with quarantine only after
+  persistent instability plus core final project/milestone/task corruption
 
 Finance paths opt into `FinanceOperationService` post-write validation through
 `post_write_validation => true`, but that flag now delegates to
@@ -373,6 +426,8 @@ Two rollback surfaces are now defined:
   `warehouse.compensation.required` when warehouse outbox retries are exhausted.
 - CRM post-commit dispatch follows the same durable pattern and emits
   `crm.compensation.required` when CRM outbox retries are exhausted.
+- Planning post-commit dispatch follows the same durable pattern and emits
+  `planning.compensation.required` when planning outbox retries are exhausted.
 
 Actual domain reversal remains a later, domain-specific implementation. The
 important current guarantee is that post-commit signal failure becomes durable,
@@ -395,14 +450,14 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local reliability check after the warehouse/products reliability slice:
+Latest local reliability check after the project planning reliability slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-35 tests, 203 assertions, 0 errors, 0 failures.
+50 tests, 275 assertions, 0 errors, 0 failures.
 
-tests/Unit --no-coverage:
-10,618 tests, 20,591 assertions, 0 errors, 0 failures.
+Planning touched controller tests:
+354 tests, 450 assertions, 0 errors, 0 failures.
 
 composer phpstan:
 No errors.

@@ -10,12 +10,13 @@ The current Codex continuation handoff is
 [`../../../.tmp/codex/20260511/handsoff.md`](../../../.tmp/codex/20260511/handsoff.md).
 It covers the reliability foundation, finance/HRM outbox dispatchers, retry/
 circuit breaker guards, quarantine overlays, and the warehouse/products
-reliability slice plus CRM lead/deal and relationship-record slices.
+reliability slice, CRM lead/deal and relationship-record slices, and the
+project-planning finalization/deletion slice.
 
-Current broad unit baseline after the 2026-05-11 warehouse/products slice:
+Current broad unit baseline before the CRM relationship-record slice:
 
 ```text
-Tests: 10618, Assertions: 20591, Errors: 0, Failures: 0.
+Tests: 10623, Assertions: 20619, Errors: 0, Failures: 0.
 ```
 
 2026-05-10 reliability work added generic operation ledger, operation step,
@@ -26,12 +27,16 @@ stock adjustments, decisive product/service catalog changes, warehouse
 transfers, warehouse deletion guards, purchase stock commits/reversals, and POS
 stock commits. CRM now covers lead/deal lifecycle decisions, deal status/stage
 movement, customer/vendor/client lifecycle rows, and deal user/client/
-permission relationship sub-actions. Focused checks:
+permission relationship sub-actions. Project planning now covers final project
+status, project deletion, milestone final/delete paths, task completion/final
+progress, and completed/final task deletion while keeping routine project-board
+activity low-overhead. Focused checks:
 
 ```text
-Reliability service tests: 44 tests, 245 assertions, 0 errors, 0 failures.
+Reliability service tests: 50 tests, 275 assertions, 0 errors, 0 failures.
 Touched warehouse/product controller tests: 410 tests, 486 assertions, 0 errors, 0 failures.
 Touched CRM relationship controller tests: 594 tests, 703 assertions, 0 errors, 0 failures.
+Touched planning controller tests plus planning reliability: 354 tests, 450 assertions, 0 errors, 0 failures.
 Full Unit suite baseline before relationship-record slice: 10623 tests, 20619 assertions, 0 errors, 0 failures.
 Full Unit suite attempt after relationship-record slice: 10627 tests, 20632 assertions, 1 unrelated timing failure in ContractControllerTest::test_noteStore_performance_114; isolated rerun passed.
 composer phpstan: no errors.

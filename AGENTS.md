@@ -182,6 +182,21 @@ and 20,632 assertions with one unrelated timing threshold failure in
 `ContractControllerTest::test_noteStore_performance_114`; isolated rerun of
 that test passed. `composer phpstan` is clean.
 
+Latest project planning reliability slice check (2026-05-11, Codex): final
+project status updates, irreversible project deletion, milestone final/delete
+paths, task completion/final progress, and completed/final task deletion now use
+`PlanningOperationService`, `planning.operations` outbox rows, post-write
+validation where the policy requires it, and retry/circuit dispatcher support.
+Planning outbox dispatch emits local projection, progress, schedule/calendar,
+archive/access, CRM/client bridge, finance project-context bridge, reporting,
+communication, and webhook shells. Quarantine remains manual-review only and
+requires persistent instability plus core final project/milestone/task
+corruption. `PlanningReliabilityTest` is green (6 tests, 30 assertions),
+touched planning controller tests plus planning reliability are green (354
+tests, 450 assertions), all reliability service tests are green (50 tests, 275
+assertions), `php artisan list --raw` confirms
+`reliability:dispatch-planning-outbox`, and `composer phpstan` is clean.
+
 ---
 
 ## TASK A — Bills Models Namespace Finalization ✅ DONE
@@ -616,6 +631,55 @@ Verification:
 Next: project closure/finalization workflows, heavy business-impacting
 imports/exports, and real CRM relationship/project/finance/webhook handlers
 behind the accepted outbox signal shells.
+
+---
+
+## TASK O — Project Planning Reliability Slice ✅ DONE
+
+**Status:** Implemented 2026-05-11 by Codex.
+
+Added:
+
+- Services: `PlanningOperationService`, `PlanningReliabilityPolicy`,
+  `PlanningPostWriteValidator`, `PlanningOutboxDispatcher`,
+  `PlanningCompensationService`, `PlanningOperationResult`, and
+  `PlanningReliabilityAssessment`.
+- Exception: `PlanningPostWriteValidationFailedException`.
+- Command: `php artisan reliability:dispatch-planning-outbox`.
+- Adoption: `ProjectController::update()` for final project status only,
+  `ProjectController::destroy()`, `ProjectController::milestoneUpdate()` for
+  final/elevated-cost milestone paths, `ProjectController::milestoneDestroy()`,
+  `ProjectTaskController::changeCom()`, final `changeProg()`, and deletion of
+  completed/final tasks.
+- Client feedback: `ReliabilityClientPayloadService::fromPlanningResult()`.
+- Shared quarantine routing now emits planning-domain manual-review events for
+  persistent final project/milestone/task corruption signals.
+
+Policy notes:
+
+- Project planning is the lightest slice so far. Routine project metadata,
+  comments, files, checklist toggles, board ordering, filters, and non-final
+  task edits/deletes stay low-overhead.
+- Project deletion is critical; project final status is high/critical by budget
+  and instability; milestone/task final state is medium/high by cost, progress,
+  status, or priority.
+- Timesheet and expense approval/finalization remain separate follow-up scans
+  because they overlap planning, payroll, and finance semantics.
+- Planning quarantine requires persistent instability after normal rollback,
+  validation, retry, and circuit-breaker paths fail; a single bad planning write
+  rolls back/fails without quarantine.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/PlanningReliabilityTest.php --no-coverage` — 6 tests, 30 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/PlanningReliabilityTest.php tests/Unit/app/Http/Controllers/planning/ProjectControllerTest.php tests/Unit/app/Http/Controllers/planning/ProjectTaskControllerTest.php --no-coverage` — 354 tests, 450 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 50 tests, 275 assertions, OK.
+- `php artisan list --raw` — confirms `reliability:dispatch-planning-outbox`.
+- `composer phpstan` — no errors.
+
+Next: timesheet/expense approval/finalization, heavy business-impacting
+imports/exports, and real planning projection/bridge/webhook handlers behind
+the accepted outbox signal shells.
 
 ---
 

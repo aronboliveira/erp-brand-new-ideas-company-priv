@@ -58,6 +58,34 @@ Stale items now closed by later Claude commits:
 
 ## RECENTLY COMPLETED (2026-05-11)
 
+### Project Planning Reliability Slice
+
+- Project final status updates now use `PlanningOperationService`, committing
+  the final status mutation, operation ledger, post-write validation step, and
+  `planning.operations` outbox intent together.
+- Project deletion now uses the planning wrapper because deletion is
+  irreversible and can cascade tasks, milestones, user links, timesheets, and
+  reporting state.
+- Milestone final status/progress and elevated-cost milestone updates now use
+  the planning wrapper; milestone deletion is also wrapped.
+- Task completion toggles, task progress reaching final state, and deletion of
+  completed/final tasks now use planning reliability. Routine non-final project
+  metadata, comments, files, checklist toggles, board sorting, filters, and
+  non-final task edits/deletes remain intentionally low-overhead.
+- `PlanningOutboxDispatcher` drains `planning.operations` rows through
+  monolith-local projection, progress, schedule/calendar, archive/access,
+  CRM/client bridge, finance project-context bridge, reporting, communication,
+  and webhook shells.
+- New command: `php artisan reliability:dispatch-planning-outbox`.
+- Planning quarantine stays narrow and manual-review only: it requires
+  persistent retry/circuit/dead-letter/failed-ledger instability plus core final
+  project/milestone/task corruption.
+- Verification: focused planning reliability test is green (6 tests, 30
+  assertions), touched planning controller tests plus planning reliability are
+  green (354 tests, 450 assertions), the reliability service suite is green (50
+  tests, 275 assertions), `php artisan list --raw` registers
+  `reliability:dispatch-planning-outbox`, and `composer phpstan` has no errors.
+
 ### Warehouse/Products Reliability Slice
 
 - Manual stock adjustments now use `WarehouseOperationService`, committing the
@@ -92,7 +120,8 @@ Stale items now closed by later Claude commits:
   `CustomerFactory` now emits UUID-based emails, and `BranchFactory` now emits
   UUID-based names.
 
-Next reliability work after the finance, HRM, and warehouse/products slices:
+Next reliability work after the finance, HRM, warehouse/products, CRM, and
+project-planning slices:
 
 1. Add domain-specific journal-entry posting callbacks behind accepted
    finance journal-control signals.
@@ -103,8 +132,10 @@ Next reliability work after the finance, HRM, and warehouse/products slices:
    instead of only marking `hrm.compensation.required`.
 5. Add warehouse-specific reconciliation/compensation handlers behind stock
    projection, replica-sync, and catalog projection shells.
-6. Extend the pattern to project closure/finalization and CRM decision workflows
-   using the same overhead discipline.
+6. Scan timesheet and expense approval/finalization paths; those sit between
+   planning, payroll, and finance semantics and need their own boundary.
+7. Scan heavy I/O/import/export and external integration workers with the same
+   overhead discipline.
 
 ---
 

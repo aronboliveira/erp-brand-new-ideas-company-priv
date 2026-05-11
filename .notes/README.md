@@ -26,7 +26,10 @@ Durable notes, instructions, and structured references for agents and developers
   persistent high-impact stock/warehouse instability. CRM now covers durable
   lead/deal decisions plus customer/vendor/client relationship records and
   deal user/client/permission sub-actions, with routine CRM activity payloads
-  kept low-overhead.
+  kept low-overhead. Project planning now covers final project status, project
+  deletion, milestone final/delete paths, task completion/final progress, and
+  completed/final task deletion, while routine project-board activity remains
+  outside durable overhead.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 
