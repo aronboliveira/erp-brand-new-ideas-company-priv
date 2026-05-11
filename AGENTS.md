@@ -163,18 +163,24 @@ assertions), touched warehouse/product controller tests are green (410 tests,
 
 Latest CRM reliability slice check (2026-05-11, Codex): lead create/update/
 delete, lead stage movement, lead-to-deal conversion, deal create/update/delete,
-deal stage movement, and deal status changes now use `CrmOperationService`,
-`crm.operations` outbox rows, post-write validation where the policy requires
-it, and retry/circuit dispatcher support. CRM outbox dispatch emits local
-projection, client projection, pipeline reconciliation, forecasting, access,
-project bridge, finance opportunity bridge, communication, catalog-context, and
-webhook shells. Quarantine remains narrow: only persistent instability plus core
-corruption in conversion, final status, deal lifecycle, or CRM access state can
-route to manual review. `CrmReliabilityTest` is green (5 tests, 28 assertions),
-touched Lead/Deal controller tests are green (609 tests, 747 assertions), and
-all reliability service tests are green (40 tests, 231 assertions). Full
-`tests/Unit --no-coverage` is green (10,623 tests, 20,619 assertions), and
-`composer phpstan` is clean.
+deal stage movement, deal status changes, customer/vendor/client relationship
+lifecycle rows, and deal user/client/permission sub-actions now use
+`CrmOperationService`, `crm.operations` outbox rows, post-write validation where
+the policy requires it, and retry/circuit dispatcher support. CRM outbox
+dispatch emits local projection, client projection, relationship projection,
+pipeline reconciliation, forecasting, access, project bridge, finance
+opportunity/relationship bridge, communication, catalog-context, and webhook
+shells. Quarantine remains narrow: only persistent instability plus core
+corruption in conversion, final status, deal lifecycle, CRM access state, or
+customer/vendor/client identity/link state can route to manual review.
+`CrmReliabilityTest` is green (9 tests, 42 assertions), touched Customer/Client/
+Vendor/Deal controller tests are green (594 tests, 703 assertions), and all
+reliability service tests are green (44 tests, 245 assertions). Full
+`tests/Unit --no-coverage` previous broad baseline is green (10,623 tests,
+20,619 assertions). Post-relationship full Unit attempt reached 10,627 tests
+and 20,632 assertions with one unrelated timing threshold failure in
+`ContractControllerTest::test_noteStore_performance_114`; isolated rerun of
+that test passed. `composer phpstan` is clean.
 
 ---
 
@@ -572,9 +578,16 @@ Added:
 - Command: `php artisan reliability:dispatch-crm-outbox`.
 - Adoption: `LeadController::store/update/destroy/order/convertToDeal()` and
   `DealController::store/update/destroy/order/changeStatus()`.
+- Relationship-record adoption:
+  `CustomerController::store/update/destroy()`,
+  `VendorController::store/update/destroy()`,
+  `ClientController::store/update/destroy()`, and `DealController` user/client/
+  permission sub-actions.
 - Client feedback: `ReliabilityClientPayloadService::fromCrmResult()`.
 - Shared quarantine routing now emits CRM-domain manual-review events for
-  persistent lead/deal/access corruption signals.
+  persistent lead/deal/access/relationship corruption signals.
+- `ClientPermission` now resolves client-like permission names through the
+  canonical `App\Config\Constants\SeedersTemplating` list before validation.
 
 Policy notes:
 
@@ -583,21 +596,26 @@ Policy notes:
   heavy guard costs unless tied to durable lead/deal lifecycle state.
 - Lead conversion, deal final/status decisions, deal lifecycle changes, stage
   movement, and CRM access assignment are the first durable CRM clusters.
+- Customer/vendor/client lifecycle rows use the `relationship_record` cluster
+  because they feed finance, purchases, invoices, projects, stock reports, and
+  access decisions.
 - CRM quarantine requires persistent instability after normal rollback,
   validation, retry, and circuit-breaker paths fail; a single bad CRM write
   rolls back/fails without quarantine.
 
 Verification:
 
-- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/CrmReliabilityTest.php --no-coverage` — 5 tests, 28 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/CrmReliabilityTest.php --no-coverage` — 9 tests, 42 assertions, OK.
 - `php vendor/bin/phpunit tests/Unit/app/Http/Controllers/activity/LeadControllerTest.php tests/Unit/app/Http/Controllers/activity/DealControllerTest.php --no-coverage` — 609 tests, 747 assertions, OK.
-- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 40 tests, 231 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Http/Controllers/individuals/CustomerControllerTest.php tests/Unit/app/Http/Controllers/individuals/ClientControllerTest.php tests/Unit/app/Http/Controllers/companies/VendorControllerTest.php tests/Unit/app/Http/Controllers/activity/DealControllerTest.php --no-coverage` — 594 tests, 703 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 44 tests, 245 assertions, OK.
 - `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,623 tests, 20,619 assertions, OK.
+- Post-relationship full Unit attempt: 10,627 tests, 20,632 assertions, 1 unrelated timing failure in `ContractControllerTest::test_noteStore_performance_114`; isolated rerun OK.
 - `composer phpstan` — no errors.
 
-Next: wire `DealController` user/client/permission sub-actions to the
-validator-supported CRM events, then scan customer/vendor/client lifecycle
-controllers and project closure/finalization workflows.
+Next: project closure/finalization workflows, heavy business-impacting
+imports/exports, and real CRM relationship/project/finance/webhook handlers
+behind the accepted outbox signal shells.
 
 ---
 

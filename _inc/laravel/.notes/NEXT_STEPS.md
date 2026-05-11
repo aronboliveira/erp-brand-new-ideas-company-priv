@@ -274,11 +274,12 @@ Next reliability work after the finance and first HRM slices:
 ## Reliability follow-ups (updated 2026-05-11)
 
 - CRM: `DealController` user/client link sub-actions and `permissionStore()`
-  can now be wired to the validator-supported
-  `crm.deal.user_*`, `crm.deal.client_*`, and
-  `crm.deal.permission_changed` events.
-- CRM-adjacent relationship records: scan customer/vendor/client lifecycle
-  controllers separately; do not treat transient communications or labels as
-  quarantine candidates by default.
+  are now wired to the validator-supported `crm.deal.user_*`,
+  `crm.deal.client_*`, and `crm.deal.permission_changed` events.
+- CRM-adjacent relationship records: customer/vendor/client lifecycle
+  controllers now use the CRM reliability wrapper and `relationship_record`
+  policy cluster. Customer/vendor CSV imports are deferred to the heavy
+  I/O/imports cluster because they need batching policy rather than simple
+  lifecycle wrapping.
 - Project/planning: next high-impact cluster should prioritize irreversible
   project closure/finalization/deletion and any approval/final state workflows.

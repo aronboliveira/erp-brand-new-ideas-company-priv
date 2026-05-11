@@ -246,13 +246,22 @@ other transient activity. The current slice covers durable business decisions:
   lifecycle, lead stage movement, and lead-to-deal conversion.
 - `DealController::store/update/destroy/order/changeStatus()` now covers deal
   lifecycle, deal stage movement, and final/status-changing deal decisions.
+- `CustomerController::store/update/destroy()`,
+  `VendorController::store/update/destroy()`, and
+  `ClientController::store/update/destroy()` now cover durable CRM-adjacent
+  relationship identity records.
+- `DealController::userUpdate/userDestroy/clientUpdate/clientDestroy()` and
+  `permissionStore()` now cover deal user/client relationship and permission
+  sub-actions.
 - `CrmPostWriteValidator` validates lead/deal persistence, conversion,
-  stage/status movement, deal client/user links, client permissions, and
-  product/source context when those event types are used.
+  stage/status movement, customer/vendor/client identity rows, deal
+  client/user links, client permissions, and product/source context when those
+  event types are used.
 - `CrmOutboxDispatcher` drains `crm.operations` rows through monolith-local
   projection, client projection, pipeline reconciliation, forecasting,
-  access-projection, project bridge, finance opportunity bridge,
-  communication, catalog-context, and webhook signal shells.
+  access-projection, relationship projection, project bridge, finance
+  opportunity/relationship bridge, communication, catalog-context, and webhook
+  signal shells.
 - `php artisan reliability:dispatch-crm-outbox` exposes the same dispatcher
   without requiring Redis, database queues, Kafka, or another broker.
 
@@ -265,6 +274,11 @@ CRM policy clusters:
   paths and high-value deals get stronger validation and retry settings.
 - `stage_pipeline_movement` validates after write because stage movement is a
   durable business signal, especially for deals.
+- `relationship_record` covers customer/vendor/client lifecycle rows. It gets
+  retry/circuit/outbox coverage and post-write validation because those records
+  feed finance, purchases, invoices, projects, stock reports, and access
+  decisions. Routine contact/address edits still stay below quarantine unless
+  persistent instability plus core identity/link corruption appears.
 - `lead_lifecycle` is medium by default; critical leads and deletes validate,
   while routine lead edits stay lower overhead.
 - `catalog_context`, `configuration`, and `transient_activity` avoid heavy
@@ -272,9 +286,10 @@ CRM policy clusters:
 
 CRM quarantine remains rare. It requires persistent retry/circuit/dead-letter
 or repeated failed-operation instability plus core corruption in conversion,
-final deal status, deal lifecycle, or CRM access state. Simple notes, files,
-calls, emails, discussions, labels, and dashboards should not route to
-quarantine by default.
+final deal status, deal lifecycle, CRM access state, or durable relationship
+identity/link state. Simple notes, files, calls, emails, discussions, labels,
+dashboards, and routine contact metadata should not route to quarantine by
+default.
 
 ## Post-write quarantine
 
@@ -293,6 +308,10 @@ Current production scope:
 - warehouse/product stock quantities, warehouse transfers, purchase/POS stock
   commits, bulk imports, and warehouse lifecycle rows, with quarantine only after
   persistent retry/circuit/dead-letter/failed-ledger or long-running instability
+- CRM lead/deal lifecycle, deal access/permission changes, and durable
+  customer/vendor/client relationship identity rows, with quarantine only after
+  persistent instability plus core conversion/status/access/relationship
+  corruption
 
 Finance paths opt into `FinanceOperationService` post-write validation through
 `post_write_validation => true`, but that flag now delegates to
@@ -352,6 +371,8 @@ Two rollback surfaces are now defined:
   `hrm.compensation.required` when HRM outbox retries are exhausted.
 - Warehouse post-commit dispatch follows the same durable pattern and emits
   `warehouse.compensation.required` when warehouse outbox retries are exhausted.
+- CRM post-commit dispatch follows the same durable pattern and emits
+  `crm.compensation.required` when CRM outbox retries are exhausted.
 
 Actual domain reversal remains a later, domain-specific implementation. The
 important current guarantee is that post-commit signal failure becomes durable,

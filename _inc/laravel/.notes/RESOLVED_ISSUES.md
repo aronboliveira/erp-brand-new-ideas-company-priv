@@ -266,6 +266,32 @@ Verification: CRM service tests 5/5, touched Lead/Deal controller tests 609/609,
 all reliability service tests 40/40, full Unit suite 10,623/10,623, and
 `composer phpstan` clean.
 
+## [2026-05-11] CRM relationship-record reliability slice
+
+Extended the CRM reliability slice to durable customer/vendor/client
+relationship records and deal relationship sub-actions. Added the
+`relationship_record` CRM policy cluster, customer/vendor/client post-write
+validation, multi-user/multi-client deal link validation, and permission-change
+validation. Adopted in `CustomerController::store/update/destroy()`,
+`VendorController::store/update/destroy()`, `ClientController::store/update/
+destroy()`, and `DealController` user/client/permission sub-actions.
+
+Fixed a pre-existing normalization gap in `ClientPermission`: it now reads the
+canonical `App\Config\Constants\SeedersTemplating::CLIENTLIKE_PERMS` list, so
+valid client-like permission names are not normalized away before validation.
+
+Quarantine remains narrow: persistent retry/circuit/dead-letter/failed-ledger
+instability plus core customer/vendor/client identity, link, or permission
+corruption. Routine contact metadata and CRM activity payloads stay
+low-overhead unless a caller explicitly promotes the operation.
+
+Verification: CRM service tests 9/9, touched Customer/Client/Vendor/Deal
+controller tests 594/594, all reliability service tests 44/44, and
+`composer phpstan` clean. Full Unit attempt after this slice ran 10,627 tests
+and 20,632 assertions with one unrelated timing-threshold failure in
+`ContractControllerTest::test_noteStore_performance_114`; isolated rerun of
+that test passed.
+
 ## [2026-05-07] JS Routes IIFE deployment (Task D from AGENTS.md)
 
 Verified resolved before this session via git history:

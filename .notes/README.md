@@ -23,7 +23,10 @@ Durable notes, instructions, and structured references for agents and developers
   products now covers stock adjustments, decisive product/service catalog
   changes, warehouse transfers, guarded warehouse deletion, purchase stock
   commits/reversals, and POS stock commits, with quarantine reserved for
-  persistent high-impact stock/warehouse instability.
+  persistent high-impact stock/warehouse instability. CRM now covers durable
+  lead/deal decisions plus customer/vendor/client relationship records and
+  deal user/client/permission sub-actions, with routine CRM activity payloads
+  kept low-overhead.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 
