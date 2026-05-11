@@ -47,6 +47,12 @@ use Illuminate\Support\Facades\{
     View as ViewFacade
 };
 use Illuminate\View\View;
+use App\Services\Reliability\{
+    PlanningOperationResult,
+    PlanningOperationService,
+    PlanningOutboxDispatcher,
+    ReliabilityClientPayloadService
+};
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
 use App\Traits\HasCrudConstants;
@@ -70,6 +76,7 @@ class ProjectController extends Controller
 
     private const ENTITY = 'project';
     private const CACHE_TTL = 120;
+    private const PLANNING_MILESTONE_GUARD_COST = 5000.0;
 
     public function index(Request $request, string $view = 'grid'): View|RedirectResponse|null
     {
@@ -461,32 +468,43 @@ class ProjectController extends Controller
                 ])->validate();
                 $this->logExecutionTime($t, $action . '::validate', 'completed');
 
-                $project[ProjectsConstants::COL_NM]   = $data[ProjectsConstants::COL_NM];
-                $project[ProjectsConstants::COL_S_DT] = Carbon::parse($data[ProjectsConstants::COL_S_DT])->toDateTimeString();
-                $project[ProjectsConstants::COL_E_DT] = Carbon::parse($data[ProjectsConstants::COL_E_DT])->toDateTimeString();
+                if ($this->planningStatusIsFinal($data[ActivitiesConstants::COL_TSK_STT] ?? null)) {
+                    $operation = (new PlanningOperationService())->run(
+                        'planning.project.status_change',
+                        function () use ($request, $project, $data, $action): array {
+                            $res = $this->persistProjectUpdate($request, $project, $data, $action);
 
-                $res = null;
-                if ($request->hasFile('project_image')) {
-                    $t = microtime(true);
-                    $old  = $project->project_image;
-                    $size = $request->file('project_image')->getSize();
-                    $res  = Utility::updateStorageLimit($request->user()->creatorId(), $size);
-                    if ($res === 1) {
-                        Utility::changeStorageLimit($request->user()->creatorId(), $old);
-                        $fn = time() . '.' . $request->project_image->extension();
-                        $request->file('project_image')->storeAs(DatabaseConstants::TABLE_PROJECTS, $fn);
-                        $project->project_image = 'projects/' . $fn;
-                    }
-                    $this->logExecutionTime($t, $action . '::storeImage', 'completed');
+                            return [
+                                'project_id' => (string) $project->id,
+                                'expected_status' => (string) $project->status,
+                                'expected_budget' => (float) $project->budget,
+                                'expected_client_id' => (string) $project->client_id,
+                                'project_budget' => (float) $project->budget,
+                                'final_state' => true,
+                                'storage_warning' => $res,
+                            ];
+                        },
+                        [
+                            'summary' => 'Finalize project status',
+                            'subject_type' => Project::class,
+                            'subject_id' => (string) $project->id,
+                            'actor_id' => $request->user()?->id,
+                            'event_type' => 'planning.project.status_changed',
+                            'post_write_validation' => true,
+                            'payload' => fn(array $payload): array => $payload,
+                        ],
+                    );
+                    $dispatchReport = $this->dispatchPlanningOutbox($operation);
+                    $value = is_array($operation->value()) ? $operation->value() : [];
+                    $res = $value['storage_warning'] ?? null;
+
+                    return Redirect::route(VW::PRJ . '.index')
+                        ->with('success', __('Project Updated Successfully')
+                            . (isset($res) && $res !== 1 ? '<br><span class="text-danger">' . $res . '</span>' : ''))
+                        ->with('reliability_operation', $this->planningReliabilityPayload($operation, $dispatchReport));
                 }
 
-                $project->client_id     = $data[PermissionsConstants::CL];
-                $project->budget        = $data['budget'] ?? 0;
-                $project->description   = $data[ActivitiesConstants::COL_DESC];
-                $project->status        = $data[ActivitiesConstants::COL_TSK_STT];
-                $project->estimated_hrs = $data[ProjectsConstants::COL_E_HRS];
-                $project->tags          = $data['tag'];
-                $project->save();
+                $res = $this->persistProjectUpdate($request, $project, $data, $action);
 
                 return Redirect::route(VW::PRJ . '.index')
                     ->with('success', __('Project Updated Successfully')
@@ -511,14 +529,41 @@ class ProjectController extends Controller
             $this->logExecutionTime($t, $action . '::guard', 'completed');
 
             try {
-                $t = microtime(true);
-                if ($project->project_image) {
-                    Utility::changeStorageLimit($request->user()->creatorId(), $project->project_image);
-                }
-                $project->delete();
-                $this->logExecutionTime($t, $action . '::delete', 'completed');
+                $projectId = (string) $project->id;
+                $budget = (float) $project->budget;
+                $status = (string) $project->status;
+                $operation = (new PlanningOperationService())->run(
+                    'planning.project.delete',
+                    function () use ($request, $project, $projectId, $budget, $status, $action): array {
+                        $t = microtime(true);
+                        if ($project->project_image) {
+                            Utility::changeStorageLimit($request->user()->creatorId(), $project->project_image);
+                        }
+                        $project->delete();
+                        $this->logExecutionTime($t, $action . '::delete', 'completed');
 
-                return Redirect::back()->with('success', __('Project Successfully Deleted.'));
+                        return [
+                            'project_id' => $projectId,
+                            'project_budget' => $budget,
+                            'status' => $status,
+                            'irreversible_delete' => true,
+                        ];
+                    },
+                    [
+                        'summary' => 'Delete project',
+                        'subject_type' => Project::class,
+                        'subject_id' => $projectId,
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'planning.project.deleted',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchPlanningOutbox($operation);
+
+                return Redirect::back()
+                    ->with('success', __('Project Successfully Deleted.'))
+                    ->with('reliability_operation', $this->planningReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 return defaultUndefinedException($request, $e, $method);
             }
@@ -821,18 +866,39 @@ class ProjectController extends Controller
             $this->logExecutionTime($t, $action . '::validate', 'completed');
 
             try {
-                $t = microtime(true);
-                $m = Milestone::findOrFail($milestoneId);
-                $m->fill([
-                    ActivitiesConstants::COL_TT       => $request->title,
-                    ActivitiesConstants::COL_TSK_STT  => $request->status,
-                    'cost'                             => $request->cost,
-                    ProjectsConstants::COL_PGR        => $request->progress,
-                    ProjectsConstants::COL_S_DT       => Carbon::parse($request[ProjectsConstants::COL_S_DT])->toDateString(),
-                    'due_date'                         => Carbon::parse($request->due_date)->toDateString(),
-                    ActivitiesConstants::COL_DESC     => $request->description,
-                ])->save();
-                $this->logExecutionTime($t, $action . '::persist', 'completed');
+                if ($this->planningMilestoneNeedsGuard($request)) {
+                    $operation = (new PlanningOperationService())->run(
+                        'planning.milestone.finalize',
+                        function () use ($request, $milestoneId, $action): array {
+                            $m = $this->persistMilestoneUpdate($request, $milestoneId, $action);
+
+                            return [
+                                'milestone_id' => (string) $m->id,
+                                'project_id' => (string) $m->project_id,
+                                'expected_status' => (string) $m->status,
+                                'expected_progress' => (float) $m->progress,
+                                'milestone_cost' => (float) $m->cost,
+                                'final_state' => $this->planningStatusIsFinal($m->status) || (float) $m->progress >= 100.0,
+                            ];
+                        },
+                        [
+                            'summary' => 'Finalize planning milestone',
+                            'subject_type' => Milestone::class,
+                            'subject_id' => (string) $milestoneId,
+                            'actor_id' => $request->user()?->id,
+                            'event_type' => 'planning.milestone.finalized',
+                            'post_write_validation' => true,
+                            'payload' => fn(array $payload): array => $payload,
+                        ],
+                    );
+                    $dispatchReport = $this->dispatchPlanningOutbox($operation);
+
+                    return Redirect::back()
+                        ->with('success', __('Milestone updated successfully.'))
+                        ->with('reliability_operation', $this->planningReliabilityPayload($operation, $dispatchReport));
+                }
+
+                $this->persistMilestoneUpdate($request, $milestoneId, $action);
 
                 return Redirect::back()->with('success', __('Milestone updated successfully.'));
             } catch (\Throwable $e) {
@@ -856,11 +922,42 @@ class ProjectController extends Controller
             $this->logExecutionTime($t, $action . '::guard', 'completed');
 
             try {
-                $t = microtime(true);
-                Milestone::findOrFail($milestoneId)->delete();
-                $this->logExecutionTime($t, $action . '::delete', 'completed');
+                $milestone = Milestone::findOrFail($milestoneId);
+                $projectId = (string) $milestone->project_id;
+                $cost = (float) $milestone->cost;
+                $status = (string) $milestone->status;
+                $progress = (float) $milestone->progress;
+                $operation = (new PlanningOperationService())->run(
+                    'planning.milestone.delete',
+                    function () use ($milestone, $milestoneId, $projectId, $cost, $status, $progress, $action): array {
+                        $t = microtime(true);
+                        $milestone->delete();
+                        $this->logExecutionTime($t, $action . '::delete', 'completed');
 
-                return Redirect::back()->with('success', __('Milestone successfully deleted.'));
+                        return [
+                            'milestone_id' => (string) $milestoneId,
+                            'project_id' => $projectId,
+                            'milestone_cost' => $cost,
+                            'status' => $status,
+                            'progress' => $progress,
+                            'irreversible_delete' => true,
+                        ];
+                    },
+                    [
+                        'summary' => 'Delete planning milestone',
+                        'subject_type' => Milestone::class,
+                        'subject_id' => (string) $milestoneId,
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'planning.milestone.deleted',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchPlanningOutbox($operation);
+
+                return Redirect::back()
+                    ->with('success', __('Milestone successfully deleted.'))
+                    ->with('reliability_operation', $this->planningReliabilityPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 return defaultUndefinedException($request, $e, $method);
             }
@@ -2316,6 +2413,95 @@ class ProjectController extends Controller
                 return defaultUndefinedException($request, $e, $method);
             }
         }, ['project_id' => $project_id, 'user_id' => $user_id]);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function persistProjectUpdate(Request $request, Project $project, array $data, string $action): mixed
+    {
+        $project[ProjectsConstants::COL_NM]   = $data[ProjectsConstants::COL_NM];
+        $project[ProjectsConstants::COL_S_DT] = Carbon::parse($data[ProjectsConstants::COL_S_DT])->toDateTimeString();
+        $project[ProjectsConstants::COL_E_DT] = Carbon::parse($data[ProjectsConstants::COL_E_DT])->toDateTimeString();
+
+        $res = null;
+        if ($request->hasFile('project_image')) {
+            $t = microtime(true);
+            $old  = $project->project_image;
+            $size = $request->file('project_image')->getSize();
+            $res  = Utility::updateStorageLimit($request->user()->creatorId(), $size);
+            if ($res === 1) {
+                Utility::changeStorageLimit($request->user()->creatorId(), $old);
+                $fn = time() . '.' . $request->project_image->extension();
+                $request->file('project_image')->storeAs(DatabaseConstants::TABLE_PROJECTS, $fn);
+                $project->project_image = 'projects/' . $fn;
+            }
+            $this->logExecutionTime($t, $action . '::storeImage', 'completed');
+        }
+
+        $project->client_id     = $data[PermissionsConstants::CL];
+        $project->budget        = $data['budget'] ?? 0;
+        $project->description   = $data[ActivitiesConstants::COL_DESC];
+        $project->status        = $data[ActivitiesConstants::COL_TSK_STT];
+        $project->estimated_hrs = $data[ProjectsConstants::COL_E_HRS];
+        $project->tags          = $data['tag'];
+        $project->save();
+
+        return $res;
+    }
+
+    private function persistMilestoneUpdate(Request $request, int|string $milestoneId, string $action): Milestone
+    {
+        $t = microtime(true);
+        $m = Milestone::findOrFail($milestoneId);
+        $m->fill([
+            ActivitiesConstants::COL_TT       => $request->title,
+            ActivitiesConstants::COL_TSK_STT  => $request->status,
+            'cost'                             => $request->cost,
+            ProjectsConstants::COL_PGR        => $request->progress,
+            ProjectsConstants::COL_S_DT       => Carbon::parse($request[ProjectsConstants::COL_S_DT])->toDateString(),
+            'due_date'                         => Carbon::parse($request->due_date)->toDateString(),
+            ActivitiesConstants::COL_DESC     => $request->description,
+        ])->save();
+        $this->logExecutionTime($t, $action . '::persist', 'completed');
+
+        return $m->refresh();
+    }
+
+    private function planningStatusIsFinal(mixed $status): bool
+    {
+        $normalized = str_replace([' ', '-'], '_', strtolower(trim((string) $status)));
+
+        return in_array($normalized, ['complete', 'completed', 'cancelled', 'canceled', 'closed', 'final'], true);
+    }
+
+    private function planningMilestoneNeedsGuard(Request $request): bool
+    {
+        $progress = $request->input(ProjectsConstants::COL_PGR);
+        $cost = $request->input('cost');
+
+        return $this->planningStatusIsFinal($request->input(ActivitiesConstants::COL_TSK_STT))
+            || (is_numeric($progress) && (float) $progress >= 100.0)
+            || (is_numeric($cost) && (float) $cost >= self::PLANNING_MILESTONE_GUARD_COST);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function dispatchPlanningOutbox(PlanningOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new PlanningOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function planningReliabilityPayload(PlanningOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromPlanningResult($operation, $dispatchReport);
     }
 
     public const STR_PRJ_TSK_STG = 'storeProjectTaskStages';

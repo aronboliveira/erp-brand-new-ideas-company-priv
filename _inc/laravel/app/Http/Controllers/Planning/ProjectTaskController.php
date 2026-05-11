@@ -28,6 +28,12 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Facades\{DB, Log, Route, Storage, View as ViewFacade};
 use Illuminate\View\View;
+use App\Services\Reliability\{
+    PlanningOperationResult,
+    PlanningOperationService,
+    PlanningOutboxDispatcher,
+    ReliabilityClientPayloadService
+};
 use Throwable;
 
 use function App\Http\Controllers\Helpers\{defaultUndefinedException, defaultPermissionDenial};
@@ -358,20 +364,49 @@ class ProjectTaskController extends Controller
             $user = $userOrRedirect;
             if (($resp = self::guard($req, 'delete project task', self::REDIRECT_INDEX)) !== true) return $resp;
             Log::info("[{$class}::{$action}] start", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
-            DB::beginTransaction();
             try {
                 $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 $task = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
-                ProjectTask::deleteTask([$task->id]);
-                DB::commit();
+                if ($this->planningTaskNeedsGuard($task)) {
+                    $payload = $this->planningTaskPayload($task, $project, ['irreversible_delete' => true]);
+                    $operation = (new PlanningOperationService())->run(
+                        'planning.task.delete',
+                        function () use ($task, $payload): array {
+                            if (!ProjectTask::deleteTask([$task->id])) {
+                                throw new \RuntimeException('Project task delete cleanup failed.');
+                            }
+
+                            return $payload;
+                        },
+                        [
+                            'summary' => 'Delete final planning task',
+                            'subject_type' => ProjectTask::class,
+                            'subject_id' => (string) $task->id,
+                            'actor_id' => $user?->id,
+                            'event_type' => 'planning.task.deleted',
+                            'post_write_validation' => true,
+                            'payload' => fn(array $payload): array => $payload,
+                        ],
+                    );
+                    $dispatchReport = $this->dispatchPlanningOutbox($operation);
+                    Log::info("[{$class}::{$action}] deleted", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
+
+                    return redirect()->route('projects.tasks.index', $projectId)
+                        ->with('success', __('Task deleted successfully.'))
+                        ->with('reliability_operation', $this->planningReliabilityPayload($operation, $dispatchReport));
+                }
+
+                if (!ProjectTask::deleteTask([$task->id])) {
+                    throw new \RuntimeException('Project task delete cleanup failed.');
+                }
                 Log::info("[{$class}::{$action}] deleted", [ProjectsConstants::COL_PJ_ID => $projectId, ActivitiesConstants::COL_TSK_ID => $taskId]);
                 return redirect()->route('projects.tasks.index', $projectId)->with('success', __('Task deleted successfully.'));
             } catch (ModelNotFoundException $e) {
-                DB::rollBack();
+                if (DB::transactionLevel() > 0) DB::rollBack();
                 Log::warning("[{$class}::{$action}] not found", ['error' => $e->getMessage()]);
                 return redirect()->route(self::REDIRECT_INDEX)->with('error', __('Project or Task not found.'));
             } catch (\Throwable $e) {
-                DB::rollBack();
+                if (DB::transactionLevel() > 0) DB::rollBack();
                 Log::error("[{$class}::{$action}] error", ['error' => $e->getMessage()]);
                 return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
             }
@@ -414,14 +449,41 @@ class ProjectTaskController extends Controller
             try {
                 $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 $task = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
-                $creatorId = $user?->creatorId();
-                $stage = $task[ProjectsConstants::COL_IS_CP] == 0 ? TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->orderByDesc(ActivitiesConstants::COL_OD)->first() : TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->orderBy(ActivitiesConstants::COL_OD)->first();
-                $task[ProjectsConstants::COL_IS_CP] = $task[ProjectsConstants::COL_IS_CP] ? 0 : 1;
-                $task->marked_at = $task[ProjectsConstants::COL_IS_CP] ? now()->toDateString() : null;
-                $task->stage_id = $stage->id;
-                $task->save();
+                $operation = (new PlanningOperationService())->run(
+                    'planning.task.complete',
+                    function () use ($task, $project, $user): array {
+                        $creatorId = $user?->creatorId();
+                        $stage = $task[ProjectsConstants::COL_IS_CP] == 0 ? TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->orderByDesc(ActivitiesConstants::COL_OD)->first() : TaskStage::where(DatabaseConstants::COL_TABLE_CREATOR, $creatorId)->orderBy(ActivitiesConstants::COL_OD)->first();
+                        $task[ProjectsConstants::COL_IS_CP] = $task[ProjectsConstants::COL_IS_CP] ? 0 : 1;
+                        $task->marked_at = $task[ProjectsConstants::COL_IS_CP] ? now()->toDateString() : null;
+                        $task->stage_id = $stage->id;
+                        $task->save();
+                        $task->refresh();
+
+                        return $this->planningTaskPayload($task, $project, [
+                            'expected_is_complete' => (bool) $task[ProjectsConstants::COL_IS_CP],
+                            'expected_stage_id' => (string) $stage->id,
+                            'final_state' => (bool) $task[ProjectsConstants::COL_IS_CP],
+                        ]);
+                    },
+                    [
+                        'summary' => 'Toggle planning task completion',
+                        'subject_type' => ProjectTask::class,
+                        'subject_id' => (string) $task->id,
+                        'actor_id' => $user?->id,
+                        'event_type' => 'planning.task.completed',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchPlanningOutbox($operation);
                 Log::info("[{$class}::{$action}] toggled", [ActivitiesConstants::COL_TSK_ID => $task->id, 'isComplete' => $task[ProjectsConstants::COL_IS_CP]]);
-                return response()->json(['com' => $task[ProjectsConstants::COL_IS_CP], 'task' => $task->id, 'stage' => $stage->id]);
+                return response()->json([
+                    'com' => $task[ProjectsConstants::COL_IS_CP],
+                    'task' => $task->id,
+                    'stage' => $task->stage_id,
+                    'reliability_operation' => $this->planningReliabilityPayload($operation, $dispatchReport),
+                ]);
             } catch (\Throwable $e) {
                 Log::error("[{$class}::{$action}] error", ['error' => $e->getMessage()]);
                 return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
@@ -470,6 +532,40 @@ class ProjectTaskController extends Controller
             try {
                 $project = Project::whereKey($projectId)->where(DatabaseConstants::COL_TABLE_CREATOR, $user?->creatorId())->firstOrFail();
                 $task = ProjectTask::where(ProjectsConstants::COL_PJ_ID, $project->id)->whereKey($taskId)->firstOrFail();
+                if ($this->planningProgressIsFinal($req->progress)) {
+                    $operation = (new PlanningOperationService())->run(
+                        'planning.task.progress_finalize',
+                        function () use ($task, $project, $req): array {
+                            $task->progress = (float)$req->progress;
+                            $task->save();
+                            $task->refresh();
+
+                            return $this->planningTaskPayload($task, $project, [
+                                'expected_progress' => (float) $task->progress,
+                                'expected_status' => (string) $task->status,
+                                'expected_is_complete' => (bool) $task[ProjectsConstants::COL_IS_CP],
+                                'final_state' => true,
+                            ]);
+                        },
+                        [
+                            'summary' => 'Finalize planning task progress',
+                            'subject_type' => ProjectTask::class,
+                            'subject_id' => (string) $task->id,
+                            'actor_id' => $user?->id,
+                            'event_type' => 'planning.task.progress_finalized',
+                            'post_write_validation' => true,
+                            'payload' => fn(array $payload): array => $payload,
+                        ],
+                    );
+                    $dispatchReport = $this->dispatchPlanningOutbox($operation);
+                    Log::info("[{$class}::{$action}] updated", [ActivitiesConstants::COL_TSK_ID => $task->id, ProjectsConstants::COL_PGR => $task->progress]);
+
+                    return response()->json([
+                        ActivitiesConstants::COL_TSK_ID => $task->id,
+                        'reliability_operation' => $this->planningReliabilityPayload($operation, $dispatchReport),
+                    ]);
+                }
+
                 $task->progress = (float)$req->progress;
                 $task->save();
                 Log::info("[{$class}::{$action}] updated", [ActivitiesConstants::COL_TSK_ID => $task->id, ProjectsConstants::COL_PGR => $task->progress]);
@@ -891,6 +987,61 @@ class ProjectTaskController extends Controller
                 return defaultUndefinedException($req, $e, $class . '::' . $action, route(self::REDIRECT_INDEX));
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $class, 'calendar_type' => $request->input('calendar_type'), 'project_id' => $projectId]);
+    }
+
+    /**
+     * @param array<string, mixed> $extra
+     * @return array<string, mixed>
+     */
+    private function planningTaskPayload(ProjectTask $task, Project $project, array $extra = []): array
+    {
+        return array_merge([
+            'task_id' => (string) $task->id,
+            'project_id' => (string) $project->id,
+            'project_budget' => (float) $project->budget,
+            'progress' => is_numeric($task->progress) ? (float) $task->progress : 0.0,
+            'status' => (string) $task->status,
+            'is_complete' => (bool) $task[ProjectsConstants::COL_IS_CP],
+            'priority' => (string) $task->getAttribute('priority'),
+        ], $extra);
+    }
+
+    private function planningTaskNeedsGuard(ProjectTask $task): bool
+    {
+        return (bool) $task[ProjectsConstants::COL_IS_CP]
+            || $this->planningProgressIsFinal($task->progress)
+            || $this->planningTaskStatusIsFinal($task->status);
+    }
+
+    private function planningProgressIsFinal(mixed $progress): bool
+    {
+        return is_numeric($progress) && (float) $progress >= 100.0;
+    }
+
+    private function planningTaskStatusIsFinal(mixed $status): bool
+    {
+        $normalized = str_replace([' ', '-'], '_', strtolower(trim((string) $status)));
+
+        return in_array($normalized, ['complete', 'completed', 'closed', 'final'], true);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function dispatchPlanningOutbox(PlanningOperationResult $operation): ?array
+    {
+        $message = $operation->outboxMessage();
+
+        return $message ? (new PlanningOutboxDispatcher())->dispatchMessage($message) : null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $dispatchReport
+     * @return array<string, mixed>
+     */
+    private function planningReliabilityPayload(PlanningOperationResult $operation, ?array $dispatchReport): array
+    {
+        return (new ReliabilityClientPayloadService())->fromPlanningResult($operation, $dispatchReport);
     }
 
     public const UPD_TSK_PR_CL = 'updateTaskPriorityColor';

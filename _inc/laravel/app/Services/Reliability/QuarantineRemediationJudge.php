@@ -30,6 +30,12 @@ class QuarantineRemediationJudge
             );
         }
 
+        if ($validation->domain === 'planning') {
+            return QuarantineDecision::manualReview(
+                'Planning post-write validation failed after persistent retry/circuit instability; keep the final project, milestone, or task signal in manual review before further project-impacting actions.'
+            );
+        }
+
         return QuarantineDecision::manualReview(
             'The quarantine decision is ambiguous outside the mature domain slices and requires manual review.'
         );
