@@ -241,6 +241,20 @@ timesheet/expense controller tests are green (173 tests, 203 assertions),
 full `tests/Unit --no-coverage` is green (10,644 tests, 20,709 assertions),
 `projects.timesheets.approval` is registered, and `composer phpstan` is clean.
 
+Latest domain signal-handler check (2026-05-12, Codex): finance, HRM,
+warehouse, CRM, planning, and heavy-I/O outbox dispatchers now route default
+signals through `DomainSignalHandlerService` before dispatch completion. Each
+signal gets an idempotent `inbox_messages` consume record, handled/failed
+operational events, handler results in the dispatch report, and short-lived
+cache projection metadata for projection/reporting/replica/progress/health
+signals. `DomainSignalHandlerServiceTest` is green (3 tests, 17 assertions),
+all reliability service tests are green (64 tests, 338 assertions), full
+`tests/Unit --no-coverage` is green (10,647 tests, 20,726 assertions), and
+`composer phpstan` is clean. Final scan found no remaining broad in-repo module
+adoption cluster; remaining suggested resilience work is external payment
+gateway callback idempotency, domain compensation executors, and optional
+scheduled dispatch orchestration.
+
 ---
 
 ## TASK A — Bills Models Namespace Finalization ✅ DONE
@@ -673,8 +687,8 @@ Verification:
 - `composer phpstan` — no errors.
 
 Next: project closure/finalization workflows, heavy business-impacting
-imports/exports, and real CRM relationship/project/finance/webhook handlers
-behind the accepted outbox signal shells.
+imports/exports, and provider-specific CRM relationship/project/finance/webhook
+workers behind the inbox-backed domain signal handlers.
 
 ---
 
@@ -721,8 +735,8 @@ Verification:
 - `php artisan list --raw` — confirms `reliability:dispatch-planning-outbox`.
 - `composer phpstan` — no errors.
 
-Next: real planning projection/bridge/webhook handlers behind the accepted
-outbox signal shells.
+Next: provider-specific planning projection/bridge/webhook workers behind the
+inbox-backed domain signal handlers.
 
 ---
 
@@ -767,8 +781,8 @@ Verification:
 - `php artisan list --raw` — confirms `reliability:dispatch-heavy-io-outbox`.
 - `composer phpstan` — no errors.
 
-Next: real domain compensation/reconciliation handlers behind the accepted
-signal shells.
+Next: real domain compensation/reconciliation executors behind the inbox-backed
+domain signal handlers.
 
 ---
 
@@ -815,8 +829,9 @@ Verification:
 - `composer phpstan` — no errors.
 - `git diff --check` — clean.
 
-Next: external gateway callback idempotency and real finance banking/journal/
-reconciliation/compensation handlers behind the accepted signal shells.
+Next: external gateway callback idempotency and finance banking/journal/
+reconciliation/compensation executors behind the inbox-backed domain signal
+handlers.
 
 ---
 
@@ -857,8 +872,52 @@ Verification:
 - `php artisan route:list --name=projects.timesheets.approval` — route registered.
 - `composer phpstan` — no errors.
 
-Next: external gateway callback idempotency and real payroll/billing/planning/
-finance reconciliation handlers behind the accepted signal shells.
+Next: external gateway callback idempotency, domain compensation executors, and
+optional scheduled dispatch orchestration.
+
+---
+
+## TASK S — Domain Signal Handlers ✅ DONE
+
+**Status:** Implemented 2026-05-12 by Codex.
+
+Added:
+
+- `DomainSignalHandlerService`.
+- Inbox-backed default signal execution in `FinanceOutboxDispatcher`,
+  `HrmOutboxDispatcher`, `WarehouseOutboxDispatcher`, `CrmOutboxDispatcher`,
+  `PlanningOutboxDispatcher`, and `HeavyIoOutboxDispatcher`.
+- Focused `DomainSignalHandlerServiceTest`.
+
+Policy notes:
+
+- Default outbox signals are no longer pure descriptor acceptance. Each default
+  signal now records a durable `inbox_messages` consume boundary, handles
+  idempotency, emits `*.signal.handled` or `*.signal.failed`, and returns the
+  handler result in the dispatch report.
+- Projection/reporting/replica/progress/health/archive/frontend-style signals
+  write short-lived cache projection metadata. Reconciliation/bridge handlers
+  run lightweight canonical-table checks, but strict corruption detection still
+  belongs to post-write validators and quarantine policies.
+- This is still monolith-local. It does not mean external provider callbacks,
+  banking adapters, payroll posting, or webhook subscribers have completed
+  their own business operation.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/DomainSignalHandlerServiceTest.php --no-coverage` — 3 tests, 17 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 64 tests, 338 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,647 tests, 20,726 assertions, OK.
+- `composer phpstan` — no errors.
+
+Final scan:
+
+- Broad in-repo module resilience adoption is complete for current finance,
+  HRM, warehouse/products, CRM, planning, heavy-I/O, timesheet, and expense
+  paths.
+- Suggested remaining clusters:
+  external payment gateway callback idempotency, domain compensation executors,
+  and optional scheduled dispatch orchestration.
 
 ---
 
@@ -868,11 +927,12 @@ finance reconciliation handlers behind the accepted signal shells.
 2. `_inc/laravel/.notes/.llms/.guidelines/constraints.md` — hard rules
 3. `_inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md` — role-specific reading lists
 4. `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` — outbox/inbox + operation ledger policy
-5. `.tmp/codex/20260511/handsoff.md` — latest Codex warehouse/CRM/planning/heavy-I/O/finance-extended/timesheet-expense reliability continuation state
-6. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
-7. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
-8. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state
-9. `.tmp/claude/20260504/handoff.md` — Claude's Bills migration context
+5. `.tmp/codex/20260512/handsoff.md` — latest Codex domain signal-handler and final resilience scan state
+6. `.tmp/codex/20260511/handsoff.md` — Codex warehouse/CRM/planning/heavy-I/O/finance-extended/timesheet-expense reliability continuation state
+7. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
+8. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
+9. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state
+10. `.tmp/claude/20260504/handoff.md` — Claude's Bills migration context
 
 ---
 

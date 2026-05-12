@@ -1,6 +1,6 @@
 # Reliability Outbox and Operation Ledger
 
-> Last updated: 2026-05-11. Applies to high-impact business operations across
+> Last updated: 2026-05-12. Applies to high-impact business operations across
 > finance, HR, planning, products/warehouse, and heavy system workflows.
 
 ## Purpose
@@ -107,6 +107,32 @@ so lightweight UI/customization work does not pay durable tracking overhead.
 conservative half-open behavior; percentage half-open mode is available for
 lower-severity cases, with the threshold clamped to at least 25%.
 
+## Domain signal handlers
+
+Default outbox dispatch no longer stops at descriptor acceptance. Finance,
+HRM, warehouse, CRM, planning, and heavy-I/O dispatchers route every default
+signal through `DomainSignalHandlerService` before marking the outbox
+dispatched.
+
+Handler behavior:
+
+- record a durable `inbox_messages` row per signal using an idempotent key
+  derived from the outbox message key, signal name, and target;
+- skip safely when the same signal was already processed;
+- run lightweight local reconciliation/projection handling for the signal;
+- write short-lived cache projection metadata for projection, reporting,
+  replica-sync, progress, health, archive, frontend, and similar local
+  consumers;
+- record `<domain>.signal.handled` or `<domain>.signal.failed` operational
+  events;
+- return the handler result in the dispatch report and signal payload.
+
+These handlers are monolith-local. They do not imply that payroll has posted,
+banking APIs have called a provider, or a webhook subscriber received a network
+request. When a later worker performs actual money movement, payroll posting,
+external callback processing, or compensation, that worker must record its own
+operation ledger/outbox state.
+
 ## Finance dispatcher slice
 
 The first functional outbox dispatch slice is finance-only and monolith-local.
@@ -118,7 +144,8 @@ There is no broker requirement yet.
   commit and records accepted internal signals for journal control, banking
   API shells, bank reconciliation, credit/debit note reconciliation, accounting
   reconciliation, finance reporting, communication API shells, ledger reversal
-  review, and webhook shells.
+  review, and webhooks. These signals are now consumed by inbox-backed local
+  domain handlers before dispatch completion.
 - Each finance outbox signal is guarded by `Retry` and `CircuitBreaker` before
   the durable outbox row is marked processed, failed, or dead-lettered.
 - Every finance transaction is retry-eligible. Retry attempts scale through
@@ -178,7 +205,8 @@ paths without treating every HR screen as quarantine-worthy:
 - `HrmOutboxDispatcher` drains `hrm.operations` rows through monolith-local
   callbacks for employee record projections, payroll shells, finance payroll
   bridge shells, access-control/RBAC reconciliation shells, calendar shells,
-  communication APIs, and webhooks.
+  communication APIs, and webhooks. These signals are now consumed by
+  inbox-backed local domain handlers before dispatch completion.
 - `php artisan reliability:dispatch-hrm-outbox` exposes the same dispatcher
   without requiring Redis, database queues, Kafka, or another broker.
 
@@ -228,7 +256,8 @@ or stock-defining paths:
   reconciliation, inventory replica-sync, warehouse transfer projection,
   logistics callback shells, valuation refresh, catalog replica-sync,
   finance purchase/POS bridges, supplier/customer stock projections, and
-  webhooks.
+  webhooks. These signals are now consumed by inbox-backed local domain
+  handlers before dispatch completion.
 - `php artisan reliability:dispatch-warehouse-outbox` exposes the same
   dispatcher without requiring Redis, database queues, Kafka, or another broker.
 
@@ -275,7 +304,8 @@ other transient activity. The current slice covers durable business decisions:
   projection, client projection, pipeline reconciliation, forecasting,
   access-projection, relationship projection, project bridge, finance
   opportunity/relationship bridge, communication, catalog-context, and webhook
-  signal shells.
+  signals. These signals are now consumed by inbox-backed local domain handlers
+  before dispatch completion.
 - `php artisan reliability:dispatch-crm-outbox` exposes the same dispatcher
   without requiring Redis, database queues, Kafka, or another broker.
 
@@ -340,7 +370,8 @@ Current adoption:
   monolith-local projection, progress, schedule/calendar, archive/access,
   CRM/client bridge, finance project-context bridge, timesheet rollup,
   payroll-context, finance billing-context, reporting, communication, and
-  webhook signal shells.
+  webhook signals. These signals are now consumed by inbox-backed local domain
+  handlers before dispatch completion.
 - `php artisan reliability:dispatch-planning-outbox` exposes the same
   dispatcher without requiring Redis, database queues, Kafka, or another
   broker.
@@ -407,7 +438,9 @@ Current adoption:
 - `HeavyIoOutboxDispatcher` drains `heavy_io.operations` rows through
   monolith-local shells for integration health, operational audit, import
   reconciliation, domain replica-sync, data quality, report archive, reporting
-  delivery, webhook audit, dead-letter monitoring, and frontend progress.
+  delivery, webhook audit, dead-letter monitoring, and frontend progress. These
+  signals are now consumed by inbox-backed local domain handlers before
+  dispatch completion.
 - `php artisan reliability:dispatch-heavy-io-outbox` exposes the same
   dispatcher without requiring Redis, database queues, Kafka, or another
   broker.
@@ -538,6 +571,16 @@ Actual domain reversal remains a later, domain-specific implementation. The
 important current guarantee is that post-commit signal failure becomes durable,
 visible, and queryable instead of disappearing into normal Laravel logs.
 
+Remaining resilience depth after the domain signal-handler slice:
+
+- external payment gateway callbacks need their own idempotency/signature/origin
+  wrapper because provider callbacks are replayable and externally originated;
+- domain compensation executors should turn `compensation.required` ledgers into
+  completed or failed reversal/remediation workflows;
+- scheduled dispatcher orchestration can be added if the app wants cron,
+  Laravel scheduler, database queues, or another async drain outside request
+  lifecycles.
+
 ## Retention
 
 Every durable row should have an `expires_at`. `ReliabilityRetentionService`
@@ -555,17 +598,20 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local reliability check after the timesheet/expense approval slice:
+Latest local reliability check after the domain signal-handler slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-61 tests, 321 assertions, 0 errors, 0 failures.
+64 tests, 338 assertions, 0 errors, 0 failures.
+
+Domain signal handler tests:
+3 tests, 17 assertions, 0 errors, 0 failures.
 
 Timesheet/expense controller tests:
 173 tests, 203 assertions, 0 errors, 0 failures.
 
 Full Unit:
-10,644 tests, 20,709 assertions, 0 errors, 0 failures.
+10,647 tests, 20,726 assertions, 0 errors, 0 failures.
 
 composer phpstan:
 No errors.

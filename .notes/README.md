@@ -10,7 +10,7 @@ Durable notes, instructions, and structured references for agents and developers
 - Root-wide or historical monorepo context belongs here in `.notes/`.
 - The legacy `./notes/` directory has been merged into this directory and
   should only contain redirect stubs.
-- The current continuation handoff is `.tmp/codex/20260511/handsoff.md`;
+- The current continuation handoff is `.tmp/codex/20260512/handsoff.md`;
   `.tmp/claude/20260808/HANDOFF.md` is the recovered pre-continuation stop.
 - The 2026-05-10 and 2026-05-11 reliability passes added generic outbox/inbox, operation
   ledger, operation step, operational event support, retry/circuit breaker
@@ -37,7 +37,10 @@ Durable notes, instructions, and structured references for agents and developers
   Timesheet/expense approval-finalization now covers timesheet create/update/
   delete and submit/approve/reject decisions through planning reliability, plus
   expense create/update/delete and expense-line deletion through finance
-  reliability.
+  reliability. Domain outbox signals now pass through inbox-backed local
+  handlers before dispatch completion, giving projection/reconciliation/bridge
+  signals an idempotent receive-side boundary instead of pure descriptor
+  acceptance.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 

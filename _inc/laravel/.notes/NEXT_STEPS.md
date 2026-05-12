@@ -1,6 +1,6 @@
 # NEXT STEPS
 
-> Last updated: 2026-05-11
+> Last updated: 2026-05-12
 > **Cross-references:** [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) (open issues list) · [`CURRENT_WORKING_ISSUES.md`](CURRENT_WORKING_ISSUES.md) (completed sessions) · [`CURRENT_WORKING_ISSUES_WORK.md`](CURRENT_WORKING_ISSUES_WORK.md) (work journal) · [`RESOLVED_ISSUES.md`](RESOLVED_ISSUES.md) (resolved archive) · [`TODO_LATER.MD`](TODO_LATER.MD) (deferred items) · [`README.md`](README.md) (notes overview) · `_inc/laravel/.notes/.llms/.guidelines/` (coding patterns) · [`.tmp/claude/20260808/HANDOFF.md`](../../../.tmp/claude/20260808/HANDOFF.md) (latest agent handoff)
 
 ---
@@ -56,7 +56,31 @@ Stale items now closed by later Claude commits:
 10. **3-way merge of 531 overlapping files** — PHPStan annotations + agent crash-prevention patterns. See `AGENT_BRANCH_MERGE_LOG.md`.
 11. **Review and apply agent's 2,832 file deletions** — Mainly TS rollback from agent branch.
 
-## RECENTLY COMPLETED (2026-05-11)
+## RECENTLY COMPLETED (2026-05-11 / 2026-05-12)
+
+### Domain Signal Handlers Reliability Slice
+
+- Added `DomainSignalHandlerService` as the shared inbox-backed consumer for
+  monolith-local outbox signals.
+- Finance, HRM, warehouse, CRM, planning, and heavy-I/O dispatchers now route
+  every default signal through the handler before marking the outbox dispatched.
+- Each signal receives an idempotent `inbox_messages` row, processed/failed
+  inbox state, a handler result in the dispatch report, and a domain
+  `*.signal.handled` or `*.signal.failed` operational event.
+- Projection/reporting/replica/progress/health/archive/frontend-style signals
+  write short-lived cache projection metadata for local consumers.
+- Reconciliation/bridge handlers run lightweight checks against canonical
+  domain tables. They do not replace the stricter post-write validators or
+  quarantine policy.
+- Final scan: broad in-repo module resilience adoption is complete for the
+  current finance, HRM, warehouse/products, CRM, planning, heavy-I/O,
+  timesheet, and expense paths. Remaining work is narrower: external payment
+  gateway callbacks, domain compensation executors, and optional scheduled
+  dispatch orchestration.
+- Verification: focused domain signal handler test is green (3 tests, 17
+  assertions), the reliability service suite is green (64 tests, 338
+  assertions), full `tests/Unit --no-coverage` is green (10,647 tests, 20,726
+  assertions), and `composer phpstan` has no errors.
 
 ### Timesheet / Expense Approval-Finalization Reliability Slice
 
@@ -208,23 +232,16 @@ Stale items now closed by later Claude commits:
   UUID-based names.
 
 Next reliability work after the finance, HRM, warehouse/products, CRM,
-project-planning, heavy-I/O, finance extended-flow, and timesheet/expense
-approval-finalization slices:
+project-planning, heavy-I/O, finance extended-flow, timesheet/expense
+approval-finalization, and domain signal-handler slices:
 
-1. Add domain-specific journal-entry posting callbacks behind accepted
-   finance journal-control signals.
-2. Add banking adapter shells that can be toggled between no-op, sandbox, and
-   real providers.
-3. Add actual reversal/compensation handlers for deleted/failed payment flows.
-4. Add HRM-specific compensation handlers for payroll/access-control failures
-   instead of only marking `hrm.compensation.required`.
-5. Add warehouse-specific reconciliation/compensation handlers behind stock
-   projection, replica-sync, and catalog projection shells.
-6. Scan external payment gateway callbacks separately because idempotency and
+1. Scan external payment gateway callbacks separately because idempotency and
    external-origin semantics differ from local finance CRUD.
-7. Expand beyond signal shells only where the business value justifies real
-   projector, replica-sync, webhook, import-reconciliation, and compensation
-   workers.
+2. Add domain compensation executors that turn `compensation.required` ledgers
+   into completed/failed reversal or remediation workflows.
+3. Add scheduled dispatch orchestration if the app wants cron, Laravel
+   scheduler, database queues, or another async drain outside request
+   lifecycles.
 
 ---
 
