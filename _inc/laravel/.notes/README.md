@@ -48,7 +48,11 @@ executors now turn coherent `compensation.required` dead-letter workflows into
 completed/failed remediation records without blindly rewriting source business
 rows. External gateway callbacks now cover Benefit plan/invoice returns,
 Cashfree plan/invoice returns, and PayTabs `paymentIPN` with inbox idempotency,
-retry/circuit guards, operation ledgers, and finance outbox rows. Focused
+retry/circuit guards, operation ledgers, and finance outbox rows. Dispatch
+orchestration now adds one monolith-local
+`reliability:orchestrate-dispatch` command and disabled-by-default scheduler
+wiring for finance, HRM, warehouse, CRM, planning, heavy-I/O, and compensation
+drains without requiring a broker. Focused
 checks:
 
 ```text
@@ -58,9 +62,11 @@ Reliability service tests after timesheet/expense approvals: 61 tests, 321 asser
 Reliability service tests after domain signal handlers: 64 tests, 338 assertions, 0 errors, 0 failures.
 Reliability service tests after compensation executors: 68 tests, 358 assertions, 0 errors, 0 failures.
 Reliability service tests after external gateway callbacks: 71 tests, 373 assertions, 0 errors, 0 failures.
+Reliability service tests after dispatch orchestration: 74 tests, 391 assertions, 0 errors, 0 failures.
 Domain signal handler tests: 3 tests, 17 assertions, 0 errors, 0 failures.
 Compensation executor tests: 4 tests, 20 assertions, 0 errors, 0 failures.
 External gateway callback tests: 3 tests, 15 assertions, 0 errors, 0 failures.
+Dispatch orchestration tests: 3 tests, 18 assertions, 0 errors, 0 failures.
 Touched Benefit/Cashfree callback controller tests: 25 tests, 33 assertions, 0 errors, 0 failures.
 Touched warehouse/product controller tests: 410 tests, 486 assertions, 0 errors, 0 failures.
 Touched CRM relationship controller tests: 594 tests, 703 assertions, 0 errors, 0 failures.
@@ -78,6 +84,7 @@ Full Unit suite after timesheet/expense approval slice: 10644 tests, 20709 asser
 Full Unit suite after domain signal handlers: 10647 tests, 20726 assertions, 0 errors, 0 failures.
 Full Unit suite after compensation executors: 10651 tests, 20746 assertions, 0 errors, 0 failures.
 Full Unit suite after external gateway callbacks: 10654 tests, 20761 assertions, 0 errors, 0 failures.
+Full Unit suite after dispatch orchestration: 10657 tests, 20779 assertions, 0 errors, 0 failures.
 composer phpstan: no errors.
 ESLint: clean with max-warnings=50.
 ```

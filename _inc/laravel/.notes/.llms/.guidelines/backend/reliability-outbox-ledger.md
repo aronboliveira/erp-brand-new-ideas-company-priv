@@ -630,12 +630,34 @@ slice.
 
 Remaining resilience depth after the external-gateway-callback slice:
 
-- scheduled dispatcher orchestration can be added if the app wants cron,
-  Laravel scheduler, database queues, or another async drain outside request
-  lifecycles.
 - provider-specific signature enforcement and settlement/reconciliation workers
   can replace the current observation/projection shells once real gateway
   contracts are connected.
+
+## Dispatch orchestration
+
+The current dispatch model is still monolith-local. The app now has one
+orchestration layer above the domain dispatchers; it does not require Redis,
+database queues, Kafka, or another broker.
+
+- `DispatchOrchestrationService` drains finance, HRM, warehouse, CRM, planning,
+  and heavy-I/O outbox dispatchers in that order.
+- `php artisan reliability:orchestrate-dispatch` exposes the orchestrator for
+  manual runs, cron, or Laravel scheduler.
+- Supported flags: `--domain`, `--limit`, `--compensation-limit`,
+  `--skip-compensation`, `--stop-on-failure`, and `--fail-on-attention`.
+- Compensation execution runs as the second phase after outbox drains unless
+  skipped.
+- Orchestration writes `reliability.dispatch_orchestration.started`,
+  `reliability.dispatch_orchestration.completed`, or
+  `reliability.dispatch_orchestration.completed_with_attention` operational
+  events.
+- `config/reliability.php` provides opt-in scheduler controls through
+  `RELIABILITY_DISPATCH_ORCHESTRATION_*` environment variables.
+
+Keep the scheduler disabled by default until deployment owners choose a drain
+cadence, limits, alert routing, and supervisor/cron policy. Request-local
+dispatch remains acceptable for development and low-volume local operation.
 
 ## Retention
 
@@ -654,11 +676,14 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local reliability check after the external-gateway-callback slice:
+Latest local reliability check after the dispatch-orchestration slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-71 tests, 373 assertions, 0 errors, 0 failures.
+74 tests, 391 assertions, 0 errors, 0 failures.
+
+Dispatch orchestration tests:
+3 tests, 18 assertions, 0 errors, 0 failures.
 
 External gateway callback tests:
 3 tests, 15 assertions, 0 errors, 0 failures.
@@ -676,7 +701,7 @@ Timesheet/expense controller tests:
 173 tests, 203 assertions, 0 errors, 0 failures.
 
 Full Unit:
-10,654 tests, 20,761 assertions, 0 errors, 0 failures.
+10,657 tests, 20,779 assertions, 0 errors, 0 failures.
 
 composer phpstan:
 No errors.

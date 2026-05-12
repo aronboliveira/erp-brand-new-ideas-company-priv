@@ -283,6 +283,21 @@ are green (25 tests, 33 assertions), all reliability service tests are green
 (10,654 tests, 20,761 assertions), `payment_ipn` is registered, and
 `composer phpstan` is clean.
 
+Latest dispatch-orchestration check (2026-05-12, Codex): added
+`DispatchOrchestrationService`, `php artisan reliability:orchestrate-dispatch`,
+`config/reliability.php`, and opt-in scheduler wiring for monolith-local drains.
+The orchestrator drains finance, HRM, warehouse, CRM, planning, and heavy-I/O
+outbox dispatchers in a stable order, aggregates attention/dead-letter/failure
+state, then runs compensation as a second phase unless skipped. The scheduler is
+disabled by default through `RELIABILITY_DISPATCH_ORCHESTRATION_ENABLED` and
+does not require Redis, database queues, Kafka, or another broker.
+`DispatchOrchestrationServiceTest` is green (3 tests, 18 assertions), all
+reliability service tests are green (74 tests, 391 assertions),
+`php artisan list --raw` registers `reliability:orchestrate-dispatch`, full
+`tests/Unit --no-coverage` is green (10,657 tests, 20,779 assertions), and
+`composer phpstan` is clean. A random `JobStageTest` UUID/tinyint coercion
+fixture was made deterministic during the broad verification rerun.
+
 ---
 
 ## TASK A — Bills Models Namespace Finalization ✅ DONE
@@ -1020,13 +1035,50 @@ Verification:
 
 ---
 
+## TASK V — Dispatch Orchestration ✅ DONE
+
+**Status:** Implemented 2026-05-12 by Codex.
+
+Added:
+
+- `DispatchOrchestrationService`.
+- Command: `php artisan reliability:orchestrate-dispatch`.
+- Config: `config/reliability.php` with opt-in scheduler controls.
+- Focused `DispatchOrchestrationServiceTest`.
+
+Policy notes:
+
+- This keeps dispatch monolith-local. It coordinates existing domain
+  dispatchers and compensation execution; it does not require Redis, database
+  queues, Kafka, or another broker.
+- Default order is finance, HRM, warehouse, CRM, planning, and heavy-I/O.
+  Compensation runs second unless `--skip-compensation` is provided.
+- The command supports `--domain`, `--limit`, `--compensation-limit`,
+  `--stop-on-failure`, and `--fail-on-attention` for manual or scheduled
+  operation.
+- Scheduler wiring is disabled by default. Enable it only after choosing a
+  production cadence and limits with
+  `RELIABILITY_DISPATCH_ORCHESTRATION_ENABLED=true`.
+- Provider-specific gateway signature enforcement and production runbooks for
+  alerts/cadence remain follow-up work.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/DispatchOrchestrationServiceTest.php --no-coverage` — 3 tests, 18 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 74 tests, 391 assertions, OK.
+- `php artisan list --raw` — confirms `reliability:orchestrate-dispatch`.
+- `composer phpstan` — no errors.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,657 tests, 20,779 assertions, OK.
+
+---
+
 ## READING ORDER FOR NEW AGENTS
 
 1. `where-to-update-and-read.yml` — filesystem map
 2. `_inc/laravel/.notes/.llms/.guidelines/constraints.md` — hard rules
 3. `_inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md` — role-specific reading lists
 4. `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` — outbox/inbox + operation ledger policy
-5. `.tmp/codex/20260512/handsoff.md` — latest Codex domain signal-handler, compensation-executor, external gateway callback, and final resilience scan state
+5. `.tmp/codex/20260512/handsoff.md` — latest Codex domain signal-handler, compensation-executor, external gateway callback, dispatch orchestration, and final resilience scan state
 6. `.tmp/codex/20260511/handsoff.md` — Codex warehouse/CRM/planning/heavy-I/O/finance-extended/timesheet-expense reliability continuation state
 7. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
 8. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state

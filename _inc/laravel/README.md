@@ -264,6 +264,13 @@ operations:
   `php artisan reliability:dispatch-planning-outbox`, and
   `php artisan reliability:dispatch-heavy-io-outbox` drain those pending
   monolith-local outbox rows.
+- `php artisan reliability:orchestrate-dispatch` drains all current domain
+  dispatchers in a stable order and then runs compensation as a second phase
+  unless skipped. It supports domain filters, bounded limits, stop-on-failure,
+  and fail-on-attention mode for manual or scheduled operation.
+- `config/reliability.php` provides opt-in scheduler wiring through
+  `RELIABILITY_DISPATCH_ORCHESTRATION_*` flags. It is disabled by default and
+  does not require Redis, database queues, Kafka, or another broker.
 
 The policy is intentionally domain-neutral. Finance commits and payroll/lifecycle
 HR decisions usually need the highest controls, but project
@@ -305,8 +312,9 @@ User IDs are **UUIDs** (string), not integers.
 
 | Tool | Result |
 |------|--------|
-| PHPUnit Unit | 10,654 tests, 20,761 assertions, 0 errors, 0 failures |
-| Reliability service tests | 71 tests, 373 assertions, 0 errors, 0 failures |
+| PHPUnit Unit | 10,657 tests, 20,779 assertions, 0 errors, 0 failures |
+| Reliability service tests | 74 tests, 391 assertions, 0 errors, 0 failures |
+| Dispatch orchestration tests | 3 tests, 18 assertions, 0 errors, 0 failures |
 | HRM touched controller tests | 136 tests, 163 assertions, 0 errors, 0 failures |
 | Warehouse/product touched controller tests | 410 tests, 486 assertions, 0 errors, 0 failures |
 | CRM relationship touched controller tests | 594 tests, 703 assertions, 0 errors, 0 failures |

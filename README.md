@@ -152,6 +152,11 @@ rejected calls. Retry intervals default to capped exponential backoff. The same
 pattern is intended for any high-impact workflow: irreversible project closures,
 warehouse commits, heavy I/O tasks, and other state changes where replay,
 auditability, or retry control matters.
+`php artisan reliability:orchestrate-dispatch` can now drain all monolith-local
+domain dispatchers and then run compensation as a second phase. Scheduler
+wiring is present but disabled by default through
+`RELIABILITY_DISPATCH_ORCHESTRATION_ENABLED`; this is orchestration over the
+existing monolith tables, not a broker/queue requirement.
 
 Use the severity policy consistently: trivial/low work can stay in memory,
 medium-and-up work gets durable operation rows, and critical operations should

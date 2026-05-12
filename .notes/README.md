@@ -47,7 +47,10 @@ Durable notes, instructions, and structured references for agents and developers
   Cashfree plan/invoice returns, and PayTabs `paymentIPN` with inbox-backed
   idempotency, retry/circuit guards, operation ledgers, and finance outbox
   rows. Stripe remains a direct charge command rather than an external
-  callback/IPN route in this slice.
+  callback/IPN route in this slice. Dispatch orchestration now provides a
+  single monolith-local `reliability:orchestrate-dispatch` command plus
+  disabled-by-default scheduler wiring for finance, HRM, warehouse, CRM,
+  planning, heavy-I/O, and compensation drains without requiring a broker.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 

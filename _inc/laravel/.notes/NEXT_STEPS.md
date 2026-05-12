@@ -58,6 +58,34 @@ Stale items now closed by later Claude commits:
 
 ## RECENTLY COMPLETED (2026-05-11 / 2026-05-12)
 
+### Dispatch Orchestration Reliability Slice
+
+- Added `DispatchOrchestrationService` as the shared monolith-local coordinator
+  above the finance, HRM, warehouse, CRM, planning, and heavy-I/O outbox
+  dispatchers.
+- Added `php artisan reliability:orchestrate-dispatch` with domain filters,
+  per-domain limits, compensation limits, optional compensation skipping,
+  stop-on-failure, and fail-on-attention behavior.
+- Compensation execution now has a single second-phase path after domain drains
+  when the orchestrator is used.
+- Added `config/reliability.php` and opt-in scheduler wiring controlled by
+  `RELIABILITY_DISPATCH_ORCHESTRATION_*` flags. The scheduler remains disabled
+  by default and does not require Redis, database queues, Kafka, or another
+  broker.
+- Orchestration emits started/completed/completed-with-attention operational
+  events so operators can inspect drain cycles in `operational_events`.
+- Remaining work is deployment policy rather than code plumbing: choose cron
+  cadence, limits, alert routing, and provider-specific gateway signature
+  enforcement when real signing contracts/secrets are finalized.
+- Verification: focused dispatch orchestration test is green (3 tests, 18
+  assertions), the reliability service suite is green (74 tests, 391
+  assertions), `php artisan list --raw` registers
+  `reliability:orchestrate-dispatch`, full `tests/Unit --no-coverage` is green
+  (10,657 tests, 20,779 assertions), and `composer phpstan` has no errors.
+- During broad verification, `JobStageTest` was made deterministic with a
+  nonnumeric-leading UUID fixture so the existing UUID/tinyint schema-mismatch
+  assertion no longer depends on MySQL coercion of random UUID prefixes.
+
 ### External Payment Gateway Callback Reliability Slice
 
 - Added `ExternalPaymentGatewayCallbackService` as the shared callback wrapper
