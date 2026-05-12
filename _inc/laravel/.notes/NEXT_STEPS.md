@@ -58,6 +58,36 @@ Stale items now closed by later Claude commits:
 
 ## RECENTLY COMPLETED (2026-05-11)
 
+### Timesheet / Expense Approval-Finalization Reliability Slice
+
+- Timesheet create/update/delete now uses `PlanningOperationService`, committing
+  the timesheet mutation, operation ledger, post-write validation step, and
+  `planning.operations` outbox intent together when the policy requires durable
+  coverage.
+- Added a controlled timesheet approval action route for submit/approve/reject
+  decisions. Approved decisions emit payroll and finance handoff signals for
+  downstream shells.
+- `Timesheet` now matches the canonical migration by avoiding `SoftDeletes`;
+  the timesheets table has no `deleted_at` column.
+- Expense create/update/delete and expense-line deletion now use
+  `FinanceOperationService`, `finance.ledger` outbox rows, post-write
+  validation, retry/circuit dispatch, and client feedback.
+- Expense validation checks canonical lowercase `expense` bill rows, payment
+  and bank account links, product/account lines, delete cleanup, and line-delete
+  cleanup.
+- `PlanningOutboxDispatcher` now emits timesheet rollup, payroll context, and
+  finance billing-context shells. `FinanceOutboxDispatcher` now emits expense
+  approval/reconciliation and planning-expense-context shells.
+- Quarantine remains narrow: persistent retry/circuit/dead-letter/failed-ledger
+  instability plus corrupted timesheet approval/finalization or expense finance
+  state only.
+- Verification: focused timesheet/expense reliability test is green (4 tests,
+  12 assertions), the reliability service suite is green (61 tests, 321
+  assertions), touched timesheet/expense controller tests are green (173 tests,
+  203 assertions), full `tests/Unit --no-coverage` is green (10,644 tests,
+  20,709 assertions), `projects.timesheets.approval` is registered, and
+  `composer phpstan` has no errors.
+
 ### Finance Extended Flows Reliability Slice
 
 - Revenue create/update/delete now uses `FinanceOperationService`, committing
@@ -178,7 +208,8 @@ Stale items now closed by later Claude commits:
   UUID-based names.
 
 Next reliability work after the finance, HRM, warehouse/products, CRM,
-project-planning, heavy-I/O, and finance extended-flow slices:
+project-planning, heavy-I/O, finance extended-flow, and timesheet/expense
+approval-finalization slices:
 
 1. Add domain-specific journal-entry posting callbacks behind accepted
    finance journal-control signals.
@@ -189,11 +220,9 @@ project-planning, heavy-I/O, and finance extended-flow slices:
    instead of only marking `hrm.compensation.required`.
 5. Add warehouse-specific reconciliation/compensation handlers behind stock
    projection, replica-sync, and catalog projection shells.
-6. Scan timesheet and expense approval/finalization paths; those sit between
-   planning, payroll, and finance semantics and need their own boundary.
-7. Scan external payment gateway callbacks separately because idempotency and
+6. Scan external payment gateway callbacks separately because idempotency and
    external-origin semantics differ from local finance CRUD.
-8. Expand beyond signal shells only where the business value justifies real
+7. Expand beyond signal shells only where the business value justifies real
    projector, replica-sync, webhook, import-reconciliation, and compensation
    workers.
 

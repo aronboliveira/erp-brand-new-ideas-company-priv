@@ -34,6 +34,10 @@ Durable notes, instructions, and structured references for agents and developers
   outside durable overhead. Heavy I/O now covers shared Python import/export
   subprocesses and configured webhook delivery while ordinary file reads,
   previews, and transient notifications remain outside durable overhead.
+  Timesheet/expense approval-finalization now covers timesheet create/update/
+  delete and submit/approve/reject decisions through planning reliability, plus
+  expense create/update/delete and expense-line deletion through finance
+  reliability.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 

@@ -12,7 +12,8 @@ It covers the reliability foundation, finance/HRM outbox dispatchers, retry/
 circuit breaker guards, quarantine overlays, the warehouse/products reliability
 slice, CRM lead/deal and relationship-record slices, the project-planning
 finalization/deletion slice, the shared heavy-I/O import/export/webhook slice,
-and the extended finance revenue/payment/transfer/note/journal slice.
+the extended finance revenue/payment/transfer/note/journal slice, and the
+timesheet/expense approval-finalization slice.
 
 Current broad unit baseline before the CRM relationship-record slice:
 
@@ -35,22 +36,28 @@ activity low-overhead. Heavy I/O now covers shared Python import/export
 subprocesses and configured webhook delivery while keeping routine file/HTTP
 helpers low-overhead. Finance extended flows now cover revenue, generic vendor
 payments, bank transfers, purchase payments, credit/debit notes, and journal
-entries/items through `FinanceOperationService`. Focused checks:
+entries/items through `FinanceOperationService`. Timesheet/expense approvals
+now cover timesheet create/update/delete and submit/approve/reject decisions
+through planning reliability, plus expense create/update/delete and expense-line
+deletion through finance reliability. Focused checks:
 
 ```text
 Reliability service tests: 54 tests, 297 assertions, 0 errors, 0 failures.
 Reliability service tests after finance extended flows: 57 tests, 309 assertions, 0 errors, 0 failures.
+Reliability service tests after timesheet/expense approvals: 61 tests, 321 assertions, 0 errors, 0 failures.
 Touched warehouse/product controller tests: 410 tests, 486 assertions, 0 errors, 0 failures.
 Touched CRM relationship controller tests: 594 tests, 703 assertions, 0 errors, 0 failures.
 Touched planning controller tests plus planning reliability: 354 tests, 450 assertions, 0 errors, 0 failures.
 Heavy-I/O reliability tests: 4 tests, 22 assertions, 0 errors, 0 failures.
 Touched finance extended-flow controller tests: 344 tests, 411 assertions, 0 errors, 0 failures.
+Touched timesheet/expense controller tests: 173 tests, 203 assertions, 0 errors, 0 failures.
 Python delegation trait tests: 26 tests, 30 assertions, 0 errors, 0 failures.
 Webhook utility tests: 7 tests, 25 assertions, 0 errors, 0 failures.
 Full Unit suite baseline before relationship-record slice: 10623 tests, 20619 assertions, 0 errors, 0 failures.
 Full Unit suite attempt after relationship-record slice: 10627 tests, 20632 assertions, 1 unrelated timing failure in ContractControllerTest::test_noteStore_performance_114; isolated rerun passed.
 Full Unit suite after heavy-I/O slice: 10637 tests, 20685 assertions, 0 errors, 0 failures.
 Full Unit suite after finance extended-flow slice: 10640 tests, 20697 assertions, 0 errors, 0 failures.
+Full Unit suite after timesheet/expense approval slice: 10644 tests, 20709 assertions, 0 errors, 0 failures.
 composer phpstan: no errors.
 ESLint: clean with max-warnings=50.
 ```

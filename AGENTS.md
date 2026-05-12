@@ -227,6 +227,20 @@ green (3 tests, 12 assertions), all reliability service tests are green
 (10,640 tests, 20,697 assertions), `composer phpstan` is clean, and
 `git diff --check` is clean.
 
+Latest timesheet/expense approval-finalization check (2026-05-11, Codex):
+timesheet create/update/delete and submit/approve/reject decisions now use
+`PlanningOperationService`, `planning.operations` outbox rows, post-write
+validation, retry/circuit dispatcher support, and client feedback. Expense
+create/update/delete and expense-line deletion now use `FinanceOperationService`,
+`finance.ledger` outbox rows, post-write validation, retry/circuit dispatcher
+support, and client feedback. Timesheets are hard-deleted because the canonical
+migration has no `deleted_at`; expense bill rows use canonical lowercase
+`expense`. `TimesheetExpenseReliabilityTest` is green (4 tests, 12 assertions),
+all reliability service tests are green (61 tests, 321 assertions), touched
+timesheet/expense controller tests are green (173 tests, 203 assertions),
+full `tests/Unit --no-coverage` is green (10,644 tests, 20,709 assertions),
+`projects.timesheets.approval` is registered, and `composer phpstan` is clean.
+
 ---
 
 ## TASK A — Bills Models Namespace Finalization ✅ DONE
@@ -693,8 +707,8 @@ Policy notes:
 - Project deletion is critical; project final status is high/critical by budget
   and instability; milestone/task final state is medium/high by cost, progress,
   status, or priority.
-- Timesheet and expense approval/finalization remain separate follow-up scans
-  because they overlap planning, payroll, and finance semantics.
+- Timesheet and expense approval/finalization is now covered in Task R because
+  it overlaps planning, payroll, and finance semantics.
 - Planning quarantine requires persistent instability after normal rollback,
   validation, retry, and circuit-breaker paths fail; a single bad planning write
   rolls back/fails without quarantine.
@@ -707,8 +721,8 @@ Verification:
 - `php artisan list --raw` — confirms `reliability:dispatch-planning-outbox`.
 - `composer phpstan` — no errors.
 
-Next: timesheet/expense approval/finalization and real planning
-projection/bridge/webhook handlers behind the accepted outbox signal shells.
+Next: real planning projection/bridge/webhook handlers behind the accepted
+outbox signal shells.
 
 ---
 
@@ -753,8 +767,8 @@ Verification:
 - `php artisan list --raw` — confirms `reliability:dispatch-heavy-io-outbox`.
 - `composer phpstan` — no errors.
 
-Next: timesheet/expense approval/finalization and real domain
-compensation/reconciliation handlers behind the accepted signal shells.
+Next: real domain compensation/reconciliation handlers behind the accepted
+signal shells.
 
 ---
 
@@ -801,9 +815,50 @@ Verification:
 - `composer phpstan` — no errors.
 - `git diff --check` — clean.
 
-Next: timesheet/expense approval/finalization, external gateway callback
-idempotency, and real finance banking/journal/reconciliation/compensation
-handlers behind the accepted signal shells.
+Next: external gateway callback idempotency and real finance banking/journal/
+reconciliation/compensation handlers behind the accepted signal shells.
+
+---
+
+## TASK R — Timesheet / Expense Approval-Finalization Slice ✅ DONE
+
+**Status:** Implemented 2026-05-11 by Codex.
+
+Added:
+
+- Shared controller trait:
+  `App\Http\Controllers\Concerns\HandlesPlanningReliability`.
+- Planning policy/validator/dispatcher support for timesheet create/update/
+  delete and approval submit/approve/reject decisions.
+- Finance policy/validator/dispatcher support for expense create/update/delete
+  and expense-line deletion.
+- Adoption: `TimesheetController::timesheetStore/timesheetUpdate/
+  timesheetDestroy/timesheetApprovalAction` and
+  `ExpenseController::store/update/productDestroy/destroy`.
+
+Policy notes:
+
+- Timesheets remain planning records. Approved timesheets emit payroll and
+  finance-context signals, but money-moving work must be posted later by a
+  payroll/billing/finance worker with its own ledger.
+- Timesheet deletion is hard delete because the canonical migration has no
+  `deleted_at`; do not re-add `SoftDeletes` without a schema change.
+- Expenses are finance records in this app because the controller writes
+  `Bill`, `BillPayment`, `BillProduct`, and `BillAccount` state.
+- Quarantine remains rare for both paths: persistent retry/circuit/dead-letter/
+  failed-ledger instability plus core approval/expense corruption only.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/TimesheetExpenseReliabilityTest.php --no-coverage` — 4 tests, 12 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 61 tests, 321 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Http/Controllers/shapes/TimesheetControllerTest.php tests/Unit/app/Http/Controllers/bills/ExpenseControllerTest.php --no-coverage` — 173 tests, 203 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,644 tests, 20,709 assertions, OK.
+- `php artisan route:list --name=projects.timesheets.approval` — route registered.
+- `composer phpstan` — no errors.
+
+Next: external gateway callback idempotency and real payroll/billing/planning/
+finance reconciliation handlers behind the accepted signal shells.
 
 ---
 
@@ -813,7 +868,7 @@ handlers behind the accepted signal shells.
 2. `_inc/laravel/.notes/.llms/.guidelines/constraints.md` — hard rules
 3. `_inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md` — role-specific reading lists
 4. `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` — outbox/inbox + operation ledger policy
-5. `.tmp/codex/20260511/handsoff.md` — latest Codex warehouse/CRM/planning/heavy-I/O/finance-extended reliability continuation state
+5. `.tmp/codex/20260511/handsoff.md` — latest Codex warehouse/CRM/planning/heavy-I/O/finance-extended/timesheet-expense reliability continuation state
 6. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
 7. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
 8. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state

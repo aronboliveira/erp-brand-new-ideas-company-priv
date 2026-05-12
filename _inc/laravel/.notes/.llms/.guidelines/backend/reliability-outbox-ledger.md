@@ -141,10 +141,14 @@ There is no broker requirement yet.
   transfer create/update/delete, purchase payment create/delete, credit/debit
   note create/update/delete/custom-create, and journal entry/item create/update/
   delete paths.
+- Expense create/update/delete and expense-line deletion now use the same
+  wrapper because finalized expense rows touch bill/payment/accounting state.
+  Use canonical lowercase `expense` for the `bills.type` enum.
 - `FinancePostWriteValidator` understands payment mirrors, revenue rows,
   bank-transfer account pairs, purchase-payment bridges, credit/debit notes,
-  and journal item balance checks. Keep these checks amount/policy-gated unless
-  a caller has a specific reason to force validation.
+  journal item balance checks, and expense persisted/delete/line-delete
+  cleanup. Keep these checks amount/policy-gated unless a caller has a specific
+  reason to force validation.
 - `OperationStatusController` serves the status payload through the named route
   `reliability.operations.show`; the app route pluralizer renders the URI as
   `reliabilities/operations/{operation}`.
@@ -326,10 +330,17 @@ Current adoption:
   planning wrapper for task completion/final progress decisions.
 - `ProjectTaskController::destroy()` uses the wrapper only for completed/final
   tasks; routine non-final task deletion stays on the legacy lightweight path.
+- `TimesheetController::timesheetStore/timesheetUpdate/timesheetDestroy()` now
+  use the planning wrapper because timesheets can feed payroll, billing,
+  scheduling, and reporting decisions. Deletion is a hard delete because the
+  canonical timesheets migration has no `deleted_at`.
+- `TimesheetController::timesheetApprovalAction()` covers submit/approve/reject
+  decisions. Approved decisions emit payroll and finance handoff signals.
 - `PlanningOutboxDispatcher` drains `planning.operations` rows through
   monolith-local projection, progress, schedule/calendar, archive/access,
-  CRM/client bridge, finance project-context bridge, reporting,
-  communication, and webhook signal shells.
+  CRM/client bridge, finance project-context bridge, timesheet rollup,
+  payroll-context, finance billing-context, reporting, communication, and
+  webhook signal shells.
 - `php artisan reliability:dispatch-planning-outbox` exposes the same
   dispatcher without requiring Redis, database queues, Kafka, or another
   broker.
@@ -342,15 +353,37 @@ Planning policy clusters:
   budgets or persistent instability.
 - `milestone_final_state` and `task_final_state` are medium/high depending on
   cost, final progress/status, and priority.
-- `approval_finalization` is reserved for future timesheet/expense/final
-  approval paths after those controllers are scanned separately.
+- `timesheet_approval_finalization` is medium by default and becomes high when
+  payroll or finance handoff is present. It validates approval status, project
+  and task links, and delete outcome.
+- `approval_finalization` remains the generic planning slot for future final
+  approval paths that are not timesheet-specific.
 - `routine_planning` avoids retry/circuit/outbox overhead unless explicitly
   promoted by a future business rule.
 
 Planning quarantine is manual-review only and remains rare. It requires
 persistent retry/circuit/dead-letter or repeated failed-ledger instability plus
-core corruption in final project, milestone, or task state. A single bad
-planning write should roll back or fail validation without quarantine.
+core corruption in final project, milestone, task, or timesheet approval state.
+A single bad planning write should roll back or fail validation without
+quarantine.
+
+## Timesheet/expense approval boundary
+
+This slice crosses planning, payroll, and finance. Keep the boundary explicit:
+
+- Timesheets are planning records. They use `planning.operations`, not
+  `finance.ledger`, until a future payroll/billing worker turns accepted
+  timesheet signals into money-moving records.
+- Approved timesheets emit payroll and finance-context outbox signals, but the
+  current handlers are shells. Do not assume payroll or invoicing has posted
+  until a domain worker records its own ledger.
+- Expenses are finance records because the current controller writes `Bill`,
+  `BillPayment`, `BillProduct`, and `BillAccount` state. They use
+  `finance.ledger`, expense post-write validation, and finance outbox signals.
+- Expense create/update/delete and line deletion are retry-eligible like all
+  finance transactions. Validation/quarantine still follows finance policy:
+  normal validation first, then quarantine only for persistent instability plus
+  core corrupted expense state.
 
 ## Heavy I/O and integrations dispatcher slice
 
@@ -427,6 +460,10 @@ Current production scope:
   corruption
 - project planning finalization/deletion rows, with quarantine only after
   persistent instability plus core final project/milestone/task corruption
+- timesheet approval/finalization rows, with quarantine only after persistent
+  instability plus core timesheet approval/project/task/status corruption
+- expense finance rows, with quarantine only after persistent instability plus
+  core expense/payment/line/delete corruption
 - heavy I/O import/export/webhook/callback completion signals, with quarantine
   only after persistent instability plus invalid high-impact integration results
 
@@ -492,6 +529,8 @@ Two rollback surfaces are now defined:
   `crm.compensation.required` when CRM outbox retries are exhausted.
 - Planning post-commit dispatch follows the same durable pattern and emits
   `planning.compensation.required` when planning outbox retries are exhausted.
+  Timesheet approval/handoff signals use this same planning compensation path
+  until a dedicated payroll/billing worker exists.
 - Heavy-I/O post-completion dispatch follows the same durable pattern and emits
   `heavy_io.compensation.required` when heavy-I/O outbox retries are exhausted.
 
@@ -516,17 +555,17 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local reliability check after the heavy-I/O reliability slice:
+Latest local reliability check after the timesheet/expense approval slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-54 tests, 297 assertions, 0 errors, 0 failures.
+61 tests, 321 assertions, 0 errors, 0 failures.
 
-Python delegation trait tests:
-26 tests, 30 assertions, 0 errors, 0 failures.
+Timesheet/expense controller tests:
+173 tests, 203 assertions, 0 errors, 0 failures.
 
-Webhook utility tests:
-7 tests, 25 assertions, 0 errors, 0 failures.
+Full Unit:
+10,644 tests, 20,709 assertions, 0 errors, 0 failures.
 
 composer phpstan:
 No errors.
