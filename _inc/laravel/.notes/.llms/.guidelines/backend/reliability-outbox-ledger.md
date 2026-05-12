@@ -567,16 +567,39 @@ Two rollback surfaces are now defined:
 - Heavy-I/O post-completion dispatch follows the same durable pattern and emits
   `heavy_io.compensation.required` when heavy-I/O outbox retries are exhausted.
 
-Actual domain reversal remains a later, domain-specific implementation. The
-important current guarantee is that post-commit signal failure becomes durable,
-visible, and queryable instead of disappearing into normal Laravel logs.
+`CompensationExecutorService` is the second phase. It scans ledgers still in
+`compensating`, finds pending `compensation.required:*` steps, requires the
+related outbox row to still be `dead_letter`, blocks unresolved quarantines,
+records `compensation.execute:*`, and either:
 
-Remaining resilience depth after the domain signal-handler slice:
+- marks the required and execute steps `compensated`, stores the domain
+  remediation actions in the ledger result, moves the ledger to `compensated`,
+  and emits `<domain>.compensation.completed`; or
+- leaves the ledger `compensating`, marks the execute step failed, and emits
+  `<domain>.compensation.failed`.
+
+Run it manually with:
+
+```bash
+php artisan reliability:execute-compensation --limit=50
+php artisan reliability:execute-compensation --domain=finance
+php artisan reliability:execute-compensation --ledger-id=<operation-ledger-id>
+```
+
+The first executor slice intentionally records local remediation checkpoints
+instead of blindly rewriting source business rows. Finance registers reversal,
+cash, journal, and reporting reconciliation checkpoints; warehouse registers
+stock/projection/valuation checkpoints; HRM registers payroll/access
+checkpoints; CRM registers projection/access/relationship checkpoints; planning
+registers project/timesheet/progress checkpoints; heavy-I/O registers
+integration health, artifact, and webhook dead-letter audit checkpoints.
+Provider-specific APIs, payroll posting, inventory repair, and archive/indexing
+workers can later replace individual action categories with direct adapters.
+
+Remaining resilience depth after the compensation-executor slice:
 
 - external payment gateway callbacks need their own idempotency/signature/origin
   wrapper because provider callbacks are replayable and externally originated;
-- domain compensation executors should turn `compensation.required` ledgers into
-  completed or failed reversal/remediation workflows;
 - scheduled dispatcher orchestration can be added if the app wants cron,
   Laravel scheduler, database queues, or another async drain outside request
   lifecycles.
@@ -598,20 +621,23 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local reliability check after the domain signal-handler slice:
+Latest local reliability check after the compensation-executor slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-64 tests, 338 assertions, 0 errors, 0 failures.
+68 tests, 358 assertions, 0 errors, 0 failures.
 
 Domain signal handler tests:
 3 tests, 17 assertions, 0 errors, 0 failures.
+
+Compensation executor tests:
+4 tests, 20 assertions, 0 errors, 0 failures.
 
 Timesheet/expense controller tests:
 173 tests, 203 assertions, 0 errors, 0 failures.
 
 Full Unit:
-10,647 tests, 20,726 assertions, 0 errors, 0 failures.
+10,651 tests, 20,746 assertions, 0 errors, 0 failures.
 
 composer phpstan:
 No errors.

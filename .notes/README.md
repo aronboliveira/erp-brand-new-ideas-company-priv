@@ -40,7 +40,9 @@ Durable notes, instructions, and structured references for agents and developers
   reliability. Domain outbox signals now pass through inbox-backed local
   handlers before dispatch completion, giving projection/reconciliation/bridge
   signals an idempotent receive-side boundary instead of pure descriptor
-  acceptance.
+  acceptance. Domain compensation executors now close coherent
+  `compensation.required` dead-letter workflows as completed or failed
+  remediation records without blindly rewriting source business rows.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 

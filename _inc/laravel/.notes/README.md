@@ -13,9 +13,9 @@ circuit breaker guards, quarantine overlays, the warehouse/products reliability
 slice, CRM lead/deal and relationship-record slices, the project-planning
 finalization/deletion slice, the shared heavy-I/O import/export/webhook slice,
 the extended finance revenue/payment/transfer/note/journal slice, and the
-timesheet/expense approval-finalization slice. The latest reliability pass adds
-inbox-backed local domain signal handlers for finance, HRM, warehouse, CRM,
-planning, and heavy-I/O outbox signals.
+timesheet/expense approval-finalization slice, inbox-backed local domain signal
+handlers, and domain compensation executors for dead-lettered reliability
+workflows.
 
 Current broad unit baseline before the CRM relationship-record slice:
 
@@ -43,15 +43,19 @@ now cover timesheet create/update/delete and submit/approve/reject decisions
 through planning reliability, plus expense create/update/delete and expense-line
 deletion through finance reliability. Domain outbox signals now write
 idempotent `inbox_messages` records, handled/failed operational events, and
-short-lived cache projection metadata before dispatch completion. Focused
-checks:
+short-lived cache projection metadata before dispatch completion. Compensation
+executors now turn coherent `compensation.required` dead-letter workflows into
+completed/failed remediation records without blindly rewriting source business
+rows. Focused checks:
 
 ```text
 Reliability service tests: 54 tests, 297 assertions, 0 errors, 0 failures.
 Reliability service tests after finance extended flows: 57 tests, 309 assertions, 0 errors, 0 failures.
 Reliability service tests after timesheet/expense approvals: 61 tests, 321 assertions, 0 errors, 0 failures.
 Reliability service tests after domain signal handlers: 64 tests, 338 assertions, 0 errors, 0 failures.
+Reliability service tests after compensation executors: 68 tests, 358 assertions, 0 errors, 0 failures.
 Domain signal handler tests: 3 tests, 17 assertions, 0 errors, 0 failures.
+Compensation executor tests: 4 tests, 20 assertions, 0 errors, 0 failures.
 Touched warehouse/product controller tests: 410 tests, 486 assertions, 0 errors, 0 failures.
 Touched CRM relationship controller tests: 594 tests, 703 assertions, 0 errors, 0 failures.
 Touched planning controller tests plus planning reliability: 354 tests, 450 assertions, 0 errors, 0 failures.
@@ -66,6 +70,7 @@ Full Unit suite after heavy-I/O slice: 10637 tests, 20685 assertions, 0 errors, 
 Full Unit suite after finance extended-flow slice: 10640 tests, 20697 assertions, 0 errors, 0 failures.
 Full Unit suite after timesheet/expense approval slice: 10644 tests, 20709 assertions, 0 errors, 0 failures.
 Full Unit suite after domain signal handlers: 10647 tests, 20726 assertions, 0 errors, 0 failures.
+Full Unit suite after compensation executors: 10651 tests, 20746 assertions, 0 errors, 0 failures.
 composer phpstan: no errors.
 ESLint: clean with max-warnings=50.
 ```

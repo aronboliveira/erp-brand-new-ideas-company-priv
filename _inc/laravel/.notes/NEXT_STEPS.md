@@ -58,6 +58,30 @@ Stale items now closed by later Claude commits:
 
 ## RECENTLY COMPLETED (2026-05-11 / 2026-05-12)
 
+### Domain Compensation Executors Reliability Slice
+
+- Added `CompensationExecutorService` as the shared second-phase executor for
+  ledgers already marked `compensating` after outbox dead-letter exhaustion.
+- Added `php artisan reliability:execute-compensation` with `--limit`,
+  `--domain`, and `--ledger-id` filters.
+- The executor requires a pending `compensation.required:*` step and a related
+  `dead_letter` outbox row before it can close a compensation workflow.
+- Unresolved quarantine blocks compensation execution. Invalid executor inputs
+  leave the ledger `compensating`, mark `compensation.execute:*` failed, and
+  emit `<domain>.compensation.failed`.
+- Successful execution marks both the required and execute steps
+  `compensated`, stores domain-specific remediation actions in the ledger
+  result, emits `<domain>.compensation.completed`, and writes a short-lived
+  cache receipt for operator/client feedback.
+- The first executor slice is deliberately conservative: it records local
+  reconciliation/remediation checkpoints for finance, warehouse, HRM, CRM,
+  planning, and heavy-I/O without blindly rewriting source business rows.
+- Verification: focused compensation executor test is green (4 tests, 20
+  assertions), the reliability service suite is green (68 tests, 358
+  assertions), full `tests/Unit --no-coverage` is green (10,651 tests, 20,746
+  assertions), `php artisan list --raw` registers
+  `reliability:execute-compensation`, and `composer phpstan` has no errors.
+
 ### Domain Signal Handlers Reliability Slice
 
 - Added `DomainSignalHandlerService` as the shared inbox-backed consumer for
@@ -75,8 +99,7 @@ Stale items now closed by later Claude commits:
 - Final scan: broad in-repo module resilience adoption is complete for the
   current finance, HRM, warehouse/products, CRM, planning, heavy-I/O,
   timesheet, and expense paths. Remaining work is narrower: external payment
-  gateway callbacks, domain compensation executors, and optional scheduled
-  dispatch orchestration.
+  gateway callbacks and optional scheduled dispatch orchestration.
 - Verification: focused domain signal handler test is green (3 tests, 17
   assertions), the reliability service suite is green (64 tests, 338
   assertions), full `tests/Unit --no-coverage` is green (10,647 tests, 20,726
@@ -233,13 +256,11 @@ Stale items now closed by later Claude commits:
 
 Next reliability work after the finance, HRM, warehouse/products, CRM,
 project-planning, heavy-I/O, finance extended-flow, timesheet/expense
-approval-finalization, and domain signal-handler slices:
+approval-finalization, domain signal-handler, and compensation-executor slices:
 
 1. Scan external payment gateway callbacks separately because idempotency and
    external-origin semantics differ from local finance CRUD.
-2. Add domain compensation executors that turn `compensation.required` ledgers
-   into completed/failed reversal or remediation workflows.
-3. Add scheduled dispatch orchestration if the app wants cron, Laravel
+2. Add scheduled dispatch orchestration if the app wants cron, Laravel
    scheduler, database queues, or another async drain outside request
    lifecycles.
 

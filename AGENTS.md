@@ -252,8 +252,22 @@ all reliability service tests are green (64 tests, 338 assertions), full
 `tests/Unit --no-coverage` is green (10,647 tests, 20,726 assertions), and
 `composer phpstan` is clean. Final scan found no remaining broad in-repo module
 adoption cluster; remaining suggested resilience work is external payment
-gateway callback idempotency, domain compensation executors, and optional
-scheduled dispatch orchestration.
+gateway callback idempotency and optional scheduled dispatch orchestration.
+
+Latest compensation-executor check (2026-05-12, Codex): added
+`CompensationExecutorService` and `php artisan reliability:execute-compensation`
+to execute second-phase remediation for ledgers already marked
+`compensating`. The executor requires a `compensation.required:*` step, a
+related `dead_letter` outbox row, and no unresolved quarantine; success marks
+required/execute steps `compensated`, stores domain remediation actions in the
+ledger result, moves the ledger to `compensated`, and emits
+`<domain>.compensation.completed`. Invalid executor input leaves the ledger
+`compensating`, records a failed execute step, and emits
+`<domain>.compensation.failed`. `CompensationExecutorServiceTest` is green
+(4 tests, 20 assertions), all reliability service tests are green
+(68 tests, 358 assertions), full `tests/Unit --no-coverage` is green
+(10,651 tests, 20,746 assertions), `php artisan list --raw` registers the
+command, and `composer phpstan` is clean.
 
 ---
 
@@ -872,8 +886,8 @@ Verification:
 - `php artisan route:list --name=projects.timesheets.approval` — route registered.
 - `composer phpstan` — no errors.
 
-Next: external gateway callback idempotency, domain compensation executors, and
-optional scheduled dispatch orchestration.
+Next: external gateway callback idempotency and optional scheduled dispatch
+orchestration.
 
 ---
 
@@ -916,8 +930,43 @@ Final scan:
   HRM, warehouse/products, CRM, planning, heavy-I/O, timesheet, and expense
   paths.
 - Suggested remaining clusters:
-  external payment gateway callback idempotency, domain compensation executors,
-  and optional scheduled dispatch orchestration.
+  external payment gateway callback idempotency and optional scheduled dispatch
+  orchestration.
+
+---
+
+## TASK T — Domain Compensation Executors ✅ DONE
+
+**Status:** Implemented 2026-05-12 by Codex.
+
+Added:
+
+- `CompensationExecutorService`.
+- Command: `php artisan reliability:execute-compensation`.
+- Focused `CompensationExecutorServiceTest`.
+
+Policy notes:
+
+- This is the second phase after dispatcher dead letters. Dispatchers still only
+  mark `compensation.required:*`; the executor requires that marker and a
+  related `dead_letter` outbox row before closing a ledger.
+- Unresolved quarantine blocks execution. A failed executor attempt leaves the
+  ledger `compensating`, records a failed `compensation.execute:*` step, and
+  emits `<domain>.compensation.failed`.
+- Successful execution marks the required and execute steps `compensated`,
+  records domain-specific remediation actions in the ledger result, moves the
+  ledger to `compensated`, and emits `<domain>.compensation.completed`.
+- The first slice records conservative local remediation checkpoints for
+  finance, warehouse, HRM, CRM, planning, and heavy-I/O. It does not blindly
+  rewrite source business rows or call provider/payroll/inventory APIs.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/CompensationExecutorServiceTest.php --no-coverage` — 4 tests, 20 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 68 tests, 358 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,651 tests, 20,746 assertions, OK.
+- `php artisan list --raw` — confirms `reliability:execute-compensation`.
+- `composer phpstan` — no errors.
 
 ---
 
@@ -927,7 +976,7 @@ Final scan:
 2. `_inc/laravel/.notes/.llms/.guidelines/constraints.md` — hard rules
 3. `_inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md` — role-specific reading lists
 4. `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` — outbox/inbox + operation ledger policy
-5. `.tmp/codex/20260512/handsoff.md` — latest Codex domain signal-handler and final resilience scan state
+5. `.tmp/codex/20260512/handsoff.md` — latest Codex domain signal-handler, compensation-executor, and final resilience scan state
 6. `.tmp/codex/20260511/handsoff.md` — Codex warehouse/CRM/planning/heavy-I/O/finance-extended/timesheet-expense reliability continuation state
 7. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
 8. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
