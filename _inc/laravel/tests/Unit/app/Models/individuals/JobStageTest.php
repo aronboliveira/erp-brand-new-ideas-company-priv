@@ -55,11 +55,13 @@ class JobStageTest extends TestCase
 		Carbon::setTestNow('2025-06-15 12:00:00');
 
 		$user  = User::factory()->create();
-		$stage = JobStage::factory()->create();
+		$stage = JobStage::factory()->create([
+			'id' => 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa',
+		]);
 
 		// Create applications — their `stage` will be normalised to int(1) by
-		// JobApplication::normalizeDatesAndStages(), so they won't match the
-		// UUID key used in applications().
+		// JobApplication::normalizeDatesAndStages(), so they should not match
+		// the nonnumeric-leading UUID key used in applications().
 		JobApplication::factory()->create([
 			'created_by' => $user?->creatorId(),
 			'stage'      => $stage->getKey(),
