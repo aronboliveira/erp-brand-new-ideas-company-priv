@@ -157,6 +157,11 @@ domain dispatchers and then run compensation as a second phase. Scheduler
 wiring is present but disabled by default through
 `RELIABILITY_DISPATCH_ORCHESTRATION_ENABLED`; this is orchestration over the
 existing monolith tables, not a broker/queue requirement.
+In dev mode, generic resilience should stop at this point until real provider
+secrets, signing contracts, deployment cadence, alert routing, and operator
+runbooks exist. Future work should replace local shells with real gateway,
+banking, payroll, inventory, archive/indexing, and webhook adapters one domain
+at a time.
 
 Use the severity policy consistently: trivial/low work can stay in memory,
 medium-and-up work gets durable operation rows, and critical operations should
@@ -405,6 +410,15 @@ Consulte [`where-to-update-and-read.yml`](where-to-update-and-read.yml) para el 
 - Constantes de **Middleware**: `MWC::AUTH`, `MWC::VF`, `MWC::XSS`, `MWC::REV`, `MWC::WEB`.
 - Las **Traducciones** usan archivos JSON en `resources/lang/{en,pt-br,ru,…}.json` (16 idiomas, ~3.000 claves cada uno).
 
+## Base de confiabilidad
+
+La app tiene una capa de resiliencia para desarrollo con ledgers de operación,
+outbox/inbox, eventos operativos, retry, circuit breakers, cuarentena rara,
+compensación y orquestación local. Sin secretos reales de proveedores, no se
+debe ampliar genéricamente: lo pendiente es integración real de firmas,
+gateways, banca, nómina, inventario, webhooks, cadencia de scheduler, alertas y
+runbooks.
+
 ---
 
 ## Inicio rápido (desarrollo)
@@ -616,6 +630,15 @@ Consulte [`where-to-update-and-read.yml`](where-to-update-and-read.yml) para o *
 - Os **Traits** (`ChecksLogin`, `ChecksPermissions`, `HasCurrency`, `MeasuresPerformance`, …) são mixados em controllers e models.
 - Constantes de **Middleware**: `MWC::AUTH`, `MWC::VF`, `MWC::XSS`, `MWC::REV`, `MWC::WEB`.
 - As **Traduções** usam arquivos JSON em `resources/lang/{en,pt-br,ru,…}.json` (16 idiomas, ~3.000 chaves cada).
+
+## Base de confiabilidade
+
+A app tem uma camada de resiliência para desenvolvimento com ledgers de
+operação, outbox/inbox, eventos operacionais, retry, circuit breakers,
+quarentena rara, compensação e orquestração local. Sem segredos reais de
+provedores, não se deve ampliar genericamente: o que falta é integração real de
+assinaturas, gateways, bancos, folha, inventário, webhooks, cadência de
+scheduler, alertas e runbooks.
 
 ---
 

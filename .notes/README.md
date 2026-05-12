@@ -51,6 +51,10 @@ Durable notes, instructions, and structured references for agents and developers
   single monolith-local `reliability:orchestrate-dispatch` command plus
   disabled-by-default scheduler wiring for finance, HRM, warehouse, CRM,
   planning, heavy-I/O, and compensation drains without requiring a broker.
+  Final dev-mode readiness is recorded in
+  `.tmp/codex/20260512/final-resilience-readiness-scan.md`: generic resilience
+  should stop here until real provider secrets, contracts, deployment cadence,
+  alerts, and operator runbooks exist.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 

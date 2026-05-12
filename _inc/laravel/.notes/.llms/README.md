@@ -47,13 +47,16 @@ historical snapshots in `.history/`.
 | Agent behaviour config | `.agent.md`, `.instructions.md`, `AGENTS.md`, `copilot-instructions.md` |
 | Full filesystem map | `where-to-update-and-read.yml` |
 | Reliability/outbox policy | `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` |
+| Final dev-mode resilience boundary | `.tmp/codex/20260512/final-resilience-readiness-scan.md` |
 
 ## Update policy
 
 1. Read [`.guidelines/`](.guidelines/) and [`where-to-update-and-read.yml`](../../../../where-to-update-and-read.yml) before making code or docs changes.
 2. Keep durable guidance in [`.guidelines/`](.guidelines/) and this README.
-3. Store historical artifacts under [`.history/`](.history/); this path is archived context and should remain gitignored.
-4. If a helper script is one-off or host-specific, archive it in the nearest `.history/` scripts path instead of keeping it as reusable tooling.
+3. For resilience work, read the backend reliability guideline and the final
+   dev-mode readiness scan before adding wrappers or new dispatch surfaces.
+4. Store historical artifacts under [`.history/`](.history/); this path is archived context and should remain gitignored.
+5. If a helper script is one-off or host-specific, archive it in the nearest `.history/` scripts path instead of keeping it as reusable tooling.
 
 ## CHORES
 

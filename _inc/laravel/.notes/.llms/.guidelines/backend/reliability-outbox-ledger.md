@@ -659,6 +659,32 @@ Keep the scheduler disabled by default until deployment owners choose a drain
 cadence, limits, alert routing, and supervisor/cron policy. Request-local
 dispatch remains acceptable for development and low-volume local operation.
 
+## Dev-mode readiness boundary
+
+As of 2026-05-12, generic resilience development is complete for dev mode
+without real external secrets. The app has durable operation ledgers/steps,
+outbox/inbox, operational events, retry/circuit guards, rare quarantine,
+compensation execution, inbox-backed domain signal handlers, active gateway
+callback idempotency, and monolith-local dispatch orchestration.
+
+Do not add broader default wrappers or generic resilience scaffolding merely
+because a route is state-changing. Future resilience work should be
+integration-specific and should replace local shells with real adapters only
+when the corresponding provider contract, secrets, deployment cadence, alert
+routing, and operator runbook exist.
+
+Remaining non-dev work:
+
+- enforce real gateway callback signatures after signing contracts/secrets are
+  finalized;
+- replace banking, gateway settlement, payroll, inventory, archive/indexing,
+  and webhook shells with provider-backed adapters;
+- define production scheduler/cron/supervisor cadence, limits, alerting, and
+  response runbooks.
+
+Latest scan note:
+`.tmp/codex/20260512/final-resilience-readiness-scan.md`.
+
 ## Retention
 
 Every durable row should have an `expires_at`. `ReliabilityRetentionService`

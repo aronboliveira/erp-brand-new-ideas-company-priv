@@ -271,6 +271,10 @@ operations:
 - `config/reliability.php` provides opt-in scheduler wiring through
   `RELIABILITY_DISPATCH_ORCHESTRATION_*` flags. It is disabled by default and
   does not require Redis, database queues, Kafka, or another broker.
+- Dev-mode generic resilience is now considered complete without real external
+  secrets. Further resilience work should be integration-specific: real gateway
+  signatures, banking/payroll/inventory/archive/webhook adapters, production
+  scheduler cadence, alerting, and operator runbooks.
 
 The policy is intentionally domain-neutral. Finance commits and payroll/lifecycle
 HR decisions usually need the highest controls, but project

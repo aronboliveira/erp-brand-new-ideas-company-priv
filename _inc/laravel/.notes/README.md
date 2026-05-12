@@ -52,7 +52,10 @@ retry/circuit guards, operation ledgers, and finance outbox rows. Dispatch
 orchestration now adds one monolith-local
 `reliability:orchestrate-dispatch` command and disabled-by-default scheduler
 wiring for finance, HRM, warehouse, CRM, planning, heavy-I/O, and compensation
-drains without requiring a broker. Focused
+drains without requiring a broker. Final dev-mode readiness is recorded in
+`../../../.tmp/codex/20260512/final-resilience-readiness-scan.md`: generic
+resilience should stop here until real provider secrets, contracts, deployment
+cadence, alerts, and operator runbooks exist. Focused
 checks:
 
 ```text

@@ -58,6 +58,20 @@ Stale items now closed by later Claude commits:
 
 ## RECENTLY COMPLETED (2026-05-11 / 2026-05-12)
 
+### Final Dev-Mode Resilience Readiness Scan
+
+- The current generic resilience layer is considered complete for dev mode
+  without real external secrets.
+- Durable operation ledgers/steps, outbox/inbox, operational events,
+  retry/circuit guards, rare quarantine, compensation execution, inbox-backed
+  domain signal handlers, active gateway callback idempotency, and monolith-
+  local dispatch orchestration are in place.
+- Remaining work should be integration-specific: provider signature
+  enforcement, real gateway/banking/payroll/inventory/archive/webhook adapters,
+  production scheduler cadence, alert routing, and operator runbooks.
+- Latest volatile scan note:
+  `.tmp/codex/20260512/final-resilience-readiness-scan.md`.
+
 ### Dispatch Orchestration Reliability Slice
 
 - Added `DispatchOrchestrationService` as the shared monolith-local coordinator
@@ -312,11 +326,13 @@ project-planning, heavy-I/O, finance extended-flow, timesheet/expense
 approval-finalization, domain signal-handler, compensation-executor, and
 external payment gateway callback slices:
 
-1. Add scheduled dispatch orchestration if the app wants cron, Laravel
-   scheduler, database queues, or another async drain outside request
-   lifecycles.
+1. Dispatch orchestration is now complete. Do not add broader generic
+   resilience scaffolding in dev mode without real integration needs.
 2. Replace gateway signature observation with real provider signature
    enforcement when gateway webhook signing contracts and secrets are finalized.
+3. Replace local shells with real provider, banking, payroll, inventory,
+   archive/indexing, and webhook adapters when credentials and contracts exist.
+4. Define production scheduler cadence, alert routing, and operator runbooks.
 
 ---
 

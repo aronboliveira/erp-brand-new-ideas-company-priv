@@ -97,7 +97,9 @@ starters:
         - .notes/CODE_FLAGS.md                    # Searchable code flags for IDE/rg audits
         - .notes/*.md                             # Monorepo-wide notes (architecture, general infra)
         - _inc/laravel/.notes/{.llms/.guidelines/*,*.md} # App-specific notes (Laravel logic, bugs, tasks)
+        - _inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md # Resilience/outbox/inbox/retry/circuit/quarantine policy
         - _inc/laravel/utils/{.llms/*,prompts/.guidelines/*,*.md}
+        - .tmp/codex/20260512/final-resilience-readiness-scan.md # Latest dev-mode resilience readiness boundary
     guidelines:
         # ── MANDATORY READS ─────────────────────────────────────
         # LLM agents and developers MUST check these paths before
@@ -120,6 +122,7 @@ starters:
         domain-guidelines-index:
             backend:
                 - _inc/laravel/.notes/.llms/.guidelines/backend/erp-architecture.md
+                - _inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md
                 - _inc/laravel/.notes/.llms/.guidelines/backend/naming-conventions.yml
                 - _inc/laravel/.notes/.llms/.guidelines/backend/constants_map.json
                 - _inc/laravel/.notes/.llms/.guidelines/backend/middleware_pipeline.xml
@@ -184,6 +187,10 @@ starters:
         - agent-guides:  _inc/laravel/utils/.llms/ctx/agents/
         - session-notes: _inc/laravel/utils/.llms/notes/
         - cli-history:   _inc/laravel/utils/.llms/cli/
+        - latest-codex-handoff: .tmp/codex/20260512/handsoff.md
+        - resilience-module-tracker: .tmp/working_resilience_modules.json
+        - final-resilience-readiness-scan: .tmp/codex/20260512/final-resilience-readiness-scan.md
+        - resilience-final-scan-json: .tmp/codex/20260512/resilience-final-scan.json
     scripts:
         - volatile: .tmp/scripts/*
         - durable:
@@ -333,7 +340,7 @@ starters:
         - origin/*
         - _inc/.seeders/*
     outdated:
-        - path: **/.history/*
+        - path: "**/.history/*"
         - note: "Historical local context and archives. Keep on disk for reference but do not keep tracked in git."
     etc:
         checks:

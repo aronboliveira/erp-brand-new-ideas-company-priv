@@ -250,9 +250,8 @@ cache projection metadata for projection/reporting/replica/progress/health
 signals. `DomainSignalHandlerServiceTest` is green (3 tests, 17 assertions),
 all reliability service tests are green (64 tests, 338 assertions), full
 `tests/Unit --no-coverage` is green (10,647 tests, 20,726 assertions), and
-`composer phpstan` is clean. At that time, the remaining suggested resilience
-work was external payment gateway callback idempotency and optional scheduled
-dispatch orchestration.
+`composer phpstan` is clean. That remaining resilience work was completed later
+by the external gateway callback and dispatch-orchestration slices.
 
 Latest compensation-executor check (2026-05-12, Codex): added
 `CompensationExecutorService` and `php artisan reliability:execute-compensation`
@@ -297,6 +296,16 @@ reliability service tests are green (74 tests, 391 assertions),
 `tests/Unit --no-coverage` is green (10,657 tests, 20,779 assertions), and
 `composer phpstan` is clean. A random `JobStageTest` UUID/tinyint coercion
 fixture was made deterministic during the broad verification rerun.
+
+Latest final resilience readiness scan (2026-05-12, Codex): dev-mode generic
+resilience is at the responsible stopping point without real external secrets.
+The project has durable ledgers/steps, outbox/inbox, operational events,
+retry/circuit guards, rare quarantine, compensation execution, inbox-backed
+domain signal handlers, active gateway callback idempotency, and monolith-local
+dispatch orchestration. Remaining work is integration/deployment-specific:
+provider signature enforcement, real gateway/banking/payroll/inventory/archive/
+webhook adapters, production scheduler cadence, alert routing, and operator
+runbooks. Scan note: `.tmp/codex/20260512/final-resilience-readiness-scan.md`.
 
 ---
 
@@ -915,8 +924,8 @@ Verification:
 - `php artisan route:list --name=projects.timesheets.approval` — route registered.
 - `composer phpstan` — no errors.
 
-Next at that point: external gateway callback idempotency and optional
-scheduled dispatch orchestration.
+Next at that point was external gateway callback idempotency and scheduled
+dispatch orchestration; both are now complete in Tasks U and V.
 
 ---
 
@@ -958,9 +967,9 @@ Final scan at that point:
 - Broad in-repo module resilience adoption is complete for current finance,
   HRM, warehouse/products, CRM, planning, heavy-I/O, timesheet, and expense
   paths.
-- Suggested remaining clusters at that point:
-  external payment gateway callback idempotency and optional scheduled dispatch
-  orchestration.
+- Suggested remaining clusters at that point were external payment gateway
+  callback idempotency and dispatch orchestration; both are now complete in
+  Tasks U and V.
 
 ---
 
@@ -1072,18 +1081,39 @@ Verification:
 
 ---
 
+## TASK W — Dev-Mode Resilience Readiness Scan ✅ DONE
+
+**Status:** Completed 2026-05-12 by Codex.
+
+Conclusion:
+
+- Generic resilience development is complete for dev mode without real external
+  secrets.
+- The remaining work is intentionally not more generic scaffolding. It needs
+  real provider contracts, credentials, deployment cadence, alert routing, and
+  operator runbooks.
+- Latest scan note:
+  `.tmp/codex/20260512/final-resilience-readiness-scan.md`.
+
+Do not broaden resilience wrappers by default after this point. Future work
+should be integration-specific and replace local shells with real adapters one
+domain at a time.
+
+---
+
 ## READING ORDER FOR NEW AGENTS
 
 1. `where-to-update-and-read.yml` — filesystem map
 2. `_inc/laravel/.notes/.llms/.guidelines/constraints.md` — hard rules
 3. `_inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md` — role-specific reading lists
 4. `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` — outbox/inbox + operation ledger policy
-5. `.tmp/codex/20260512/handsoff.md` — latest Codex domain signal-handler, compensation-executor, external gateway callback, dispatch orchestration, and final resilience scan state
-6. `.tmp/codex/20260511/handsoff.md` — Codex warehouse/CRM/planning/heavy-I/O/finance-extended/timesheet-expense reliability continuation state
-7. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
-8. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
-9. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state
-10. `.tmp/claude/20260504/handoff.md` — Claude's Bills migration context
+5. `.tmp/codex/20260512/final-resilience-readiness-scan.md` — final dev-mode resilience boundary
+6. `.tmp/codex/20260512/handsoff.md` — latest Codex domain signal-handler, compensation-executor, external gateway callback, dispatch orchestration, and final resilience scan state
+7. `.tmp/codex/20260511/handsoff.md` — Codex warehouse/CRM/planning/heavy-I/O/finance-extended/timesheet-expense reliability continuation state
+8. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
+9. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
+10. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state
+11. `.tmp/claude/20260504/handoff.md` — Claude's Bills migration context
 
 ---
 

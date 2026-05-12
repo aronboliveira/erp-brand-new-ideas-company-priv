@@ -74,6 +74,10 @@
 3. **Subagentes de teste**: Leia `testing/` + módulo sendo testado
 4. **Subagentes de banco**: Leia `database/` + módulo relevante
 5. **Perfis compostos**: Veja `roles/agent-roles.md` para combinações predefinidas
+6. **Resiliência**: Leia `backend/reliability-outbox-ledger.md` e
+   `.tmp/codex/20260512/final-resilience-readiness-scan.md` antes de adicionar
+   novas proteções; em dev mode, a camada genérica já está no limite
+   responsável sem segredos reais de provedores.
 
 ## Arquivos complementares / Complementary files
 
