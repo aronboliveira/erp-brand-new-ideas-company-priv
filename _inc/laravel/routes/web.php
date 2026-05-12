@@ -1762,13 +1762,38 @@ R2::post('/paymentIPN', function (\Illuminate\Http\Request $request) {
         $requiredKeys = ['paytabs.profile_id', 'paytabs.server_key', 'paytabs.region'];
         foreach ($requiredKeys as $key) {
             if (empty(config($key))) {
+                (new \App\Services\Reliability\ExternalPaymentGatewayCallbackService())->recordRejected(
+                    'paytabs',
+                    'ipn',
+                    $request,
+                    'Payment gateway not configured: ' . $key,
+                    [
+                        'subject_type' => 'paytabs_ipn',
+                        'subject_id' => $request->input('cart_id') ?: $request->input('tran_ref'),
+                        'provider_reference' => $request->input('tran_ref') ?: $request->input('cart_id'),
+                        'amount' => $request->input('cart_amount') ?: $request->input('amount'),
+                    ],
+                );
                 RL::warning('PayTabs IPN rejected — missing config: ' . $key);
                 return response()->json(['message' => 'Payment gateway not configured'], 503);
             }
         }
         /** @var mixed $controller */
         $controller = app('Paytabscom\\Laravel_paytabs\\PaytabsLaravelListenerApi');
-        return $controller->paymentIPN($request);
+        return (new \App\Services\Reliability\ExternalPaymentGatewayCallbackService())->handle(
+            'paytabs',
+            'ipn',
+            $request,
+            fn () => $controller->paymentIPN($request),
+            [
+                'subject_type' => 'paytabs_ipn',
+                'subject_id' => $request->input('cart_id') ?: $request->input('tran_ref'),
+                'provider_reference' => $request->input('tran_ref') ?: $request->input('cart_id'),
+                'amount' => $request->input('cart_amount') ?: $request->input('amount'),
+                'metadata' => ['configured' => true],
+                'duplicate_response' => fn () => response()->json(['message' => 'IPN already processed'], 200),
+            ],
+        );
     } catch (\Throwable $e) {
         RL::error('PayTabs IPN error: ' . get_class($e) . ' — ' . $e->getMessage(), [
             'file' => $e->getFile(),

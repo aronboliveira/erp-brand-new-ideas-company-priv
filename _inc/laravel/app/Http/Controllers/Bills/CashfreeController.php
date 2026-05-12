@@ -17,6 +17,7 @@ use App\Models\{
     Utility
 };
 use App\Traits\ChecksLogin;
+use App\Services\Reliability\ExternalPaymentGatewayCallbackService;
 use GuzzleHttp\Client;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{RedirectResponse, Request};
@@ -160,32 +161,58 @@ final class CashfreeController extends Controller
                 Log::warning("[{$base}::{$action}] payment failed", ['status' => $info?->payment_status]);
                 return redirect()->route('plans.index')->with('error', __('Transaction failed.'));
             }
-            DB::beginTransaction();
             try {
-                $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
-                $recStart = microtime(true);
-                self::recordOrder($orderId, $usr, $plan, $req->amount, config('services.cashfree.currency'));
-                $this->logExecutionTime($recStart, $action, 'recordOrder');
-                if ($cid = $req->coupon) {
-                    $coupStart = microtime(true);
-                    self::attachCoupon($usr, $cid, $orderId);
-                    $this->logExecutionTime($coupStart, $action, 'attachCoupon');
-                }
-                $assignStart = microtime(true);
-                $assign = $usr->assignPlan($plan->id);
-                $this->logExecutionTime($assignStart, $action, 'assignPlan');
-                if (!$assign['is_success']) throw new \RuntimeException($assign['error']); // !
-                $commitStart = microtime(true);
-                DB::commit();
-                $this->logExecutionTime($commitStart, $action, 'commitTransaction');
-                Log::info("[{$base}::{$action}] plan activated", ['user_id' => $usr->id, 'plan_id' => $plan->id, 'order_id' => $orderId]);
-                return redirect()->route('plans.index')->with('success', __('Plan successfully activated.'));
+                $gatewayResponse = (new ExternalPaymentGatewayCallbackService())->handle(
+                    'cashfree',
+                    'plan_return',
+                    $req,
+                    function () use ($req, $action, $base, $plan, $usr): RedirectResponse {
+                        DB::beginTransaction();
+                        try {
+                            $orderId = strtoupper(str_replace('.', '', uniqid('', true)));
+                            $recStart = microtime(true);
+                            self::recordOrder($orderId, $usr, $plan, $req->amount, config('services.cashfree.currency'));
+                            $this->logExecutionTime($recStart, $action, 'recordOrder');
+                            if ($cid = $req->coupon) {
+                                $coupStart = microtime(true);
+                                self::attachCoupon($usr, $cid, $orderId);
+                                $this->logExecutionTime($coupStart, $action, 'attachCoupon');
+                            }
+                            $assignStart = microtime(true);
+                            $assign = $usr->assignPlan($plan->id);
+                            $this->logExecutionTime($assignStart, $action, 'assignPlan');
+                            if (!$assign['is_success']) throw new \RuntimeException($assign['error']); // !
+                            $commitStart = microtime(true);
+                            DB::commit();
+                            $this->logExecutionTime($commitStart, $action, 'commitTransaction');
+                            Log::info("[{$base}::{$action}] plan activated", ['user_id' => $usr->id, 'plan_id' => $plan->id, 'order_id' => $orderId]);
+                            return redirect()->route('plans.index')->with('success', __('Plan successfully activated.'));
+                        } catch (\Throwable $e) {
+                            $rbStart = microtime(true);
+                            DB::rollBack();
+                            $this->logExecutionTime($rbStart, $action, 'rollbackTransaction');
+                            Log::error("[{$base}::{$action}] transaction failed", ['error' => $e->getMessage()]);
+                            Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                            throw $e;
+                        }
+                    },
+                    [
+                        'subject_type' => Plan::class,
+                        'subject_id' => $plan->id,
+                        'actor_id' => $usr->id,
+                        'amount' => $req->amount,
+                        'provider_reference' => $req->order_id,
+                        'route_parameters' => ['plan_id' => $plan->id],
+                        'metadata' => [
+                            'coupon' => $req->coupon,
+                            'provider_status' => $info->payment_status,
+                        ],
+                        'duplicate_response' => fn (): RedirectResponse => redirect()->route('plans.index')->with('success', __('Plan activation callback already processed.')),
+                    ],
+                );
+
+                return $gatewayResponse;
             } catch (\Throwable $e) {
-                $rbStart = microtime(true);
-                DB::rollBack();
-                $this->logExecutionTime($rbStart, $action, 'rollbackTransaction');
-                Log::error("[{$base}::{$action}] transaction failed", ['error' => $e->getMessage()]);
-                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
                 return defaultUndefinedException($req, $e, $class . '::' . $action);
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'order_id' => $req->order_id, 'coupon' => $req->coupon]);
@@ -290,28 +317,53 @@ final class CashfreeController extends Controller
                     Log::warning("[{$base}::{$action}] payment failed", ['status' => $info?->payment_status]);
                     return redirect()->route(VW::INV . '.link.copy', Crypt::encrypt($invoice->id))->with('error', __('Transaction failed.'));
                 }
-                DB::beginTransaction();
                 try {
-                    $recStart = microtime(true);
-                    self::recordInvoicePayment($invoice, $req->amount);
-                    $this->logExecutionTime($recStart, $action, 'recordInvoicePayment');
-                    $balStart = microtime(true);
-                    Utility::updateUserBalance('customer', $invoice->customer_id, $req->amount, 'debit');
-                    $this->logExecutionTime($balStart, $action, 'updateUserBalance');
-                    $sessStart = microtime(true);
-                    $req->session()->forget('invoice_data');
-                    $this->logExecutionTime($sessStart, $action, 'forgetSession');
-                    $commitStart = microtime(true);
-                    DB::commit();
-                    $this->logExecutionTime($commitStart, $action, 'commitTransaction');
-                    Log::info("[{$base}::{$action}] invoice paid", ['invoice_id' => $invoice->id, 'amount' => $req->amount]);
-                    return redirect()->route(VW::INV . '.link.copy', Crypt::encrypt($invoice->id))->with('success', __('Invoice paid successfully!'));
+                    $gatewayResponse = (new ExternalPaymentGatewayCallbackService())->handle(
+                        'cashfree',
+                        'invoice_return',
+                        $req,
+                        function () use ($req, $action, $base, $invoice): RedirectResponse {
+                            DB::beginTransaction();
+                            try {
+                                $recStart = microtime(true);
+                                self::recordInvoicePayment($invoice, $req->amount);
+                                $this->logExecutionTime($recStart, $action, 'recordInvoicePayment');
+                                $balStart = microtime(true);
+                                Utility::updateUserBalance('customer', $invoice->customer_id, $req->amount, 'debit');
+                                $this->logExecutionTime($balStart, $action, 'updateUserBalance');
+                                $sessStart = microtime(true);
+                                $req->session()->forget('invoice_data');
+                                $this->logExecutionTime($sessStart, $action, 'forgetSession');
+                                $commitStart = microtime(true);
+                                DB::commit();
+                                $this->logExecutionTime($commitStart, $action, 'commitTransaction');
+                                Log::info("[{$base}::{$action}] invoice paid", ['invoice_id' => $invoice->id, 'amount' => $req->amount]);
+                                return redirect()->route(VW::INV . '.link.copy', Crypt::encrypt($invoice->id))->with('success', __('Invoice paid successfully!'));
+                            } catch (\Throwable $e) {
+                                $rbStart = microtime(true);
+                                DB::rollBack();
+                                $this->logExecutionTime($rbStart, $action, 'rollbackTransaction');
+                                Log::error("[{$base}::{$action}] transaction failed", ['error' => $e->getMessage()]);
+                                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
+                                throw $e;
+                            }
+                        },
+                        [
+                            'subject_type' => Invoice::class,
+                            'subject_id' => $invoice->id,
+                            'actor_id' => $usr?->id,
+                            'amount' => $req->amount,
+                            'provider_reference' => $req->order_id,
+                            'route_parameters' => ['invoice_id' => $invoice->id],
+                            'metadata' => [
+                                'provider_status' => $info->payment_status,
+                            ],
+                            'duplicate_response' => fn (): RedirectResponse => redirect()->route(VW::INV . '.link.copy', Crypt::encrypt($invoice->id))->with('success', __('Invoice payment callback already processed.')),
+                        ],
+                    );
+
+                    return $gatewayResponse;
                 } catch (\Throwable $e) {
-                    $rbStart = microtime(true);
-                    DB::rollBack();
-                    $this->logExecutionTime($rbStart, $action, 'rollbackTransaction');
-                    Log::error("[{$base}::{$action}] transaction failed", ['error' => $e->getMessage()]);
-                    Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
                     return defaultUndefinedException($req, $e, $class . '::' . $action);
                 }
             } catch (\Throwable $e) {

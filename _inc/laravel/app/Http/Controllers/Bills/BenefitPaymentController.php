@@ -21,6 +21,7 @@ use App\Models\{
     Utility
 };
 use App\Traits\ChecksLogin;
+use App\Services\Reliability\ExternalPaymentGatewayCallbackService;
 use GuzzleHttp\Client;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{
@@ -171,52 +172,74 @@ final class BenefitPaymentController extends Controller
                     Log::debug("[{$base}::{$action}] failure context", ['tap_id' => $request->input('tap_id'), 'plan_id' => $plan->id, 'user_id' => $user?->id]);
                     return redirect()->route(ViewsConstants::PLN . '.index')->with('error', __('Transaction failed, please try again.'));
                 }
-                $txnStart = microtime(true);
-                DB::beginTransaction();
-                try {
-                    $orderId = self::txnId();
-                    $createStart = microtime(true);
-                    Order::create([
-                        'order_id' => $orderId,
-                        'plan_name' => $plan->name,
-                        'plan_id' => $plan->id,
-                        'price' => $request->input('amount'),
-                        'price_currency' => Utility::getValByName('currency'),
-                        'payment_type' => 'Benefit',
-                        'payment_status' => 'success',
-                        UsersConstants::COL_USER_ID => $user?->id,
-                    ]);
-                    $this->logExecutionTime($createStart, $action, 'createOrder');
-                    $assignStart = microtime(true);
-                    $user?->assignPlan($plan->id);
-                    $this->logExecutionTime($assignStart, $action, 'assignPlan');
-                    Log::info("[{$base}::{$action}] plan assigned", [UsersConstants::COL_USER_ID => $user?->id, 'plan_id' => $plan->id]);
-                    if ($couponCode) {
-                        $cStart = microtime(true);
-                        $coupon = Coupon::where('code', $couponCode)->first();
-                        $this->logExecutionTime($cStart, $action, 'fetchCoupon');
-                        if ($coupon) {
-                            $ucStart = microtime(true);
-                            UserCoupon::create(['user' => $user?->id, 'coupon' => $coupon->id, 'order' => $orderId]);
-                            $this->logExecutionTime($ucStart, $action, 'createUserCoupon');
-                            if ($coupon->limit <= $coupon->usedCoupon()) {
-                                $deactStart = microtime(true);
-                                $coupon->update(['is_active' => 0]);
-                                $this->logExecutionTime($deactStart, $action, 'deactivateCoupon');
+                $gatewayResponse = (new ExternalPaymentGatewayCallbackService())->handle(
+                    'benefit',
+                    'plan_return',
+                    $request,
+                    function () use ($request, $action, $base, $plan, $user, $couponCode): RedirectResponse {
+                        $txnStart = microtime(true);
+                        DB::beginTransaction();
+                        try {
+                            $orderId = self::txnId();
+                            $createStart = microtime(true);
+                            Order::create([
+                                'order_id' => $orderId,
+                                'plan_name' => $plan->name,
+                                'plan_id' => $plan->id,
+                                'price' => $request->input('amount'),
+                                'price_currency' => Utility::getValByName('currency'),
+                                'payment_type' => 'Benefit',
+                                'payment_status' => 'success',
+                                UsersConstants::COL_USER_ID => $user?->id,
+                            ]);
+                            $this->logExecutionTime($createStart, $action, 'createOrder');
+                            $assignStart = microtime(true);
+                            $user?->assignPlan($plan->id);
+                            $this->logExecutionTime($assignStart, $action, 'assignPlan');
+                            Log::info("[{$base}::{$action}] plan assigned", [UsersConstants::COL_USER_ID => $user?->id, 'plan_id' => $plan->id]);
+                            if ($couponCode) {
+                                $cStart = microtime(true);
+                                $coupon = Coupon::where('code', $couponCode)->first();
+                                $this->logExecutionTime($cStart, $action, 'fetchCoupon');
+                                if ($coupon) {
+                                    $ucStart = microtime(true);
+                                    UserCoupon::create(['user' => $user?->id, 'coupon' => $coupon->id, 'order' => $orderId]);
+                                    $this->logExecutionTime($ucStart, $action, 'createUserCoupon');
+                                    if ($coupon->limit <= $coupon->usedCoupon()) {
+                                        $deactStart = microtime(true);
+                                        $coupon->update(['is_active' => 0]);
+                                        $this->logExecutionTime($deactStart, $action, 'deactivateCoupon');
+                                    }
+                                    Log::info("[{$base}::{$action}] coupon attached", ['coupon' => $couponCode, 'order' => $orderId]);
+                                }
                             }
-                            Log::info("[{$base}::{$action}] coupon attached", ['coupon' => $couponCode, 'order' => $orderId]);
+                            DB::commit();
+                            $this->logExecutionTime($txnStart, $action, 'transactionCommit');
+                            return redirect()->route(ViewsConstants::PLN . '.index')->with('success', __('Plan activated successfully.'));
+                        } catch (Throwable $e) {
+                            DB::rollBack();
+                            $this->logExecutionTime($txnStart, $action, 'transactionRollback');
+                            Log::error("[{$base}::{$action}] callback failed", ['error' => $e->getMessage()]);
+                            Log::debug("[{$base}::{$action}] callback failure context", ['file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'user_id' => $user?->id, 'plan_id' => $plan->id]);
+                            throw $e;
                         }
-                    }
-                    DB::commit();
-                    $this->logExecutionTime($txnStart, $action, 'transactionCommit');
-                    return redirect()->route(ViewsConstants::PLN . '.index')->with('success', __('Plan activated successfully.'));
-                } catch (Throwable $e) {
-                    DB::rollBack();
-                    $this->logExecutionTime($txnStart, $action, 'transactionRollback');
-                    Log::error("[{$base}::{$action}] callback failed", ['error' => $e->getMessage()]);
-                    Log::debug("[{$base}::{$action}] callback failure context", ['file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'user_id' => $user?->id, 'plan_id' => $plan->id]);
-                    throw $e;
-                }
+                    },
+                    [
+                        'subject_type' => Plan::class,
+                        'subject_id' => $plan->id,
+                        'actor_id' => $user?->id,
+                        'amount' => $request->input('amount'),
+                        'provider_reference' => $request->input('tap_id'),
+                        'route_parameters' => ['plan' => $plan->id],
+                        'metadata' => [
+                            'coupon' => $couponCode,
+                            'provider_status_code' => $status->gateway->response->code,
+                        ],
+                        'duplicate_response' => fn (): RedirectResponse => redirect()->route(ViewsConstants::PLN . '.index')->with('success', __('Plan activation callback already processed.')),
+                    ],
+                );
+
+                return $gatewayResponse;
             } catch (Throwable $e) {
                 Log::error("[{$base}::{$action}] exception", ['message' => $e->getMessage()]);
                 Log::debug("[{$base}::{$action}] exception context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]);
@@ -322,43 +345,64 @@ final class BenefitPaymentController extends Controller
                     Log::debug("[{$base}::{$action}] failure context", ['tap_id' => $request->input('tap_id'), 'user_id' => $user?->id, 'secret_set' => !empty($secret)]);
                     return redirect()->route(ViewsConstants::INV . '.link.copy', $invoiceEncrypted)->with('error', __('Transaction failed!'));
                 }
-                $txnStart = microtime(true);
-                DB::beginTransaction();
-                try {
-                    $orderId = self::txnId();
-                    $ipStart = microtime(true);
-                    InvoicePayment::create([
-                        'invoice_id' => $invoice->id,
-                        'date' => now()->toDateString(),
+                $gatewayResponse = (new ExternalPaymentGatewayCallbackService())->handle(
+                    'benefit',
+                    'invoice_return',
+                    $request,
+                    function () use ($amount, $action, $base, $invoice, $invoiceEncrypted, $invoiceId, $user): RedirectResponse {
+                        $txnStart = microtime(true);
+                        DB::beginTransaction();
+                        try {
+                            $orderId = self::txnId();
+                            $ipStart = microtime(true);
+                            InvoicePayment::create([
+                                'invoice_id' => $invoice->id,
+                                'date' => now()->toDateString(),
+                                'amount' => $amount,
+                                'account_id' => 0,
+                                'payment_method' => 0,
+                                'order_id' => $orderId,
+                                'payment_type' => 'Benefit',
+                                'description' => 'Invoice ' . Utility::invoiceNumberFormat(Utility::settingsById($invoice[DatabaseConstants::COL_TABLE_CREATOR]), $invoice->invoice_id),
+                            ]);
+                            $this->logExecutionTime($ipStart, $action, 'createInvoicePayment');
+                            $stStart = microtime(true);
+                            $newDue = $invoice->getDue() - (float) $amount;
+                            Invoice::changeStatus($invoice->id, $newDue ? 2 : 3);
+                            $this->logExecutionTime($stStart, $action, 'updateInvoiceStatus');
+                            $balStart = microtime(true);
+                            Utility::updateUserBalance('customer', $invoice->customer_id, $amount, 'debit');
+                            $this->logExecutionTime($balStart, $action, 'updateUserBalance');
+                            $delStart = microtime(true);
+                            InvoiceBankTransfer::where('invoice_id', $invoice->id)->where('order_id', $orderId)->delete();
+                            $this->logExecutionTime($delStart, $action, 'cleanupTransfer');
+                            DB::commit();
+                            $this->logExecutionTime($txnStart, $action, 'transactionCommit');
+                            Log::info("[{$base}::{$action}] invoice payment recorded", ['invoice_id' => $invoiceId, 'order_id' => $orderId]);
+                            return redirect()->route(ViewsConstants::INV . '.link.copy', $invoiceEncrypted)->with('success', __('Invoice paid successfully!'));
+                        } catch (Throwable $e) {
+                            DB::rollBack();
+                            $this->logExecutionTime($txnStart, $action, 'transactionRollback');
+                            Log::error("[{$base}::{$action}] recording failed", ['error' => $e->getMessage(), 'invoice_id' => $invoiceId]);
+                            Log::debug("[{$base}::{$action}] recording failure context", ['file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'amount' => $amount, 'user_id' => $user?->id]);
+                            throw $e;
+                        }
+                    },
+                    [
+                        'subject_type' => Invoice::class,
+                        'subject_id' => $invoice->id,
+                        'actor_id' => $user?->id,
                         'amount' => $amount,
-                        'account_id' => 0,
-                        'payment_method' => 0,
-                        'order_id' => $orderId,
-                        'payment_type' => 'Benefit',
-                        'description' => 'Invoice ' . Utility::invoiceNumberFormat(Utility::settingsById($invoice[DatabaseConstants::COL_TABLE_CREATOR]), $invoice->invoice_id),
-                    ]);
-                    $this->logExecutionTime($ipStart, $action, 'createInvoicePayment');
-                    $stStart = microtime(true);
-                    $newDue = $invoice->getDue() - (float) $amount;
-                    Invoice::changeStatus($invoice->id, $newDue ? 2 : 3);
-                    $this->logExecutionTime($stStart, $action, 'updateInvoiceStatus');
-                    $balStart = microtime(true);
-                    Utility::updateUserBalance('customer', $invoice->customer_id, $amount, 'debit');
-                    $this->logExecutionTime($balStart, $action, 'updateUserBalance');
-                    $delStart = microtime(true);
-                    InvoiceBankTransfer::where('invoice_id', $invoice->id)->where('order_id', $orderId)->delete();
-                    $this->logExecutionTime($delStart, $action, 'cleanupTransfer');
-                    DB::commit();
-                    $this->logExecutionTime($txnStart, $action, 'transactionCommit');
-                    Log::info("[{$base}::{$action}] invoice payment recorded", ['invoice_id' => $invoiceId, 'order_id' => $orderId]);
-                    return redirect()->route(ViewsConstants::INV . '.link.copy', $invoiceEncrypted)->with('success', __('Invoice paid successfully!'));
-                } catch (Throwable $e) {
-                    DB::rollBack();
-                    $this->logExecutionTime($txnStart, $action, 'transactionRollback');
-                    Log::error("[{$base}::{$action}] recording failed", ['error' => $e->getMessage(), 'invoice_id' => $invoiceId]);
-                    Log::debug("[{$base}::{$action}] recording failure context", ['file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'amount' => $amount, 'user_id' => $user?->id]);
-                    throw $e;
-                }
+                        'provider_reference' => $request->input('tap_id'),
+                        'route_parameters' => ['invoice_id' => $invoice->id],
+                        'metadata' => [
+                            'provider_status_code' => $status->gateway->response->code,
+                        ],
+                        'duplicate_response' => fn (): RedirectResponse => redirect()->route(ViewsConstants::INV . '.link.copy', $invoiceEncrypted)->with('success', __('Invoice payment callback already processed.')),
+                    ],
+                );
+
+                return $gatewayResponse;
             } catch (Throwable $e) {
                 Log::error("[{$base}::{$action}] failed", ['err' => $e->getMessage()]);
                 Log::debug("[{$base}::{$action}] exception context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'invoice_enc' => $invoiceEncrypted, 'tap_id' => $request->input('tap_id')]);
