@@ -10,6 +10,8 @@ use App\Config\Constants\{
     SettingsConstants,
     ViewsConstants
 };
+use App\Enums\EvaluationStatus;
+use App\Http\Controllers\Concerns\HandlesPlanningReliability;
 use App\Models\{Project, ProjectTask, Timesheet, Utility};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Carbon\CarbonPeriod;
@@ -25,7 +27,7 @@ class TimesheetController extends Controller
 
     use HasCrudConstants;
 
-    use ChecksLogin, ChecksPermissions;
+    use ChecksLogin, ChecksPermissions, HandlesPlanningReliability;
 
     private const INDEX_ROUTE = ViewsConstants::PRJ . '.' . ViewsConstants::TMS . '.index';
 
@@ -162,23 +164,47 @@ class TimesheetController extends Controller
             ]);
 
             try {
-                DB::transaction(function () use ($validated, $user, $scope) {
+                $operation = $this->runPlanningReliabilityOperation(
+                    'planning.timesheet.create',
+                    function () use ($validated, $user, $request, $scope): array {
                     $h = str_pad((string) $validated['time_hour'], 2, '0', STR_PAD_LEFT);
                     $m = str_pad((string) $validated['time_minute'], 2, '0', STR_PAD_LEFT);
 
-                    Timesheet::create([
+                    $timesheet = Timesheet::create([
                         'project_id'  => $validated['project_id'],
                         'task_id'     => $validated['task_id'],
                         'date'        => $validated['date'],
                         'time'        => "$h:$m",
                         'description' => request('description'),
                         'created_by'  => $user?->id,
+                        'status'      => $request->boolean('submit_for_approval')
+                            ? EvaluationStatus::Pending->value
+                            : EvaluationStatus::NotStarted->value,
+                        ProjectsConstants::COL_SBM_BY => $request->boolean('submit_for_approval') ? $user?->id : null,
+                        ProjectsConstants::COL_SBM_AT => $request->boolean('submit_for_approval') ? now() : null,
                     ]);
 
-                    Log::info($scope . ' stored', ['user' => $user?->id, 'task' => $validated['task_id']]);
-                });
+                        Log::info($scope . ' stored', ['user' => $user?->id, 'task' => $validated['task_id']]);
 
-                return redirect()->back()->with('success', __('Timesheet Created Successfully!'));
+                        return $this->timesheetReliabilityPayload($timesheet->refresh(), [
+                            'submitted_for_approval' => $request->boolean('submit_for_approval'),
+                        ]);
+                    },
+                    [
+                        'summary' => 'Create project timesheet',
+                        'subject_type' => Timesheet::class,
+                        'subject_id' => (string) ($validated['task_id'] ?? ''),
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'planning.timesheet.created',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchPlanningReliabilityOutbox($operation);
+
+                return redirect()->back()
+                    ->with('success', __('Timesheet Created Successfully!'))
+                    ->with('reliability_operation', $this->planningReliabilityClientPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error($scope . ' failed', ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $scope);
@@ -262,7 +288,9 @@ class TimesheetController extends Controller
             ]);
 
             try {
-                DB::transaction(function () use ($v, $timesheetId, $scope) {
+                $operation = $this->runPlanningReliabilityOperation(
+                    'planning.timesheet.update',
+                    function () use ($v, $timesheetId, $scope): array {
                     $t = Timesheet::findOrFail($timesheetId);
                     $h = str_pad((string) $v['time_hour'], 2, '0', STR_PAD_LEFT);
                     $m = str_pad((string) $v['time_minute'], 2, '0', STR_PAD_LEFT);
@@ -274,9 +302,24 @@ class TimesheetController extends Controller
                     ]);
 
                     Log::info($scope . ' updated', ['id' => $t->id]);
-                });
 
-                return redirect()->back()->with('success', __('Timesheet Updated Successfully!'));
+                        return $this->timesheetReliabilityPayload($t->refresh());
+                    },
+                    [
+                        'summary' => 'Update project timesheet',
+                        'subject_type' => Timesheet::class,
+                        'subject_id' => (string) $timesheetId,
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'planning.timesheet.updated',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchPlanningReliabilityOutbox($operation);
+
+                return redirect()->back()
+                    ->with('success', __('Timesheet Updated Successfully!'))
+                    ->with('reliability_operation', $this->planningReliabilityClientPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error($scope . ' failed', ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $scope);
@@ -305,12 +348,34 @@ class TimesheetController extends Controller
             Log::info($scope, ['timesheet' => $timesheetId]);
 
             try {
-                DB::transaction(function () use ($timesheetId, $scope) {
-                    Timesheet::findOrFail($timesheetId)->delete();
-                    Log::info($scope . ' deleted', ['id' => $timesheetId]);
-                });
+                $timesheet = Timesheet::findOrFail($timesheetId);
+                $payload = $this->timesheetReliabilityPayload($timesheet, [
+                    'irreversible_delete' => true,
+                ]);
 
-                return redirect()->back()->with('success', __('Timesheet deleted Successfully!'));
+                $operation = $this->runPlanningReliabilityOperation(
+                    'planning.timesheet.delete',
+                    function () use ($timesheet, $payload, $timesheetId, $scope): array {
+                    $timesheet->delete();
+                    Log::info($scope . ' deleted', ['id' => $timesheetId]);
+
+                        return $payload;
+                    },
+                    [
+                        'summary' => 'Delete project timesheet',
+                        'subject_type' => Timesheet::class,
+                        'subject_id' => (string) $timesheetId,
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'planning.timesheet.deleted',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchPlanningReliabilityOutbox($operation);
+
+                return redirect()->back()
+                    ->with('success', __('Timesheet deleted Successfully!'))
+                    ->with('reliability_operation', $this->planningReliabilityClientPayload($operation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error($scope . ' failed', ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $scope);
@@ -321,6 +386,88 @@ class TimesheetController extends Controller
     public function destroy(Request $request, string $timesheetId): RedirectResponse
     {
         return $this->timesheetDestroy($request, $timesheetId);
+    }
+
+    public const TMS_APV = 'timesheetApprovalAction';
+    public function timesheetApprovalAction(Request $request, string $timesheetId): RedirectResponse
+    {
+        $scope = static::class . '::' . __FUNCTION__;
+
+        return $this->measureProfile($scope, function () use ($scope, $request, $timesheetId) {
+            if (($user = self::_checkLogin()) instanceof RedirectResponse) {
+                return $user;
+            }
+            if (($deny = $this->guard($request, PermissionsConstants::MNG_TS, self::INDEX_ROUTE)) !== true) {
+                return $deny;
+            }
+
+            $status = $this->normalizeTimesheetApprovalStatus($request->input('status', $request->input('action')));
+            if (!$status) {
+                return redirect()->back()->with('error', __('Invalid timesheet approval action.'));
+            }
+
+            try {
+                $operation = $this->runPlanningReliabilityOperation(
+                    'planning.timesheet.approval',
+                    function () use ($request, $timesheetId, $status, $user, $scope): array {
+                        $timesheet = Timesheet::findOrFail($timesheetId);
+                        $updates = ['status' => $status];
+
+                        if ($status === EvaluationStatus::Pending->value) {
+                            $updates[ProjectsConstants::COL_SBM_BY] = $user?->id;
+                            $updates[ProjectsConstants::COL_SBM_AT] = now();
+                            $updates[ProjectsConstants::COL_APV_BY] = null;
+                            $updates[ProjectsConstants::COL_APV_AT] = null;
+                            $updates[ProjectsConstants::COL_REJ_BY] = null;
+                            $updates[ProjectsConstants::COL_REJ_AT] = null;
+                        } elseif ($status === EvaluationStatus::Accept->value) {
+                            $updates[ProjectsConstants::COL_APV_BY] = $user?->id;
+                            $updates[ProjectsConstants::COL_APV_AT] = now();
+                            $updates[ProjectsConstants::COL_REJ_BY] = null;
+                            $updates[ProjectsConstants::COL_REJ_AT] = null;
+                        } elseif ($status === EvaluationStatus::Decline->value) {
+                            $updates[ProjectsConstants::COL_REJ_BY] = $user?->id;
+                            $updates[ProjectsConstants::COL_REJ_AT] = now();
+                            $updates[ProjectsConstants::COL_APV_BY] = null;
+                            $updates[ProjectsConstants::COL_APV_AT] = null;
+                        }
+
+                        $timesheet->forceFill($updates)->save();
+                        Log::info($scope . ' approval status changed', ['id' => $timesheetId, 'status' => $status]);
+
+                        return $this->timesheetReliabilityPayload($timesheet->refresh(), [
+                            'expected_status' => $status,
+                            'approval_action' => true,
+                            'payroll_handoff' => $status === EvaluationStatus::Accept->value,
+                            'finance_handoff' => $status === EvaluationStatus::Accept->value,
+                        ]);
+                    },
+                    [
+                        'summary' => 'Finalize timesheet approval decision',
+                        'subject_type' => Timesheet::class,
+                        'subject_id' => (string) $timesheetId,
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'planning.timesheet.' . match ($status) {
+                            EvaluationStatus::Accept->value => 'approved',
+                            EvaluationStatus::Decline->value => 'rejected',
+                            default => 'submitted',
+                        },
+                        'post_write_validation' => true,
+                        'force_post_write_validation' => true,
+                        'requires_approval' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchPlanningReliabilityOutbox($operation);
+
+                return redirect()->back()
+                    ->with('success', __('Timesheet approval status updated successfully.'))
+                    ->with('reliability_operation', $this->planningReliabilityClientPayload($operation, $dispatchReport));
+            } catch (\Throwable $e) {
+                Log::error($scope . ' failed', ['error' => $e->getMessage()]);
+                return defaultUndefinedException($request, $e, $scope);
+            }
+        });
     }
 
     public const FT_TMS_TBL = 'filterTimesheetTableView';
@@ -527,5 +674,47 @@ class TimesheetController extends Controller
                 return defaultUndefinedException($request, $e, $scope);
             }
         });
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function timesheetReliabilityPayload(Timesheet $timesheet, array $extra = []): array
+    {
+        return array_merge([
+            'timesheet_id' => (string) $timesheet->id,
+            'project_id' => (string) $timesheet->project_id,
+            'task_id' => (string) $timesheet->task_id,
+            'project_task_id' => (string) ($timesheet->project_task_id ?? ''),
+            'date' => (string) $timesheet->date,
+            'time' => (string) $timesheet->time,
+            'time_minutes' => $this->timesheetMinutes($timesheet->time),
+            'expected_status' => (string) ($timesheet->status instanceof EvaluationStatus ? $timesheet->status->value : $timesheet->status),
+            'status' => (string) ($timesheet->status instanceof EvaluationStatus ? $timesheet->status->value : $timesheet->status),
+            'payroll_handoff' => false,
+            'finance_handoff' => false,
+        ], $extra);
+    }
+
+    private function timesheetMinutes(mixed $time): int
+    {
+        $raw = (string) $time;
+        if (preg_match('/^(\d{1,2}):(\d{2})(?::\d{2})?$/', $raw, $matches) !== 1) {
+            return 0;
+        }
+
+        return ((int) $matches[1] * 60) + (int) $matches[2];
+    }
+
+    private function normalizeTimesheetApprovalStatus(mixed $status): ?string
+    {
+        $normalized = str_replace([' ', '-'], '_', strtolower(trim((string) $status)));
+
+        return match ($normalized) {
+            'submit', 'submitted', 'pending' => EvaluationStatus::Pending->value,
+            'approve', 'approved', 'accept', 'accepted' => EvaluationStatus::Accept->value,
+            'reject', 'rejected', 'decline', 'declined' => EvaluationStatus::Decline->value,
+            default => null,
+        };
     }
 }

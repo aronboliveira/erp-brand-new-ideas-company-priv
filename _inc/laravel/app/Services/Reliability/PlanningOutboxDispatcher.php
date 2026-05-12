@@ -272,6 +272,12 @@ class PlanningOutboxDispatcher
             $signals[] = $this->signal('calendar-reconciliation', 'planning.calendar', 'task_calendar_reconciliation_shell', 'Planning calendars can reconcile completed or removed tasks.');
         }
 
+        if (str_contains($eventType, 'timesheet.')) {
+            $signals[] = $this->signal('timesheet-rollup', 'planning.timesheet', 'timesheet_rollup_projection_shell', 'Project effort projections can refresh after timesheet approval or deletion.');
+            $signals[] = $this->signal('payroll-context', 'hrm.payroll_bridge', 'payroll_timesheet_context_shell', 'Payroll can absorb approved timesheet context after commit.');
+            $signals[] = $this->signal('finance-billing-context', 'finance.project_bridge', 'finance_timesheet_billing_context_shell', 'Finance can reconcile billable time context after timesheet approval.');
+        }
+
         if (str_contains($eventType, 'completed') || str_contains($eventType, 'final') || str_contains($eventType, 'status')) {
             $signals[] = $this->signal('reporting-refresh', 'planning.reporting', 'project_reporting_refresh_shell', 'Planning reports can refresh final-state aggregates.');
         }

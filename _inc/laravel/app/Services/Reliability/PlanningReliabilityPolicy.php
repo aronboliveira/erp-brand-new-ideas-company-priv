@@ -13,6 +13,7 @@ class PlanningReliabilityPolicy
     public const CLUSTER_MILESTONE_FINAL_STATE = 'milestone_final_state';
     public const CLUSTER_TASK_FINAL_STATE = 'task_final_state';
     public const CLUSTER_APPROVAL_FINALIZATION = 'approval_finalization';
+    public const CLUSTER_TIMESHEET_APPROVAL = 'timesheet_approval_finalization';
     public const CLUSTER_ROUTINE_PLANNING = 'routine_planning';
 
     private const PROJECT_BUDGET_ELEVATED = 10000.0;
@@ -117,6 +118,13 @@ class PlanningReliabilityPolicy
         if (preg_match('/task.*(delete|deleted|destroy|destroyed|complete|completed|progress|final|status)/', $needle) === 1) {
             return self::CLUSTER_TASK_FINAL_STATE;
         }
+        if (str_contains($needle, 'timesheet') && (
+            preg_match('/approve|approved|reject|rejected|submit|submitted|delete|deleted|destroy|destroyed|final|status/', $needle) === 1
+            || (bool) ($payload['approval_action'] ?? $payload['submitted_for_approval'] ?? $payload['payroll_handoff'] ?? $payload['finance_handoff'] ?? false)
+            || in_array(strtolower((string) ($payload['status'] ?? $payload['expected_status'] ?? '')), ['pending', 'accept', 'accepted', 'approved', 'decline', 'declined', 'rejected'], true)
+        )) {
+            return self::CLUSTER_TIMESHEET_APPROVAL;
+        }
         if (preg_match('/approval|approve|approved|reject|rejected|submit|submitted|finalize|finalized/', $needle) === 1) {
             return self::CLUSTER_APPROVAL_FINALIZATION;
         }
@@ -156,8 +164,13 @@ class PlanningReliabilityPolicy
         if (in_array($cluster, [
             self::CLUSTER_MILESTONE_FINAL_STATE,
             self::CLUSTER_TASK_FINAL_STATE,
+            self::CLUSTER_TIMESHEET_APPROVAL,
             self::CLUSTER_APPROVAL_FINALIZATION,
         ], true)) {
+            if ($cluster === self::CLUSTER_TIMESHEET_APPROVAL && ((bool) $signals['payroll_handoff'] || (bool) $signals['finance_handoff'])) {
+                return ReliabilityPolicy::CRITICALITY_HIGH;
+            }
+
             return ReliabilityPolicy::CRITICALITY_MEDIUM;
         }
 
@@ -211,7 +224,7 @@ class PlanningReliabilityPolicy
 
         $attempts = match ($cluster) {
             self::CLUSTER_PROJECT_DELETION, self::CLUSTER_PROJECT_FINAL_STATUS => 3,
-            self::CLUSTER_MILESTONE_FINAL_STATE, self::CLUSTER_TASK_FINAL_STATE, self::CLUSTER_APPROVAL_FINALIZATION => 2,
+            self::CLUSTER_MILESTONE_FINAL_STATE, self::CLUSTER_TASK_FINAL_STATE, self::CLUSTER_TIMESHEET_APPROVAL, self::CLUSTER_APPROVAL_FINALIZATION => 2,
             default => 1,
         };
 
@@ -254,6 +267,13 @@ class PlanningReliabilityPolicy
                 || $this->completedTask($payload);
         }
 
+        if ($cluster === self::CLUSTER_TIMESHEET_APPROVAL) {
+            return str_contains($eventType, 'deleted')
+                || (bool) ($payload['approval_action'] ?? false)
+                || (bool) ($payload['payroll_handoff'] ?? false)
+                || (bool) ($payload['finance_handoff'] ?? false);
+        }
+
         return $cluster === self::CLUSTER_APPROVAL_FINALIZATION;
     }
 
@@ -271,6 +291,8 @@ class PlanningReliabilityPolicy
             'irreversible_delete' => preg_match('/delete|deleted|destroy|destroyed/', strtolower($eventType)) === 1,
             'completed_task' => $this->completedTask($payload),
             'high_priority_task' => $this->highPriorityTask($payload),
+            'payroll_handoff' => (bool) ($payload['payroll_handoff'] ?? $options['payroll_handoff'] ?? false),
+            'finance_handoff' => (bool) ($payload['finance_handoff'] ?? $options['finance_handoff'] ?? false),
             'external_signal' => (bool) ($payload['webhook'] ?? $payload['external_origin'] ?? $options['external_origin'] ?? false),
             'prior_failed_operations' => $this->recentFailedOperations($eventType, $payload, $ledger),
             'retry_failures' => $this->recentRetryFailures($eventType, $payload, $ledger),
@@ -316,6 +338,7 @@ class PlanningReliabilityPolicy
             self::CLUSTER_PROJECT_FINAL_STATUS,
             self::CLUSTER_MILESTONE_FINAL_STATE,
             self::CLUSTER_TASK_FINAL_STATE,
+            self::CLUSTER_TIMESHEET_APPROVAL,
             self::CLUSTER_APPROVAL_FINALIZATION,
         ], true)) {
             return false;
@@ -350,6 +373,13 @@ class PlanningReliabilityPolicy
             'task_status',
             'task_progress',
             'task_completion',
+            'timesheet',
+            'timesheet_delete',
+            'timesheet_project',
+            'timesheet_task',
+            'timesheet_status',
+            'timesheet_time',
+            'timesheet_approval',
         ];
 
         return array_intersect($coreKeys, array_keys($validation->validationErrors)) !== [];
@@ -527,6 +557,7 @@ class PlanningReliabilityPolicy
         $value = $payload['project_id']
             ?? $payload['milestone_id']
             ?? $payload['task_id']
+            ?? $payload['timesheet_id']
             ?? $payload['subject_id']
             ?? $payload['id']
             ?? null;

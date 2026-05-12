@@ -1163,6 +1163,7 @@ R::group(['middleware' => [MWC::VF]], function () {
     R::get(VW::PRJ . '.' . VW::TMS . '/' . VW::PRJ . '/{id}/create', [TimesheetController::class, TimesheetController::TMS_CRT])->name(VW::PRJ . '.' . VW::TMS . '.create')->middleware([MWC::AUTH, MWC::XSS]);
     R::get(VW::PRJ . '.' . VW::TMS . '/' . VW::PRJ . '/{project_id}/edit/{timesheet_id}', [TimesheetController::class, TimesheetController::TMS_ED])->name(VW::PRJ . '.' . VW::TMS . '.edit')->middleware([MWC::AUTH, MWC::XSS]);
     R::any(VW::PRJ . '.' . VW::TMS . '/' . VW::PRJ . '/update/{timesheet_id}', [TimesheetController::class, TimesheetController::TMS_UPD])->name(VW::PRJ . '.' . VW::TMS . '.update')->middleware([MWC::AUTH, MWC::XSS]);
+    R::post(VW::PRJ . '.' . VW::TMS . '/' . VW::PRJ . '/approval/{timesheet_id}', [TimesheetController::class, TimesheetController::TMS_APV])->name(VW::PRJ . '.' . VW::TMS . '.approval')->middleware([MWC::AUTH, MWC::XSS]);
     R::delete(VW::PRJ . '.' . VW::TMS . '/' . VW::PRJ . '/{timesheet_id}', [TimesheetController::class, TimesheetController::TMS_DST])->name(VW::PRJ . '.' . VW::TMS . '.destroy')->middleware([MWC::AUTH, MWC::XSS]);
     #endregion
 

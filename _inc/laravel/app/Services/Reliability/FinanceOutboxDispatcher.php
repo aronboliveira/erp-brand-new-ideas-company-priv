@@ -247,6 +247,7 @@ class FinanceOutboxDispatcher
             str_contains($eventType, 'payment')
             || str_contains($eventType, 'receipt')
             || str_contains($eventType, 'revenue')
+            || str_contains($eventType, 'expense')
             || str_contains($eventType, 'bank_transfer')
         ) {
             $signals[] = $this->signal('banking-sync', 'finance.banking', 'banking_api_shell', 'Banking sync can reconcile the cash movement.');
@@ -260,6 +261,11 @@ class FinanceOutboxDispatcher
 
         if (str_contains($eventType, 'journal')) {
             $signals[] = $this->signal('accounting-reconciliation', 'finance.accounting', 'journal_reconciliation_shell', 'Accounting reconciliation can validate balanced journal postings.');
+        }
+
+        if (str_contains($eventType, 'expense')) {
+            $signals[] = $this->signal('expense-approval-reconciliation', 'finance.expense', 'expense_approval_reconciliation_shell', 'Expense approval and payment projections can reconcile after commit.');
+            $signals[] = $this->signal('planning-expense-context', 'planning.expense_bridge', 'planning_expense_context_shell', 'Planning can absorb project expense finalization context.');
         }
 
         if (str_contains($eventType, 'deleted')) {

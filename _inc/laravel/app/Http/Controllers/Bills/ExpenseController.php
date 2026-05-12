@@ -27,6 +27,7 @@ use App\Models\{
     Vendor,
     BankAccount
 };
+use App\Http\Controllers\Concerns\HandlesFinanceReliability;
 use App\Traits\ChecksLogin;
 use App\Traits\ChecksPermissions;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -62,7 +63,7 @@ final class ExpenseController extends Controller
 
     use HasCrudConstants;
 
-    use ChecksLogin, ChecksPermissions;
+    use ChecksLogin, ChecksPermissions, HandlesFinanceReliability;
     /** Cache TTL in seconds — 2 minutes for expense list data */
     private const CACHE_TTL = 120;
 
@@ -87,7 +88,7 @@ final class ExpenseController extends Controller
                 $uid = $request->user()->creatorId();
                 $this->logExecutionTime($uidStart, $action, 'resolveCreatorId');
                 $qryStart = microtime(true);
-                $q = Bill::where('type', 'Expense')->where(DC::COL_TABLE_CREATOR, $uid);
+                $q = Bill::where('type', 'expense')->where(DC::COL_TABLE_CREATOR, $uid);
                 if ($request->filled('vendor')) $q->where('vendor_id', $request->vendor);
                 if ($request->filled('bill_date')) {
                     $parts = explode(' to ', $request->bill_date);
@@ -202,51 +203,67 @@ final class ExpenseController extends Controller
                 return $resp;
             }
             $this->logExecutionTime($valStart, $action, 'validateRequest');
-            $txnStart = microtime(true);
             try {
-                DB::beginTransaction();
-                $buildStart = microtime(true);
-                $vendorId = match ($request->type) {
-                    'employee' => $request->employee_id,
-                    'customer' => $request->customer_id,
-                    default => $request->vendor_id
-                };
-                $bill = new Bill([
-                    'bill_id' => $this->expenseNumber(),
-                    'vendor_id' => $vendorId,
-                    'bill_date' => $request->payment_date,
-                    'due_date' => $request->payment_date,
-                    'status' => 4,
-                    'type' => 'Expense',
-                    'user_type' => $request->type,
-                    'category_id' => $request->category_id ?? '0',
-                    'order_id' => '0',
-                    DC::COL_TABLE_CREATOR => $request->user()->creatorId(),
-                ]);
-                $bill->save();
-                $this->logExecutionTime($buildStart, $action, 'createBill');
-                $linesStart = microtime(true);
-                $this->syncLines($bill, $request->items ?? []);
-                $this->logExecutionTime($linesStart, $action, 'syncLines');
-                $payStart = microtime(true);
-                BillPayment::create([
-                    'bill_id' => $bill->id,
-                    'date' => $request->payment_date,
-                    'amount' => $request->totalAmount,
-                    'account_id' => $request->account_id,
-                    'payment_method' => 0,
-                    'reference' => null,
-                    'description' => null,
-                    'add_receipt' => null,
-                ]);
-                $this->logExecutionTime($payStart, $action, 'createPayment');
-                DB::commit();
-                $this->logExecutionTime($txnStart, $action, 'transactionCommit');
-                Log::info("[{$base}::{$action}] stored", ['bill_id' => $bill->id]);
-                return redirect()->route(ViewsConstants::EXP . '.index')->with('success', __('Expense successfully created.'));
+                $financeOperation = $this->runFinanceReliabilityOperation(
+                    'finance.expense.create',
+                    function () use ($request, $action, $base): array {
+                        $buildStart = microtime(true);
+                        $vendorId = match ($request->type) {
+                            'employee' => $request->employee_id,
+                            'customer' => $request->customer_id,
+                            default => $request->vendor_id
+                        };
+                        $bill = new Bill([
+                            'bill_id' => $this->expenseNumber(),
+                            'vendor_id' => $vendorId,
+                            'bill_date' => $request->payment_date,
+                            'due_date' => $request->payment_date,
+                            'status' => 4,
+                            'type' => 'expense',
+                            'user_type' => $request->type,
+                            'category_id' => $request->category_id ?? '0',
+                            'order_id' => '0',
+                            DC::COL_TABLE_CREATOR => $request->user()->creatorId(),
+                        ]);
+                        $bill->save();
+                        $this->logExecutionTime($buildStart, $action, 'createBill');
+                        $linesStart = microtime(true);
+                        $this->syncLines($bill, $request->items ?? []);
+                        $this->logExecutionTime($linesStart, $action, 'syncLines');
+                        $payStart = microtime(true);
+                        $payment = BillPayment::create([
+                            'bill_id' => $bill->id,
+                            'date' => $request->payment_date,
+                            'amount' => $request->totalAmount,
+                            'account_id' => $request->account_id,
+                            'payment_method' => 0,
+                            'reference' => null,
+                            'description' => null,
+                            'add_receipt' => null,
+                        ]);
+                        $this->logExecutionTime($payStart, $action, 'createPayment');
+                        Log::info("[{$base}::{$action}] stored", ['bill_id' => $bill->id]);
+
+                        return $this->expenseReliabilityPayload($bill->refresh(), $payment->refresh(), [
+                            'final_state' => true,
+                            'approval_action' => true,
+                        ]);
+                    },
+                    [
+                        'summary' => 'Finalize expense creation',
+                        'subject_type' => Bill::class,
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'finance.expense.created',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
+
+                return redirect()->route(ViewsConstants::EXP . '.index')
+                    ->with('success', __('Expense successfully created.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
-                DB::rollBack();
-                $this->logExecutionTime($txnStart, $action, 'transactionRollback');
                 Log::error("[{$base}::{$action}] failed", ['error' => $e->getMessage()]);
                 Log::debug("[{$base}::{$action}] exception context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'input_keys' => array_keys($request->all())]);
                 return defaultUndefinedException($request, $e, $class . '::' . $action);
@@ -393,9 +410,7 @@ final class ExpenseController extends Controller
                 return $resp;
             }
             $this->logExecutionTime($valStart, $action, 'validateRequest');
-            $txnStart = microtime(true);
             try {
-                DB::beginTransaction();
                 $findStart = microtime(true);
                 $exp = Bill::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findExpense');
@@ -404,24 +419,44 @@ final class ExpenseController extends Controller
                     Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DC::COL_TABLE_CREATOR] ?? null]);
                     return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
                 }
-                $updStart = microtime(true);
-                $vendorId = match ($request->type) {
-                    'employee' => $request->employee_id,
-                    'customer' => $request->customer_id,
-                    default => $request->vendor_id
-                };
-                $exp->update(['vendor_id' => $vendorId, 'bill_date' => $request->bill_date, 'due_date' => $request->bill_date, 'category_id' => $request->category_id]);
-                $this->logExecutionTime($updStart, $action, 'updateExpense');
-                $linesStart = microtime(true);
-                $this->syncLines($exp, $request->items ?? []);
-                $this->logExecutionTime($linesStart, $action, 'syncLines');
-                DB::commit();
-                $this->logExecutionTime($txnStart, $action, 'transactionCommit');
-                Log::info("[{$base}::{$action}] success", ['bill_id' => $id]);
-                return redirect()->route(ViewsConstants::EXP . '.index')->with('success', __('Expense successfully updated.'));
+
+                $financeOperation = $this->runFinanceReliabilityOperation(
+                    'finance.expense.update',
+                    function () use ($request, $exp, $id, $action, $base): array {
+                        $updStart = microtime(true);
+                        $vendorId = match ($request->type) {
+                            'employee' => $request->employee_id,
+                            'customer' => $request->customer_id,
+                            default => $request->vendor_id
+                        };
+                        $exp->update(['vendor_id' => $vendorId, 'bill_date' => $request->bill_date, 'due_date' => $request->bill_date, 'category_id' => $request->category_id]);
+                        $this->logExecutionTime($updStart, $action, 'updateExpense');
+                        $linesStart = microtime(true);
+                        $this->syncLines($exp, $request->items ?? []);
+                        $this->logExecutionTime($linesStart, $action, 'syncLines');
+                        Log::info("[{$base}::{$action}] success", ['bill_id' => $id]);
+
+                        return $this->expenseReliabilityPayload($exp->refresh(), null, [
+                            'final_state' => true,
+                            'approval_action' => true,
+                        ]);
+                    },
+                    [
+                        'summary' => 'Finalize expense update',
+                        'subject_type' => Bill::class,
+                        'subject_id' => (string) $exp->id,
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'finance.expense.updated',
+                        'post_write_validation' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
+
+                return redirect()->route(ViewsConstants::EXP . '.index')
+                    ->with('success', __('Expense successfully updated.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
-                DB::rollBack();
-                $this->logExecutionTime($txnStart, $action, 'transactionRollback');
                 Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage(), 'bill_id' => $id]);
                 Log::debug("[{$base}::{$action}] exception context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'input_keys' => array_keys($request->all())]);
                 return defaultUndefinedException($request, $e, $class . '::' . $action);
@@ -441,26 +476,49 @@ final class ExpenseController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'delete bill product')) !== true) return $g;
             Log::info("[{$base}::{$action}] start", ['product_id' => $request->id, UC::COL_USER_ID => $request->user()?->id, 'method' => $method]);
-            $txnStart = microtime(true);
             try {
-                DB::beginTransaction();
                 $findStart = microtime(true);
                 $bp = BillProduct::findOrFail($request->id);
                 $exp = Bill::findOrFail($bp->bill_id);
                 $this->logExecutionTime($findStart, $action, 'findModels');
-                $balStart = microtime(true);
-                Utility::updateUserBalance('vendor', $exp->vendor_id, $request->amount, 'credit');
-                $this->logExecutionTime($balStart, $action, 'updateBalance');
-                $delStart = microtime(true);
-                $bp->delete();
-                $this->logExecutionTime($delStart, $action, 'deleteBillProduct');
-                DB::commit();
-                $this->logExecutionTime($txnStart, $action, 'transactionCommit');
-                Log::info("[{$base}::{$action}] success", ['product_id' => $request->id, 'bill_id' => $exp->id]);
-                return redirect()->back()->with('success', __('Expense product successfully deleted.'));
+
+                $payload = $this->expenseReliabilityPayload($exp, null, [
+                    'bill_product_id' => (string) $bp->id,
+                    'line_id' => (string) $bp->id,
+                    'amount' => (float) $request->amount,
+                    'direction' => 'reversal',
+                ]);
+
+                $financeOperation = $this->runFinanceReliabilityOperation(
+                    'finance.expense.line.delete',
+                    function () use ($request, $bp, $exp, $payload, $action, $base): array {
+                        $balStart = microtime(true);
+                        Utility::updateUserBalance('vendor', $exp->vendor_id, $request->amount, 'credit');
+                        $this->logExecutionTime($balStart, $action, 'updateBalance');
+                        $delStart = microtime(true);
+                        $bp->delete();
+                        $this->logExecutionTime($delStart, $action, 'deleteBillProduct');
+                        Log::info("[{$base}::{$action}] success", ['product_id' => $request->id, 'bill_id' => $exp->id]);
+
+                        return $payload;
+                    },
+                    [
+                        'summary' => 'Delete finalized expense line',
+                        'subject_type' => BillProduct::class,
+                        'subject_id' => (string) $bp->id,
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'finance.expense.line_deleted',
+                        'post_write_validation' => true,
+                        'validate_low_amount_reversals' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
+
+                return redirect()->back()
+                    ->with('success', __('Expense product successfully deleted.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
-                DB::rollBack();
-                $this->logExecutionTime($txnStart, $action, 'transactionRollback');
                 Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage(), 'product_id' => $request->id]);
                 Log::debug("[{$base}::{$action}] exception context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString(), 'input_keys' => array_keys($request->all())]);
                 return defaultUndefinedException($request, $e, $class . '::' . $action);
@@ -479,9 +537,7 @@ final class ExpenseController extends Controller
             if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
             if (($g = self::guard($request, 'delete bill')) !== true) return $g;
             Log::info("[{$base}::{$action}] start", ['bill_id' => $id, UC::COL_USER_ID => $request->user()?->id, 'method' => $method]);
-            $txnStart = microtime(true);
             try {
-                DB::beginTransaction();
                 $findStart = microtime(true);
                 $exp = Bill::findOrFail($id);
                 $this->logExecutionTime($findStart, $action, 'findExpense');
@@ -490,37 +546,60 @@ final class ExpenseController extends Controller
                     Log::debug("[{$base}::{$action}] ownership mismatch", ['expected_creator' => $request->user()->creatorId(), 'actual_creator' => $exp[DC::COL_TABLE_CREATOR] ?? null]);
                     return defaultPermissionDenial($request, new \Exception('owner'), $class . '::' . $action);
                 }
-                $payLoopStart = microtime(true);
-                foreach ($exp->payments as $p) {
-                    $baStart = microtime(true);
-                    Utility::bankAccountBalance($p->account_id, $p->amount, 'credit');
-                    $this->logExecutionTime($baStart, $action, 'bankAccountCredit');
-                    $delPStart = microtime(true);
-                    $p->delete();
-                    $this->logExecutionTime($delPStart, $action, 'deletePayment');
-                }
-                $this->logExecutionTime($payLoopStart, $action, 'processPayments');
-                if ($exp->vendor_id && $exp->status) {
-                    $balStart = microtime(true);
-                    Utility::updateUserBalance('vendor', $exp->vendor_id, $exp->getDue(), 'credit');
-                    $this->logExecutionTime($balStart, $action, 'updateVendorBalance');
-                }
-                $delProdStart = microtime(true);
-                BillProduct::where('bill_id', $exp->id)->delete();
-                $this->logExecutionTime($delProdStart, $action, 'deleteBillProducts');
-                $delAccStart = microtime(true);
-                BillAccount::where(BC::COL_REF_ID, $exp->id)->delete();
-                $this->logExecutionTime($delAccStart, $action, 'deleteBillAccounts');
-                $delExpStart = microtime(true);
-                $exp->delete();
-                $this->logExecutionTime($delExpStart, $action, 'deleteExpense');
-                DB::commit();
-                $this->logExecutionTime($txnStart, $action, 'transactionCommit');
-                Log::info("[{$base}::{$action}] success", ['bill_id' => $id]);
-                return redirect()->route(ViewsConstants::EXP . '.index')->with('success', __('Expense successfully deleted.'));
+
+                $payload = $this->expenseReliabilityPayload($exp, null, [
+                    'direction' => 'reversal',
+                    'irreversible_delete' => true,
+                ]);
+
+                $financeOperation = $this->runFinanceReliabilityOperation(
+                    'finance.expense.delete',
+                    function () use ($exp, $id, $payload, $action, $base): array {
+                        $payLoopStart = microtime(true);
+                        foreach ($exp->payments as $p) {
+                            $baStart = microtime(true);
+                            Utility::bankAccountBalance($p->account_id, $p->amount, 'credit');
+                            $this->logExecutionTime($baStart, $action, 'bankAccountCredit');
+                            $delPStart = microtime(true);
+                            $p->delete();
+                            $this->logExecutionTime($delPStart, $action, 'deletePayment');
+                        }
+                        $this->logExecutionTime($payLoopStart, $action, 'processPayments');
+                        if ($exp->vendor_id && $exp->status) {
+                            $balStart = microtime(true);
+                            Utility::updateUserBalance('vendor', $exp->vendor_id, $exp->getDue(), 'credit');
+                            $this->logExecutionTime($balStart, $action, 'updateVendorBalance');
+                        }
+                        $delProdStart = microtime(true);
+                        BillProduct::where('bill_id', $exp->id)->delete();
+                        $this->logExecutionTime($delProdStart, $action, 'deleteBillProducts');
+                        $delAccStart = microtime(true);
+                        BillAccount::where(BC::COL_REF_ID, $exp->id)->delete();
+                        $this->logExecutionTime($delAccStart, $action, 'deleteBillAccounts');
+                        $delExpStart = microtime(true);
+                        $exp->delete();
+                        $this->logExecutionTime($delExpStart, $action, 'deleteExpense');
+                        Log::info("[{$base}::{$action}] success", ['bill_id' => $id]);
+
+                        return $payload;
+                    },
+                    [
+                        'summary' => 'Delete finalized expense',
+                        'subject_type' => Bill::class,
+                        'subject_id' => (string) $exp->id,
+                        'actor_id' => $request->user()?->id,
+                        'event_type' => 'finance.expense.deleted',
+                        'post_write_validation' => true,
+                        'validate_low_amount_reversals' => true,
+                        'payload' => fn(array $payload): array => $payload,
+                    ],
+                );
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
+
+                return redirect()->route(ViewsConstants::EXP . '.index')
+                    ->with('success', __('Expense successfully deleted.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
-                DB::rollBack();
-                $this->logExecutionTime($txnStart, $action, 'transactionRollback');
                 Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage(), 'bill_id' => $id]);
                 Log::debug("[{$base}::{$action}] exception context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'trace' => $e->getTraceAsString()]);
                 return defaultUndefinedException($request, $e, $class . '::' . $action);
@@ -790,6 +869,32 @@ final class ExpenseController extends Controller
                 return defaultUndefinedException($request, $e, $action, route(ViewsConstants::EXP . '.index'));
             }
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base, 'enc_id' => $encId]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function expenseReliabilityPayload(Bill $expense, ?BillPayment $payment = null, array $extra = []): array
+    {
+        $payment ??= $expense->payments()->latest('created_at')->first();
+        $amount = (float) ($payment?->amount ?? $extra['amount'] ?? $extra['total_amount'] ?? $expense->getTotal());
+
+        return array_merge([
+            'expense_id' => (string) $expense->id,
+            'bill_id' => (string) $expense->id,
+            'bill_number' => (string) $expense->bill_id,
+            'payment_id' => $payment ? (string) $payment->id : null,
+            'amount' => $amount,
+            'total_amount' => $amount,
+            'account_id' => $payment?->account_id ?? $extra['account_id'] ?? null,
+            'category_id' => $expense->category_id,
+            'vendor_id' => $expense->vendor_id,
+            'user_type' => $expense->user_type,
+            'expected_type' => 'expense',
+            'final_state' => true,
+            'requires_approval' => true,
+            'transaction_type' => 'expense',
+        ], $extra);
     }
 
     private static function _authorize(Request $r, string $perm): RedirectResponse|true

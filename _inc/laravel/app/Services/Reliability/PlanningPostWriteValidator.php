@@ -7,7 +7,7 @@ use App\Config\Constants\{
     DatabaseConstants as DC,
     ProjectsConstants as PJC
 };
-use App\Models\{Milestone, OperationLedger, Project, ProjectTask, ProjectUser};
+use App\Models\{Milestone, OperationLedger, Project, ProjectTask, ProjectUser, Timesheet};
 use Illuminate\Support\Facades\DB;
 
 class PlanningPostWriteValidator
@@ -27,6 +27,12 @@ class PlanningPostWriteValidator
             'planning.task.completed',
             'planning.task.progress_finalized' => $this->validateTaskPresent($eventType, $payload, $ledger),
             'planning.task.deleted' => $this->validateTaskDeleted($payload, $ledger),
+            'planning.timesheet.created',
+            'planning.timesheet.updated',
+            'planning.timesheet.submitted',
+            'planning.timesheet.approved',
+            'planning.timesheet.rejected' => $this->validateTimesheetPresent($eventType, $payload, $ledger),
+            'planning.timesheet.deleted' => $this->validateTimesheetDeleted($payload, $ledger),
             default => PostWriteValidationResult::pass(
                 'planning',
                 (string) ($payload['source_table'] ?? 'planning'),
@@ -233,6 +239,60 @@ class PlanningPostWriteValidator
 
     /**
      * @param array<string, mixed> $payload
+     */
+    private function validateTimesheetPresent(string $eventType, array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $timesheetId = $this->stringOrNull($payload['timesheet_id'] ?? $payload['id'] ?? null);
+        $timesheet = $timesheetId ? Timesheet::query()->find($timesheetId) : null;
+        $errors = [];
+
+        if (!$timesheet) {
+            $errors['timesheet'] = 'Timesheet was not persisted.';
+        } else {
+            $this->validateTimesheetCore($timesheet, $payload, $errors);
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_TMS,
+            Timesheet::class,
+            $timesheetId,
+            [
+                'payload' => $payload,
+                'timesheet' => $timesheet?->getAttributes(),
+            ],
+            $this->originEvent($eventType, $payload, $ledger),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function validateTimesheetDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $timesheetId = $this->stringOrNull($payload['timesheet_id'] ?? $payload['id'] ?? null);
+        $timesheet = $timesheetId ? Timesheet::query()->find($timesheetId) : null;
+        $errors = [];
+
+        if ($timesheet) {
+            $errors['timesheet_delete'] = 'Timesheet still exists after delete operation.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_TMS,
+            Timesheet::class,
+            $timesheetId,
+            [
+                'payload' => $payload,
+                'timesheet_exists_after_delete' => (bool) $timesheet,
+            ],
+            $this->originEvent('planning.timesheet.deleted', $payload, $ledger),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $payload
      * @param array<string, mixed> $errors
      */
     private function validateProjectCore(Project $project, array $payload, array &$errors): void
@@ -318,6 +378,49 @@ class PlanningPostWriteValidator
     }
 
     /**
+     * @param array<string, mixed> $payload
+     * @param array<string, mixed> $errors
+     */
+    private function validateTimesheetCore(Timesheet $timesheet, array $payload, array &$errors): void
+    {
+        $projectId = $this->stringOrNull($timesheet->getAttribute(PJC::COL_PJ_ID));
+        if (!$projectId || !Project::query()->whereKey($projectId)->exists()) {
+            $errors['timesheet_project'] = 'Timesheet project link is missing or invalid.';
+        }
+
+        $taskId = $this->stringOrNull($timesheet->getAttribute(AC::COL_TSK_ID));
+        $projectTaskId = $this->stringOrNull($timesheet->getAttribute(PJC::COL_PJ_TSK_ID))
+            ?? $this->stringOrNull($payload['project_task_id'] ?? null);
+
+        if ($projectTaskId && !ProjectTask::query()->whereKey($projectTaskId)->exists()) {
+            $errors['timesheet_task'] = 'Timesheet project_task_id does not reference a project task.';
+        } elseif ($taskId && !ProjectTask::query()->whereKey($taskId)->exists() && !DB::table(DC::TABLE_TASKS)->where('id', $taskId)->exists()) {
+            $errors['timesheet_task'] = 'Timesheet task_id does not reference a known task or project task.';
+        }
+
+        $expectedStatus = $this->stringOrNull($payload['expected_status'] ?? $payload['status'] ?? null);
+        if ($expectedStatus !== null && !$this->sameStatus($timesheet->getAttribute('status'), $expectedStatus)) {
+            $errors['timesheet_status'] = 'Timesheet status does not match the expected approval state.';
+        }
+
+        $minutes = $payload['time_minutes'] ?? null;
+        if (is_numeric($minutes) && (int) $minutes < 0) {
+            $errors['timesheet_time'] = 'Timesheet duration is negative after persistence.';
+        }
+
+        if ((bool) ($payload['approval_action'] ?? false)) {
+            $statusValue = $timesheet->getAttribute('status');
+            if ($statusValue instanceof \BackedEnum) {
+                $statusValue = $statusValue->value;
+            }
+            $status = str_replace([' ', '-'], '_', strtolower((string) $statusValue));
+            if (!in_array($status, ['pending', 'accept', 'decline'], true)) {
+                $errors['timesheet_approval'] = 'Timesheet approval action did not persist an approval status.';
+            }
+        }
+    }
+
+    /**
      * @param array<string, mixed> $errors
      * @param array<string, mixed> $snapshot
      * @param array<string, mixed> $originEvent
@@ -380,7 +483,13 @@ class PlanningPostWriteValidator
 
     private function sameStatus(mixed $actual, mixed $expected): bool
     {
-        $normalize = static fn(mixed $value): string => str_replace([' ', '-'], '_', strtolower(trim((string) $value)));
+        $normalize = static function (mixed $value): string {
+            if ($value instanceof \BackedEnum) {
+                $value = $value->value;
+            }
+
+            return str_replace([' ', '-'], '_', strtolower(trim((string) $value)));
+        };
 
         $actualStatus = $normalize($actual);
         $expectedStatus = $normalize($expected);

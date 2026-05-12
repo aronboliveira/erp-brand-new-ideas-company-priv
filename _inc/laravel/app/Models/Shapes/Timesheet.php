@@ -6,7 +6,7 @@ use App\Config\Constants\{ActivitiesConstants as AC, DatabaseConstants as DC, Pr
 use App\Enums\{EvaluationStatus, Visibility};
 use App\Traits\{DefinesDates, FiltersSecureAttachments, HasAuditFields, NormalizesArrays, PlansByHierarchy, UsesUuids};
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo, SoftDeletes};
+use Illuminate\Database\Eloquent\{Model, Relations\BelongsTo};
 use Illuminate\Support\Facades\{DB, Log};
 
 /**
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\{DB, Log};
  */
 class Timesheet extends Model
 {
-    use UsesUuids, HasAuditFields, NormalizesArrays, PlansByHierarchy, FiltersSecureAttachments, SoftDeletes, DefinesDates;
+    use UsesUuids, HasAuditFields, NormalizesArrays, PlansByHierarchy, FiltersSecureAttachments, DefinesDates;
 
     protected $table = DC::TABLE_TMS;
 
@@ -48,7 +48,6 @@ class Timesheet extends Model
         'status'          => EvaluationStatus::class,
         'visibility'      => Visibility::class,
         'attachments'     => 'array',
-        'deleted_at'      => 'datetime',
     ];
 
     protected static array $localCache = [];

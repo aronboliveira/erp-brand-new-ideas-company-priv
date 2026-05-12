@@ -254,6 +254,8 @@ class FinanceOperationService
             ?? $payload['item_id']
             ?? $payload['invoice_id']
             ?? $payload['bill_id']
+            ?? $payload['expense_id']
+            ?? $payload['bill_product_id']
             ?? $payload['purchase_id']
             ?? $payload['reference']
             ?? $ledger->operation_key;

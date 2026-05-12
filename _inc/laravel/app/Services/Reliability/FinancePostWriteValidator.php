@@ -7,7 +7,9 @@ use App\Models\{
     BankAccount,
     BankTransfer,
     Bill,
+    BillAccount,
     BillPayment,
+    BillProduct,
     CreditNote,
     DebitNote,
     Invoice,
@@ -39,6 +41,9 @@ class FinancePostWriteValidator
             'finance.bank_transfer.deleted' => $this->validateBankTransferDeleted($payload, $ledger),
             'finance.purchase.payment_created' => $this->validatePurchasePaymentCreated($payload, $ledger),
             'finance.purchase.payment_deleted' => $this->validatePurchasePaymentDeleted($payload, $ledger),
+            'finance.expense.created', 'finance.expense.updated' => $this->validateExpensePersisted($eventType, $payload, $ledger),
+            'finance.expense.deleted' => $this->validateExpenseDeleted($payload, $ledger),
+            'finance.expense.line_deleted' => $this->validateExpenseLineDeleted($payload, $ledger),
             'finance.credit_note.created', 'finance.credit_note.updated' => $this->validateCreditNotePersisted($eventType, $payload, $ledger),
             'finance.credit_note.deleted' => $this->validateCreditNoteDeleted($payload, $ledger),
             'finance.debit_note.created', 'finance.debit_note.updated' => $this->validateDebitNotePersisted($eventType, $payload, $ledger),
@@ -414,6 +419,122 @@ class FinancePostWriteValidator
             $paymentId,
             ['payload' => $payload, 'purchase_payment_exists_after_delete' => (bool) $payment, 'purchase' => $this->rowSnapshot($purchase)],
             $this->originEvent('finance.purchase.payment_deleted', $payload, $ledger),
+        );
+    }
+
+    private function validateExpensePersisted(string $eventType, array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $billId = $this->stringOrNull($payload['expense_id'] ?? $payload['bill_id'] ?? $payload['id'] ?? null);
+        $paymentId = $this->stringOrNull($payload['payment_id'] ?? null);
+        $bill = $billId ? Bill::query()->find($billId) : null;
+        $payment = $paymentId ? BillPayment::query()->find($paymentId) : null;
+        $lineCount = $billId ? BillProduct::query()->where(BLC::COL_BL_ID, $billId)->count() : 0;
+        $accountLineCount = $billId ? BillAccount::query()->where(BLC::COL_REF_ID, $billId)->count() : 0;
+        $errors = [];
+
+        $actualAmount = $payment?->amount ?? $payload['amount'] ?? $payload['total_amount'] ?? $bill?->getTotal();
+        $this->validatePositiveAmount($payload, $actualAmount, $errors);
+
+        if ($paymentId || $payment) {
+            $this->validateAccount($payload, $payment?->account_id ?? $payload['account_id'] ?? null, $errors);
+        }
+
+        if (!$bill) {
+            $errors['expense'] = 'Expense bill row was not persisted.';
+        } elseif (strtolower((string) $bill->type) !== 'expense') {
+            $errors['expense_type'] = 'Expense operation persisted a non-expense bill row.';
+        }
+
+        if ($paymentId && !$payment) {
+            $errors['payment'] = 'Expense payment row was not persisted.';
+        }
+        if ($payment && $billId && (string) $payment->bill_id !== $billId) {
+            $errors['bill_payment_link'] = 'Expense payment points to a different bill than the operation payload.';
+        }
+        if ($lineCount + $accountLineCount <= 0) {
+            $errors['expense_lines'] = 'Expense has no product or account lines after persistence.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_BILLS,
+            Bill::class,
+            $billId,
+            [
+                'payload' => $payload,
+                'expense' => $bill?->getAttributes(),
+                'payment' => $payment?->getAttributes(),
+                'line_count' => $lineCount,
+                'account_line_count' => $accountLineCount,
+            ],
+            $this->originEvent($eventType, $payload, $ledger),
+        );
+    }
+
+    private function validateExpenseDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $billId = $this->stringOrNull($payload['expense_id'] ?? $payload['bill_id'] ?? $payload['id'] ?? null);
+        $bill = $billId ? Bill::query()->find($billId) : null;
+        $payments = $billId ? BillPayment::query()->where(BLC::COL_BL_ID, $billId)->count() : 0;
+        $lines = $billId ? BillProduct::query()->where(BLC::COL_BL_ID, $billId)->count() : 0;
+        $accounts = $billId ? BillAccount::query()->where(BLC::COL_REF_ID, $billId)->count() : 0;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $payload['amount'] ?? $payload['total_amount'] ?? 0, $errors);
+        if ($bill) {
+            $errors['expense_delete'] = 'Expense bill row still exists after delete operation.';
+        }
+        if ($payments > 0) {
+            $errors['payment_delete'] = 'Expense payments still reference the deleted expense.';
+        }
+        if ($lines > 0 || $accounts > 0) {
+            $errors['expense_lines_delete'] = 'Expense product/account lines still reference the deleted expense.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_BILLS,
+            Bill::class,
+            $billId,
+            [
+                'payload' => $payload,
+                'expense_exists_after_delete' => (bool) $bill,
+                'payments_after_delete' => $payments,
+                'lines_after_delete' => $lines,
+                'account_lines_after_delete' => $accounts,
+            ],
+            $this->originEvent('finance.expense.deleted', $payload, $ledger),
+        );
+    }
+
+    private function validateExpenseLineDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $lineId = $this->stringOrNull($payload['bill_product_id'] ?? $payload['line_id'] ?? $payload['id'] ?? null);
+        $billId = $this->stringOrNull($payload['expense_id'] ?? $payload['bill_id'] ?? null);
+        $line = $lineId ? BillProduct::query()->find($lineId) : null;
+        $bill = $billId ? Bill::query()->find($billId) : null;
+        $errors = [];
+
+        if ($line) {
+            $errors['expense_line_delete'] = 'Expense line still exists after delete operation.';
+        }
+        if (!$bill) {
+            $errors['expense'] = 'Expense referenced by the deleted line was not found.';
+        } elseif (strtolower((string) $bill->type) !== 'expense') {
+            $errors['expense_type'] = 'Expense line operation references a non-expense bill row.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_BL_PRD,
+            BillProduct::class,
+            $lineId,
+            [
+                'payload' => $payload,
+                'expense_line_exists_after_delete' => (bool) $line,
+                'expense' => $bill?->getAttributes(),
+            ],
+            $this->originEvent('finance.expense.line_deleted', $payload, $ledger),
         );
     }
 
@@ -803,6 +924,15 @@ class FinancePostWriteValidator
             $criteria[] = 'C7';
         }
         if (array_key_exists('invoice_overpaid', $errors) || array_key_exists('bill_overpaid', $errors)) {
+            $criteria[] = 'C4';
+        }
+        if (
+            array_key_exists('expense', $errors)
+            || array_key_exists('expense_delete', $errors)
+            || array_key_exists('expense_lines', $errors)
+            || array_key_exists('expense_lines_delete', $errors)
+            || array_key_exists('expense_line_delete', $errors)
+        ) {
             $criteria[] = 'C4';
         }
         if (array_key_exists('transaction_link', $errors) || array_key_exists('transaction_delete', $errors)) {

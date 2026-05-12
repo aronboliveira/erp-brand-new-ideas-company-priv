@@ -326,6 +326,12 @@ class FinanceReliabilityPolicy
             'purchase',
             'purchase_payment',
             'purchase_payment_delete',
+            'expense',
+            'expense_delete',
+            'expense_type',
+            'expense_lines',
+            'expense_lines_delete',
+            'expense_line_delete',
             'credit_note',
             'credit_note_delete',
             'debit_note',
@@ -518,6 +524,8 @@ class FinanceReliabilityPolicy
             ?? $payload['payment_id']
             ?? $payload['purchase_payment_id']
             ?? $payload['purchase_id']
+            ?? $payload['expense_id']
+            ?? $payload['bill_product_id']
             ?? $payload['revenue_id']
             ?? $payload['bank_transfer_id']
             ?? $payload['transfer_id']
