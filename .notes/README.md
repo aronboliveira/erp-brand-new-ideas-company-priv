@@ -42,7 +42,12 @@ Durable notes, instructions, and structured references for agents and developers
   signals an idempotent receive-side boundary instead of pure descriptor
   acceptance. Domain compensation executors now close coherent
   `compensation.required` dead-letter workflows as completed or failed
-  remediation records without blindly rewriting source business rows.
+  remediation records without blindly rewriting source business rows. Active
+  external payment gateway callbacks now cover Benefit plan/invoice returns,
+  Cashfree plan/invoice returns, and PayTabs `paymentIPN` with inbox-backed
+  idempotency, retry/circuit guards, operation ledgers, and finance outbox
+  rows. Stripe remains a direct charge command rather than an external
+  callback/IPN route in this slice.
   Canonical guide:
   `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`.
 

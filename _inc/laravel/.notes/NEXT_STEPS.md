@@ -58,6 +58,31 @@ Stale items now closed by later Claude commits:
 
 ## RECENTLY COMPLETED (2026-05-11 / 2026-05-12)
 
+### External Payment Gateway Callback Reliability Slice
+
+- Added `ExternalPaymentGatewayCallbackService` as the shared callback wrapper
+  for externally originated gateway returns/IPNs.
+- Benefit plan return, Benefit invoice return, Cashfree plan return, Cashfree
+  invoice return, and PayTabs `paymentIPN` now use `inbox_messages` for
+  provider-reference idempotency before local finance mutation.
+- Processed duplicate callbacks return safe duplicate responses without
+  repeating plan activation, invoice payment, or vendor IPN mutation.
+- Replay payload mismatches for unprocessed callback keys fail before business
+  mutation and record `finance.gateway_callback.replay_mismatch`.
+- Accepted callbacks run through retry and circuit breaker guards, record
+  `operation_ledgers` / `operation_steps`, and emit `finance.ledger` outbox
+  rows plus operational events for downstream reconciliation/settlement shells.
+- PayTabs missing configuration now records a failed inbox row so a provider
+  retry can process after configuration is restored.
+- Stripe remains a direct charge command in this slice, not a server/return
+  callback route. Dormant provider blocks should opt in only if re-enabled.
+- Verification: focused gateway callback service test is green (3 tests, 15
+  assertions), Benefit/Cashfree controller callback tests are green (25 tests,
+  33 assertions), the reliability service suite is green (71 tests, 373
+  assertions), full `tests/Unit --no-coverage` is green (10,654 tests, 20,761
+  assertions), `payment_ipn` is registered, and `composer phpstan` has no
+  errors.
+
 ### Domain Compensation Executors Reliability Slice
 
 - Added `CompensationExecutorService` as the shared second-phase executor for
@@ -96,10 +121,10 @@ Stale items now closed by later Claude commits:
 - Reconciliation/bridge handlers run lightweight checks against canonical
   domain tables. They do not replace the stricter post-write validators or
   quarantine policy.
-- Final scan: broad in-repo module resilience adoption is complete for the
+- At that point, broad in-repo module resilience adoption was complete for the
   current finance, HRM, warehouse/products, CRM, planning, heavy-I/O,
-  timesheet, and expense paths. Remaining work is narrower: external payment
-  gateway callbacks and optional scheduled dispatch orchestration.
+  timesheet, and expense paths. Remaining work was narrower: active external
+  payment gateway callbacks and optional scheduled dispatch orchestration.
 - Verification: focused domain signal handler test is green (3 tests, 17
   assertions), the reliability service suite is green (64 tests, 338
   assertions), full `tests/Unit --no-coverage` is green (10,647 tests, 20,726
@@ -256,13 +281,14 @@ Stale items now closed by later Claude commits:
 
 Next reliability work after the finance, HRM, warehouse/products, CRM,
 project-planning, heavy-I/O, finance extended-flow, timesheet/expense
-approval-finalization, domain signal-handler, and compensation-executor slices:
+approval-finalization, domain signal-handler, compensation-executor, and
+external payment gateway callback slices:
 
-1. Scan external payment gateway callbacks separately because idempotency and
-   external-origin semantics differ from local finance CRUD.
-2. Add scheduled dispatch orchestration if the app wants cron, Laravel
+1. Add scheduled dispatch orchestration if the app wants cron, Laravel
    scheduler, database queues, or another async drain outside request
    lifecycles.
+2. Replace gateway signature observation with real provider signature
+   enforcement when gateway webhook signing contracts and secrets are finalized.
 
 ---
 

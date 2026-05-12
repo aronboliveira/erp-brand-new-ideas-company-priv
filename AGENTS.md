@@ -250,9 +250,9 @@ cache projection metadata for projection/reporting/replica/progress/health
 signals. `DomainSignalHandlerServiceTest` is green (3 tests, 17 assertions),
 all reliability service tests are green (64 tests, 338 assertions), full
 `tests/Unit --no-coverage` is green (10,647 tests, 20,726 assertions), and
-`composer phpstan` is clean. Final scan found no remaining broad in-repo module
-adoption cluster; remaining suggested resilience work is external payment
-gateway callback idempotency and optional scheduled dispatch orchestration.
+`composer phpstan` is clean. At that time, the remaining suggested resilience
+work was external payment gateway callback idempotency and optional scheduled
+dispatch orchestration.
 
 Latest compensation-executor check (2026-05-12, Codex): added
 `CompensationExecutorService` and `php artisan reliability:execute-compensation`
@@ -268,6 +268,20 @@ ledger result, moves the ledger to `compensated`, and emits
 (68 tests, 358 assertions), full `tests/Unit --no-coverage` is green
 (10,651 tests, 20,746 assertions), `php artisan list --raw` registers the
 command, and `composer phpstan` is clean.
+
+Latest external payment gateway callback check (2026-05-12, Codex): added
+`ExternalPaymentGatewayCallbackService` and wired Benefit plan/invoice returns,
+Cashfree plan/invoice returns, and PayTabs `paymentIPN` to inbox-backed
+idempotency before local finance mutation. Processed duplicates return safe
+no-op/success responses, unprocessed payload replay mismatches fail before
+business mutation, accepted callbacks run through retry/circuit guards and write
+operation ledgers/steps plus `finance.ledger` outbox rows, and PayTabs missing
+configuration records failed inbox rows for provider retry. `ExternalPaymentGatewayCallbackServiceTest`
+is green (3 tests, 15 assertions), Benefit/Cashfree callback controller tests
+are green (25 tests, 33 assertions), all reliability service tests are green
+(71 tests, 373 assertions), full `tests/Unit --no-coverage` is green
+(10,654 tests, 20,761 assertions), `payment_ipn` is registered, and
+`composer phpstan` is clean.
 
 ---
 
@@ -886,8 +900,8 @@ Verification:
 - `php artisan route:list --name=projects.timesheets.approval` — route registered.
 - `composer phpstan` — no errors.
 
-Next: external gateway callback idempotency and optional scheduled dispatch
-orchestration.
+Next at that point: external gateway callback idempotency and optional
+scheduled dispatch orchestration.
 
 ---
 
@@ -924,12 +938,12 @@ Verification:
 - `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,647 tests, 20,726 assertions, OK.
 - `composer phpstan` — no errors.
 
-Final scan:
+Final scan at that point:
 
 - Broad in-repo module resilience adoption is complete for current finance,
   HRM, warehouse/products, CRM, planning, heavy-I/O, timesheet, and expense
   paths.
-- Suggested remaining clusters:
+- Suggested remaining clusters at that point:
   external payment gateway callback idempotency and optional scheduled dispatch
   orchestration.
 
@@ -970,13 +984,49 @@ Verification:
 
 ---
 
+## TASK U — External Payment Gateway Callback Idempotency ✅ DONE
+
+**Status:** Implemented 2026-05-12 by Codex.
+
+Added:
+
+- `ExternalPaymentGatewayCallbackService`.
+- Focused `ExternalPaymentGatewayCallbackServiceTest`.
+- Active adoption for Benefit plan/invoice returns, Cashfree plan/invoice
+  returns, and PayTabs `paymentIPN`.
+
+Policy notes:
+
+- Gateway callbacks are externally originated and replayable, so they use
+  `inbox_messages` idempotency before local finance mutation.
+- The idempotency key uses provider reference plus stable subject. Amount and
+  request payload stay in the payload hash so unprocessed replay mismatches fail
+  before plan activation, invoice payment, or vendor IPN mutation.
+- Accepted callbacks run through retry and circuit breaker guards, then write
+  operation ledgers/steps, `finance.ledger` outbox rows, and operational events.
+- PayTabs missing configuration records a failed inbox row so provider retries
+  can process after configuration is restored.
+- Stripe remains a direct charge command in this slice, not a server/return
+  callback route. Dormant provider blocks should opt in only if re-enabled.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/ExternalPaymentGatewayCallbackServiceTest.php --no-coverage` — 3 tests, 15 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Http/Controllers/bills/BenefitPaymentControllerTest.php tests/Unit/app/Http/Controllers/bills/CashfreeControllerTest.php --no-coverage` — 25 tests, 33 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 71 tests, 373 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,654 tests, 20,761 assertions, OK.
+- `php artisan route:list --name=payment_ipn` — route registered.
+- `composer phpstan` — no errors.
+
+---
+
 ## READING ORDER FOR NEW AGENTS
 
 1. `where-to-update-and-read.yml` — filesystem map
 2. `_inc/laravel/.notes/.llms/.guidelines/constraints.md` — hard rules
 3. `_inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md` — role-specific reading lists
 4. `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` — outbox/inbox + operation ledger policy
-5. `.tmp/codex/20260512/handsoff.md` — latest Codex domain signal-handler, compensation-executor, and final resilience scan state
+5. `.tmp/codex/20260512/handsoff.md` — latest Codex domain signal-handler, compensation-executor, external gateway callback, and final resilience scan state
 6. `.tmp/codex/20260511/handsoff.md` — Codex warehouse/CRM/planning/heavy-I/O/finance-extended/timesheet-expense reliability continuation state
 7. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
 8. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state

@@ -136,6 +136,11 @@ commit. CRM covers durable lead/deal decisions and customer/vendor/client
 relationship records. Project planning covers final project status/deletion,
 milestone final/delete paths, and final task completion/deletion. Heavy I/O now
 covers shared Python import/export subprocesses and configured webhook delivery.
+Timesheet/expense approvals cover timesheet submit/approve/reject decisions and
+expense create/update/delete plus expense-line deletion. Active external
+payment gateway callbacks now cover Benefit plan/invoice returns, Cashfree
+plan/invoice returns, and PayTabs `paymentIPN` with inbox-backed idempotency
+before local finance mutation.
 Finance, HRM, warehouse, CRM, planning, and heavy-I/O outbox dispatch are
 currently monolith-local: they accept journal, banking-shell, payroll,
 RBAC/access-control, calendar, inventory replica-sync, stock reconciliation,
@@ -155,6 +160,8 @@ the underlying SQL procedure. Circuit breakers stay disabled by default for
 trivial/low work. Post-commit signal failures first pass through the in-process
 retry/circuit guards, then use durable outbox retry scheduling and move to
 compensation-required state when attempts are exhausted.
+`CompensationExecutorService` can then close coherent dead-letter workflows as
+compensated or failed without blindly rewriting source business rows.
 
 Finance has stricter defaults than ordinary modules: every financial
 transaction is retry-eligible, with retry attempts increasing by amount and
@@ -163,6 +170,10 @@ actor, approval requirement, or high user risk score. Post-write validation
 starts at amount `3,200`; quarantine is not the default validation result and is
 reserved for persistent corrupted state after repeated failures, circuit
 instability, dead letters, or long stuck processing.
+Gateway callbacks are treated as external-origin finance operations:
+processed duplicate callbacks are no-ops, unprocessed replay payload mismatches
+fail before mutation, and provider signature enforcement should be added only
+when real gateway signing contracts/secrets are finalized.
 
 HRM quarantine follows the same narrow standard. An employee without a linked
 login user is valid, but a persisted linked-user/RBAC mismatch can be escalated

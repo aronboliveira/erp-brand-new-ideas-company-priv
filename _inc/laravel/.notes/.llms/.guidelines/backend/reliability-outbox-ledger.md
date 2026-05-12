@@ -596,13 +596,46 @@ integration health, artifact, and webhook dead-letter audit checkpoints.
 Provider-specific APIs, payroll posting, inventory repair, and archive/indexing
 workers can later replace individual action categories with direct adapters.
 
-Remaining resilience depth after the compensation-executor slice:
+## External Payment Gateway Callbacks
 
-- external payment gateway callbacks need their own idempotency/signature/origin
-  wrapper because provider callbacks are replayable and externally originated;
+Active externally originated gateway returns/IPNs use
+`ExternalPaymentGatewayCallbackService`:
+
+- Benefit plan return callback.
+- Benefit invoice return callback.
+- Cashfree plan return callback.
+- Cashfree invoice return callback.
+- PayTabs `paymentIPN`.
+
+The wrapper records the callback in `inbox_messages` before local mutation. The
+idempotency key is based on provider reference plus stable subject, while the
+amount and request payload remain part of the payload hash. A processed duplicate
+returns the caller-provided duplicate response and does not repeat plan
+activation, invoice payment, or vendor IPN mutation. An unprocessed replay with
+the same key and a different payload hash fails before business mutation and
+records `finance.gateway_callback.replay_mismatch`.
+
+Accepted callbacks run through retry and circuit breaker guards, then create an
+operation ledger, operation steps, a processed `finance.ledger` outbox row, and
+gateway callback operational events. PayTabs missing configuration uses
+`recordRejected()` to leave a failed inbox row so a provider retry can be
+accepted after configuration is restored.
+
+The service observes hashed gateway signature headers when present, but it does
+not enforce provider-specific signatures yet. Add real signature verification
+only when the gateway signing contracts and secrets are finalized. Dormant
+provider route blocks should opt in only when re-enabled. Stripe's current active
+route is a direct charge command, not a server/return callback route in this
+slice.
+
+Remaining resilience depth after the external-gateway-callback slice:
+
 - scheduled dispatcher orchestration can be added if the app wants cron,
   Laravel scheduler, database queues, or another async drain outside request
   lifecycles.
+- provider-specific signature enforcement and settlement/reconciliation workers
+  can replace the current observation/projection shells once real gateway
+  contracts are connected.
 
 ## Retention
 
@@ -621,11 +654,17 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local reliability check after the compensation-executor slice:
+Latest local reliability check after the external-gateway-callback slice:
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:
-68 tests, 358 assertions, 0 errors, 0 failures.
+71 tests, 373 assertions, 0 errors, 0 failures.
+
+External gateway callback tests:
+3 tests, 15 assertions, 0 errors, 0 failures.
+
+Benefit/Cashfree callback controller tests:
+25 tests, 33 assertions, 0 errors, 0 failures.
 
 Domain signal handler tests:
 3 tests, 17 assertions, 0 errors, 0 failures.
@@ -637,7 +676,7 @@ Timesheet/expense controller tests:
 173 tests, 203 assertions, 0 errors, 0 failures.
 
 Full Unit:
-10,651 tests, 20,746 assertions, 0 errors, 0 failures.
+10,654 tests, 20,761 assertions, 0 errors, 0 failures.
 
 composer phpstan:
 No errors.

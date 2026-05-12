@@ -253,6 +253,13 @@ operations:
   import/export subprocess boundaries and configured webhook delivery while
   preserving legacy return shapes and keeping subprocess calls outside SQL
   transactions.
+- `ExternalPaymentGatewayCallbackService` covers active externally originated
+  payment callbacks/returns: Benefit plan/invoice returns, Cashfree plan/invoice
+  returns, and PayTabs `paymentIPN`. It records callback idempotency in
+  `inbox_messages`, rejects unprocessed replay payload mismatches before local
+  mutation, runs accepted callbacks through retry/circuit guards, and writes
+  operation ledgers plus `finance.ledger` outbox rows. Stripe remains a direct
+  charge command in this slice, not an external callback/IPN route.
 - `php artisan reliability:dispatch-crm-outbox`,
   `php artisan reliability:dispatch-planning-outbox`, and
   `php artisan reliability:dispatch-heavy-io-outbox` drain those pending
@@ -272,6 +279,9 @@ create a durable domain compensation event such as
 `warehouse.compensation.required`, `crm.compensation.required`,
 `planning.compensation.required`, or `heavy_io.compensation.required` so
 rollback/reversal work is visible to operators and later workers.
+`php artisan reliability:execute-compensation` can then close coherent
+dead-letter workflows as compensated or failed without blindly rewriting source
+business rows.
 
 ---
 
@@ -291,17 +301,19 @@ User IDs are **UUIDs** (string), not integers.
 
 ## Testing
 
-### Latest Results (2026-05-11)
+### Latest Results (2026-05-12)
 
 | Tool | Result |
 |------|--------|
-| PHPUnit Unit | 10,637 tests, 20,685 assertions, 0 errors, 0 failures |
-| Reliability service tests | 54 tests, 297 assertions, 0 errors, 0 failures |
+| PHPUnit Unit | 10,654 tests, 20,761 assertions, 0 errors, 0 failures |
+| Reliability service tests | 71 tests, 373 assertions, 0 errors, 0 failures |
 | HRM touched controller tests | 136 tests, 163 assertions, 0 errors, 0 failures |
 | Warehouse/product touched controller tests | 410 tests, 486 assertions, 0 errors, 0 failures |
 | CRM relationship touched controller tests | 594 tests, 703 assertions, 0 errors, 0 failures |
 | Planning touched controller tests | 354 tests, 450 assertions, 0 errors, 0 failures |
 | Heavy-I/O shared boundary tests | 37 tests, 77 assertions, 0 errors, 0 failures |
+| External gateway callback tests | 3 tests, 15 assertions, 0 errors, 0 failures |
+| Benefit/Cashfree callback controller tests | 25 tests, 33 assertions, 0 errors, 0 failures |
 | PHPStan | clean (`composer phpstan`) |
 | ESLint | clean (`npx --no-install eslint . --max-warnings=50`) |
 | Jest | see current CI / package scripts |
