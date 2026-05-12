@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Bills;
 
 use App\Http\Controllers\Abstracts\Controller;
+use App\Http\Controllers\Concerns\HandlesFinanceReliability;
 
 use App\Config\Constants\{
     MiddlewaresConstants as MWC,
     PermissionsConstants as PMC,
     ViewsConstants as VW
 };
-use App\Models\{CreditNote, Invoice, Utility};
+use App\Models\{CreditNote, Invoice, OperationLedger, Utility};
+use App\Services\Reliability\{CriticalOperationService, ReliabilityPolicy};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{JsonResponse, RedirectResponse, Request, Response};
 use Illuminate\Support\Arr;
@@ -25,6 +27,7 @@ final class CreditNoteController extends Controller
 
     use ChecksLogin;
     use ChecksPermissions;
+    use HandlesFinanceReliability;
 
     public function __construct()
     {
@@ -136,7 +139,7 @@ final class CreditNoteController extends Controller
             $this->logExecutionTime($valStart, $action, 'validateInput');
             try {
                 $txnStart = microtime(true);
-                DB::transaction(function () use ($request, $invoiceId, $user, $action, $base) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.credit_note.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($request, $invoiceId, $user, $action, $base): array {
                     $findStart = microtime(true);
                     $invoice = Invoice::findOrFail($invoiceId);
                     $this->logExecutionTime($findStart, $action, 'findInvoice');
@@ -149,15 +152,38 @@ final class CreditNoteController extends Controller
                     $data = Arr::only($request->all(), ['date', 'amount', 'description']);
                     $data['invoice'] = $invoiceId;
                     $data['customer'] = $invoice->customer_id ?? null;
-                    CreditNote::create($data);
+                    $note = CreditNote::create($data);
                     $this->logExecutionTime($dataStart, $action, 'createCreditNote');
                     $balStart = microtime(true);
                     Utility::updateUserBalance('customer', $invoice->customer_id ?? 0, $amt, 'debit');
                     $this->logExecutionTime($balStart, $action, 'updateUserBalance');
                     Log::info("[{$base}::{$action}] credit note created", ['invoice_id' => $invoiceId, 'amount' => $amt]);
-                });
+                    $payload = $this->creditNoteReliabilityPayload($note, $invoice, 'credit_note');
+                    $operations->recordStep($ledger, 'finance.credit_note.persisted', 'Persist credit note and customer balance', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Create credit note',
+                    'subject_type' => Invoice::class,
+                    'subject_id' => (string) $invoiceId,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['invoice_id' => (string) $invoiceId, 'amount' => (float) ($request->amount ?? 0)],
+                    'event_type' => 'finance.credit_note.created',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($txnStart, $action, 'transaction');
-                return back()->with('success', 'Credit Note successfully created.');
+                return back()
+                    ->with('success', 'Credit Note successfully created.')
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage(), 'invoice_id' => $invoiceId]);
                 Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
@@ -229,7 +255,7 @@ final class CreditNoteController extends Controller
             $this->logExecutionTime($valStart, $action, 'validateInput');
             try {
                 $txnStart = microtime(true);
-                DB::transaction(function () use ($request, $invoiceId, $creditNoteId, $user, $action, $base) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.credit_note.update', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($request, $invoiceId, $creditNoteId, $user, $action, $base): array {
                     $findInvStart = microtime(true);
                     $invoice = Invoice::findOrFail($invoiceId);
                     $this->logExecutionTime($findInvStart, $action, 'findInvoice');
@@ -237,7 +263,8 @@ final class CreditNoteController extends Controller
                     $credit = CreditNote::findOrFail($creditNoteId);
                     $this->logExecutionTime($findCnStart, $action, 'findCreditNote');
                     $calcStart = microtime(true);
-                    $max = ($invoice->getDue() ?? 0) + ($credit->amount ?? 0);
+                    $oldAmt = (float) ($credit->amount ?? 0);
+                    $max = ($invoice->getDue() ?? 0) + $oldAmt;
                     $amt = (float) ($request->input('amount') ?? 0);
                     $this->logExecutionTime($calcStart, $action, 'computeMax');
                     if ($amt > $max) throw new \RuntimeException('Maximum ' . ($user?->priceFormat($max) ?? (string) $max) . ' credit limit of this invoice.');
@@ -251,9 +278,32 @@ final class CreditNoteController extends Controller
                     Utility::updateUserBalance('customer', $invoice->customer_id ?? 0, $amt, 'debit');
                     $this->logExecutionTime($apStart, $action, 'applyNewBalance');
                     Log::info("[{$base}::{$action}] credit note updated", ['credit_note_id' => $creditNoteId, 'new_amount' => $amt]);
-                });
+                    $payload = $this->creditNoteReliabilityPayload($credit, $invoice, 'credit_note_update');
+                    $operations->recordStep($ledger, 'finance.credit_note.updated', 'Update credit note and customer balance', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => array_merge($payload, ['previous_amount' => $oldAmt]),
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Update credit note',
+                    'subject_type' => CreditNote::class,
+                    'subject_id' => (string) $creditNoteId,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['invoice_id' => (string) $invoiceId, 'credit_note_id' => (string) $creditNoteId, 'amount' => (float) ($request->amount ?? 0)],
+                    'event_type' => 'finance.credit_note.updated',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($txnStart, $action, 'transaction');
-                return back()->with('success', 'Credit Note successfully updated.');
+                return back()
+                    ->with('success', 'Credit Note successfully updated.')
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage(), 'credit_note_id' => $creditNoteId, 'invoice_id' => $invoiceId]);
                 Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
@@ -281,9 +331,11 @@ final class CreditNoteController extends Controller
             }
             try {
                 $txnStart = microtime(true);
-                DB::transaction(function () use ($creditNoteId, $action, $base) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.credit_note.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($invoiceId, $creditNoteId, $action, $base): array {
                     $findStart = microtime(true);
                     $cn = CreditNote::findOrFail($creditNoteId);
+                    $invoice = Invoice::findOrFail($invoiceId);
+                    $payload = $this->creditNoteReliabilityPayload($cn, $invoice, 'credit_note_reversal');
                     $this->logExecutionTime($findStart, $action, 'findCreditNote');
                     $customerId = $cn->customer_id ?? $cn->customer ?? 0;
                     $amount = (float) ($cn->amount ?? 0);
@@ -294,9 +346,31 @@ final class CreditNoteController extends Controller
                     Utility::updateUserBalance('customer', $customerId, $amount, 'credit');
                     $this->logExecutionTime($balStart, $action, 'updateUserBalance');
                     Log::info("[{$base}::{$action}] credit note deleted", ['credit_note_id' => $creditNoteId, 'customer_id' => $customerId, 'amount' => $amount]);
-                });
+                    $operations->recordStep($ledger, 'finance.credit_note.deleted', 'Delete credit note and reverse customer balance', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Delete credit note',
+                    'subject_type' => CreditNote::class,
+                    'subject_id' => (string) $creditNoteId,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['invoice_id' => (string) $invoiceId, 'credit_note_id' => (string) $creditNoteId],
+                    'event_type' => 'finance.credit_note.deleted',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($txnStart, $action, 'transaction');
-                return back()->with('success', 'Credit Note successfully deleted.');
+                return back()
+                    ->with('success', 'Credit Note successfully deleted.')
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage(), 'credit_note_id' => $creditNoteId, 'invoice_id' => $invoiceId]);
                 Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
@@ -306,6 +380,24 @@ final class CreditNoteController extends Controller
     }
 
     public const CST_CRT = 'customCreate';
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function creditNoteReliabilityPayload(CreditNote $note, Invoice $invoice, string $direction): array
+    {
+        return [
+            'credit_note_id' => (string) $note->id,
+            'note_id' => (string) $note->id,
+            'invoice_id' => (string) $invoice->id,
+            'invoice' => (string) $invoice->id,
+            'customer_id' => $invoice->customer_id ? (string) $invoice->customer_id : null,
+            'amount' => (float) ($note->amount ?? 0),
+            'date' => (string) ($note->date ?? ''),
+            'direction' => $direction,
+        ];
+    }
+
     public function customCreate(Request $request): Response|RedirectResponse|JsonResponse|View|null
     {
         $action = __FUNCTION__;
@@ -369,34 +461,7 @@ final class CreditNoteController extends Controller
             $valStart = microtime(true);
             $request->validate(['invoice' => 'required|numeric', 'amount' => 'required|numeric', 'date' => 'required|date']);
             $this->logExecutionTime($valStart, $action, 'validateInput');
-            try {
-                $txnStart = microtime(true);
-                DB::transaction(function () use ($request, $user, $action, $base) {
-                    $findStart = microtime(true);
-                    $invoice = Invoice::findOrFail($request->input('invoice'));
-                    $this->logExecutionTime($findStart, $action, 'findInvoice');
-                    $calcStart = microtime(true);
-                    $due = $invoice->getDue() ?? 0;
-                    $amt = (float) ($request->input('amount') ?? 0);
-                    $this->logExecutionTime($calcStart, $action, 'computeDue');
-                    if ($amt > $due) throw new \RuntimeException('Maximum ' . ($user?->priceFormat($due) ?? (string) $due) . ' credit limit of this invoice.');
-                    $dataStart = microtime(true);
-                    $data = Arr::only($request->all(), ['invoice', 'date', 'amount', 'description']);
-                    $data['customer'] = $invoice->customer_id ?? null;
-                    CreditNote::create($data);
-                    $this->logExecutionTime($dataStart, $action, 'createCreditNote');
-                    $balStart = microtime(true);
-                    Utility::updateUserBalance('customer', $invoice->customer_id ?? 0, $amt, 'debit');
-                    $this->logExecutionTime($balStart, $action, 'updateUserBalance');
-                    Log::info("[{$base}::{$action}] created credit note", ['invoice_id' => $request->input('invoice'), 'amount' => $amt]);
-                });
-                $this->logExecutionTime($txnStart, $action, 'transaction');
-                return back()->with('success', 'Credit Note successfully created.');
-            } catch (\Throwable $e) {
-                Log::error("[{$base}::{$action}] error", ['error' => $e->getMessage()]);
-                Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
-                return defaultUndefinedException($request, $e, $class . '::' . $action);
-            }
+            return $this->store($request, $request->input('invoice'));
         }, ['route' => Route::getCurrentRoute()?->getName(), 'method' => $method, 'class' => $base]);
     }
 

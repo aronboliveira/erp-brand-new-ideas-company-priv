@@ -11,7 +11,9 @@ use App\Config\Constants\{
     UsersConstants,
     ViewsConstants as VW,
 };
-use App\Models\{Bill, DebitNote, Utility};
+use App\Http\Controllers\Concerns\HandlesFinanceReliability;
+use App\Models\{Bill, DebitNote, OperationLedger, Utility};
+use App\Services\Reliability\{CriticalOperationService, ReliabilityPolicy};
 use App\Traits\ChecksLogin;
 use App\Traits\ChecksPermissions;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -30,6 +32,7 @@ final class DebitNoteController extends Controller
 
     use ChecksLogin;
     use ChecksPermissions;
+    use HandlesFinanceReliability;
 
     public function __construct()
     {
@@ -140,7 +143,7 @@ final class DebitNoteController extends Controller
             $this->logExecutionTime($valStart, $action, 'validateInput');
             try {
                 $txnStart = microtime(true);
-                $resp = DB::transaction(function () use ($req, $billId, $user, $action, $base) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.debit_note.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($req, $billId, $user, $action, $base): array {
                     $fetchStart = microtime(true);
                     $bill = self::_bill($billId);
                     $this->logExecutionTime($fetchStart, $action, 'fetchBill');
@@ -166,10 +169,32 @@ final class DebitNoteController extends Controller
                     Utility::updateUserBalance('vendor', $bill->vendor_id ?? 0, $amt, 'credit');
                     $this->logExecutionTime($balStart, $action, 'updateUserBalance');
                     Log::info("[{$base}::{$action}] created", ['note_id' => $note->id ?? null, 'bill_id' => $billId, UsersConstants::COL_USER_ID => $user?->id ?? null, 'amount' => $amt]);
-                    return back()->with('success', 'Debit Note successfully created.');
-                });
+                    $payload = $this->debitNoteReliabilityPayload($note, $bill, 'debit_note');
+                    $operations->recordStep($ledger, 'finance.debit_note.persisted', 'Persist debit note and vendor balance', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Create debit note',
+                    'subject_type' => Bill::class,
+                    'subject_id' => (string) $billId,
+                    'actor_id' => $req->user()?->id,
+                    'context' => ['bill_id' => (string) $billId, 'amount' => (float) ($req->amount ?? 0)],
+                    'event_type' => 'finance.debit_note.created',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($txnStart, $action, 'transaction');
-                return $resp;
+                return back()
+                    ->with('success', 'Debit Note successfully created.')
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] error", ['bill_id' => $billId, 'error' => $e->getMessage()]);
                 Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
@@ -241,7 +266,7 @@ final class DebitNoteController extends Controller
             $this->logExecutionTime($valStart, $action, 'validateInput');
             try {
                 $txnStart = microtime(true);
-                $resp = DB::transaction(function () use ($req, $billId, $noteId, $user, $action, $base) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.debit_note.update', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($req, $billId, $noteId, $user, $action, $base): array {
                     $fetchStart = microtime(true);
                     $bill = self::_bill($billId);
                     $note = DebitNote::findOrFail($noteId);
@@ -266,10 +291,32 @@ final class DebitNoteController extends Controller
                     Utility::updateUserBalance('vendor', $bill->vendor_id ?? 0, $amt, 'credit');
                     $this->logExecutionTime($balStart, $action, 'applyNewBalance');
                     Log::info("[{$base}::{$action}] updated", ['note_id' => $noteId, 'old_amount' => $oldAmt, 'new_amount' => $amt, 'bill_id' => $billId]);
-                    return back()->with('success', 'Debit Note successfully updated.');
-                });
+                    $payload = $this->debitNoteReliabilityPayload($note, $bill, 'debit_note_update');
+                    $operations->recordStep($ledger, 'finance.debit_note.updated', 'Update debit note and vendor balance', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => array_merge($payload, ['previous_amount' => $oldAmt]),
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Update debit note',
+                    'subject_type' => DebitNote::class,
+                    'subject_id' => (string) $noteId,
+                    'actor_id' => $req->user()?->id,
+                    'context' => ['bill_id' => (string) $billId, 'debit_note_id' => (string) $noteId, 'amount' => (float) ($req->amount ?? 0)],
+                    'event_type' => 'finance.debit_note.updated',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($txnStart, $action, 'transaction');
-                return $resp;
+                return back()
+                    ->with('success', 'Debit Note successfully updated.')
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] error", ['note_id' => $noteId, 'bill_id' => $billId, 'error' => $e->getMessage()]);
                 Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
@@ -297,12 +344,13 @@ final class DebitNoteController extends Controller
             }
             try {
                 $txnStart = microtime(true);
-                $resp = DB::transaction(function () use ($billId, $noteId, $action, $base) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.debit_note.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($billId, $noteId, $action, $base): array {
                     $findStart = microtime(true);
                     $note = DebitNote::findOrFail($noteId);
                     $this->logExecutionTime($findStart, $action, 'findDebitNote');
                     $billStart = microtime(true);
-                    self::_bill($billId);
+                    $bill = self::_bill($billId);
+                    $payload = $this->debitNoteReliabilityPayload($note, $bill, 'debit_note_reversal');
                     $this->logExecutionTime($billStart, $action, 'fetchBill');
                     $delStart = microtime(true);
                     $note->delete();
@@ -311,10 +359,31 @@ final class DebitNoteController extends Controller
                     Utility::updateUserBalance('vendor', $note->vendor ?? 0, $note->amount ?? 0, 'debit');
                     $this->logExecutionTime($balStart, $action, 'updateUserBalance');
                     Log::info("[{$base}::{$action}] deleted", ['note_id' => $noteId, 'bill_id' => $billId, 'amount' => $note->amount ?? 0]);
-                    return back()->with('success', 'Debit Note successfully deleted.');
-                });
+                    $operations->recordStep($ledger, 'finance.debit_note.deleted', 'Delete debit note and reverse vendor balance', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Delete debit note',
+                    'subject_type' => DebitNote::class,
+                    'subject_id' => (string) $noteId,
+                    'actor_id' => $req->user()?->id,
+                    'context' => ['bill_id' => (string) $billId, 'debit_note_id' => (string) $noteId],
+                    'event_type' => 'finance.debit_note.deleted',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($txnStart, $action, 'transaction');
-                return $resp;
+                return back()
+                    ->with('success', 'Debit Note successfully deleted.')
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("[{$base}::{$action}] error", ['note_id' => $noteId, 'bill_id' => $billId, 'error' => $e->getMessage()]);
                 Log::debug("[{$base}::{$action}] debug context", ['exception' => get_class($e), 'file' => $e->getFile(), 'line' => $e->getLine(), 'code' => $e->getCode(), 'route' => Route::getCurrentRoute()?->getName()]);
@@ -324,6 +393,24 @@ final class DebitNoteController extends Controller
     }
 
     public const CST_CRT = 'customCreate';
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function debitNoteReliabilityPayload(DebitNote $note, Bill $bill, string $direction): array
+    {
+        return [
+            'debit_note_id' => (string) $note->id,
+            'note_id' => (string) $note->id,
+            'bill_id' => (string) $bill->id,
+            'bill' => (string) $bill->id,
+            'vendor_id' => $bill->vendor_id ? (string) $bill->vendor_id : null,
+            'amount' => (float) ($note->amount ?? 0),
+            'date' => (string) ($note->date ?? ''),
+            'direction' => $direction,
+        ];
+    }
+
     public function customCreate(Request $req): View|Response|RedirectResponse|JsonResponse
     {
         $action = __FUNCTION__;

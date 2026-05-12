@@ -12,17 +12,20 @@ use App\Config\Constants\{
     UsersConstants as UC,
     ViewsConstants as VW
 };
+use App\Http\Controllers\Concerns\HandlesFinanceReliability;
 use App\Models\{
     BankAccount,
     BillAccount,
     BillPayment,
     ChartOfAccount,
+    OperationLedger,
     Payment,
     ProductServiceCategory,
     Transaction,
     Utility,
     Vendor
 };
+use App\Services\Reliability\{CriticalOperationService, ReliabilityPolicy};
 use App\Traits\ChecksLogin;
 use App\Traits\ChecksPermissions;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -38,7 +41,7 @@ final class PaymentController extends Controller
 
     use HasCrudConstants;
 
-    use ChecksLogin, ChecksPermissions;
+    use ChecksLogin, ChecksPermissions, HandlesFinanceReliability;
 
     private const PERM_MANAGE = PermissionsConstants::MNG_PMT;
     private const PERM_CREATE = 'create payment';
@@ -145,7 +148,7 @@ final class PaymentController extends Controller
 
             try {
                 $t = microtime(true);
-                DB::transaction(function () use ($req, $cls) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.payment.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($req, $cls): array {
                     $p = new Payment([
                         'date'           => $req->date,
                         'amount'         => $req->amount,
@@ -208,11 +211,33 @@ final class PaymentController extends Controller
                             ]
                         );
                     }
-                });
+                    $payload = $this->paymentReliabilityPayload($p, 'vendor_payment', true);
+                    $operations->recordStep($ledger, 'finance.payment.persisted', 'Persist payment and mirrored transaction', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Create vendor payment',
+                    'subject_type' => Payment::class,
+                    'subject_id' => 'payment:create',
+                    'actor_id' => $req->user()?->id,
+                    'context' => ['amount' => (float) ($req->amount ?? 0), 'account_id' => $req->account_id ?? null],
+                    'event_type' => 'finance.payment.created',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($t, $action, 'storeTransaction');
 
                 return redirect()->route(VW::PAY . '.index')
-                    ->with('success', __('Payment successfully created'));
+                    ->with('success', __('Payment successfully created'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error($cls . '::store failed', [
                     'error' => $e->getMessage(),
@@ -278,7 +303,7 @@ final class PaymentController extends Controller
 
             try {
                 $t = microtime(true);
-                DB::transaction(function () use ($req, $payment, $cls) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.payment.update', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($req, $payment, $cls): array {
                     if ($payment->vendor_id) {
                         Utility::updateUserBalance('vendor', $payment->vendor_id, $payment->amount, 'credit');
                     }
@@ -316,7 +341,11 @@ final class PaymentController extends Controller
 
                     $cat = ProductServiceCategory::find($payment->category_id);
                     $payment->fill([
+                        'payment_id' => $payment->id,
+                        'type' => 'Payment',
                         'category' => $cat?->name ?? null,
+                        UC::COL_USER_ID => $payment->vendor_id,
+                        'user_type' => 'Vendor',
                         'account'  => $payment->account_id,
                     ]);
                     Transaction::editTransaction($payment);
@@ -325,11 +354,33 @@ final class PaymentController extends Controller
                         Utility::updateUserBalance('vendor', $payment->vendor_id, $payment->amount, 'debit');
                     }
                     Utility::bankAccountBalance($payment->account_id, $payment->amount, 'debit');
-                });
+                    $payload = $this->paymentReliabilityPayload($payment, 'vendor_payment_update', true);
+                    $operations->recordStep($ledger, 'finance.payment.updated', 'Update payment and mirrored transaction', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Update vendor payment',
+                    'subject_type' => Payment::class,
+                    'subject_id' => (string) $payment->id,
+                    'actor_id' => $req->user()?->id,
+                    'context' => ['payment_id' => (string) $payment->id, 'amount' => (float) ($req->amount ?? 0)],
+                    'event_type' => 'finance.payment.updated',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($t, $action, 'updateTransaction');
 
                 return redirect()->route(VW::PAY . '.index')
-                    ->with('success', __('Payment Updated Successfully'));
+                    ->with('success', __('Payment Updated Successfully'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error($cls . '::update failed', [
                     'payment_id' => $payment->id ?? null,
@@ -364,7 +415,7 @@ final class PaymentController extends Controller
 
             try {
                 $t = microtime(true);
-                DB::transaction(function () use ($req, $payment, $cls) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.payment.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($req, $payment, $cls): array {
                     if ($payment->add_receipt) {
                         Utility::changeStorageLimit(
                             $req->user()?->creatorId() ?? null,
@@ -386,11 +437,40 @@ final class PaymentController extends Controller
                     Utility::bankAccountBalance($aid, $amt, 'credit');
 
                     Log::info($cls . '::destroy completed', ['payment_id' => $pid]);
-                });
+                    $payload = [
+                        'payment_id' => (string) $pid,
+                        'vendor_id' => $vid ? (string) $vid : null,
+                        'account_id' => $aid ? (string) $aid : null,
+                        'amount' => (float) $amt,
+                        'direction' => 'vendor_payment_reversal',
+                        'expects_transaction' => true,
+                    ];
+                    $operations->recordStep($ledger, 'finance.payment.deleted', 'Delete payment and reverse balances', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Delete vendor payment',
+                    'subject_type' => Payment::class,
+                    'subject_id' => (string) $payment->id,
+                    'actor_id' => $req->user()?->id,
+                    'context' => ['payment_id' => (string) $payment->id, 'amount' => (float) ($payment->amount ?? 0)],
+                    'event_type' => 'finance.payment.deleted',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($t, $action, 'destroyTransaction');
 
                 return redirect()->route(VW::PAY . '.index')
-                    ->with('success', __('Payment successfully deleted.'));
+                    ->with('success', __('Payment successfully deleted.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error($cls . '::destroy failed', [
                     'payment_id' => $payment->id ?? null,
@@ -464,4 +544,20 @@ final class PaymentController extends Controller
         });
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    private function paymentReliabilityPayload(Payment $payment, string $direction, bool $expectsTransaction): array
+    {
+        return [
+            'payment_id' => (string) $payment->id,
+            'vendor_id' => $payment->vendor_id ? (string) $payment->vendor_id : null,
+            'account_id' => $payment->account_id ? (string) $payment->account_id : null,
+            'category_id' => $payment->category_id ? (string) $payment->category_id : null,
+            'amount' => (float) ($payment->amount ?? 0),
+            'date' => (string) ($payment->date ?? ''),
+            'direction' => $direction,
+            'expects_transaction' => $expectsTransaction,
+        ];
+    }
 }

@@ -9,6 +9,7 @@ use App\Config\Constants\{
     UsersConstants,
     ViewsConstants,
 };
+use App\Http\Controllers\Concerns\HandlesFinanceReliability;
 use App\Models\{
     BankAccount,
     Bill,
@@ -74,7 +75,7 @@ class PurchaseController extends Controller
     private const ROUTE_INDEX = ViewsConstants::PRC . '.index';
     private const ROUTE_SHOW  = ViewsConstants::PRC . '.show';
 
-    use ChecksLogin, ChecksPermissions;
+    use ChecksLogin, ChecksPermissions, HandlesFinanceReliability;
 
     public function index(Request $request): View|RedirectResponse
     {
@@ -1000,7 +1001,7 @@ class PurchaseController extends Controller
             try {
                 Log::info("[{$class}::{$action}] starting DB transaction", ['purchase_id' => $purchaseId]);
                 $txnStart = microtime(true);
-                DB::transaction(function () use ($request, $purchaseId, $user, $action, $class) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.purchase.payment.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($request, $purchaseId, $user, $action, $class): array {
                     $valStart = microtime(true);
                     $validator = Validator::make($request->all(), ['date' => 'required', 'amount' => 'required', 'account_id' => 'required']);
                     if ($validator->fails()) {
@@ -1065,10 +1066,33 @@ class PurchaseController extends Controller
                         $this->logExecutionTime($emailStart, $action, 'sendNewBillPaymentEmail');
                         Log::info("[{$class}::{$action}] email template new_bill_payment sent", ['is_success' => $resp['is_success'] ?? false]);
                     }
-                });
+                    $payload = $this->purchasePaymentReliabilityPayload($pp, 'purchase_payment', true);
+                    $operations->recordStep($ledger, 'finance.purchase_payment.persisted', 'Persist purchase payment and mirrored transaction', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Create purchase payment',
+                    'subject_type' => Purchase::class,
+                    'subject_id' => (string) $purchaseId,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['purchase_id' => (string) $purchaseId, 'amount' => (float) ($request->amount ?? 0)],
+                    'event_type' => 'finance.purchase.payment_created',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($txnStart, $action, 'createPaymentTransaction');
                 Log::info("[{$class}::{$action}] DB transaction committed", ['purchase_id' => $purchaseId]);
-                return redirect()->back()->with('success', __('Payment successfully added.'));
+                return redirect()->back()
+                    ->with('success', __('Payment successfully added.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
             } catch (ModelNotFoundException $e) {
@@ -1108,11 +1132,12 @@ class PurchaseController extends Controller
             Log::info("[{$class}::{$action}] start", [UsersConstants::COL_USER_ID => $user?->id, 'purchase_id' => $purchaseId, 'payment_id' => $paymentId, 'method' => $method]);
             try {
                 $txnStart = microtime(true);
-                DB::transaction(function () use ($purchaseId, $paymentId, $action, $class) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.purchase.payment.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($purchaseId, $paymentId, $action, $class): array {
                     $loadStart = microtime(true);
                     $pp = PurchasePayment::findOrFail($paymentId);
                     $amount = $pp->amount;
                     $accountId = $pp->account_id;
+                    $payload = $this->purchasePaymentReliabilityPayload($pp, 'purchase_payment_reversal', true);
                     $this->logExecutionTime($loadStart, $action, 'loadPaymentRow');
                     $delStart = microtime(true);
                     $pp->delete();
@@ -1135,9 +1160,31 @@ class PurchaseController extends Controller
                     Transaction::destroyTransaction($paymentId, 'Partial', 'Vendor');
                     $this->logExecutionTime($txDelStart, $action, 'destroyTransaction');
                     Log::info("[{$class}::{$action}] transaction destroyed", ['payment_id' => $paymentId]);
-                });
+                    $operations->recordStep($ledger, 'finance.purchase_payment.deleted', 'Delete purchase payment and reverse balances', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Delete purchase payment',
+                    'subject_type' => Purchase::class,
+                    'subject_id' => (string) $purchaseId,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['purchase_id' => (string) $purchaseId, 'payment_id' => (string) $paymentId],
+                    'event_type' => 'finance.purchase.payment_deleted',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($txnStart, $action, 'paymentDestroyTransaction');
-                return redirect()->back()->with('success', __('Payment successfully deleted.'));
+                return redirect()->back()
+                    ->with('success', __('Payment successfully deleted.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (AuthorizationException $e) {
                 return defaultPermissionDenial($request, $e, $class . '::' . $action, route(self::ROUTE_INDEX));
             } catch (ModelNotFoundException $e) {
@@ -1369,6 +1416,23 @@ class PurchaseController extends Controller
     private function warehouseReliabilityPayload(WarehouseOperationResult $operation, ?array $dispatchReport): array
     {
         return (new ReliabilityClientPayloadService())->fromWarehouseResult($operation, $dispatchReport);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function purchasePaymentReliabilityPayload(PurchasePayment $payment, string $direction, bool $expectsTransaction): array
+    {
+        return [
+            'purchase_id' => (string) $payment->purchase_id,
+            'purchase_payment_id' => (string) $payment->id,
+            'payment_id' => (string) $payment->id,
+            'account_id' => $payment->account_id ? (string) $payment->account_id : null,
+            'amount' => (float) ($payment->amount ?? 0),
+            'date' => (string) ($payment->date ?? ''),
+            'direction' => $direction,
+            'expects_transaction' => $expectsTransaction,
+        ];
     }
 
     private function purchaseNumber(): int

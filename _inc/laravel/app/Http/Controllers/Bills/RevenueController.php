@@ -9,14 +9,17 @@ use App\Config\Constants\{
     UsersConstants,
     ViewsConstants
 };
+use App\Http\Controllers\Concerns\HandlesFinanceReliability;
 use App\Models\{
     BankAccount,
     Customer,
+    OperationLedger,
     ProductServiceCategory,
     Revenue,
     Transaction,
     Utility
 };
+use App\Services\Reliability\{CriticalOperationService, ReliabilityPolicy};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Http\{Request, RedirectResponse};
 use Illuminate\Support\Facades\{Auth, DB, Log, View as ViewFacade};
@@ -31,7 +34,7 @@ class RevenueController extends Controller
 
     use HasCrudConstants;
 
-    use ChecksLogin, ChecksPermissions;
+    use ChecksLogin, ChecksPermissions, HandlesFinanceReliability;
 
     private const REDIRECT_INDEX = ViewsConstants::RVN . '.index';
 
@@ -168,31 +171,56 @@ class RevenueController extends Controller
                 $data['payment_method'] = 0;
                 $data[DatabaseConstants::COL_TABLE_CREATOR] = $creatorId;
 
-                $revenue = Revenue::create($data);
-                Log::info($action . ' created', ['revenueId' => $revenue->id]);
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.revenue.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($data, $action): array {
+                    $revenue = Revenue::create($data);
+                    Log::info($action . ' created', ['revenueId' => $revenue->id]);
 
-                $category = ProductServiceCategory::find($revenue->category_id);
-                $payload = array_merge($revenue->toArray(), [
-                    'payment_id' => $revenue->id,
-                    'type'       => 'Revenue',
-                    'category'   => $category->name ?? '',
-                    UsersConstants::COL_USER_ID => $revenue->customer_id,
-                    'user_type'  => 'Customer',
-                    'account'    => $revenue->account_id,
+                    $category = ProductServiceCategory::find($revenue->category_id);
+                    $revenue->forceFill([
+                        'payment_id' => $revenue->id,
+                        'type'       => 'Revenue',
+                        'category'   => $category->name ?? '',
+                        UsersConstants::COL_USER_ID => $revenue->customer_id,
+                        'user_type'  => 'Customer',
+                        'account'    => $revenue->account_id,
+                    ]);
+                    Transaction::addTransaction($revenue);
+
+                    if ($revenue->customer_id) {
+                        Utility::userBalance('customer', $revenue->customer_id, $revenue->amount, 'credit');
+                    }
+                    Utility::bankAccountBalance($revenue->account_id, $revenue->amount, 'credit');
+
+                    $payload = $this->revenueReliabilityPayload($revenue, 'customer_receipt', true);
+                    $operations->recordStep($ledger, 'finance.revenue.persisted', 'Persist revenue and mirrored transaction', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Create revenue',
+                    'subject_type' => Revenue::class,
+                    'subject_id' => 'revenue:create',
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['amount' => (float) ($data['amount'] ?? 0), 'account_id' => $data['account_id'] ?? null],
+                    'event_type' => 'finance.revenue.created',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
                 ]);
-                Transaction::addTransaction((object) $payload);
-
-                if ($revenue->customer_id) {
-                    Utility::userBalance('customer', $revenue->customer_id, $revenue->amount, 'credit');
-                }
-                Utility::bankAccountBalance($revenue->account_id, $revenue->amount, 'credit');
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
+                $result = $financeOperation->value();
 
                 $settings = Utility::settingsById($creatorId);
                 $notify = [
-                    'revenue_amount' => $user?->priceFormat($revenue->amount),
-                    'customer_name'  => Customer::find($revenue->customer_id)?->name ?? '-',
+                    'revenue_amount' => $user?->priceFormat($result['amount'] ?? 0),
+                    'customer_name'  => Customer::find($result['customer_id'] ?? null)?->name ?? '-',
                     'user_name'      => $user?->name,
-                    'revenue_date'   => $revenue->date,
+                    'revenue_date'   => $result['date'] ?? null,
                 ];
 
                 foreach (['revenue_notification' => 'slack', 'telegram_revenue_notification' => 'telegram', 'twilio_revenue_notification' => 'twilio'] as $key => $method) {
@@ -202,6 +230,7 @@ class RevenueController extends Controller
                 }
 
                 if ($webhook = Utility::webhookSetting('New Revenue')) {
+                    $revenue = Revenue::find($result['revenue_id'] ?? null);
                     $ok = Utility::webhookCall($webhook['url'], json_encode($revenue), $webhook['method']);
                     if (!$ok) {
                         Log::debug($action . ' webhook failed');
@@ -211,7 +240,9 @@ class RevenueController extends Controller
 
                 Log::info($action . ' completed');
 
-                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Revenue successfully created.'));
+                return redirect()->route(self::REDIRECT_INDEX)
+                    ->with('success', __('Revenue successfully created.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error($action . ' failed', ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
@@ -311,18 +342,53 @@ class RevenueController extends Controller
             ]);
 
             try {
-                Utility::userBalance('customer', $revenue->customer_id, $revenue->amount, 'debit');
-                Utility::bankAccountBalance($revenue->account_id, $revenue->amount, 'debit');
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.revenue.update', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($request, $revenue, $action): array {
+                    Utility::userBalance('customer', $revenue->customer_id, $revenue->amount, 'debit');
+                    Utility::bankAccountBalance($revenue->account_id, $revenue->amount, 'debit');
 
-                $revenue->update($request->only('date', 'amount', 'account_id', 'customer_id', 'category_id', 'reference', 'description'));
-                Log::info($action . ' updated', ['revenueId' => $revenue->id]);
+                    $revenue->update($request->only('date', 'amount', 'account_id', 'customer_id', 'category_id', 'reference', 'description'));
+                    Log::info($action . ' updated', ['revenueId' => $revenue->id]);
 
-                Transaction::editTransaction($revenue);
+                    $category = ProductServiceCategory::find($revenue->category_id);
+                    $revenue->forceFill([
+                        'payment_id' => $revenue->id,
+                        'type' => 'Revenue',
+                        'category' => $category?->name ?? '',
+                        UsersConstants::COL_USER_ID => $revenue->customer_id,
+                        'user_type' => 'Customer',
+                        'account' => $revenue->account_id,
+                    ]);
+                    Transaction::editTransaction($revenue);
 
-                Utility::userBalance('customer', $revenue->customer_id, $revenue->amount, 'credit');
-                Utility::bankAccountBalance($revenue->account_id, $revenue->amount, 'credit');
+                    Utility::userBalance('customer', $revenue->customer_id, $revenue->amount, 'credit');
+                    Utility::bankAccountBalance($revenue->account_id, $revenue->amount, 'credit');
 
-                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Revenue updated successfully.'));
+                    $payload = $this->revenueReliabilityPayload($revenue, 'customer_receipt_update', true);
+                    $operations->recordStep($ledger, 'finance.revenue.updated', 'Update revenue and mirrored transaction', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Update revenue',
+                    'subject_type' => Revenue::class,
+                    'subject_id' => (string) $revenue->id,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['revenue_id' => (string) $revenue->id, 'amount' => (float) ($request->amount ?? 0)],
+                    'event_type' => 'finance.revenue.updated',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
+
+                return redirect()->route(self::REDIRECT_INDEX)
+                    ->with('success', __('Revenue updated successfully.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error($action . ' failed', ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
@@ -352,7 +418,7 @@ class RevenueController extends Controller
             }
 
             try {
-                DB::transaction(function () use ($revenue, $action) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.revenue.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($revenue, $action): array {
                     if ($path = $revenue->add_receipt) {
                         Utility::changeStorageLimit($revenue[DatabaseConstants::COL_TABLE_CREATOR], "/uploads/revenue/{$path}");
                     }
@@ -369,13 +435,61 @@ class RevenueController extends Controller
                     Utility::bankAccountBalance($aid, $amt, 'debit');
 
                     Log::info($action . ' committed', ['revenueId' => $rid]);
-                });
+                    $payload = [
+                        'revenue_id' => (string) $rid,
+                        'customer_id' => $cid ? (string) $cid : null,
+                        'account_id' => $aid ? (string) $aid : null,
+                        'amount' => (float) $amt,
+                        'direction' => 'customer_receipt_reversal',
+                        'expects_transaction' => true,
+                    ];
+                    $operations->recordStep($ledger, 'finance.revenue.deleted', 'Delete revenue and reverse balances', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
 
-                return redirect()->route(self::REDIRECT_INDEX)->with('success', __('Revenue successfully deleted.'));
+                    return $payload;
+                }, [
+                    'summary' => 'Delete revenue',
+                    'subject_type' => Revenue::class,
+                    'subject_id' => (string) $revenue->id,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['revenue_id' => (string) $revenue->id, 'amount' => (float) ($revenue->amount ?? 0)],
+                    'event_type' => 'finance.revenue.deleted',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
+
+                return redirect()->route(self::REDIRECT_INDEX)
+                    ->with('success', __('Revenue successfully deleted.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error($action . ' failed', ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, $action, route(self::REDIRECT_INDEX));
             }
         }, ['revenue_id' => $revenue->id ?? null]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function revenueReliabilityPayload(Revenue $revenue, string $direction, bool $expectsTransaction): array
+    {
+        return [
+            'revenue_id' => (string) $revenue->id,
+            'payment_id' => (string) $revenue->id,
+            'customer_id' => $revenue->customer_id ? (string) $revenue->customer_id : null,
+            'account_id' => $revenue->account_id ? (string) $revenue->account_id : null,
+            'category_id' => $revenue->category_id ? (string) $revenue->category_id : null,
+            'amount' => (float) ($revenue->amount ?? 0),
+            'date' => (string) ($revenue->date ?? ''),
+            'direction' => $direction,
+            'expects_transaction' => $expectsTransaction,
+        ];
     }
 }

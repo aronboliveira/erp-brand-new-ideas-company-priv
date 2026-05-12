@@ -240,11 +240,26 @@ class FinanceOutboxDispatcher
         $eventType = $message->event_type;
         $signals = [
             $this->signal('journal-control', 'finance.journal', 'journal_entries', 'Journal control can mirror the finance movement.'),
+            $this->signal('finance-reporting', 'finance.reporting', 'finance_reporting_projection', 'Finance reporting projections can refresh after commit.'),
         ];
 
-        if (str_contains($eventType, 'payment') || str_contains($eventType, 'receipt')) {
+        if (
+            str_contains($eventType, 'payment')
+            || str_contains($eventType, 'receipt')
+            || str_contains($eventType, 'revenue')
+            || str_contains($eventType, 'bank_transfer')
+        ) {
             $signals[] = $this->signal('banking-sync', 'finance.banking', 'banking_api_shell', 'Banking sync can reconcile the cash movement.');
-            $signals[] = $this->signal('communication', 'finance.communication', 'communication_api_shell', 'Payment communication can run after commit.');
+            $signals[] = $this->signal('bank-reconciliation', 'finance.reconciliation', 'bank_reconciliation_shell', 'Bank reconciliation can compare account balances after commit.');
+            $signals[] = $this->signal('communication', 'finance.communication', 'communication_api_shell', 'Finance communication can run after commit.');
+        }
+
+        if (str_contains($eventType, 'credit_note') || str_contains($eventType, 'debit_note')) {
+            $signals[] = $this->signal('note-reconciliation', 'finance.notes', 'credit_debit_note_reconciliation_shell', 'Credit/debit note reconciliation can validate linked invoice or bill balances.');
+        }
+
+        if (str_contains($eventType, 'journal')) {
+            $signals[] = $this->signal('accounting-reconciliation', 'finance.accounting', 'journal_reconciliation_shell', 'Accounting reconciliation can validate balanced journal postings.');
         }
 
         if (str_contains($eventType, 'deleted')) {

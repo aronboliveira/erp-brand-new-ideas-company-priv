@@ -109,6 +109,12 @@ class FinanceReliabilityPolicy
     {
         $value = $options['amount']
             ?? $payload['amount']
+            ?? $payload['total_amount']
+            ?? $payload['transfer_amount']
+            ?? $payload['total_debit']
+            ?? $payload['total_credit']
+            ?? $payload['debit']
+            ?? $payload['credit']
             ?? $payload['total']
             ?? $payload['value']
             ?? 0;
@@ -298,12 +304,38 @@ class FinanceReliabilityPolicy
             'bill_overpaid',
             'invoice_payment_link',
             'bill_payment_link',
+            'purchase_payment_link',
+            'transaction_link',
+            'transaction_delete',
+            'transaction_amount',
             'invoice_status',
             'bill_status',
             'payment',
+            'payment_record',
+            'payment_record_delete',
             'payment_delete',
             'invoice',
             'bill',
+            'revenue',
+            'revenue_delete',
+            'bank_transfer',
+            'bank_transfer_delete',
+            'from_account',
+            'to_account',
+            'bank_transfer_accounts',
+            'purchase',
+            'purchase_payment',
+            'purchase_payment_delete',
+            'credit_note',
+            'credit_note_delete',
+            'debit_note',
+            'debit_note_delete',
+            'journal_entry',
+            'journal_entry_delete',
+            'journal_item_delete',
+            'journal_balance',
+            'journal_item_count',
+            'journal_amount',
         ];
 
         return array_intersect($coreKeys, array_keys($validation->validationErrors)) !== [];
@@ -461,7 +493,7 @@ class FinanceReliabilityPolicy
         }
 
         $transactionType = strtolower((string) ($payload['transaction_type'] ?? $payload['direction'] ?? $eventType));
-        foreach (['refund', 'reversal', 'transfer', 'banking', 'gateway', 'payroll', 'tax'] as $needle) {
+        foreach (['refund', 'reversal', 'transfer', 'banking', 'gateway', 'payroll', 'tax', 'journal', 'credit_note', 'debit_note'] as $needle) {
             if (str_contains($transactionType, $needle)) {
                 $score++;
                 break;
@@ -484,6 +516,17 @@ class FinanceReliabilityPolicy
         $value = $payload['invoice_id']
             ?? $payload['bill_id']
             ?? $payload['payment_id']
+            ?? $payload['purchase_payment_id']
+            ?? $payload['purchase_id']
+            ?? $payload['revenue_id']
+            ?? $payload['bank_transfer_id']
+            ?? $payload['transfer_id']
+            ?? $payload['credit_note_id']
+            ?? $payload['debit_note_id']
+            ?? $payload['journal_entry_id']
+            ?? $payload['journal_id']
+            ?? $payload['journal_item_id']
+            ?? $payload['item_id']
             ?? $payload['subject_id']
             ?? null;
 
@@ -492,7 +535,11 @@ class FinanceReliabilityPolicy
 
     private function operationTypeFromEvent(string $eventType): string
     {
-        return str_replace(['.payment_created', '.payment_deleted'], ['.payment.create', '.payment.delete'], $eventType);
+        return str_replace(
+            ['.payment_created', '.payment_deleted', '.created', '.updated', '.deleted'],
+            ['.payment.create', '.payment.delete', '.create', '.update', '.delete'],
+            $eventType,
+        );
     }
 
     private function breakerSegment(string $eventType): string

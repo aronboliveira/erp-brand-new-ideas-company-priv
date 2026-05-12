@@ -242,8 +242,19 @@ class FinanceOperationService
     private function defaultMessageKey(string $eventType, array $payload, OperationLedger $ledger): string
     {
         $reference = $payload['payment_id']
+            ?? $payload['purchase_payment_id']
+            ?? $payload['revenue_id']
+            ?? $payload['bank_transfer_id']
+            ?? $payload['transfer_id']
+            ?? $payload['credit_note_id']
+            ?? $payload['debit_note_id']
+            ?? $payload['journal_entry_id']
+            ?? $payload['journal_id']
+            ?? $payload['journal_item_id']
+            ?? $payload['item_id']
             ?? $payload['invoice_id']
             ?? $payload['bill_id']
+            ?? $payload['purchase_id']
             ?? $payload['reference']
             ?? $ledger->operation_key;
 

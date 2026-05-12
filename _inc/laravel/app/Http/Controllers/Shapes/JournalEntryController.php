@@ -8,13 +8,16 @@ use App\Config\Constants\{
     PermissionsConstants,
     ViewsConstants
 };
+use App\Http\Controllers\Concerns\HandlesFinanceReliability;
 use App\Models\{
     BankAccount,
     ChartOfAccount,
     JournalEntry,
     JournalItem,
+    OperationLedger,
     Utility
 };
+use App\Services\Reliability\{CriticalOperationService, ReliabilityPolicy};
 use App\Traits\{ChecksLogin, ChecksPermissions};
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\{Request, RedirectResponse, JsonResponse};
@@ -30,7 +33,7 @@ class JournalEntryController extends Controller
 
     use HasCrudConstants;
 
-    use ChecksLogin, ChecksPermissions;
+    use ChecksLogin, ChecksPermissions, HandlesFinanceReliability;
 
     private const INDEX_ROUTE = ViewsConstants::JRN_ET . '.index';
 
@@ -156,7 +159,7 @@ class JournalEntryController extends Controller
 
             try {
                 $t = microtime(true);
-                DB::transaction(function () use ($request, $accounts, $user, $sig) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.journal_entry.create', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($request, $accounts, $user, $sig, $totals): array {
                     $journal = JournalEntry::create([
                         'journal_id'  => $this->journalNumber(),
                         'date'        => $request->date,
@@ -176,11 +179,33 @@ class JournalEntryController extends Controller
                         Log::info("$sig created item", ['item_id' => $journalItem->id]);
                         $this->updateBankBalances($journalItem);
                     }
-                });
+                    $payload = $this->journalEntryReliabilityPayload($journal, $totals, 'journal_entry');
+                    $operations->recordStep($ledger, 'finance.journal_entry.persisted', 'Persist balanced journal entry and items', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Create journal entry',
+                    'subject_type' => JournalEntry::class,
+                    'subject_id' => 'journal-entry:create',
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['total_debit' => (float) $totals['debit'], 'total_credit' => (float) $totals['credit']],
+                    'event_type' => 'finance.journal_entry.created',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($t, $sig, 'transactionCommit');
 
                 return redirect()->route(self::INDEX_ROUTE)
-                    ->with('success', __('Journal entry successfully created.'));
+                    ->with('success', __('Journal entry successfully created.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("$sig error", ['err' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "$class::$action");
@@ -308,7 +333,7 @@ class JournalEntryController extends Controller
 
             try {
                 $t = microtime(true);
-                DB::transaction(function () use ($request, $journalEntry, $accounts, $sig) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.journal_entry.update', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($request, $journalEntry, $accounts, $sig, $totals): array {
                     $journalEntry->update([
                         'date'        => $request->date,
                         'reference'   => $request->reference,
@@ -336,11 +361,33 @@ class JournalEntryController extends Controller
                         Log::info("$sig item saved", ['item_id' => $ji->id]);
                         $this->updateBankBalances($ji);
                     }
-                });
+                    $payload = $this->journalEntryReliabilityPayload($journalEntry, $totals, 'journal_entry_update');
+                    $operations->recordStep($ledger, 'finance.journal_entry.updated', 'Update balanced journal entry and items', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Update journal entry',
+                    'subject_type' => JournalEntry::class,
+                    'subject_id' => (string) $journalEntry->id,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['journal_entry_id' => (string) $journalEntry->id, 'total_debit' => (float) $totals['debit'], 'total_credit' => (float) $totals['credit']],
+                    'event_type' => 'finance.journal_entry.updated',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($t, $sig, 'transactionCommit');
 
                 return redirect()->route(self::INDEX_ROUTE)
-                    ->with('success', __('Journal entry successfully updated.'));
+                    ->with('success', __('Journal entry successfully updated.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("$sig error", ['err' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "$class::$action");
@@ -369,15 +416,40 @@ class JournalEntryController extends Controller
 
             try {
                 $t = microtime(true);
-                DB::transaction(function () use ($journalEntry, $sig) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.journal_entry.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($journalEntry, $sig): array {
+                    $payload = $this->journalEntryReliabilityPayload($journalEntry, [
+                        'debit' => (float) JournalItem::where('journal', $journalEntry->id)->sum('debit'),
+                        'credit' => (float) JournalItem::where('journal', $journalEntry->id)->sum('credit'),
+                    ], 'journal_entry_reversal');
                     JournalItem::where('journal', $journalEntry->id)->delete();
                     $journalEntry->delete();
                     Log::info("$sig deleted", ['id' => $journalEntry->id]);
-                });
+                    $operations->recordStep($ledger, 'finance.journal_entry.deleted', 'Delete journal entry and items', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Delete journal entry',
+                    'subject_type' => JournalEntry::class,
+                    'subject_id' => (string) $journalEntry->id,
+                    'actor_id' => request()->user()?->id,
+                    'context' => ['journal_entry_id' => (string) $journalEntry->id],
+                    'event_type' => 'finance.journal_entry.deleted',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($t, $sig, 'transactionCommit');
 
                 return redirect()->route(self::INDEX_ROUTE)
-                    ->with('success', __('Journal entry successfully deleted.'));
+                    ->with('success', __('Journal entry successfully deleted.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("$sig error", ['err' => $e->getMessage()]);
                 return defaultUndefinedException(request(), $e, "$class::$action");
@@ -403,12 +475,38 @@ class JournalEntryController extends Controller
 
             try {
                 $t = microtime(true);
-                DB::transaction(fn() => JournalItem::where('id', $request->input('id'))->delete());
+                $itemId = (string) $request->input('id');
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.journal_item.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($itemId): array {
+                    $journalItem = JournalItem::findOrFail($itemId);
+                    $payload = $this->journalItemReliabilityPayload($journalItem, 'journal_item_reversal');
+                    $journalItem->delete();
+                    $operations->recordStep($ledger, 'finance.journal_item.deleted', 'Delete journal item', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Delete journal item',
+                    'subject_type' => JournalItem::class,
+                    'subject_id' => $itemId,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['journal_item_id' => $itemId],
+                    'event_type' => 'finance.journal_item.deleted',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($t, $sig, 'transactionCommit');
 
                 Log::info("$sig deleted journal item", ['item_id' => $request->input('id')]);
                 return redirect()->back()
-                    ->with('success', __('Journal entry account successfully deleted.'));
+                    ->with('success', __('Journal entry account successfully deleted.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Throwable $e) {
                 Log::error("$sig failed", ['error' => $e->getMessage()]);
                 return defaultUndefinedException($request, $e, "$class::$action", route(self::INDEX_ROUTE));
@@ -434,15 +532,37 @@ class JournalEntryController extends Controller
 
             try {
                 $t = microtime(true);
-                DB::transaction(function () use ($itemId) {
+                $financeOperation = $this->runFinanceReliabilityOperation('finance.journal_item.delete', function (?OperationLedger $ledger, CriticalOperationService $operations) use ($itemId): array {
                     $journalItem = JournalItem::findOrFail($itemId);
+                    $payload = $this->journalItemReliabilityPayload($journalItem, 'journal_item_reversal');
                     $journalItem->delete();
-                });
+                    $operations->recordStep($ledger, 'finance.journal_item.deleted', 'Delete journal item', [
+                        'step_type' => 'db_write',
+                        'sequence' => 50,
+                        'status' => ReliabilityPolicy::STEP_SUCCEEDED,
+                        'payload' => $payload,
+                        'started_at' => now(),
+                        'finished_at' => now(),
+                    ]);
+
+                    return $payload;
+                }, [
+                    'summary' => 'Delete journal item',
+                    'subject_type' => JournalItem::class,
+                    'subject_id' => (string) $itemId,
+                    'actor_id' => $request->user()?->id,
+                    'context' => ['journal_item_id' => (string) $itemId],
+                    'event_type' => 'finance.journal_item.deleted',
+                    'post_write_validation' => true,
+                    'payload' => fn(array $result): array => $result,
+                ]);
+                $dispatchReport = $this->dispatchFinanceReliabilityOutbox($financeOperation);
                 $this->logExecutionTime($t, $sig, 'transactionCommit');
 
                 Log::info("$sig deleted journal item", ['item_id' => $itemId]);
                 return redirect()->back()
-                    ->with('success', __('Journal account successfully deleted.'));
+                    ->with('success', __('Journal account successfully deleted.'))
+                    ->with('reliability_operation', $this->financeReliabilityClientPayload($financeOperation, $dispatchReport));
             } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
                 Log::warning("$sig not found", ['item_id' => $itemId]);
                 return redirect()->back()
@@ -452,6 +572,40 @@ class JournalEntryController extends Controller
                 return defaultUndefinedException($request, $e, "$class::$action", route(self::INDEX_ROUTE));
             }
         });
+    }
+
+    /**
+     * @param array{debit: float|int, credit: float|int} $totals
+     * @return array<string, mixed>
+     */
+    private function journalEntryReliabilityPayload(JournalEntry $journalEntry, array $totals, string $direction): array
+    {
+        return [
+            'journal_entry_id' => (string) $journalEntry->id,
+            'journal_id' => (string) $journalEntry->id,
+            'amount' => max((float) ($totals['debit'] ?? 0), (float) ($totals['credit'] ?? 0)),
+            'total_debit' => (float) ($totals['debit'] ?? 0),
+            'total_credit' => (float) ($totals['credit'] ?? 0),
+            'date' => (string) ($journalEntry->date ?? ''),
+            'direction' => $direction,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function journalItemReliabilityPayload(JournalItem $item, string $direction): array
+    {
+        return [
+            'journal_item_id' => (string) $item->id,
+            'item_id' => (string) $item->id,
+            'journal_entry_id' => (string) $item->journal,
+            'journal_id' => (string) $item->journal,
+            'amount' => max((float) ($item->debit ?? 0), (float) ($item->credit ?? 0)),
+            'debit' => (float) ($item->debit ?? 0),
+            'credit' => (float) ($item->credit ?? 0),
+            'direction' => $direction,
+        ];
     }
 
     private function updateBankBalances(JournalItem $item): void

@@ -3,7 +3,24 @@
 namespace App\Services\Reliability;
 
 use App\Config\Constants\{BillsConstants as BLC, DatabaseConstants as DC};
-use App\Models\{BankAccount, Bill, BillPayment, Invoice, InvoicePayment, OperationLedger};
+use App\Models\{
+    BankAccount,
+    BankTransfer,
+    Bill,
+    BillPayment,
+    CreditNote,
+    DebitNote,
+    Invoice,
+    InvoicePayment,
+    JournalEntry,
+    JournalItem,
+    OperationLedger,
+    Payment,
+    PurchasePayment,
+    Revenue,
+    Transaction
+};
+use Illuminate\Support\Facades\DB;
 
 class FinancePostWriteValidator
 {
@@ -14,6 +31,21 @@ class FinancePostWriteValidator
             'finance.invoice.payment_deleted' => $this->validateInvoicePaymentDeleted($payload, $ledger),
             'finance.bill.payment_created' => $this->validateBillPaymentCreated($payload, $ledger),
             'finance.bill.payment_deleted' => $this->validateBillPaymentDeleted($payload, $ledger),
+            'finance.revenue.created', 'finance.revenue.updated' => $this->validateRevenuePersisted($eventType, $payload, $ledger),
+            'finance.revenue.deleted' => $this->validateRevenueDeleted($payload, $ledger),
+            'finance.payment.created', 'finance.payment.updated' => $this->validatePaymentPersisted($eventType, $payload, $ledger),
+            'finance.payment.deleted' => $this->validatePaymentDeleted($payload, $ledger),
+            'finance.bank_transfer.created', 'finance.bank_transfer.updated' => $this->validateBankTransferPersisted($eventType, $payload, $ledger),
+            'finance.bank_transfer.deleted' => $this->validateBankTransferDeleted($payload, $ledger),
+            'finance.purchase.payment_created' => $this->validatePurchasePaymentCreated($payload, $ledger),
+            'finance.purchase.payment_deleted' => $this->validatePurchasePaymentDeleted($payload, $ledger),
+            'finance.credit_note.created', 'finance.credit_note.updated' => $this->validateCreditNotePersisted($eventType, $payload, $ledger),
+            'finance.credit_note.deleted' => $this->validateCreditNoteDeleted($payload, $ledger),
+            'finance.debit_note.created', 'finance.debit_note.updated' => $this->validateDebitNotePersisted($eventType, $payload, $ledger),
+            'finance.debit_note.deleted' => $this->validateDebitNoteDeleted($payload, $ledger),
+            'finance.journal_entry.created', 'finance.journal_entry.updated' => $this->validateJournalEntryPersisted($eventType, $payload, $ledger),
+            'finance.journal_entry.deleted' => $this->validateJournalEntryDeleted($payload, $ledger),
+            'finance.journal_item.deleted' => $this->validateJournalItemDeleted($payload, $ledger),
             default => PostWriteValidationResult::pass(
                 'finance',
                 (string) ($payload['source_table'] ?? 'finance'),
@@ -171,6 +203,399 @@ class FinancePostWriteValidator
         );
     }
 
+    private function validateRevenuePersisted(string $eventType, array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $revenueId = $this->stringOrNull($payload['revenue_id'] ?? $payload['id'] ?? null);
+        $revenue = $revenueId ? DB::table(DC::TABLE_RVN)->find($revenueId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $revenue->amount ?? null, $errors);
+        $this->validateAccount($payload, $revenue->account_id ?? null, $errors);
+
+        if (!$revenue) {
+            $errors['revenue'] = 'Revenue row was not persisted.';
+        }
+        if ((bool) ($payload['expects_transaction'] ?? false)) {
+            $this->validateTransactionPresent($revenueId, 'Revenue', 'Customer', $payload, $errors);
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_RVN,
+            Revenue::class,
+            $revenueId,
+            ['payload' => $payload, 'revenue' => $this->rowSnapshot($revenue)],
+            $this->originEvent($eventType, $payload, $ledger),
+        );
+    }
+
+    private function validateRevenueDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $revenueId = $this->stringOrNull($payload['revenue_id'] ?? $payload['id'] ?? null);
+        $revenue = $revenueId ? DB::table(DC::TABLE_RVN)->find($revenueId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $payload['amount'] ?? null, $errors);
+        $this->validateAccount($payload, $payload['account_id'] ?? null, $errors);
+        if ($revenue) {
+            $errors['revenue_delete'] = 'Revenue row still exists after the delete operation.';
+        }
+        if ((bool) ($payload['expects_transaction'] ?? false)) {
+            $this->validateTransactionRemoved($revenueId, 'Revenue', 'Customer', $errors);
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_RVN,
+            Revenue::class,
+            $revenueId,
+            ['payload' => $payload, 'revenue_exists_after_delete' => (bool) $revenue],
+            $this->originEvent('finance.revenue.deleted', $payload, $ledger),
+        );
+    }
+
+    private function validatePaymentPersisted(string $eventType, array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $paymentId = $this->stringOrNull($payload['payment_id'] ?? $payload['id'] ?? null);
+        $payment = $paymentId ? DB::table(DC::TABLE_PAY)->find($paymentId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $payment->amount ?? null, $errors);
+        $this->validateAccount($payload, $payment->account_id ?? null, $errors);
+
+        if (!$payment) {
+            $errors['payment_record'] = 'Payment row was not persisted.';
+        }
+        if ((bool) ($payload['expects_transaction'] ?? false)) {
+            $this->validateTransactionPresent($paymentId, 'Payment', 'Vendor', $payload, $errors);
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_PAY,
+            Payment::class,
+            $paymentId,
+            ['payload' => $payload, 'payment_record' => $this->rowSnapshot($payment)],
+            $this->originEvent($eventType, $payload, $ledger),
+        );
+    }
+
+    private function validatePaymentDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $paymentId = $this->stringOrNull($payload['payment_id'] ?? $payload['id'] ?? null);
+        $payment = $paymentId ? DB::table(DC::TABLE_PAY)->find($paymentId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $payload['amount'] ?? null, $errors);
+        $this->validateAccount($payload, $payload['account_id'] ?? null, $errors);
+        if ($payment) {
+            $errors['payment_record_delete'] = 'Payment row still exists after the delete operation.';
+        }
+        if ((bool) ($payload['expects_transaction'] ?? false)) {
+            $this->validateTransactionRemoved($paymentId, 'Payment', 'Vendor', $errors);
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_PAY,
+            Payment::class,
+            $paymentId,
+            ['payload' => $payload, 'payment_record_exists_after_delete' => (bool) $payment],
+            $this->originEvent('finance.payment.deleted', $payload, $ledger),
+        );
+    }
+
+    private function validateBankTransferPersisted(string $eventType, array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $transferId = $this->stringOrNull($payload['bank_transfer_id'] ?? $payload['transfer_id'] ?? $payload['id'] ?? null);
+        $transfer = $transferId ? DB::table(DC::TABLE_BNK_TRF)->find($transferId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $transfer->amount ?? null, $errors);
+        $this->validateTransferAccounts(
+            $transfer->from_account ?? $payload['from_account'] ?? null,
+            $transfer->to_account ?? $payload['to_account'] ?? null,
+            $errors,
+        );
+
+        if (!$transfer) {
+            $errors['bank_transfer'] = 'Bank transfer row was not persisted.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_BNK_TRF,
+            BankTransfer::class,
+            $transferId,
+            ['payload' => $payload, 'bank_transfer' => $this->rowSnapshot($transfer)],
+            $this->originEvent($eventType, $payload, $ledger),
+        );
+    }
+
+    private function validateBankTransferDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $transferId = $this->stringOrNull($payload['bank_transfer_id'] ?? $payload['transfer_id'] ?? $payload['id'] ?? null);
+        $transfer = $transferId ? DB::table(DC::TABLE_BNK_TRF)->find($transferId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $payload['amount'] ?? null, $errors);
+        $this->validateTransferAccounts($payload['from_account'] ?? null, $payload['to_account'] ?? null, $errors);
+        if ($this->rowIsActive($transfer)) {
+            $errors['bank_transfer_delete'] = 'Bank transfer row still exists after the delete operation.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_BNK_TRF,
+            BankTransfer::class,
+            $transferId,
+            ['payload' => $payload, 'bank_transfer_exists_after_delete' => $this->rowIsActive($transfer)],
+            $this->originEvent('finance.bank_transfer.deleted', $payload, $ledger),
+        );
+    }
+
+    private function validatePurchasePaymentCreated(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $paymentId = $this->stringOrNull($payload['purchase_payment_id'] ?? $payload['payment_id'] ?? $payload['id'] ?? null);
+        $purchaseId = $this->stringOrNull($payload['purchase_id'] ?? null);
+        $payment = $paymentId ? DB::table(DC::TABLE_PRC_PAY)->find($paymentId) : null;
+        $purchase = $purchaseId ? DB::table(DC::TABLE_PURCHASES)->find($purchaseId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $payment->amount ?? null, $errors);
+        $this->validateAccount($payload, $payment->account_id ?? null, $errors);
+        if (!$payment) {
+            $errors['purchase_payment'] = 'Purchase payment row was not persisted.';
+        }
+        if (!$purchase) {
+            $errors['purchase'] = 'Purchase referenced by the payment was not found.';
+        }
+        if ($payment && $purchaseId && (string) ($payment->purchase_id ?? '') !== $purchaseId) {
+            $errors['purchase_payment_link'] = 'Purchase payment points to a different purchase than the operation payload.';
+        }
+        if ((bool) ($payload['expects_transaction'] ?? false)) {
+            $this->validateTransactionPresent($paymentId, 'Partial', 'Vendor', $payload, $errors);
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_PRC_PAY,
+            PurchasePayment::class,
+            $paymentId,
+            ['payload' => $payload, 'purchase_payment' => $this->rowSnapshot($payment), 'purchase' => $this->rowSnapshot($purchase)],
+            $this->originEvent('finance.purchase.payment_created', $payload, $ledger),
+        );
+    }
+
+    private function validatePurchasePaymentDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $paymentId = $this->stringOrNull($payload['purchase_payment_id'] ?? $payload['payment_id'] ?? $payload['id'] ?? null);
+        $purchaseId = $this->stringOrNull($payload['purchase_id'] ?? null);
+        $payment = $paymentId ? DB::table(DC::TABLE_PRC_PAY)->find($paymentId) : null;
+        $purchase = $purchaseId ? DB::table(DC::TABLE_PURCHASES)->find($purchaseId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $payload['amount'] ?? null, $errors);
+        $this->validateAccount($payload, $payload['account_id'] ?? null, $errors);
+        if ($payment) {
+            $errors['purchase_payment_delete'] = 'Purchase payment row still exists after the delete operation.';
+        }
+        if (!$purchase) {
+            $errors['purchase'] = 'Purchase referenced by the deleted payment was not found.';
+        }
+        if ((bool) ($payload['expects_transaction'] ?? false)) {
+            $this->validateTransactionRemoved($paymentId, 'Partial', 'Vendor', $errors);
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_PRC_PAY,
+            PurchasePayment::class,
+            $paymentId,
+            ['payload' => $payload, 'purchase_payment_exists_after_delete' => (bool) $payment, 'purchase' => $this->rowSnapshot($purchase)],
+            $this->originEvent('finance.purchase.payment_deleted', $payload, $ledger),
+        );
+    }
+
+    private function validateCreditNotePersisted(string $eventType, array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $noteId = $this->stringOrNull($payload['credit_note_id'] ?? $payload['note_id'] ?? $payload['id'] ?? null);
+        $invoiceId = $this->stringOrNull($payload['invoice_id'] ?? $payload['invoice'] ?? null);
+        $note = $noteId ? DB::table(DC::TABLE_CR_NOTES)->find($noteId) : null;
+        $invoiceId = $invoiceId ?? $this->stringOrNull($note->invoice ?? $note->invoice_id ?? null);
+        $invoice = $invoiceId ? Invoice::query()->find($invoiceId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $note->amount ?? null, $errors);
+        if (!$note) {
+            $errors['credit_note'] = 'Credit note row was not persisted.';
+        }
+        if (!$invoice) {
+            $errors['invoice'] = 'Invoice referenced by the credit note was not found.';
+        } elseif ($invoice->getDue() < -0.01) {
+            $errors['invoice_overpaid'] = 'Credit notes and payments exceed invoice total.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_CR_NOTES,
+            CreditNote::class,
+            $noteId,
+            ['payload' => $payload, 'credit_note' => $this->rowSnapshot($note), 'invoice' => $invoice?->getAttributes()],
+            $this->originEvent($eventType, $payload, $ledger),
+        );
+    }
+
+    private function validateCreditNoteDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $noteId = $this->stringOrNull($payload['credit_note_id'] ?? $payload['note_id'] ?? $payload['id'] ?? null);
+        $invoiceId = $this->stringOrNull($payload['invoice_id'] ?? $payload['invoice'] ?? null);
+        $note = $noteId ? DB::table(DC::TABLE_CR_NOTES)->find($noteId) : null;
+        $invoice = $invoiceId ? Invoice::query()->find($invoiceId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $payload['amount'] ?? null, $errors);
+        if ($note) {
+            $errors['credit_note_delete'] = 'Credit note row still exists after the delete operation.';
+        }
+        if (!$invoice) {
+            $errors['invoice'] = 'Invoice referenced by the deleted credit note was not found.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_CR_NOTES,
+            CreditNote::class,
+            $noteId,
+            ['payload' => $payload, 'credit_note_exists_after_delete' => (bool) $note, 'invoice' => $invoice?->getAttributes()],
+            $this->originEvent('finance.credit_note.deleted', $payload, $ledger),
+        );
+    }
+
+    private function validateDebitNotePersisted(string $eventType, array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $noteId = $this->stringOrNull($payload['debit_note_id'] ?? $payload['note_id'] ?? $payload['id'] ?? null);
+        $billId = $this->stringOrNull($payload['bill_id'] ?? $payload['bill'] ?? null);
+        $note = $noteId ? DB::table(DC::TABLE_DB_NOTES)->find($noteId) : null;
+        $billId = $billId ?? $this->stringOrNull($note->bill ?? $note->bill_id ?? null);
+        $bill = $billId ? Bill::query()->find($billId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $note->amount ?? null, $errors);
+        if (!$note) {
+            $errors['debit_note'] = 'Debit note row was not persisted.';
+        }
+        if (!$bill) {
+            $errors['bill'] = 'Bill referenced by the debit note was not found.';
+        } elseif ($bill->getDue() < -0.01) {
+            $errors['bill_overpaid'] = 'Debit notes and payments exceed bill total.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_DB_NOTES,
+            DebitNote::class,
+            $noteId,
+            ['payload' => $payload, 'debit_note' => $this->rowSnapshot($note), 'bill' => $bill?->getAttributes()],
+            $this->originEvent($eventType, $payload, $ledger),
+        );
+    }
+
+    private function validateDebitNoteDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $noteId = $this->stringOrNull($payload['debit_note_id'] ?? $payload['note_id'] ?? $payload['id'] ?? null);
+        $billId = $this->stringOrNull($payload['bill_id'] ?? $payload['bill'] ?? null);
+        $note = $noteId ? DB::table(DC::TABLE_DB_NOTES)->find($noteId) : null;
+        $bill = $billId ? Bill::query()->find($billId) : null;
+        $errors = [];
+
+        $this->validatePositiveAmount($payload, $payload['amount'] ?? null, $errors);
+        if ($note) {
+            $errors['debit_note_delete'] = 'Debit note row still exists after the delete operation.';
+        }
+        if (!$bill) {
+            $errors['bill'] = 'Bill referenced by the deleted debit note was not found.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_DB_NOTES,
+            DebitNote::class,
+            $noteId,
+            ['payload' => $payload, 'debit_note_exists_after_delete' => (bool) $note, 'bill' => $bill?->getAttributes()],
+            $this->originEvent('finance.debit_note.deleted', $payload, $ledger),
+        );
+    }
+
+    private function validateJournalEntryPersisted(string $eventType, array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $journalId = $this->stringOrNull($payload['journal_entry_id'] ?? $payload['journal_id'] ?? $payload['id'] ?? null);
+        $journal = $journalId ? DB::table(DC::TABLE_JOURNAL_ENTRIES)->find($journalId) : null;
+        $totals = $this->journalItemTotals($journalId);
+        $errors = [];
+
+        if (!$journal) {
+            $errors['journal_entry'] = 'Journal entry row was not persisted.';
+        }
+        $this->validateJournalBalance($totals, $errors);
+
+        return $this->result(
+            $errors,
+            DC::TABLE_JOURNAL_ENTRIES,
+            JournalEntry::class,
+            $journalId,
+            ['payload' => $payload, 'journal_entry' => $this->rowSnapshot($journal), 'item_totals' => $totals],
+            $this->originEvent($eventType, $payload, $ledger),
+        );
+    }
+
+    private function validateJournalEntryDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $journalId = $this->stringOrNull($payload['journal_entry_id'] ?? $payload['journal_id'] ?? $payload['id'] ?? null);
+        $journal = $journalId ? DB::table(DC::TABLE_JOURNAL_ENTRIES)->find($journalId) : null;
+        $items = $journalId ? DB::table(DC::TABLE_JRN_IT)->where('journal', $journalId)->whereNull('deleted_at')->count() : 0;
+        $errors = [];
+
+        if ($this->rowIsActive($journal)) {
+            $errors['journal_entry_delete'] = 'Journal entry row still exists after the delete operation.';
+        }
+        if ($items > 0) {
+            $errors['journal_item_delete'] = 'Journal entry still has items after the delete operation.';
+        }
+
+        return $this->result(
+            $errors,
+            DC::TABLE_JOURNAL_ENTRIES,
+            JournalEntry::class,
+            $journalId,
+            ['payload' => $payload, 'journal_exists_after_delete' => $this->rowIsActive($journal), 'remaining_items' => $items],
+            $this->originEvent('finance.journal_entry.deleted', $payload, $ledger),
+        );
+    }
+
+    private function validateJournalItemDeleted(array $payload, ?OperationLedger $ledger): PostWriteValidationResult
+    {
+        $itemId = $this->stringOrNull($payload['journal_item_id'] ?? $payload['item_id'] ?? $payload['id'] ?? null);
+        $journalId = $this->stringOrNull($payload['journal_entry_id'] ?? $payload['journal_id'] ?? null);
+        $item = $itemId ? DB::table(DC::TABLE_JRN_IT)->find($itemId) : null;
+        $totals = $this->journalItemTotals($journalId);
+        $errors = [];
+
+        if ($this->rowIsActive($item)) {
+            $errors['journal_item_delete'] = 'Journal item row still exists after the delete operation.';
+        }
+        $this->validateJournalBalance($totals, $errors, allowEmpty: true);
+
+        return $this->result(
+            $errors,
+            DC::TABLE_JRN_IT,
+            JournalItem::class,
+            $itemId,
+            ['payload' => $payload, 'journal_item_exists_after_delete' => $this->rowIsActive($item), 'item_totals' => $totals],
+            $this->originEvent('finance.journal_item.deleted', $payload, $ledger),
+        );
+    }
+
     private function validatePositiveAmount(array $payload, mixed $actualAmount, array &$errors): void
     {
         $amount = (float) ($actualAmount ?? $payload['amount'] ?? 0);
@@ -189,6 +614,107 @@ class FinancePostWriteValidator
 
         if (!BankAccount::query()->whereKey($accountId)->exists()) {
             $errors['account_id'] = 'Finance payment account_id does not reference a bank account.';
+        }
+    }
+
+    private function validateTransferAccounts(mixed $fromAccountId, mixed $toAccountId, array &$errors): void
+    {
+        $from = $this->stringOrNull($fromAccountId);
+        $to = $this->stringOrNull($toAccountId);
+
+        if (!$from) {
+            $errors['from_account'] = 'Bank transfer from_account must be populated.';
+        } elseif (!BankAccount::query()->whereKey($from)->exists()) {
+            $errors['from_account'] = 'Bank transfer from_account does not reference a bank account.';
+        }
+
+        if (!$to) {
+            $errors['to_account'] = 'Bank transfer to_account must be populated.';
+        } elseif (!BankAccount::query()->whereKey($to)->exists()) {
+            $errors['to_account'] = 'Bank transfer to_account does not reference a bank account.';
+        }
+
+        if ($from && $to && $from === $to) {
+            $errors['bank_transfer_accounts'] = 'Bank transfer source and destination accounts must be different.';
+        }
+    }
+
+    private function validateTransactionPresent(?string $paymentId, string $paymentType, string $userType, array $payload, array &$errors): void
+    {
+        if (!$paymentId) {
+            $errors['transaction_link'] = 'Transaction source id is missing.';
+            return;
+        }
+
+        $transaction = Transaction::query()
+            ->where(BLC::COL_PAY_ID, $paymentId)
+            ->where(BLC::COL_PAY_TP, $paymentType)
+            ->where('user_type', $userType)
+            ->first();
+
+        if (!$transaction) {
+            $errors['transaction_link'] = 'Transaction mirror row was not persisted.';
+            return;
+        }
+
+        $amount = (float) ($payload['amount'] ?? 0);
+        if ($amount > 0.0 && abs((float) $transaction->amount - $amount) > 0.01) {
+            $errors['transaction_amount'] = 'Transaction mirror amount does not match the source operation.';
+        }
+    }
+
+    private function validateTransactionRemoved(?string $paymentId, string $paymentType, string $userType, array &$errors): void
+    {
+        if (!$paymentId) {
+            return;
+        }
+
+        if (Transaction::query()
+            ->where(BLC::COL_PAY_ID, $paymentId)
+            ->where(BLC::COL_PAY_TP, $paymentType)
+            ->where('user_type', $userType)
+            ->exists()) {
+            $errors['transaction_delete'] = 'Transaction mirror row still exists after the delete operation.';
+        }
+    }
+
+    /**
+     * @return array{debit: float, credit: float, count: int}
+     */
+    private function journalItemTotals(?string $journalId): array
+    {
+        if (!$journalId) {
+            return ['debit' => 0.0, 'credit' => 0.0, 'count' => 0];
+        }
+
+        $row = DB::table(DC::TABLE_JRN_IT)
+            ->where('journal', $journalId)
+            ->whereNull('deleted_at')
+            ->selectRaw('coalesce(sum(debit), 0) as debit, coalesce(sum(credit), 0) as credit, count(*) as item_count')
+            ->first();
+
+        return [
+            'debit' => (float) ($row->debit ?? 0),
+            'credit' => (float) ($row->credit ?? 0),
+            'count' => (int) ($row->item_count ?? 0),
+        ];
+    }
+
+    /**
+     * @param array{debit: float, credit: float, count: int} $totals
+     */
+    private function validateJournalBalance(array $totals, array &$errors, bool $allowEmpty = false): void
+    {
+        if (!$allowEmpty && $totals['count'] < 2) {
+            $errors['journal_item_count'] = 'Journal entry must have at least two persisted item rows.';
+        }
+
+        if ($totals['count'] > 0 && abs($totals['debit'] - $totals['credit']) > 0.01) {
+            $errors['journal_balance'] = 'Journal item debit and credit totals are not balanced.';
+        }
+
+        if (!$allowEmpty && $totals['debit'] <= 0.0 && $totals['credit'] <= 0.0) {
+            $errors['journal_amount'] = 'Journal entry total must be greater than zero.';
         }
     }
 
@@ -279,6 +805,17 @@ class FinancePostWriteValidator
         if (array_key_exists('invoice_overpaid', $errors) || array_key_exists('bill_overpaid', $errors)) {
             $criteria[] = 'C4';
         }
+        if (array_key_exists('transaction_link', $errors) || array_key_exists('transaction_delete', $errors)) {
+            $criteria[] = 'C3';
+        }
+        if (
+            array_key_exists('from_account', $errors)
+            || array_key_exists('to_account', $errors)
+            || array_key_exists('bank_transfer_accounts', $errors)
+            || array_key_exists('journal_balance', $errors)
+        ) {
+            $criteria[] = 'C7';
+        }
 
         return array_values(array_unique($criteria));
     }
@@ -304,5 +841,22 @@ class FinancePostWriteValidator
         }
 
         return (string) $value;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function rowSnapshot(mixed $row): ?array
+    {
+        return is_object($row) ? (array) $row : null;
+    }
+
+    private function rowIsActive(mixed $row): bool
+    {
+        if (!is_object($row)) {
+            return false;
+        }
+
+        return !property_exists($row, 'deleted_at') || $row->deleted_at === null || $row->deleted_at === '';
     }
 }
