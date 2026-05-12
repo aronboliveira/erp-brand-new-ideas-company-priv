@@ -20,6 +20,8 @@ class FinanceOutboxDispatcher
 
     private QuarantineService $quarantine;
 
+    private DomainSignalHandlerService $domainSignals;
+
     /**
      * @var array<string, callable(OutboxMessage): array<int, array<string, mixed>>>
      */
@@ -35,6 +37,7 @@ class FinanceOutboxDispatcher
         ?FinanceCompensationService $compensation = null,
         ?QuarantineService $quarantine = null,
         array $handlers = [],
+        ?DomainSignalHandlerService $domainSignals = null,
     ) {
         $this->outbox = $outbox ?? new OutboxService();
         $this->operations = $operations ?? new CriticalOperationService();
@@ -42,6 +45,7 @@ class FinanceOutboxDispatcher
         $this->compensation = $compensation ?? new FinanceCompensationService($this->operations, $this->events);
         $this->quarantine = $quarantine ?? new QuarantineService();
         $this->handlers = $handlers;
+        $this->domainSignals = $domainSignals ?? new DomainSignalHandlerService(events: $this->events);
     }
 
     /**
@@ -111,7 +115,8 @@ class FinanceOutboxDispatcher
                 throw new \RuntimeException('No finance outbox handler signal was produced.');
             }
 
-            foreach ($signals as $signal) {
+            foreach ($signals as $index => $signal) {
+                $signals[$index] = $signal = $this->domainSignals->handle($message, $ledger, $signal, 'finance');
                 $this->recordSignalAccepted($message, $ledger, $signal);
             }
 

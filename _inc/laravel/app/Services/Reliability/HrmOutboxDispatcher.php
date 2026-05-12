@@ -20,6 +20,8 @@ class HrmOutboxDispatcher
 
     private QuarantineService $quarantine;
 
+    private DomainSignalHandlerService $domainSignals;
+
     /**
      * @var array<string, callable(OutboxMessage): array<int, array<string, mixed>>>
      */
@@ -35,6 +37,7 @@ class HrmOutboxDispatcher
         ?HrmCompensationService $compensation = null,
         ?QuarantineService $quarantine = null,
         array $handlers = [],
+        ?DomainSignalHandlerService $domainSignals = null,
     ) {
         $this->outbox = $outbox ?? new OutboxService();
         $this->operations = $operations ?? new CriticalOperationService();
@@ -42,6 +45,7 @@ class HrmOutboxDispatcher
         $this->compensation = $compensation ?? new HrmCompensationService($this->operations, $this->events);
         $this->quarantine = $quarantine ?? new QuarantineService();
         $this->handlers = $handlers;
+        $this->domainSignals = $domainSignals ?? new DomainSignalHandlerService(events: $this->events);
     }
 
     /**
@@ -111,7 +115,8 @@ class HrmOutboxDispatcher
                 throw new \RuntimeException('No HRM outbox handler signal was produced.');
             }
 
-            foreach ($signals as $signal) {
+            foreach ($signals as $index => $signal) {
+                $signals[$index] = $signal = $this->domainSignals->handle($message, $ledger, $signal, 'hrm');
                 $this->recordSignalAccepted($message, $ledger, $signal);
             }
 

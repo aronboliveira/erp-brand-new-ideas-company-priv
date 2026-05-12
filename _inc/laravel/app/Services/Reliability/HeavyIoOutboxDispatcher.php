@@ -20,6 +20,8 @@ class HeavyIoOutboxDispatcher
 
     private QuarantineService $quarantine;
 
+    private DomainSignalHandlerService $domainSignals;
+
     /**
      * @var array<string, callable(OutboxMessage): array<int, array<string, mixed>>>
      */
@@ -35,6 +37,7 @@ class HeavyIoOutboxDispatcher
         ?HeavyIoCompensationService $compensation = null,
         ?QuarantineService $quarantine = null,
         array $handlers = [],
+        ?DomainSignalHandlerService $domainSignals = null,
     ) {
         $this->outbox = $outbox ?? new OutboxService();
         $this->operations = $operations ?? new CriticalOperationService();
@@ -42,6 +45,7 @@ class HeavyIoOutboxDispatcher
         $this->compensation = $compensation ?? new HeavyIoCompensationService($this->operations, $this->events);
         $this->quarantine = $quarantine ?? new QuarantineService();
         $this->handlers = $handlers;
+        $this->domainSignals = $domainSignals ?? new DomainSignalHandlerService(events: $this->events);
     }
 
     /**
@@ -111,7 +115,8 @@ class HeavyIoOutboxDispatcher
                 throw new \RuntimeException('No heavy I/O outbox handler signal was produced.');
             }
 
-            foreach ($signals as $signal) {
+            foreach ($signals as $index => $signal) {
+                $signals[$index] = $signal = $this->domainSignals->handle($message, $ledger, $signal, 'heavy_io');
                 $this->recordSignalAccepted($message, $ledger, $signal);
             }
 
@@ -363,4 +368,3 @@ class HeavyIoOutboxDispatcher
         ];
     }
 }
-
