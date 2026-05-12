@@ -16,7 +16,9 @@ Durable notes, instructions, and structured references for agents and developers
   ledger, operation step, operational event support, retry/circuit breaker
   builders, quarantine overlays, and monolith outbox dispatcher/compensation
   slices for finance and the first HRM procedures. Finance covers invoice/bill
-  payment create/delete. HRM covers salary/payroll updates, termination
+  payment create/delete plus extended revenue, generic payment, bank-transfer,
+  purchase-payment, credit/debit note, and journal-entry/item flows. HRM covers
+  salary/payroll updates, termination
   lifecycle decisions, and leave status decisions. HRM quarantine explicitly
   treats employees without linked users as valid and reserves quarantine for
   persistent linked-user/RBAC/payroll/lifecycle corruption signals. Warehouse/

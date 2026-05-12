@@ -116,8 +116,9 @@ There is no broker requirement yet.
   message key/payload after the DB callback has created the payment row.
 - `FinanceOutboxDispatcher` processes `finance.ledger` outbox rows after
   commit and records accepted internal signals for journal control, banking
-  API shells, communication API shells, ledger reversal review, and webhook
-  shells.
+  API shells, bank reconciliation, credit/debit note reconciliation, accounting
+  reconciliation, finance reporting, communication API shells, ledger reversal
+  review, and webhook shells.
 - Each finance outbox signal is guarded by `Retry` and `CircuitBreaker` before
   the durable outbox row is marked processed, failed, or dead-lettered.
 - Every finance transaction is retry-eligible. Retry attempts scale through
@@ -135,6 +136,15 @@ There is no broker requirement yet.
   finance operation wrapper, dispatch their local finance outbox immediately
   after commit, and flash a `reliability_operation` payload for client-side
   progress feedback.
+- Extended local finance flows now use the same wrapper: revenue
+  create/update/delete, generic vendor payment create/update/delete, bank
+  transfer create/update/delete, purchase payment create/delete, credit/debit
+  note create/update/delete/custom-create, and journal entry/item create/update/
+  delete paths.
+- `FinancePostWriteValidator` understands payment mirrors, revenue rows,
+  bank-transfer account pairs, purchase-payment bridges, credit/debit notes,
+  and journal item balance checks. Keep these checks amount/policy-gated unless
+  a caller has a specific reason to force validation.
 - `OperationStatusController` serves the status payload through the named route
   `reliability.operations.show`; the app route pluralizer renders the URI as
   `reliabilities/operations/{operation}`.

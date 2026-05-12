@@ -213,6 +213,20 @@ tests, 25 assertions), `php artisan list --raw` confirms
 `reliability:dispatch-heavy-io-outbox`, full `tests/Unit --no-coverage` is
 green (10,637 tests, 20,685 assertions), and `composer phpstan` is clean.
 
+Latest finance extended-flow check (2026-05-11, Codex): revenue create/update/
+delete, generic vendor payment create/update/delete, bank transfer create/
+update/delete, purchase payment create/delete, credit/debit note create/update/
+delete/custom-create, and journal entry/item create/update/delete paths now use
+`FinanceOperationService`, `finance.ledger` outbox rows, post-write validation,
+retry/circuit dispatcher support, and client feedback. Finance policy/validator
+now understands revenue/payment/transfer/purchase-payment/note/journal amount,
+subject, transaction mirror, and corruption keys. `FinanceExtendedFlowsTest` is
+green (3 tests, 12 assertions), all reliability service tests are green
+(57 tests, 309 assertions), touched finance controller tests are green
+(344 tests, 411 assertions), full `tests/Unit --no-coverage` is green
+(10,640 tests, 20,697 assertions), `composer phpstan` is clean, and
+`git diff --check` is clean.
+
 ---
 
 ## TASK A — Bills Models Namespace Finalization ✅ DONE
@@ -739,8 +753,56 @@ Verification:
 - `php artisan list --raw` — confirms `reliability:dispatch-heavy-io-outbox`.
 - `composer phpstan` — no errors.
 
-Next: timesheet/expense approval/finalization, broader finance flows beyond the
-first invoice/bill payment slice, and real domain compensation/reconciliation
+Next: timesheet/expense approval/finalization and real domain
+compensation/reconciliation handlers behind the accepted signal shells.
+
+---
+
+## TASK Q — Finance Extended Flows Reliability Slice ✅ DONE
+
+**Status:** Implemented 2026-05-11 by Codex.
+
+Added:
+
+- Shared controller trait:
+  `App\Http\Controllers\Concerns\HandlesFinanceReliability`.
+- Finance policy/validator support for revenue, generic vendor payments, bank
+  transfers, purchase payments, credit notes, debit notes, journal entries, and
+  journal items.
+- Finance dispatcher default signals for banking reconciliation, finance
+  reporting, credit/debit note reconciliation, accounting reconciliation,
+  communication, reversal review, and webhook shells.
+- Adoption: `RevenueController::store/update/destroy`,
+  `PaymentController::store/update/destroy`,
+  `BankTransferController::store/update/destroy`,
+  `PurchaseController::createPayment/paymentDestroy`,
+  `CreditNoteController::store/update/destroy/customStore`,
+  `DebitNoteController::store/update/destroy/customStore`, and
+  `JournalEntryController::store/update/destroy/accountDestroy/journalDestroy`.
+
+Policy notes:
+
+- Every money-moving finance flow remains retry-eligible. Attempts still scale
+  by amount, reversal-like direction, metadata risk, and persistent instability.
+- Post-write validation remains policy-gated from amount `3,200` unless a caller
+  explicitly forces it; low-value finance operations still get retry/outbox
+  coverage without unnecessary validation overhead.
+- Quarantine remains rare and requires persistent retry/circuit/dead-letter/
+  failed-ledger/long-running instability plus core finance corruption.
+- Gateway callback/payment-provider flows were left for a separate pass because
+  their idempotency and external-origin semantics need a targeted scan.
+
+Verification:
+
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability/FinanceExtendedFlowsTest.php --no-coverage` — 3 tests, 12 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage` — 57 tests, 309 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit/app/Http/Controllers/bills/RevenueControllerTest.php tests/Unit/app/Http/Controllers/bills/PaymentControllerTest.php tests/Unit/app/Http/Controllers/bills/BankTransferControllerTest.php tests/Unit/app/Http/Controllers/bills/CreditNoteControllerTest.php tests/Unit/app/Http/Controllers/bills/DebitNoteControllerTest.php tests/Unit/app/Http/Controllers/activity/PurchaseControllerTest.php tests/Unit/app/Http/Controllers/shapes/JournalEntryControllerTest.php --no-coverage` — 344 tests, 411 assertions, OK.
+- `php vendor/bin/phpunit tests/Unit --no-coverage` — 10,640 tests, 20,697 assertions, OK.
+- `composer phpstan` — no errors.
+- `git diff --check` — clean.
+
+Next: timesheet/expense approval/finalization, external gateway callback
+idempotency, and real finance banking/journal/reconciliation/compensation
 handlers behind the accepted signal shells.
 
 ---
@@ -751,7 +813,7 @@ handlers behind the accepted signal shells.
 2. `_inc/laravel/.notes/.llms/.guidelines/constraints.md` — hard rules
 3. `_inc/laravel/.notes/.llms/.guidelines/roles/agent-roles.md` — role-specific reading lists
 4. `_inc/laravel/.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md` — outbox/inbox + operation ledger policy
-5. `.tmp/codex/20260511/handsoff.md` — latest Codex warehouse/CRM/planning/heavy-I/O reliability continuation state
+5. `.tmp/codex/20260511/handsoff.md` — latest Codex warehouse/CRM/planning/heavy-I/O/finance-extended reliability continuation state
 6. `.tmp/codex/20260510/handsoff.md` — prior Codex finance/HRM reliability continuation state
 7. `.tmp/codex/20260509/handsoff.md` — prior Codex Unit-suite continuation state
 8. `.tmp/opencode/ds/20260507_handsoff-update.md` — last DS agent final state

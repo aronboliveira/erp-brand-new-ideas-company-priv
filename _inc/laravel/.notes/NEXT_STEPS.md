@@ -58,6 +58,35 @@ Stale items now closed by later Claude commits:
 
 ## RECENTLY COMPLETED (2026-05-11)
 
+### Finance Extended Flows Reliability Slice
+
+- Revenue create/update/delete now uses `FinanceOperationService`, committing
+  the revenue mutation, transaction mirror, operation ledger, post-write
+  validation step, and `finance.ledger` outbox intent together.
+- Generic vendor payment create/update/delete now uses the same finance wrapper
+  and validates the `payments` row, bank account, and mirrored transaction when
+  the amount reaches the finance validation threshold.
+- Bank transfer create/update/delete now records finance ledgers/outbox rows and
+  validates source/destination account pairs, amount, and soft-delete reversal
+  state.
+- Purchase payment create/delete now records finance ledgers/outbox rows and
+  validates the purchase-payment bridge, purchase link, bank account, and
+  mirrored transaction.
+- Credit/debit note create/update/delete/custom-create now records finance
+  ledgers/outbox rows and validates linked invoice/bill balance state.
+- Journal entry create/update/delete and journal item delete now record finance
+  ledgers/outbox rows and validate balanced debit/credit item totals when the
+  finance policy requires post-write validation.
+- `FinanceOutboxDispatcher` now emits additional monolith-local shells for bank
+  reconciliation, credit/debit note reconciliation, accounting reconciliation,
+  finance reporting, communication, reversal review, and webhooks.
+- Verification: focused finance extended-flow reliability test is green (3
+  tests, 12 assertions), the reliability service suite is green (57 tests, 309
+  assertions), touched finance controller tests are green (344 tests, 411
+  assertions), full `tests/Unit --no-coverage` is green (10,640 tests, 20,697
+  assertions), `composer phpstan` has no errors, and `git diff --check` is
+  clean.
+
 ### Heavy I/O / Integrations Reliability Slice
 
 - Shared Python import delegation now uses `HeavyIoOperationService`, keeping
@@ -149,7 +178,7 @@ Stale items now closed by later Claude commits:
   UUID-based names.
 
 Next reliability work after the finance, HRM, warehouse/products, CRM,
-project-planning, and heavy-I/O slices:
+project-planning, heavy-I/O, and finance extended-flow slices:
 
 1. Add domain-specific journal-entry posting callbacks behind accepted
    finance journal-control signals.
@@ -162,7 +191,9 @@ project-planning, and heavy-I/O slices:
    projection, replica-sync, and catalog projection shells.
 6. Scan timesheet and expense approval/finalization paths; those sit between
    planning, payroll, and finance semantics and need their own boundary.
-7. Expand beyond signal shells only where the business value justifies real
+7. Scan external payment gateway callbacks separately because idempotency and
+   external-origin semantics differ from local finance CRUD.
+8. Expand beyond signal shells only where the business value justifies real
    projector, replica-sync, webhook, import-reconciliation, and compensation
    workers.
 
