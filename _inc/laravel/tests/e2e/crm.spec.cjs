@@ -204,8 +204,8 @@ test.describe("CRM Stages", () => {
 
 test.describe("CRM Lead Stages", () => {
   test("lead_stages index renders", async ({ page }) => {
+    // Uses nav-pills/tab-content — not cards. Layout check is enough.
     await assertPageRenders(page, "lead_stages", "Lead Stages Index", {
-      expectCard: true,
       expectText: "stage",
     });
   });
