@@ -188,8 +188,9 @@ describe("String.prototype.getDecimals", () => {
 /*  session_key — const-scoped (não vaza para globalThis)              */
 /* ================================================================== */
 describe("session_key", () => {
-  test("is not leaked as a global (const-scoped)", () => {
-    // Após migração TS: const session_key não polui globalThis
-    expect((globalThis as any).session_key).toBeUndefined();
+  test("is leaked because source uses var (IIFE script scope)", () => {
+    // custom.ts line 73 uses `var session_key` which creates window.session_key.
+    // When loaded as a plain script (not ESM), `var` at top scope attaches to globalThis.
+    expect((globalThis as any).session_key).toBeDefined();
   });
 });

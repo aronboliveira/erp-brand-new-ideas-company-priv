@@ -50,11 +50,15 @@ describe("arrayToJson", () => {
       "beforeend",
       `<form id="selectForm">
          <select name="color">
-           <option value="red" selected>Red</option>
+           <option value="red">Red</option>
            <option value="blue">Blue</option>
          </select>
        </form>`,
     );
+    // FormData reads .value from the select element; the selected attribute
+    // on an <option> is not always respected by jsdom — set .value explicitly.
+    const select = document.querySelector("#selectForm select");
+    (select as HTMLSelectElement).value = "red";
     const result = (globalThis as any).arrayToJson("#selectForm");
     expect(result).toEqual({ color: "red" });
   });

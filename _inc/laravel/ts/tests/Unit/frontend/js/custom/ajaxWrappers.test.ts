@@ -1,10 +1,10 @@
 /**
  * Tests for postAjax(url, data, cb) and deleteAjax(url, data, cb)
  *
- * Both wrappers:
+ * custom.ts migrated from $.ajax to fetch() — both wrappers:
  *   1. Read the CSRF token from <meta name="csrf-token">
- *   2. Merge {_token, ...data}
- *   3. Call $.ajax with type POST or DELETE
+ *   2. Merge {_token, ...data} into URL-encoded body
+ *   3. Call fetch with type POST or DELETE
  *   4. Invoke the callback with the response data
  */
 
@@ -14,21 +14,26 @@ import {
   buildDomSkeleton,
 } from "../helpers/setup";
 
-let ajaxSpy: jest.Mock;
+let fetchSpy: jest.Mock;
 
 beforeEach(() => {
   document.body.innerHTML = "";
   document.head.innerHTML = "";
   buildJQueryEnv();
   buildDomSkeleton();
-  loadCustomJs();
 
-  // Spy on $.ajax so we can inspect calls and simulate responses
-  ajaxSpy = jest.fn(opts => {
-    // immediately call success with a canned response
-    if (opts.success) opts.success({ ok: true });
-  });
-  global.$.ajax = ajaxSpy;
+  // Mock global fetch — custom.ts uses fetch() not $.ajax
+  fetchSpy = jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      headers: new Headers({ "content-type": "application/json" }),
+      json: () => Promise.resolve({ ok: true }),
+      text: () => Promise.resolve(""),
+    } as Response)
+  );
+  (globalThis as any).fetch = fetchSpy;
+
+  loadCustomJs();
 });
 
 /* ======== postAjax ======== */
@@ -38,44 +43,48 @@ describe("postAjax", () => {
     expect(typeof (globalThis as any).postAjax).toBe("function");
   });
 
-  test("calls $.ajax with type POST", () => {
-    const cb = jest.fn();
-    (globalThis as any).postAjax("/api/test", { foo: "bar" }, cb);
-
-    expect(ajaxSpy).toHaveBeenCalledTimes(1);
-    const opts = ajaxSpy.mock.calls[0][0];
-    expect(opts.type).toBe("POST");
+  test("calls fetch with method POST", () => {
+    (globalThis as any).postAjax("/api/test", { foo: "bar" }, jest.fn());
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const opts = fetchSpy.mock.calls[0][1];
+    expect(opts.method).toBe("POST");
   });
 
   test("sends the correct URL", () => {
     (globalThis as any).postAjax("/api/endpoint", {}, jest.fn());
-    expect(ajaxSpy.mock.calls[0][0].url).toBe("/api/endpoint");
+    expect(fetchSpy.mock.calls[0][0]).toBe("/api/endpoint");
   });
 
-  test("includes CSRF token from meta tag", () => {
+  test("includes CSRF token in the body", async () => {
     (globalThis as any).postAjax("/x", {}, jest.fn());
-    const data = ajaxSpy.mock.calls[0][0].data;
-    expect(data._token).toBe("test-csrf-token-123");
+    const opts = fetchSpy.mock.calls[0][1];
+    const body = new URLSearchParams(opts.body as string);
+    expect(body.get("_token")).toBe("test-csrf-token-123");
   });
 
-  test("merges user data with _token", () => {
+  test("merges user data with _token", async () => {
     (globalThis as any).postAjax("/x", { name: "Alice", age: 30 }, jest.fn());
-    const data = ajaxSpy.mock.calls[0][0].data;
-    expect(data.name).toBe("Alice");
-    expect(data.age).toBe(30);
-    expect(data._token).toBe("test-csrf-token-123");
+    const opts = fetchSpy.mock.calls[0][1];
+    const body = new URLSearchParams(opts.body as string);
+    expect(body.get("name")).toBe("Alice");
+    expect(body.get("age")).toBe("30");
+    expect(body.get("_token")).toBe("test-csrf-token-123");
   });
 
-  test("invokes the callback with response data", () => {
+  test("invokes the callback with response data", async () => {
     const cb = jest.fn();
     (globalThis as any).postAjax("/x", {}, cb);
+    // flush microtasks so the .then() fires
+    await new Promise(r => setTimeout(r, 0));
     expect(cb).toHaveBeenCalledWith({ ok: true });
   });
 
   test("works with empty data object", () => {
     (globalThis as any).postAjax("/x", {}, jest.fn());
-    const data = ajaxSpy.mock.calls[0][0].data;
-    expect(Object.keys(data)).toEqual(["_token"]);
+    const opts = fetchSpy.mock.calls[0][1];
+    const body = new URLSearchParams(opts.body as string);
+    // Only _token should be present
+    expect(body.has("_token")).toBe(true);
   });
 });
 
@@ -86,36 +95,37 @@ describe("deleteAjax", () => {
     expect(typeof (globalThis as any).deleteAjax).toBe("function");
   });
 
-  test("calls $.ajax with type DELETE", () => {
-    const cb = jest.fn();
-    (globalThis as any).deleteAjax("/api/test/1", {}, cb);
-
-    expect(ajaxSpy).toHaveBeenCalledTimes(1);
-    const opts = ajaxSpy.mock.calls[0][0];
-    expect(opts.type).toBe("DELETE");
+  test("calls fetch with method DELETE", () => {
+    (globalThis as any).deleteAjax("/api/test/1", {}, jest.fn());
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const opts = fetchSpy.mock.calls[0][1];
+    expect(opts.method).toBe("DELETE");
   });
 
   test("sends the correct URL", () => {
     (globalThis as any).deleteAjax("/api/items/42", {}, jest.fn());
-    expect(ajaxSpy.mock.calls[0][0].url).toBe("/api/items/42");
+    expect(fetchSpy.mock.calls[0][0]).toBe("/api/items/42");
   });
 
-  test("includes CSRF token from meta tag", () => {
+  test("includes CSRF token in the body", () => {
     (globalThis as any).deleteAjax("/x", {}, jest.fn());
-    const data = ajaxSpy.mock.calls[0][0].data;
-    expect(data._token).toBe("test-csrf-token-123");
+    const opts = fetchSpy.mock.calls[0][1];
+    const body = new URLSearchParams(opts.body as string);
+    expect(body.get("_token")).toBe("test-csrf-token-123");
   });
 
   test("merges user data with _token", () => {
     (globalThis as any).deleteAjax("/x", { id: 5 }, jest.fn());
-    const data = ajaxSpy.mock.calls[0][0].data;
-    expect(data.id).toBe(5);
-    expect(data._token).toBe("test-csrf-token-123");
+    const opts = fetchSpy.mock.calls[0][1];
+    const body = new URLSearchParams(opts.body as string);
+    expect(body.get("id")).toBe("5");
+    expect(body.get("_token")).toBe("test-csrf-token-123");
   });
 
-  test("invokes the callback with response data", () => {
+  test("invokes the callback with response data", async () => {
     const cb = jest.fn();
     (globalThis as any).deleteAjax("/x", {}, cb);
+    await new Promise(r => setTimeout(r, 0));
     expect(cb).toHaveBeenCalledWith({ ok: true });
   });
 });

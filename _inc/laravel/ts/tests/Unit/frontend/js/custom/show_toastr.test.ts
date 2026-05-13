@@ -55,31 +55,34 @@ describe("show_toastr", () => {
     expect(toast.classList.contains("bg-primary")).toBe(false);
   });
 
-  test("writes message into .toast-body", () => {
+  test("writes message into .toast-body (textContent — no HTML injection)", () => {
+    // custom.ts uses textContent (safe), which strips HTML tags
     (globalThis as any).show_toastr("success", "<b>Hello</b>");
     const body = document.querySelector("#liveToast .toast-body");
-    expect(body.innerHTML).toBe("<b>Hello</b>");
+    expect(body.textContent).toBe("<b>Hello</b>");
   });
 
   test("works with an empty message", () => {
     (globalThis as any).show_toastr("success", "");
     const body = document.querySelector("#liveToast .toast-body");
-    expect(body.innerHTML).toBe("");
+    expect(body.textContent).toBe("");
   });
 
   test("works with HTML-escaped content", () => {
+    // textContent decodes HTML entities before storing, then the browser
+    // re-encodes them in .innerHTML — the textContent path preserves literal text
     (globalThis as any).show_toastr("error", "&lt;script&gt;");
     const body = document.querySelector("#liveToast .toast-body");
-    expect(body.innerHTML).toBe("&lt;script&gt;");
+    expect(body.textContent).toBe("&lt;script&gt;");
   });
 
-  test("each call accumulates colour classes (no reset)", () => {
-    // This documents current behaviour – the toast element does NOT remove
-    // old colour classes when called again with a different type.
+  test("colour classes are reset between calls", () => {
+    // custom.ts calls classList.remove() before adding — intentional reset
     (globalThis as any).show_toastr("success", "first");
+    expect(document.getElementById("liveToast").classList.contains("bg-primary")).toBe(true);
     (globalThis as any).show_toastr("error", "second");
     const toast = document.getElementById("liveToast");
-    expect(toast.classList.contains("bg-primary")).toBe(true);
+    expect(toast.classList.contains("bg-primary")).toBe(false);
     expect(toast.classList.contains("bg-danger")).toBe(true);
   });
 });
