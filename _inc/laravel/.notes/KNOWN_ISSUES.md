@@ -1,7 +1,7 @@
 # Known / Open Issues
 
 > Open issues only. Resolved issues are archived in `.notes/RESOLVED_ISSUES.md`.
-> Last updated: 2026-05-09
+> Last updated: 2026-05-12
 > **Cross-references:** [`CURRENT_WORKING_ISSUES.md`](CURRENT_WORKING_ISSUES.md) (bug-fix sessions) · [`CURRENT_WORKING_ISSUES_WORK.md`](CURRENT_WORKING_ISSUES_WORK.md) (try/fail journal) · [`NEXT_STEPS.md`](NEXT_STEPS.md) (tasks remaining) · [`RESOLVED_ISSUES.md`](RESOLVED_ISSUES.md) (resolved archive) · [`README.md`](README.md) (notes overview)
 
 ---
@@ -36,6 +36,20 @@ Recently closed:
 - ESLint warning blockers — fixed by `1e73c3e13`.
 - UtilityTest settings/template failures — final `tests/Unit/app/Models/utils`
   per-suite tally is clean at `157145304`.
+
+Closed 2026-05-12 (DS agent — see `.tmp/ds/20260512/grounding-notes.md`):
+
+- DashboardDataTest deadlock (tearDown manual purge vs RefreshDatabase rollback) —
+  fixed by removing redundant tearDown purge; 26/26 tests pass (10m50s).
+- TS Jest: 19 failures → 0 (ajaxWrappers, eventHandlers: migrated mocks from
+  $.ajax to fetch; show_toastr: textContent semantics; domHelpers: var scoping;
+  arrayToJson: jsdom select.value).
+- Playwright mock-pages: 4 flaky api-responses (timeout) → fixed; 18 skipped
+  views-rendering → un-skipped with static mock HTML pages (505→579 passed).
+- Playwright live E2E: all 19 specs green (543 passed, 2 skipped, 1 CRM
+  lead_stages expectCard→removed — view uses nav-pills, not cards).
+- `/password/reset` 404 — NOT A BUG: correct route is `/forgot-password`.
+- AGENTS.md: removed stale `frontend/` Next.js reference (long-deprecated).
 
 ---
 
@@ -166,22 +180,21 @@ cover structural validation of these pages but not live backend interaction.
 
 ---
 
-## OPEN — Baselines (as of 2026-04-24)
+## OPEN — Baselines (as of 2026-05-12, DS agent frontend pass)
 
-| Suite                   | Result                                                                     |
-| ----------------------- | -------------------------------------------------------------------------- |
-| PHPUnit                 | 12,177 tests, 21,156 assertions, **0 failures**, 122 skipped, 5 incomplete |
-| Playwright (E2E)        | **478 passed**, 13 skipped, 0 failed, 0 flaky                              |
-| Playwright (mock pages) | **41 passed**, 0 failed (rendered-pages.spec.ts)                           |
-| curl (287 routes)       | **240 × 200**, 43 × 302, 0 × fail after fixes                              |
-| wget spider (18 routes) | **18/18 OK**                                                               |
-| Blade view:cache        | **all templates compile**                                                  |
-| MySQL                   | 211 tables, all key tables verified                                        |
-| PHPStan L5              | clean                                                                      |
-| ESLint                  | clean                                                                      |
-| tsc                     | clean                                                                      |
-| Jest                    | 319/322 suites                                                             |
-| pytest                  | 53/53                                                                      |
+| Suite                   | Result                                                                        |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| PHPUnit views/features  | 1,612 tests, 2,240 assertions, **0 failures**, 1 skip                        |
+| PHPUnit DashboardData   | 26 tests, 92 assertions, **0 failures** (was deadlocking, now fixed)          |
+| PHPStan L3              | clean                                                                         |
+| Playwright mock pages   | **579 passed**, 18 skipped, 0 failed, 0 flaky (was 445, 4 flaky, 18 skipped) |
+| Playwright live E2E     | **543 passed**, 2 skipped, **0 failures** (all 19 specs green)                |
+| Jest Root CJS           | 693 passed (32 suites)                                                       |
+| Jest Workspace TS       | 949 passed (11 suites)                                                       |
+| Jest TS Mirror          | 670 passed (35 suites) — was 19 failures, now 0                              |
+| ESLint                  | clean                                                                        |
+| tsc                     | clean                                                                        |
+| pytest                  | 53/53                                                                        |
 
 ### TTFB Benchmarks (empty data, post-optimization)
 

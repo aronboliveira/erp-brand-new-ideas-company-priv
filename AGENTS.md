@@ -349,15 +349,16 @@ PHPUnit local: 12,690 / 0 errors / 0 failures / 78 skips. Archived in
 **Status:** Resolved 2026-05-07 by Claude Opus 4.7.
 
 Reality check: `ts/**`, `.backup/**`, `Modules/**` were **already** in
-`eslint.config.mjs`'s ignores (lines 355-358). The actual leak was the
-`frontend/` Next.js sub-app (which has its own `eslint.config.js`) plus
+`eslint.config.mjs`'s ignores (lines 355-358). The actual leak was a
+now-deprecated `frontend/` Next.js sub-app (since removed from disk) plus
 gitignored-but-on-disk `.history/` archives — together producing 14,867 errors.
 The original "77,576" figure in this doc was stale.
 
-**Fix applied:** added `"frontend/**"` and `".history/**"` to the global
-`ignores` array. Did **not** add a blanket `"public/**"` because the IIFE
-route layer at `public/assets/js/routes/` is exactly what the codebase wants
-linted (matcher block at lines 186-211).
+**Fix applied:** added `"frontend/**"` (since removed — the Next.js sub-app
+was deprecated) and `".history/**"` to the global `ignores` array.
+Did **not** add a blanket `"public/**"` because the IIFE route layer at
+`public/assets/js/routes/` is exactly what the codebase wants linted
+(matcher block at lines 186-211).
 
 **Result:** 14,867 errors → 0 errors. 34 legitimate warnings remain across
 9 real source files (unused-var warnings) — kept on purpose so the codebase
