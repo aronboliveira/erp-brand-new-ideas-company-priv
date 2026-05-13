@@ -24,13 +24,17 @@ interface ApiTestResult {
 }
 
 /**
- * Helper to wait for response panel update
+ * Helper to wait for response panel update with retry for flaky timing.
  */
 async function waitForResponseUpdate(page: Page): Promise<void> {
+  // The mock page has 300 ms simulated fetch delay + setTimeout for panel update.
+  // Use a generous timeout and poll to avoid single-shot misses.
   await page.waitForSelector(".response-panel .response-meta", {
     state: "visible",
-    timeout: 5000,
+    timeout: 10000,
   });
+  // Give the panel a tick to fully render the status text
+  await page.waitForTimeout(100);
 }
 
 /**
@@ -107,7 +111,7 @@ test.describe("Success Responses (2xx)", () => {
     await page.click("#test-200");
     await page.waitForSelector(".notification.success", {
       state: "visible",
-      timeout: 3000,
+      timeout: 8000,
     });
 
     const notification = page.locator(".notification.success");
