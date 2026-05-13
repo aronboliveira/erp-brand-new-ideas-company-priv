@@ -59,9 +59,7 @@ class DashboardDataTest extends TestCase
 	{
 		parent::setUp();
 
-		// Disable FK checks during seeding to avoid cascade issues in test env
-		DB::statement('SET FOREIGN_KEY_CHECKS=0');
-
+		// FK checks already disabled by TestCase::setUp()
 		// Clean up any leftover fixture from a previous crashed / timed-out run
 		$this->purgeTestFixtures();
 
@@ -85,31 +83,15 @@ class DashboardDataTest extends TestCase
 		$this->seedProjectData();
 		$this->seedPosData();
 
-		// Re-enable FK checks
-		DB::statement('SET FOREIGN_KEY_CHECKS=1');
+		// FK checks re-enabled by TestCase::tearDown() after transaction rollback
 	}
 
 	/**
-	 * Clean up test fixtures after each test to prevent isolation failures.
+	 * RefreshDatabase rolls back the transaction — manual purge is unnecessary
+	 * and the row locks it creates conflict with the rollback, causing deadlocks.
 	 */
 	protected function tearDown(): void
 	{
-		# PULL REQUEST START — Retry tearDown to handle transient deadlocks from RefreshDatabase
-		$maxAttempts = 3;
-		for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
-			try {
-				DB::statement('SET FOREIGN_KEY_CHECKS=0');
-				$this->purgeTestFixtures();
-				DB::statement('SET FOREIGN_KEY_CHECKS=1');
-				break;
-			} catch (\Illuminate\Database\QueryException $e) {
-				if ($attempt === $maxAttempts || !str_contains($e->getMessage(), 'Deadlock')) {
-					throw $e;
-				}
-				usleep(100_000 * $attempt);
-			}
-		}
-		# PULL REQUEST END
 		parent::tearDown();
 	}
 
