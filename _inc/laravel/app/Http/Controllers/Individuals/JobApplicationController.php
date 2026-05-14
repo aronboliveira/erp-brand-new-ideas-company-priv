@@ -62,6 +62,13 @@ class JobApplicationController extends Controller
 
 	use ChecksLogin, ChecksPermissions;
 
+	// Route names — distinct from ViewsConstants::JB_APL ('job_applications') which is the view-path.
+	// Resource route is registered as 'job-application' (singular/dash) in routes/web.php:992.
+	// Candidate/onboard are named under VW::JB ('jobs') in routes/web.php:954, 962.
+	private const ROUTE_INDEX     = 'job-application.index';
+	private const ROUTE_CANDIDATE = 'jobs.application.candidate';
+	private const ROUTE_ONBOARD   = 'jobs.on.board';
+
 	public function index(Request $request): RedirectResponse|View
 	{
 		$action = __FUNCTION__;
@@ -69,7 +76,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $action, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, self::ROUTE_INDEX)) !== true) return $c;
 			Log::debug($method . ' filters', $request->only(['start_date', 'end_date', 'job']));
 			$stages = JobStage::whereCreatedBy($user?->creatorId())->orderBy('order')->get();
 			$jobs = Job::whereCreatedBy($user?->creatorId())->pluck('title', 'id')->prepend('All', '');
@@ -92,7 +99,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $action, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'create job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'create job application', self::ROUTE_INDEX)) !== true) return $c;
 			$jobs = Job::whereCreatedBy($user?->creatorId())->pluck('title', 'id')->prepend('-', '');
 			$questions = CustomQuestion::whereCreatedBy($user?->creatorId())->get();
 			$view = ViewsConstants::JB_APL . '.create';
@@ -108,7 +115,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'create job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'create job application', self::ROUTE_INDEX)) !== true) return $c;
 			$validated = $request->validate([
 				'job'    => 'required',
 				'name'   => 'required',
@@ -138,7 +145,7 @@ class JobApplicationController extends Controller
 				'custom_question' => json_encode($request->question ?? []),
 				DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
 			]);
-			return redirect()->route(ViewsConstants::JB_APL . '.index')->with('success', __('Job application successfully created.'));
+			return redirect()->route(self::ROUTE_INDEX)->with('success', __('Job application successfully created.'));
 		}, ['route' => Route::getCurrentRoute()?->getName()]);
 	}
 
@@ -150,7 +157,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($encId, $request, $action, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'show job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'show job application', self::ROUTE_INDEX)) !== true) return $c;
 			try {
 				$id = Crypt::decrypt($encId);
 			} catch (\Throwable $e) {
@@ -173,14 +180,14 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $jobApplication, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'delete job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
-			if (($jobApplication[DatabaseConstants::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $method, route(ViewsConstants::JB_APL . '.index'));
+			if (($c = self::guard($request, 'delete job application', self::ROUTE_INDEX)) !== true) return $c;
+			if (($jobApplication[DatabaseConstants::COL_TABLE_CREATOR] ?? null) !== $user?->creatorId()) return defaultPermissionDenial($request, new \Exception('owner'), $method, route(self::ROUTE_INDEX));
 			$jobApplication->delete();
 			collect([
 				$jobApplication->profile ? 'uploads/job/profile/' . $jobApplication->profile : '',
 				$jobApplication->resume ? 'uploads/job/resume/' . $jobApplication->resume : '',
 			])->filter()->each(fn($path) => Utility::changeStorageLimit($user?->creatorId(), $path));
-			return redirect()->route(ViewsConstants::JB_APL . '.index')->with('success', __('Job application successfully deleted.'));
+			return redirect()->route(self::ROUTE_INDEX)->with('success', __('Job application successfully deleted.'));
 		}, ['route' => Route::getCurrentRoute()?->getName()]);
 	}
 
@@ -189,7 +196,7 @@ class JobApplicationController extends Controller
 		$action = __FUNCTION__;
 		return $this->measureProfile($action, function () use ($request) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-			if (($c = self::guard($request, 'move job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'move job application', self::ROUTE_INDEX)) !== true) return $c;
 			collect($request->input('order', []))->each(function ($item, $key) use ($request) {
 				JobApplication::whereKey($item)->update(['order' => $key, 'stage' => $request->stage_id]);
 			});
@@ -203,7 +210,7 @@ class JobApplicationController extends Controller
 		$action = __FUNCTION__;
 		return $this->measureProfile($action, function () use ($request, $id) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-			if (($c = self::guard($request, 'add job application skill', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'add job application skill', self::ROUTE_INDEX)) !== true) return $c;
 			$request->validate(['skill' => 'required']);
 			JobApplication::whereKey($id)->update(['skill' => $request->skill]);
 			return back()->with('success', __('Skill added.'));
@@ -217,7 +224,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $id) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'add job application note', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'add job application note', self::ROUTE_INDEX)) !== true) return $c;
 			$request->validate(['note' => 'required']);
 			JobApplicationNote::create([
 				'application_id' => $id,
@@ -236,7 +243,7 @@ class JobApplicationController extends Controller
 		$request = request();
 		return $this->measureProfile($action, function () use ($id, $request) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-			if (($c = self::guard($request, 'delete job application note', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'delete job application note', self::ROUTE_INDEX)) !== true) return $c;
 			JobApplicationNote::whereKey($id)->delete();
 			return back()->with('success', __('Note deleted.'));
 		}, ['route' => Route::getCurrentRoute()?->getName(), 'id' => $id]);
@@ -248,7 +255,7 @@ class JobApplicationController extends Controller
 		$method = __METHOD__;
 		return $this->measureProfile($action, function () use ($request, $id, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json(['error' => __('Authentication required.')], Response::HTTP_UNAUTHORIZED);
-			if (($c = self::guard($request, 'edit job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'edit job application', self::ROUTE_INDEX)) !== true) return $c;
 			JobApplication::whereKey($id)->update(['rating' => $request->rating]);
 			Log::debug($method . ' updated', ['id' => $id, 'rating' => $request->rating]);
 			return response()->json(['success' => true], Response::HTTP_OK);
@@ -261,10 +268,10 @@ class JobApplicationController extends Controller
 		$request = request();
 		return $this->measureProfile($action, function () use ($id, $request) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-			if (($c = self::guard($request, 'archive job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'archive job application', self::ROUTE_INDEX)) !== true) return $c;
 			$app = JobApplication::findOrFail($id);
 			$app->update(['is_archive' => !$app->is_archive]);
-			$route = $app->is_archive ? ViewsConstants::JB_APL . '.candidate' : ViewsConstants::JB_APL . '.index';
+			$route = $app->is_archive ? self::ROUTE_CANDIDATE : self::ROUTE_INDEX;
 			$msg = $app->is_archive ? __('Added to archive.') : __('Removed from archive.');
 			return redirect()->route($route)->with('success', $msg);
 		}, ['id' => $id]);
@@ -278,7 +285,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'manage job onBoard', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'manage job onBoard', self::ROUTE_INDEX)) !== true) return $c;
 			$archived = JobApplication::whereCreatedBy($user?->creatorId())->whereIsArchive(1)->get();
 			$view = ViewsConstants::JB_APL . '.candidate';
 			if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method);
@@ -295,7 +302,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($id, $request, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'manage job onBoard', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'manage job onBoard', self::ROUTE_INDEX)) !== true) return $c;
 			$view = ViewsConstants::JB_APL . '.onboardCreate';
 			if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method);
 			return ViewFacade::make($view, [
@@ -322,7 +329,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'manage job onBoard', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'manage job onBoard', self::ROUTE_INDEX)) !== true) return $c;
 			$boards = JobOnBoard::whereCreatedBy($user?->creatorId())->with('applications')->get();
 			$view = ViewsConstants::JB_APL . '.onboard';
 			if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method);
@@ -337,7 +344,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $id) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'manage job onBoard', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'manage job onBoard', self::ROUTE_INDEX)) !== true) return $c;
 			$validated = $request->validate([
 				'joining_date'    => 'required|date',
 				'job_type'        => 'required',
@@ -353,7 +360,7 @@ class JobApplicationController extends Controller
 				DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId(),
 			]));
 			InterviewSchedule::whereCandidate($application)->delete();
-			return redirect()->route(ViewsConstants::JB_APL . '.onboard')->with('success', __('Candidate added to board.'));
+			return redirect()->route(self::ROUTE_ONBOARD)->with('success', __('Candidate added to board.'));
 		}, ['id' => $id]);
 	}
 
@@ -363,7 +370,7 @@ class JobApplicationController extends Controller
 		$action = __FUNCTION__;
 		return $this->measureProfile($action, function () use ($request, $id) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-			if (($c = self::guard($request, 'manage job onBoard', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'manage job onBoard', self::ROUTE_INDEX)) !== true) return $c;
 			$request->validate([
 				'joining_date'    => 'required|date',
 				'job_type'        => 'required',
@@ -382,7 +389,7 @@ class JobApplicationController extends Controller
 				'salary_duration',
 				'status',
 			]));
-			return redirect()->route(ViewsConstants::JB_APL . '.onboard')->with('success', __('Board candidate updated.'));
+			return redirect()->route(self::ROUTE_ONBOARD)->with('success', __('Board candidate updated.'));
 		}, ['id' => $id]);
 	}
 
@@ -395,7 +402,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($id, $request, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'manage job onBoard', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'manage job onBoard', self::ROUTE_INDEX)) !== true) return $c;
 			$view = ViewsConstants::JB_APL . '.onboardEdit';
 			if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method);
 			return ViewFacade::make($view, [
@@ -415,7 +422,7 @@ class JobApplicationController extends Controller
 		$request = request();
 		return $this->measureProfile($action, function () use ($id, $request) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
-			if (($c = self::guard($request, 'manage job onBoard', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'manage job onBoard', self::ROUTE_INDEX)) !== true) return $c;
 			JobOnBoard::whereKey($id)->delete();
 			return back()->with('success', __('On-board deleted.'));
 		}, ['id' => $id]);
@@ -430,7 +437,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($id, $request, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, 'manage job onBoard', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'manage job onBoard', self::ROUTE_INDEX)) !== true) return $c;
 			$onBoard = JobOnBoard::findOrFail($id);
 			$view = ViewsConstants::JB_APL . '.convert';
 			if (!ViewFacade::exists($view)) return defaultUndefinedException($request, new \RuntimeException('View not found'), $method);
@@ -454,7 +461,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($request, $id) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$authUser = $userOrRedirect;
-			if (($c = self::guard($request, 'manage job onBoard', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'manage job onBoard', self::ROUTE_INDEX)) !== true) return $c;
 			$request->validate([
 				'name'           => 'required',
 				'dob'            => 'required|date',
@@ -551,7 +558,7 @@ class JobApplicationController extends Controller
 		$action = __FUNCTION__;
 		return $this->measureProfile($action, function () use ($request) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json(['error' => __('Authentication required.')], Response::HTTP_UNAUTHORIZED);
-			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, self::ROUTE_INDEX)) !== true) return $c;
 			$job = Job::findOrFail($request->id)->makeHidden([]);
 			$job->applicant       = $job->applicant ? explode(',', $job->applicant) : [];
 			$job->visibility      = $job->visibility ? explode(',', $job->visibility) : [];
@@ -566,7 +573,7 @@ class JobApplicationController extends Controller
 		$action = __FUNCTION__;
 		return $this->measureProfile($action, function () use ($request) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return response()->json(['error' => __('Authentication required.')], Response::HTTP_UNAUTHORIZED);
-			if (($c = self::guard($request, 'move job application', ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, 'move job application', self::ROUTE_INDEX)) !== true) return $c;
 			JobApplication::whereKey($request->schedule_id)->update(['stage' => $request->stage]);
 			return response()->json(['success' => __('Stage changed.')], Response::HTTP_OK);
 		}, ['schedule_id' => $request->schedule_id, 'stage' => $request->stage]);
@@ -581,7 +588,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($id, $request, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, self::ROUTE_INDEX)) !== true) return $c;
 			$tpl = GeneratedOfferLetter::where(['lang' => $user?->currentLanguage(), DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()])->firstOrFail();
 			$tpl->content = GeneratedOfferLetter::replaceVariable($tpl->content, $this->loadOfferLetterData($id));
 			$candidate = JobApplication::find($id);
@@ -600,7 +607,7 @@ class JobApplicationController extends Controller
 		return $this->measureProfile($action, function () use ($id, $request, $method) {
 			if (($userOrRedirect = self::_checkLogin()) instanceof RedirectResponse) return $userOrRedirect;
 			$user = $userOrRedirect;
-			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, ViewsConstants::JB_APL . '.index')) !== true) return $c;
+			if (($c = self::guard($request, PermissionsConstants::MNG_JB_APL, self::ROUTE_INDEX)) !== true) return $c;
 			$tpl = GeneratedOfferLetter::where(['lang' => $user?->currentLanguage(), DatabaseConstants::COL_TABLE_CREATOR => $user?->creatorId()])->firstOrFail();
 			$tpl->content = GeneratedOfferLetter::replaceVariable($tpl->content, $this->loadOfferLetterData($id));
 			$candidate = JobApplication::find($id);

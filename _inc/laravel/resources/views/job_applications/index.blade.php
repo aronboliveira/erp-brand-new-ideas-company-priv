@@ -11,6 +11,8 @@ $user = Auth::user() ?? null;
         $createGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::JB_APL, 'create_job_application_unavailable') : 'Create Job Application route is unavailable. Please contact technical support or your domain administrator.') ?? __('Create Job Application route is unavailable. Please contact technical support or your domain administrator.');
         $showGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::JB_APL, 'show_job_application_unavailable') : 'Job Application details route is unavailable. Please contact technical support or your domain administrator.') ?? __('Job Application details route is unavailable. Please contact technical support or your domain administrator.');
         $deleteGuard = ($canFetchMsg ? Utility::fetchLinkMessage($lang, VW::JB_APL, 'delete_job_application_unavailable') : 'Delete Job Application route is unavailable. Please contact technical support or your domain administrator.') ?? __('Delete Job Application route is unavailable. Please contact technical support or your domain administrator.');
+        // Resource route is registered as 'job-application' (singular, dash); VW::JB_APL is the view-path constant ('job_applications') and is not interchangeable.
+        $jbAplRoute = 'job-application';
     } catch (\Throwable $e) {
         \Log::error('job_applications/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
     }
@@ -34,7 +36,7 @@ $user = Auth::user() ?? null;
 @section(YD::ADM_ACT_BTN)
     <div class="{{ VC::FEND }}">
         @can('create job application')
-            <a href="{{ route(VW::JB_APL.'.create') }}" data-url="{{ route(VW::JB_APL.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{ __('Create') }}" data-title="{{ __('Create New Job Application') }}" data-guard-msg="{{ base64_encode($createGuard) }}" class="{{ VC::BT_SM_PM }}"><i class="{{ VC::TI_PLS }}"></i></a>
+            <a href="{{ route($jbAplRoute.'.create') }}" data-url="{{ route($jbAplRoute.'.create') }}" data-ajax-popup="true" data-bs-toggle="tooltip" title="{{ __('Create') }}" data-title="{{ __('Create New Job Application') }}" data-guard-msg="{{ base64_encode($createGuard) }}" class="{{ VC::BT_SM_PM }}"><i class="{{ VC::TI_PLS }}"></i></a>
         @endcan
     </div>
 @endsection
@@ -45,7 +47,7 @@ $user = Auth::user() ?? null;
             <div class="{{ VC::MT2 }}" id="multiCollapseExample1">
                 <div class="card">
                     <div class="{{ VC::CD_BD }}">
-                        {!! Collective\Html\FormFacade::open(['route'=>[VW::JB_APL.'.index'],'method'=>'get','id'=>'application_filter']) !!}
+                        {!! Collective\Html\FormFacade::open(['route'=>[$jbAplRoute.'.index'],'method'=>'get','id'=>'application_filter']) !!}
                         <div class="{{ VC::R_FLX_ALC_JCE }}">
                             <div class="{{ VC::CL_POS3 }}">
                                 <div class="btn-box">
@@ -67,7 +69,7 @@ $user = Auth::user() ?? null;
                             </div>
                             <div class="{{ VC::C_AT_FEND }}">
                                 <a href="#" class="{{ VC::BT_SM_PM }}" data-submit-form="application_filter" data-bs-toggle="tooltip" title="{{ __('apply') }}"><span class="btn-inner--icon"><i class="{{ VC::TI_SRC }}"></i></span></a>
-                                <a href="{{ route(VW::JB_APL.'.index') }}" class="{{ VC::BT_SM_DG }}" data-bs-toggle="tooltip" title="{{ __('Reset') }}"><span class="btn-inner--icon"><i class="ti ti-trash-off text-white-off"></i></span></a>
+                                <a href="{{ route($jbAplRoute.'.index') }}" class="{{ VC::BT_SM_DG }}" data-bs-toggle="tooltip" title="{{ __('Reset') }}"><span class="btn-inner--icon"><i class="ti ti-trash-off text-white-off"></i></span></a>
                             </div>
                         </div>
                         {!! Collective\Html\FormFacade::close() !!}
@@ -115,7 +117,7 @@ $user = Auth::user() ?? null;
                                                     $appliedAt = $user && is_callable([$user,'dateFormat']) ? $user->dateFormat(data_get($application,'created_at')) : (string) data_get($application,'created_at',__('No date available'));
                                                     $profileImg = data_get($application,'profile');
                                                     $imgSrc = !empty($profileImg) ? ($profile . $profileImg) : ($logo.'avatar.png');
-                                                    $showUrl = route(VW::JB_APL.'.show', \Crypt::encrypt($appId));
+                                                    $showUrl = route($jbAplRoute.'.show', \Crypt::encrypt($appId));
                                                 } catch (\Throwable $e) {
                                                     \Log::error('job_applications/index — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
                                                 }
@@ -133,7 +135,7 @@ $user = Auth::user() ?? null;
                                                                         <a class="{{ VC::DRP_IT }}" href="{{ $showUrl }}" data-url="{{ $showUrl }}" data-guard-msg="{{ base64_encode($showGuard) }}"><i class="ti ti-bookmark"></i>{{ __('View') }}</a>
                                                                     @endcan
                                                                     @can('delete job application')
-                                                                        {!! Collective\Html\FormFacade::open(['method'=>'DELETE','route'=>[VW::JB_APL.'.destroy', $appId],'id'=>'delete-form-'.$appId,'data-url'=>route(VW::JB_APL.'.destroy',$appId),'data-guard-msg'=>$deleteGuard]) !!}
+                                                                        {!! Collective\Html\FormFacade::open(['method'=>'DELETE','route'=>[$jbAplRoute.'.destroy', $appId],'id'=>'delete-form-'.$appId,'data-url'=>route($jbAplRoute.'.destroy',$appId),'data-guard-msg'=>$deleteGuard]) !!}
                                                                         <a href="#!" class="{{ VC::DRP_IT }} bs-pass-para" data-confirm="{{ __('Are You Sure?') }}|{{ __('This action can not be undone. Do you want to continue?') }}" data-confirm-yes="document.getElementById('delete-form-{{ $appId }}').submit();"><i class="{{ VC::TI_ARC }}"></i><span>{{ __('Delete') }}</span></a>
                                                                         {!! Collective\Html\FormFacade::close() !!}
                                                                     @endcan
@@ -272,7 +274,7 @@ $user = Auth::user() ?? null;
                                 $("#" + target.id).siblings('.count')
                                     .text(target.children.length);
                                 $.ajax({
-                                    url: '{{ route('job.application.order') }}',
+                                    url: '{{ route('jobs.application.order') }}',
                                     type: 'POST',
                                     data: {
                                         application_id: id,

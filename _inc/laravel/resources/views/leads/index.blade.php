@@ -137,7 +137,9 @@ $user = Auth::user();
                 $containersIds = [];
                 $lead_stages   = [];
                 try {
-                    $lead_stages   = data_get($pipeline ?? null, 'leadStages', []);
+                    // Pipeline::leadStages() returns a Collection (not an Eloquent relation), so call directly — data_get() triggers Eloquent's relation resolution and throws.
+                    $lead_stages   = ($pipeline ?? null) instanceof \App\Models\Configs\Pipeline ? $pipeline->leadStages() : [];
+                    if (!is_iterable($lead_stages)) $lead_stages = [];
                     $containersIds = [];
                     if (is_iterable($lead_stages)) {
                         foreach ($lead_stages as $lead_stage) {

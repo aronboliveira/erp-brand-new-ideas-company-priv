@@ -115,7 +115,6 @@
                                         'reports_pos_vs_purchase'
                                     ];
                                     $kebabSegments = array_map(function($segment) {
-                            	$userPlan = $userPlan instanceof Plan ? $userPlan : null;
                                         if ($segment === null) return null;
                                         return str_replace('_', '-', strtolower(preg_replace('/([A-Z])/', '-$1', $segment)));
                                     }, $segments);

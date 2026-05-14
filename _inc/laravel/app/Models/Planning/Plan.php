@@ -90,12 +90,13 @@ class Plan extends Model
             $freePlanIds = Plan::query()
                 ->where(PLC::COL_PC, '<=', 0)
                 ->pluck('id');
-            return User::query()->select([UC::COL_PLAN_ID, DB::raw('COUNT(*) as total')])
+            // users plan FK is UC::COL_PL ('plan'); UC::COL_PLAN_ID ('plan_id') is unused on this table.
+            return User::query()->select([UC::COL_PL, DB::raw('COUNT(*) as total')])
                 ->where(UC::COL_TP, PMC::CPN)
-                ->whereNotNull(UC::COL_PLAN_ID)
+                ->whereNotNull(UC::COL_PL)
                 ->when($freePlanIds->isNotEmpty(), fn($q) =>
-                $q->whereNotIn(UC::COL_PLAN_ID, $freePlanIds))
-                ->groupBy(UC::COL_PLAN_ID)
+                $q->whereNotIn(UC::COL_PL, $freePlanIds))
+                ->groupBy(UC::COL_PL)
                 ->orderByDesc('total')
                 ->first();
         } catch (QueryException $e) {
