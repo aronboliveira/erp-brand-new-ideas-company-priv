@@ -1,0 +1,28 @@
+# quarantine-domain-validators — 2026-05-14
+# Audit grep showing which literal `domain` values production validators pass to
+# PostWriteValidationResult::pass/fail, used to confirm the Q1 enum gap.
+
+$ grep -nE "PostWriteValidationResult::(pass|fail)|^\s*'(finance|hrm|warehouse|crm|planning|heavy_io)'" \
+    _inc/laravel/app/Services/Reliability/{Finance,Hrm,Warehouse,Crm,Planning,HeavyIo}PostWriteValidator.php
+
+FinancePostWriteValidator.php:54:    default => PostWriteValidationResult::pass('finance', ...)
+HrmPostWriteValidator.php:30:    'hrm',                       # <-- not in original Q1 enum
+HrmPostWriteValidator.php:326:  PostWriteValidationResult::pass('hrm', ...)
+HrmPostWriteValidator.php:330:  PostWriteValidationResult::fail('hrm', ...)
+WarehousePostWriteValidator.php:574: PostWriteValidationResult::pass('warehouse', ...)
+WarehousePostWriteValidator.php:577: PostWriteValidationResult::fail('warehouse', ...)
+CrmPostWriteValidator.php:60:    default => PostWriteValidationResult::pass('crm', ...)
+CrmPostWriteValidator.php:750:   PostWriteValidationResult::pass('crm', ...)
+CrmPostWriteValidator.php:761:   PostWriteValidationResult::fail('crm', ...)
+PlanningPostWriteValidator.php:36:  default => PostWriteValidationResult::pass('planning', ...)   # <-- not in original Q1 enum
+PlanningPostWriteValidator.php:437: PostWriteValidationResult::pass('planning', ...)
+PlanningPostWriteValidator.php:448: PostWriteValidationResult::fail('planning', ...)
+HeavyIoPostWriteValidator.php:136:  PostWriteValidationResult::pass('heavy_io', ...)              # <-- not in original Q1 enum
+HeavyIoPostWriteValidator.php:147:  PostWriteValidationResult::fail('heavy_io', ...)
+
+# vs the original enum from 2026_05_10_150000_create_operation_quarantine_tables.php:
+#   $table->enum('domain', ['finance', 'warehouse', 'crm', 'general'])
+#
+# Missing: hrm, planning, heavy_io  →  3 production domains silently truncated
+#                                       at write time when their quarantine
+#                                       overlay rows were inserted.

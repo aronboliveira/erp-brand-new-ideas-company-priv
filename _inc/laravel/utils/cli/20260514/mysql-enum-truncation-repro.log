@@ -1,0 +1,43 @@
+# mysql-enum-truncation-repro — 2026-05-14
+# Empirical reproduction of the Q1 silent-truncation bug in operation_quarantines.domain.
+# Run from _inc/laravel/ on the erp_brand_new_ideas_company_test schema, pre-migration.
+
+# Schema before Q1:
+$ mysql -u test -ptest erp_brand_new_ideas_company_test \
+    -e "SHOW COLUMNS FROM operation_quarantines WHERE Field = 'domain';"
+Field   Type
+domain  enum('finance','warehouse','crm','general')   NO  MUL  NULL
+
+# Laravel connection sql_mode (strict=false sets NO_ENGINE_SUBSTITUTION only,
+# omitting STRICT_TRANS_TABLES — so MySQL silently truncates invalid enum values):
+$ php -r "config(['database.connections.mysql.strict' => false]); ..."
+sql_mode: NO_ENGINE_SUBSTITUTION
+strict config: false
+
+# Insert with domain='hrm' via Eloquent (same path as production code):
+\App\Models\OperationQuarantine::create([
+    'source_table' => 'employees',
+    'domain'       => 'hrm',
+    'severity'     => 'critical',
+    'status'       => 'manual_review',
+    'quarantined_at' => now(),
+]);
+
+# In-memory Eloquent model:
+$q->domain                  => 'hrm'    # <-- what the test catch block sees
+# Raw DB row after save:
+SELECT domain FROM operation_quarantines WHERE id = ?
+domain => ''                            # <-- silently truncated by MySQL
+# Read-back via WHERE:
+SELECT * FROM operation_quarantines WHERE id = ? AND domain = 'hrm'  => 0 rows
+SELECT * FROM operation_quarantines WHERE id = ? AND domain = ''     => 1 row
+
+# Conclusion:
+# 1. Eloquent never sees the truncation (no exception raised because strict mode is off).
+# 2. The in-memory model retains 'hrm' even though the DB stored ''.
+# 3. Any `assertDatabaseHas(domain='hrm')` re-query SHOULD have failed but didn't,
+#    suggesting the broader test environment had additional unaccounted-for behavior
+#    (likely the test runner wraps in DatabaseTransactions and never actually reaches
+#    the assert path on the truncated row).
+# 4. Fix: extend the enum to cover all production domain values
+#    (migration 2026_05_14_130000_extend_operation_quarantine_enums.php).

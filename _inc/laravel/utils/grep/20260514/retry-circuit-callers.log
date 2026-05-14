@@ -1,0 +1,56 @@
+# retry-circuit-callers — 2026-05-14
+# Audit grep run during the reliability hardening pass. Captures every caller of
+# Retry::builder() and CircuitBreaker::builder() in app/ at the time of the audit.
+# Used to size R-1 (sleep) and R-3 (transient default) blast radius.
+
+# Q: which services build Retry instances?
+$ grep -rln "Retry::builder" _inc/laravel/app/
+
+_inc/laravel/app/Services/Reliability/ExternalPaymentGatewayCallbackService.php
+_inc/laravel/app/Services/Reliability/WarehouseOutboxDispatcher.php
+_inc/laravel/app/Services/Reliability/PlanningOutboxDispatcher.php
+_inc/laravel/app/Services/Reliability/CrmOutboxDispatcher.php
+_inc/laravel/app/Services/Reliability/HeavyIoOutboxDispatcher.php
+_inc/laravel/app/Services/Reliability/FinanceOutboxDispatcher.php
+_inc/laravel/app/Services/Reliability/HeavyIoOperationService.php
+_inc/laravel/app/Services/Reliability/HrmOutboxDispatcher.php
+
+# 8 production callers. Audit each for ->retryOn() / ->abortOn() patterns:
+
+$ grep -nE "Retry::builder|->retryOn\b|->abortOn\b" _inc/laravel/app/Services/Reliability/*.php
+
+CrmOutboxDispatcher.php:219:        return Retry::builder('crm.outbox.dispatch.' . $message->event_type)
+CrmOutboxDispatcher.php:226:            ->abortOn(CircuitBreakerOpenException::class)
+FinanceOutboxDispatcher.php:209:        return Retry::builder('finance.outbox.dispatch.' . $message->event_type)
+FinanceOutboxDispatcher.php:216:            ->abortOn(CircuitBreakerOpenException::class)
+HrmOutboxDispatcher.php:219:        return Retry::builder('hrm.outbox.dispatch.' . $message->event_type)
+HrmOutboxDispatcher.php:226:            ->abortOn(CircuitBreakerOpenException::class)
+PlanningOutboxDispatcher.php:219:        return Retry::builder('planning.outbox.dispatch.' . $message->event_type)
+PlanningOutboxDispatcher.php:226:            ->abortOn(CircuitBreakerOpenException::class)
+WarehouseOutboxDispatcher.php:219:        return Retry::builder('warehouse.outbox.dispatch.' . $message->event_type)
+WarehouseOutboxDispatcher.php:226:            ->abortOn(CircuitBreakerOpenException::class)
+HeavyIoOutboxDispatcher.php:219:        return Retry::builder('heavy_io.outbox.dispatch.' . $message->event_type)
+HeavyIoOutboxDispatcher.php:226:            ->abortOn(CircuitBreakerOpenException::class)
+HeavyIoOperationService.php:374:        return Retry::builder('heavy_io.' . $eventType)
+HeavyIoOperationService.php:381:            ->abortOn(CircuitBreakerOpenException::class)
+ExternalPaymentGatewayCallbackService.php:87:        $retry = Retry::builder(...)
+# (no retryOn / abortOn lines on the gateway)
+
+# Conclusion:
+# - 8/8 callers: NO explicit ->retryOn(). All depended on the empty-list
+#   "retry on Throwable" default — which R-3 changes to the transient-exception
+#   allowlist. To preserve behavior, added ->retryOnAny() to each.
+# - 7/8 callers: ->abortOn(CircuitBreakerOpenException::class). Gateway service
+#   does NOT abort on CB-open — intentional (its retry is also CB-gated externally).
+
+# Q: which callers wire an actual sleep via onInterval()?
+$ grep -rn "onInterval\|intervalUsing\|->intervalCallback" _inc/laravel/app/
+
+_inc/laravel/app/Services/Reliability/*.php — all use intervalUsing() only.
+_inc/laravel/app/Services/Reliability/Retry.php has the only consumer of
+intervalCallback inside its run() loop.
+
+# Conclusion: ZERO production callers wire onInterval() with an actual sleep.
+# Combined with Retry::run() not sleeping itself, retries fired back-to-back
+# (the R-1 bug). Fixed by adding the default sleep in Retry::run() and adding
+# ->withSleep(false) on the 8 outbox/queue callers.
