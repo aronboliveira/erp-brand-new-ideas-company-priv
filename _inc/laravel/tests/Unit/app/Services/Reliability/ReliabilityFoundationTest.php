@@ -9,6 +9,8 @@ use App\Models\CircuitBreakerCall;
 use App\Models\CircuitBreakerState;
 use App\Models\InboxMessage;
 use App\Models\OperationLedger;
+use App\Models\OperationQuarantine;
+use App\Models\OperationQuarantineAudit;
 use App\Models\OperationalEvent;
 use App\Models\OperationStep;
 use App\Models\OutboxMessage;
@@ -16,6 +18,8 @@ use App\Services\Reliability\CriticalOperationService;
 use App\Services\Reliability\InboxService;
 use App\Services\Reliability\OperationalEventService;
 use App\Services\Reliability\OutboxService;
+use App\Services\Reliability\QuarantineRetentionSweepService;
+use App\Services\Reliability\ReliabilityLedgerSweepService;
 use App\Services\Reliability\ReliabilityPolicy;
 use App\Services\Reliability\ReliabilityRetentionService;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -367,5 +371,254 @@ class ReliabilityFoundationTest extends TestCase
             ->where('operation_ledger_id', $ledger->id)
             ->where('status', 'compressed')
             ->count());
+    }
+
+    #[Test]
+    public function ledger_sweep_flips_orphaned_started_ledgers_to_failed(): void
+    {
+        // Orphan: critical ledger 5min old (TTL = 120s) → should be swept.
+        $orphan = OperationLedger::create([
+            'operation_key' => 'orphan-critical-' . Str::uuid(),
+            'operation_type' => 'finance.test.orphaned',
+            'domain' => 'finance',
+            'criticality' => ReliabilityPolicy::CRITICALITY_CRITICAL,
+            'status' => ReliabilityPolicy::STATUS_STARTED,
+            'started_at' => now()->subMinutes(5),
+            'expires_at' => now()->addDays(7),
+        ]);
+        OperationStep::create([
+            'operation_ledger_id' => $orphan->id,
+            'step_key' => 'operation.db_transaction',
+            'step_name' => 'Database transaction',
+            'step_type' => 'db_write',
+            'sequence' => 10,
+            'status' => ReliabilityPolicy::STEP_RUNNING,
+            'criticality' => $orphan->criticality,
+            'storage_mode' => ReliabilityPolicy::STORAGE_DATABASE,
+            'started_at' => $orphan->started_at,
+        ]);
+
+        // Fresh: critical ledger 30s old → still inside TTL, should NOT be swept.
+        $fresh = OperationLedger::create([
+            'operation_key' => 'fresh-critical-' . Str::uuid(),
+            'operation_type' => 'finance.test.fresh',
+            'domain' => 'finance',
+            'criticality' => ReliabilityPolicy::CRITICALITY_CRITICAL,
+            'status' => ReliabilityPolicy::STATUS_STARTED,
+            'started_at' => now()->subSeconds(30),
+            'expires_at' => now()->addDays(7),
+        ]);
+
+        // Trivial-tier ledger past medium TTL — but trivial has null TTL, so untouched.
+        $trivialOrphan = OperationLedger::create([
+            'operation_key' => 'trivial-old-' . Str::uuid(),
+            'operation_type' => 'misc.test.trivial',
+            'domain' => 'system',
+            'criticality' => ReliabilityPolicy::CRITICALITY_TRIVIAL,
+            'status' => ReliabilityPolicy::STATUS_STARTED,
+            'started_at' => now()->subHour(),
+            'expires_at' => now()->addDays(1),
+        ]);
+
+        $report = (new ReliabilityLedgerSweepService())->sweep(50);
+
+        $this->assertGreaterThanOrEqual(1, $report['orphaned']);
+        $this->assertSame(ReliabilityPolicy::STATUS_FAILED, $orphan->fresh()->status);
+        $this->assertNotNull($orphan->fresh()->failed_at);
+        $this->assertSame(ReliabilityPolicy::STATUS_STARTED, $fresh->fresh()->status);
+        $this->assertSame(ReliabilityPolicy::STATUS_STARTED, $trivialOrphan->fresh()->status);
+
+        $this->assertDatabaseHas(DC::TABLE_OPERATION_STEPS, [
+            'operation_ledger_id' => $orphan->id,
+            'step_key' => 'operation.db_transaction',
+            'status' => ReliabilityPolicy::STEP_FAILED,
+        ]);
+        $this->assertDatabaseHas(DC::TABLE_OPERATIONAL_EVENTS, [
+            'operation_ledger_id' => $orphan->id,
+            'event_type' => 'reliability.operation.orphaned',
+        ]);
+    }
+
+    #[Test]
+    public function quarantine_recover_flips_status_and_writes_audit(): void
+    {
+        $quarantine = OperationQuarantine::create([
+            'source_table' => 'employees',
+            'source_record_id' => (string) Str::uuid(),
+            'domain' => 'hrm',
+            'severity' => ReliabilityPolicy::CRITICALITY_CRITICAL,
+            'status' => ReliabilityPolicy::QUARANTINE_MANUAL_REVIEW,
+            'remediation_decision' => ReliabilityPolicy::QUARANTINE_DECISION_MANUAL_REVIEW,
+            'quarantined_at' => now()->subMinutes(30),
+            'expires_at' => now()->addDays(30),
+        ]);
+
+        $actorId = (string) Str::uuid();
+        $returned = $quarantine->recover('Resolved after manual reconciliation in INC-9012.', $actorId);
+
+        $this->assertSame($quarantine->id, $returned->id);
+        $fresh = $quarantine->fresh();
+        $this->assertSame(ReliabilityPolicy::QUARANTINE_RECOVERED, $fresh?->status);
+        $this->assertSame('Resolved after manual reconciliation in INC-9012.', $fresh?->resolution_notes);
+        $this->assertNotNull($fresh?->resolved_at);
+
+        $this->assertDatabaseHas(DC::TABLE_OPERATION_QUARANTINE_AUDITS, [
+            'operation_quarantine_id' => $quarantine->id,
+            'action' => ReliabilityPolicy::QUARANTINE_ACTION_RECOVERED,
+            'actor_type' => 'human',
+            'actor_id' => $actorId,
+            'domain' => 'hrm',
+        ]);
+    }
+
+    #[Test]
+    public function quarantine_dismiss_flips_status_and_writes_audit_with_system_actor_when_none_provided(): void
+    {
+        $quarantine = OperationQuarantine::create([
+            'source_table' => 'leads',
+            'source_record_id' => (string) Str::uuid(),
+            'domain' => 'crm',
+            'severity' => ReliabilityPolicy::CRITICALITY_HIGH,
+            'status' => ReliabilityPolicy::QUARANTINE_MANUAL_REVIEW,
+            'remediation_decision' => ReliabilityPolicy::QUARANTINE_DECISION_MANUAL_REVIEW,
+            'quarantined_at' => now()->subHour(),
+            'expires_at' => now()->addDays(30),
+        ]);
+
+        $quarantine->dismiss('False positive — lead self-corrected via subsequent stage move.');
+
+        $fresh = $quarantine->fresh();
+        $this->assertSame(ReliabilityPolicy::QUARANTINE_DISMISSED, $fresh?->status);
+        $this->assertNotNull($fresh?->resolved_at);
+
+        $this->assertDatabaseHas(DC::TABLE_OPERATION_QUARANTINE_AUDITS, [
+            'operation_quarantine_id' => $quarantine->id,
+            'action' => ReliabilityPolicy::QUARANTINE_ACTION_DISMISSED,
+            'actor_type' => 'system',
+            'domain' => 'crm',
+        ]);
+    }
+
+    #[Test]
+    public function quarantine_retention_sweep_dismisses_expired_overlays(): void
+    {
+        $expired = OperationQuarantine::create([
+            'source_table' => 'employees',
+            'source_record_id' => (string) Str::uuid(),
+            'domain' => 'hrm',
+            'severity' => ReliabilityPolicy::CRITICALITY_HIGH,
+            'status' => ReliabilityPolicy::QUARANTINE_MANUAL_REVIEW,
+            'remediation_decision' => ReliabilityPolicy::QUARANTINE_DECISION_MANUAL_REVIEW,
+            'quarantined_at' => now()->subDays(60),
+            'expires_at' => now()->subDays(2),
+        ]);
+
+        $fresh = OperationQuarantine::create([
+            'source_table' => 'employees',
+            'source_record_id' => (string) Str::uuid(),
+            'domain' => 'hrm',
+            'severity' => ReliabilityPolicy::CRITICALITY_HIGH,
+            'status' => ReliabilityPolicy::QUARANTINE_MANUAL_REVIEW,
+            'remediation_decision' => ReliabilityPolicy::QUARANTINE_DECISION_MANUAL_REVIEW,
+            'quarantined_at' => now()->subHour(),
+            'expires_at' => now()->addDays(30),
+        ]);
+
+        $alreadyResolved = OperationQuarantine::create([
+            'source_table' => 'employees',
+            'source_record_id' => (string) Str::uuid(),
+            'domain' => 'hrm',
+            'severity' => ReliabilityPolicy::CRITICALITY_HIGH,
+            'status' => ReliabilityPolicy::QUARANTINE_RECOVERED,
+            'remediation_decision' => ReliabilityPolicy::QUARANTINE_DECISION_MANUAL_REVIEW,
+            'quarantined_at' => now()->subDays(40),
+            'resolved_at' => now()->subDays(35),
+            'expires_at' => now()->subDays(1),
+        ]);
+
+        $report = (new QuarantineRetentionSweepService())->sweep(50);
+
+        $this->assertGreaterThanOrEqual(1, $report['dismissed']);
+        $this->assertSame(ReliabilityPolicy::QUARANTINE_DISMISSED, $expired->fresh()?->status);
+        $this->assertNotNull($expired->fresh()?->resolved_at);
+        // Fresh row stays in manual_review (not past TTL).
+        $this->assertSame(ReliabilityPolicy::QUARANTINE_MANUAL_REVIEW, $fresh->fresh()?->status);
+        // Already-resolved row is untouched (not in pending/manual_review filter).
+        $this->assertSame(ReliabilityPolicy::QUARANTINE_RECOVERED, $alreadyResolved->fresh()?->status);
+
+        $this->assertDatabaseHas(DC::TABLE_OPERATION_QUARANTINE_AUDITS, [
+            'operation_quarantine_id' => $expired->id,
+            'action' => ReliabilityPolicy::QUARANTINE_ACTION_DISMISSED,
+            'actor_type' => 'scheduler',
+            'domain' => 'hrm',
+        ]);
+        $this->assertDatabaseHas(DC::TABLE_OPERATIONAL_EVENTS, [
+            'event_type' => 'reliability.quarantine.expired',
+            'subject_id' => $expired->source_record_id,
+        ]);
+    }
+
+    #[Test]
+    public function backfill_quarantine_domains_recovers_truncated_rows_from_ledger(): void
+    {
+        // Simulate a pre-Q1 truncated row: ledger has 'hrm', quarantine has ''.
+        $hrmLedger = OperationLedger::create([
+            'operation_key' => 'backfill-hrm-' . Str::uuid(),
+            'operation_type' => 'hrm.employee.update',
+            'domain' => 'hrm',
+            'criticality' => ReliabilityPolicy::CRITICALITY_CRITICAL,
+            'status' => ReliabilityPolicy::STATUS_FAILED,
+            'started_at' => now()->subDays(3),
+            'failed_at' => now()->subDays(3),
+            'expires_at' => now()->addDays(30),
+        ]);
+
+        // Directly insert with raw query to simulate the truncated state (DB::table avoids Eloquent + lets us pass '').
+        $truncatedId = (string) Str::uuid();
+        DB::table(DC::TABLE_OPERATION_QUARANTINES)->insert([
+            'id' => $truncatedId,
+            'operation_ledger_id' => $hrmLedger->id,
+            'source_table' => 'employees',
+            'source_record_id' => (string) Str::uuid(),
+            'domain' => '',
+            'severity' => ReliabilityPolicy::CRITICALITY_CRITICAL,
+            'status' => ReliabilityPolicy::QUARANTINE_MANUAL_REVIEW,
+            'remediation_decision' => ReliabilityPolicy::QUARANTINE_DECISION_MANUAL_REVIEW,
+            'quarantined_at' => now()->subDays(3),
+            'expires_at' => now()->addDays(30),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Unrecoverable case: no linked ledger.
+        $orphanId = (string) Str::uuid();
+        DB::table(DC::TABLE_OPERATION_QUARANTINES)->insert([
+            'id' => $orphanId,
+            'operation_ledger_id' => null,
+            'source_table' => 'employees',
+            'source_record_id' => (string) Str::uuid(),
+            'domain' => '',
+            'severity' => ReliabilityPolicy::CRITICALITY_HIGH,
+            'status' => ReliabilityPolicy::QUARANTINE_MANUAL_REVIEW,
+            'quarantined_at' => now()->subDays(3),
+            'expires_at' => now()->addDays(30),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->artisan('reliability:backfill-quarantine-domains', ['--limit' => 50])
+            ->assertExitCode(0);
+
+        $recovered = OperationQuarantine::find($truncatedId);
+        $this->assertSame('hrm', $recovered?->domain);
+
+        $orphan = OperationQuarantine::find($orphanId);
+        $this->assertSame('', $orphan?->domain);
+
+        $this->assertDatabaseHas(DC::TABLE_OPERATION_QUARANTINE_AUDITS, [
+            'operation_quarantine_id' => $truncatedId,
+            'action' => ReliabilityPolicy::QUARANTINE_ACTION_JUDGE_DECISION,
+            'domain' => 'hrm',
+        ]);
     }
 }

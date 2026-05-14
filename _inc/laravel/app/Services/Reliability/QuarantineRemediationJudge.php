@@ -2,48 +2,20 @@
 
 namespace App\Services\Reliability;
 
+/**
+ * Thin wrapper around ReliabilityPolicy::quarantineDecisionFor — kept as a class so callers can
+ * inject a custom judge for tests or future per-quarantine logic (e.g. auto_recover when source
+ * state has self-corrected by the time the judge runs). Today it's pure data-driven dispatch.
+ */
 class QuarantineRemediationJudge
 {
     public function decide(PostWriteValidationResult $validation): QuarantineDecision
     {
-        if ($validation->domain === 'finance') {
-            return QuarantineDecision::rollback(
-                'Finance post-write validation failed after persistent instability signals; the domain write was rolled back before outbox dispatch.'
-            );
-        }
+        $mapped = ReliabilityPolicy::quarantineDecisionFor($validation->domain);
 
-        if ($validation->domain === 'hrm') {
-            return QuarantineDecision::manualReview(
-                'HRM post-write validation failed after persistent retry/circuit instability; keep the source signal in manual review before further employee-impacting actions.'
-            );
-        }
-
-        if ($validation->domain === 'warehouse') {
-            return QuarantineDecision::manualReview(
-                'Warehouse post-write validation failed after persistent retry/circuit instability; keep the stock or product signal in manual review before further inventory-impacting actions.'
-            );
-        }
-
-        if ($validation->domain === 'crm') {
-            return QuarantineDecision::manualReview(
-                'CRM post-write validation failed after persistent retry/circuit instability; keep the lead, deal, or access signal in manual review before further customer-impacting actions.'
-            );
-        }
-
-        if ($validation->domain === 'planning') {
-            return QuarantineDecision::manualReview(
-                'Planning post-write validation failed after persistent retry/circuit instability; keep the final project, milestone, or task signal in manual review before further project-impacting actions.'
-            );
-        }
-
-        if ($validation->domain === 'heavy_io') {
-            return QuarantineDecision::manualReview(
-                'Heavy I/O integration validation failed after persistent retry/circuit instability; keep the import, export, webhook, or callback signal in manual review before further downstream processing.'
-            );
-        }
-
-        return QuarantineDecision::manualReview(
-            'The quarantine decision is ambiguous outside the mature domain slices and requires manual review.'
-        );
+        return match ($mapped['decision']) {
+            ReliabilityPolicy::QUARANTINE_DECISION_ROLLBACK => QuarantineDecision::rollback($mapped['details']),
+            default => QuarantineDecision::manualReview($mapped['details']),
+        };
     }
 }

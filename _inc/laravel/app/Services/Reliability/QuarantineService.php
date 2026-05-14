@@ -53,7 +53,7 @@ class QuarantineService
             $this->audit($record, ReliabilityPolicy::QUARANTINE_ACTION_JUDGE_DECISION, $decision->details, [
                 'decision' => $decision->decision,
                 'status' => $decision->status,
-            ]);
+            ], 'judge');
             $this->audit($record, $decision->action, $decision->details, [
                 'source_table' => $validation->sourceTable,
                 'source_record_id' => $validation->sourceRecordId,
@@ -102,7 +102,7 @@ class QuarantineService
     /**
      * @param array<string, mixed> $metadata
      */
-    private function audit(OperationQuarantine $quarantine, string $action, string $details, array $metadata = []): OperationQuarantineAudit
+    private function audit(OperationQuarantine $quarantine, string $action, string $details, array $metadata = [], string $actorType = 'system'): OperationQuarantineAudit
     {
         return OperationQuarantineAudit::create([
             'operation_quarantine_id' => $quarantine->id,
@@ -110,7 +110,7 @@ class QuarantineService
             'source_record_id' => $quarantine->source_record_id,
             'domain' => $quarantine->domain,
             'action' => $action,
-            'actor_type' => 'system',
+            'actor_type' => $actorType,
             'actor_id' => $quarantine->actor_id,
             'details' => $details,
             'metadata' => $metadata ?: null,

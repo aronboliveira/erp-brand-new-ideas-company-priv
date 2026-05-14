@@ -131,11 +131,24 @@ class FinanceOperationService
                 },
             ]));
         } catch (QuarantineRollbackRequiredException $exception) {
-            $quarantineService = $options['quarantine_service'] ?? new QuarantineService();
-            $quarantine = $quarantineService instanceof QuarantineService
-                ? $quarantineService->route($exception->validation(), $exception->ledger())
-                : (new QuarantineService())->route($exception->validation(), $exception->ledger());
-            $exception->setQuarantine($quarantine);
+            // Domain DML already rolled back. Record the overlay defensively — if route() fails too,
+            // the caller still receives the typed quarantine signal, just with quarantine()=null so they
+            // can detect "warranted but unrecorded". Mirrors the F1 defensive pattern in CriticalOperationService.
+            try {
+                $quarantineService = $options['quarantine_service'] ?? new QuarantineService();
+                $quarantine = $quarantineService instanceof QuarantineService
+                    ? $quarantineService->route($exception->validation(), $exception->ledger())
+                    : (new QuarantineService())->route($exception->validation(), $exception->ledger());
+                $exception->setQuarantine($quarantine);
+            } catch (\Throwable $routeError) {
+                \Illuminate\Support\Facades\Log::warning('Quarantine route failed; rethrowing original quarantine signal without overlay record', [
+                    'domain' => $exception->validation()->domain,
+                    'operation_key' => $exception->ledger()?->operation_key,
+                    'primary_message' => $exception->getMessage(),
+                    'secondary_exception' => $routeError::class,
+                    'secondary_message' => $routeError->getMessage(),
+                ]);
+            }
 
             throw $exception;
         }

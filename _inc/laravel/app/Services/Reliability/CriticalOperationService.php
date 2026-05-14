@@ -6,6 +6,7 @@ use App\Models\OperationLedger;
 use App\Models\OperationStep;
 use App\Models\OutboxMessage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use ReflectionFunction;
 use Throwable;
@@ -66,7 +67,19 @@ class CriticalOperationService
         try {
             $this->setIsolationLevelIfPossible($options['isolation_level'] ?? ReliabilityPolicy::defaultIsolationLevel($criticality));
 
-            $result = DB::transaction(function () use ($callback, $ledger, $options) {
+            $finalStatus = $options['final_status'] ?? ReliabilityPolicy::STATUS_COMMITTED;
+
+            // F1: the success-side ledger/step/event writes move INSIDE the transaction as its last statements.
+            // Outcome: there is no longer a window where the domain DML + outbox are committed but the ledger
+            // is still in 'started'. Either the whole transaction commits (data + outbox + ledger=committed),
+            // or it rolls back together (ledger stays 'started', then the catch block flips it to 'failed' for audit).
+            //
+            // F2: pass an attempts arg so Laravel retries the whole transaction on concurrency errors
+            // (deadlocks, lock-wait-timeout). Business exceptions still abort on first throw. Tier from
+            // ReliabilityPolicy::commitRetryAttempts (trivial/low=1, medium=3, high=4, critical=5).
+            // Caveat: MySQL session isolation set above applies only to attempt 1; retries use session default.
+            $attempts = ReliabilityPolicy::commitRetryAttempts($criticality);
+            $result = DB::transaction(function () use ($callback, $ledger, $options, $operationType, $criticality, $transactionStep, $finalStatus) {
                 $result = $this->invokeCallback($callback, $ledger);
 
                 if (array_key_exists('outbox', $options)) {
@@ -76,38 +89,68 @@ class CriticalOperationService
                     }
                 }
 
+                $this->succeedStep($transactionStep, ['result_type' => get_debug_type($result)]);
+
+                $ledger->forceFill([
+                    'status' => $finalStatus,
+                    'result' => $this->normalizeResult($result),
+                    'committed_at' => now(),
+                    'posted_at' => $finalStatus === ReliabilityPolicy::STATUS_POSTED_TO_LEDGER ? now() : null,
+                ])->save();
+
+                $this->events->record('operation.committed', $options['summary'] ?? $operationType, [
+                    'operation_type' => $operationType,
+                    'final_status' => $finalStatus,
+                ], $this->eventOptions($ledger, $criticality, $options));
+
                 return $result;
-            });
-
-            $this->succeedStep($transactionStep, ['result_type' => get_debug_type($result)]);
-
-            $finalStatus = $options['final_status'] ?? ReliabilityPolicy::STATUS_COMMITTED;
-            $ledger->forceFill([
-                'status' => $finalStatus,
-                'result' => $this->normalizeResult($result),
-                'committed_at' => now(),
-                'posted_at' => $finalStatus === ReliabilityPolicy::STATUS_POSTED_TO_LEDGER ? now() : null,
-            ])->save();
-
-            $this->events->record('operation.committed', $options['summary'] ?? $operationType, [
-                'operation_type' => $operationType,
-                'final_status' => $finalStatus,
-            ], $this->eventOptions($ledger, $criticality, $options));
+            }, $attempts);
 
             return $result;
         } catch (Throwable $throwable) {
-            $this->failStep($transactionStep, $throwable->getMessage());
-            $ledger->forceFill([
-                'status' => ReliabilityPolicy::STATUS_FAILED,
-                'error_message' => $throwable->getMessage(),
-                'failed_at' => now(),
-            ])->save();
+            // The transaction has already rolled back, so the success-side writes above never persisted.
+            // Record failure forensics in fresh auto-commit statements; wrap each in a defensive try/catch
+            // so a secondary DB blip during the catch path cannot mask the original throwable.
+            try {
+                $this->failStep($transactionStep, $throwable->getMessage());
+            } catch (Throwable $stepError) {
+                Log::warning('CriticalOperationService: failed to mark transaction step as failed', [
+                    'operation_key' => $ledger->operation_key,
+                    'primary_exception' => $throwable::class,
+                    'secondary_exception' => $stepError::class,
+                    'secondary_message' => $stepError->getMessage(),
+                ]);
+            }
 
-            $this->events->record('operation.failed', $options['summary'] ?? $operationType, [
-                'operation_type' => $operationType,
-                'exception' => $throwable::class,
-                'message' => $throwable->getMessage(),
-            ], $this->eventOptions($ledger, $criticality, $options, 'error'));
+            try {
+                $ledger->forceFill([
+                    'status' => ReliabilityPolicy::STATUS_FAILED,
+                    'error_message' => $throwable->getMessage(),
+                    'failed_at' => now(),
+                ])->save();
+            } catch (Throwable $ledgerError) {
+                Log::warning('CriticalOperationService: failed to mark ledger as failed', [
+                    'operation_key' => $ledger->operation_key,
+                    'primary_exception' => $throwable::class,
+                    'secondary_exception' => $ledgerError::class,
+                    'secondary_message' => $ledgerError->getMessage(),
+                ]);
+            }
+
+            try {
+                $this->events->record('operation.failed', $options['summary'] ?? $operationType, [
+                    'operation_type' => $operationType,
+                    'exception' => $throwable::class,
+                    'message' => $throwable->getMessage(),
+                ], $this->eventOptions($ledger, $criticality, $options, 'error'));
+            } catch (Throwable $eventError) {
+                Log::warning('CriticalOperationService: failed to record operation.failed event', [
+                    'operation_key' => $ledger->operation_key,
+                    'primary_exception' => $throwable::class,
+                    'secondary_exception' => $eventError::class,
+                    'secondary_message' => $eventError->getMessage(),
+                ]);
+            }
 
             throw $throwable;
         }

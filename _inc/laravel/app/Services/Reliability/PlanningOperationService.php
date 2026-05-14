@@ -140,11 +140,23 @@ class PlanningOperationService
                 },
             ]));
         } catch (QuarantineRollbackRequiredException $exception) {
-            $quarantineService = $options['quarantine_service'] ?? new QuarantineService();
-            $quarantine = $quarantineService instanceof QuarantineService
-                ? $quarantineService->route($exception->validation(), $exception->ledger())
-                : (new QuarantineService())->route($exception->validation(), $exception->ledger());
-            $exception->setQuarantine($quarantine);
+            // Defensive: if route() fails after the rollback, propagate the original quarantine signal
+            // with quarantine()=null so callers can detect "warranted but unrecorded".
+            try {
+                $quarantineService = $options['quarantine_service'] ?? new QuarantineService();
+                $quarantine = $quarantineService instanceof QuarantineService
+                    ? $quarantineService->route($exception->validation(), $exception->ledger())
+                    : (new QuarantineService())->route($exception->validation(), $exception->ledger());
+                $exception->setQuarantine($quarantine);
+            } catch (\Throwable $routeError) {
+                \Illuminate\Support\Facades\Log::warning('Quarantine route failed; rethrowing original quarantine signal without overlay record', [
+                    'domain' => $exception->validation()->domain,
+                    'operation_key' => $exception->ledger()?->operation_key,
+                    'primary_message' => $exception->getMessage(),
+                    'secondary_exception' => $routeError::class,
+                    'secondary_message' => $routeError->getMessage(),
+                ]);
+            }
 
             throw $exception;
         }
