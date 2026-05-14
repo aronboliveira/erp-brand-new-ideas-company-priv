@@ -1,6 +1,6 @@
 # Reliability Outbox and Operation Ledger
 
-> Last updated: 2026-05-12. Applies to high-impact business operations across
+> Last updated: 2026-05-14. Applies to high-impact business operations across
 > finance, HR, planning, products/warehouse, and heavy system workflows.
 
 ## Purpose
@@ -96,16 +96,83 @@ Retry emits `reliability.retry.success`, `reliability.retry.retrying`, and
 `reliability.circuit.rejected`.
 
 Retry intervals default to capped exponential backoff through
-`ReliabilityPolicy::retryDelaySeconds()`: 30s, 60s, 120s, 240s, then 300s.
-Use `intervalUsing()` only when a specific guarded call needs a different
-cadence; `onInterval()` receives the computed delay so a caller can log,
-schedule, or notify without duplicating the policy.
+`ReliabilityPolicy::retryDelaySeconds()`: 30s, 60s, 120s, 240s, then 300s,
+**with ±15% jitter applied via `ReliabilityPolicy::jitter()`** to decorrelate
+retries across concurrent workers. Use `intervalUsing()` only when a specific
+guarded call needs a different cadence; `intervalUsingMillis()` is the
+sub-second variant. `onInterval()` receives the computed delay so a caller can
+log, schedule, or notify without duplicating the policy.
+
+`Retry::run()` actually sleeps between attempts by default (Spring Retry
+`BackOffPolicy` semantics). Outbox/queue dispatchers opt out via
+`->withSleep(false)` because their scheduler handles backoff externally;
+synchronous-path callers (gateway webhooks, in-request retries) should keep
+the default. `Retry::shouldRetry()` precedence is `abortOn` → typed
+`exceptionHandlers` → `retryOn`; when `retryOn` is empty, the policy falls back
+to `ReliabilityPolicy::TRANSIENT_EXCEPTIONS` (PDO/QueryException, Guzzle
+Connect/Server, Laravel HTTP client). Use `->retryOnAny()` to opt into the
+old "retry on Throwable" behavior explicitly. `->recoverWith(fn)` registers a
+`@Recover`-style fallback that returns from `run()` instead of rethrowing
+when attempts are exhausted.
 
 Circuit breakers are disabled by default for `trivial` and `low` criticality
 so lightweight UI/customization work does not pay durable tracking overhead.
 `medium` and above persist state/calls. High and critical builders default to
 conservative half-open behavior; percentage half-open mode is available for
-lower-severity cases, with the threshold clamped to at least 25%.
+lower-severity cases. Tier-driven `defaultHalfOpenSuccessThreshold`:
+critical/high=100%, medium=75%, low=25%, trivial=10%. The builder floor for
+explicit overrides is 1% (sanity guard only).
+
+Half-open admission is **atomic** (`tryAcquirePermit`): a `permitted` call row
+is written under `lockForUpdate` on the state row, so concurrent workers
+cannot all see an empty window and flood the recovering backend. The
+non-conservative mode also short-circuits to OPEN as soon as the success
+threshold becomes mathematically unreachable, rather than wasting the
+remaining probe budget. `next_attempt_at` is jittered ±15%. Optional
+slow-call rate tripping via `->slowCallThreshold($durationMs, $rateThreshold)`
+catches "responding but degraded" backends before the failure rate fires
+(disabled by default; nullable schema columns added in
+`2026_05_14_120000_add_slow_call_thresholds_to_circuit_breaker_states.php`).
+
+Ops can flip a breaker into `CIRCUIT_DISABLED` (bypass admission control,
+keep config) via the model helper: `CircuitBreakerState::where('breaker_key',
+'foo')->first()->disable('incident #123')` / `->enable()`. This is distinct
+from the builder's `enabled(false)` flag (which bypasses the entire
+`CircuitBreaker::call()` path including row writes).
+
+## Commit-path guarantees
+
+`CriticalOperationService::run()` provides four guarantees beyond a normal
+Laravel transaction:
+
+1. **Atomic ledger lifecycle** (F1) — the success-side ledger status flip
+   (`started` → `committed`/`posted_to_ledger`), the `operation.db_transaction`
+   step success update, the outbox row, and the `operation.committed`
+   operational event are all the last writes inside the `DB::transaction`
+   callback. There is no window where the DML + outbox are committed but the
+   ledger is still in `started`. Either everything commits, or everything rolls
+   back together.
+2. **Deadlock retry** (F2) — `DB::transaction($callback, $attempts)` retries
+   the entire transaction on concurrency errors (SQLSTATE 40001, lock-wait
+   timeout, "Deadlock found", etc). Tier from
+   `ReliabilityPolicy::commitRetryAttempts`: trivial/low=1, medium=3, high=4,
+   critical=5. Business exceptions and constraint violations still abort on
+   the first throw. Caveat: MySQL `SET TRANSACTION ISOLATION LEVEL` applies
+   to the next transaction only, so retries beyond attempt 1 fall back to
+   session-default isolation.
+3. **Failure-path defensive writes** — the catch block wraps `failStep`,
+   ledger-status-flip, and `operation.failed` event in individual
+   `try/catch (\Throwable)` blocks logging at `warning` so a secondary DB
+   blip during failure handling cannot mask the original exception.
+4. **Orphan recovery** (F3) — `ReliabilityLedgerSweepService` /
+   `php artisan reliability:sweep-orphaned-ledgers` flips ledgers stuck in
+   `started` past their tier-driven TTL (critical=120s, high=300s,
+   medium=600s) to `failed` with reason "Orphaned ledger swept by reliability
+   GC.", flips the running `operation.db_transaction` step to `failed`, and
+   emits `reliability.operation.orphaned`. Run on a 5–10min schedule. The
+   only way to land here after F1+F2 is a PHP process kill in the
+   sub-millisecond window between `recordStep(RUNNING)` and `DB::transaction()`
+   entry.
 
 ## Domain signal handlers
 
@@ -541,6 +608,60 @@ imports, or non-critical stage movement. Use operation ledgers, outbox, retry, o
 normal validation first. Add quarantine only when a specific business invariant
 justifies the DB reads, audit writes, and downstream blocking.
 
+### Quarantine operability
+
+- **Recover/dismiss** — `OperationQuarantine::recover(string $notes, ?string $actorId)`
+  flips status to `recovered` and writes a `recovered` audit row. Use when the
+  invariant has been re-verified. `dismiss(string $notes, ?string $actorId)` flips
+  to `dismissed` for false positives or out-of-band corrections. Both wrap status
+  update + audit insert in a `DB::transaction`. `actor_type` auto-derives:
+  `'human'` when actorId is provided, `'system'` otherwise.
+- **Auto-expiration** — `QuarantineRetentionSweepService` /
+  `php artisan reliability:sweep-expired-quarantines` walks `pending_review` /
+  `manual_review` rows past `expires_at` and flips them to `dismissed` with
+  `actor_type='scheduler'`. Emits `reliability.quarantine.expired`. Run on a
+  6–12h schedule. Without this, unreviewed rows accumulate indefinitely.
+- **Defensive routing** — every domain operation service wraps
+  `$quarantineService->route(...)` in a nested `try/catch (\Throwable)` with
+  `Log::warning`. If `route()` itself fails after the rollback, the original
+  `QuarantineRollbackRequiredException` still propagates with
+  `$exception->quarantine() === null` — callers can distinguish "warranted and
+  recorded" (`quarantine() !== null`) from "warranted but unrecorded"
+  (`quarantine() === null`) from "not warranted" (different exception type).
+- **Decision mapping** — `ReliabilityPolicy::quarantineDecisionFor($domain)` is
+  the single source of truth for the domain → (decision, details) map.
+  `QuarantineRemediationJudge` is a thin wrapper around it kept for
+  injectability and future per-quarantine logic (e.g. an `auto_recover` path
+  that re-runs the validator). To add a new domain, extend the `match` arm in
+  `ReliabilityPolicy::quarantineDecisionFor`, not the judge class.
+- **Audit actor_type** — extended to `('system','human','judge','scheduler')`
+  in `2026_05_14_140000_extend_quarantine_audit_actor_type.php`. Judge-decision
+  audit rows now write `actor_type='judge'`; the auto-expiration sweep writes
+  `actor_type='scheduler'`. Reserve `'system'` for unattributed automated
+  actions.
+
+### Quarantine schema history note
+
+The original `operation_quarantines.domain` enum migration
+(`2026_05_10_150000_create_operation_quarantine_tables.php`) only declared
+`('finance','warehouse','crm','general')` despite production code writing
+`'hrm'`, `'planning'`, and `'heavy_io'`. With Laravel's `strict=false` MySQL
+config, those invalid enum values were silently truncated to `''` instead of
+raising errors. Quarantine overlay rows from those three domains lost their
+domain attribution at write time.
+
+Fixed by `2026_05_14_130000_extend_operation_quarantine_enums.php` which
+extends both `operation_quarantines.domain` and
+`operation_quarantine_audits.domain` enums, and adds `'dismissed'` to
+`operation_quarantine_audits.action`. After the migration, new writes persist
+the correct domain.
+
+**For production deployments that ran with the pre-Q1 enum**:
+`php artisan reliability:backfill-quarantine-domains` recovers truncated rows
+by reading `operation_ledgers.domain` (a VARCHAR that was always stored
+correctly) and copying it onto the overlay row. Idempotent. Run with
+`--dry-run` first to see the candidates count and per-domain breakdown.
+
 ## Rollback and compensation
 
 Two rollback surfaces are now defined:
@@ -702,7 +823,8 @@ Current baseline:
 php vendor/bin/phpunit tests/Unit/app/Services/Reliability --no-coverage
 ```
 
-Latest local reliability check after the dispatch-orchestration slice:
+Latest local reliability check after the 2026-05-14 reliability/quarantine
+hardening pass (F1–F3, R-1–R-7, CB-1–CB-7, Q1–Q6):
 
 ```text
 tests/Unit/app/Services/Reliability --no-coverage:

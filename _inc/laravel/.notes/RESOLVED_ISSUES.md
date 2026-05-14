@@ -1,8 +1,118 @@
 # Resolved Issues Archive
 
 > Issues that have been fully fixed and verified. Append new entries at the top.
-> Last updated: 2026-05-11
+> Last updated: 2026-05-14
 > **Cross-references:** [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) (formerly open issues) · [`CURRENT_WORKING_ISSUES.md`](CURRENT_WORKING_ISSUES.md) (bug-fix sessions) · [`CURRENT_WORKING_ISSUES_WORK.md`](CURRENT_WORKING_ISSUES_WORK.md) (try/fail journal) · [`NEXT_STEPS.md`](NEXT_STEPS.md) (remaining tasks) · [`README.md`](README.md) (notes overview)
+
+---
+
+## [2026-05-14] Reliability + quarantine hardening pass
+
+Hardened the reliability primitives (Retry, CircuitBreaker, CriticalOperationService)
+and closed seven gaps in the quarantine subsystem. Companion guideline at
+`.notes/.llms/.guidelines/backend/reliability-outbox-ledger.md`. Test baseline:
+60 reliability tests / 362 assertions / green.
+
+**Retry (R-1 … R-7)**
+
+- R-1: `Retry::run()` now actually `sleep`s between attempts (Spring `BackOffPolicy`
+  semantics). Outbox/queue dispatchers opt out via `->withSleep(false)`. Sync paths
+  keep the default. Previously every retry fired back-to-back regardless of
+  `intervalUsing`.
+- R-2: `ReliabilityPolicy::retryDelaySeconds()` applies ±15% jitter via
+  `ReliabilityPolicy::jitter()`.
+- R-3: Empty `retryOn` now falls back to `ReliabilityPolicy::TRANSIENT_EXCEPTIONS`
+  (PDO/Query/Guzzle/Laravel HTTP). Existing callers opt into the wide net via
+  `->retryOnAny()`.
+- R-4: `RetryBuilder::recoverWith($fn)` Spring-`@Recover` analogue. Emits
+  `reliability.retry.recovered`.
+- R-5: `RetryBuilder::intervalUsingMillis($fn)` for sub-second backoffs.
+- R-6: Callback signature reflected once at `run()` entry instead of per-attempt.
+- R-7: `shouldRetry()` precedence documented inline (`abortOn` → handlers → `retryOn`).
+
+**Circuit breaker (CB-1 … CB-7)**
+
+- CB-1: `tryAcquirePermit` writes a `permitted` call row under `lockForUpdate()`
+  before admitting a half-open probe. Prior behavior let N concurrent requests
+  all see an empty window.
+- CB-2: `prepareState`'s open→half_open transition runs inside `DB::transaction`
+  with `lockForUpdate` + re-check under lock.
+- CB-3: `next_attempt_at` jittered ±15%.
+- CB-4: Optional slow-call rate tripping. New nullable columns + builder method
+  `->slowCallThreshold($ms, $rate)`. Migration
+  `2026_05_14_120000_add_slow_call_thresholds_to_circuit_breaker_states.php`.
+- CB-5: Half-open success threshold builder floor 25% → 1%. Tier defaults
+  preserved.
+- CB-6: Non-conservative half-open re-opens early when threshold becomes
+  mathematically unreachable.
+- CB-7: `CircuitBreakerState::disable($reason)` / `enable()` ops handles for
+  the previously-unreachable `CIRCUIT_DISABLED` state.
+
+**Commit-path atomicity (F-1 … F-3)**
+
+- F1: `CriticalOperationService::run()` moves success-side ledger status flip,
+  step success update, and `operation.committed` event INSIDE the
+  `DB::transaction` callback. Failure-path writes wrapped in defensive
+  `try/catch (\Throwable)` so secondary DB blips can't mask the original
+  throwable.
+- F2: `DB::transaction($callback, $attempts)` retries on concurrency errors.
+  Tier from `ReliabilityPolicy::commitRetryAttempts`: trivial/low=1, medium=3,
+  high=4, critical=5.
+- F3: `ReliabilityLedgerSweepService` /
+  `php artisan reliability:sweep-orphaned-ledgers` flips ledgers stuck in
+  `started` past tier TTL (critical=120s, high=300s, medium=600s) to `failed`,
+  emits `reliability.operation.orphaned`.
+
+**Quarantine (Q-1 … Q-7)**
+
+- Q1: `operation_quarantines.domain` + `operation_quarantine_audits.domain`
+  enums extended from 4 → 7 values (`+hrm,+planning,+heavy_io`). Audit `action`
+  enum extended with `dismissed`. Migration
+  `2026_05_14_130000_extend_operation_quarantine_enums.php`. Fixes silent
+  truncation of three production domains under Laravel's `strict=false` MySQL
+  config.
+- Q2: All 5 domain operation services wrap `$quarantineService->route(...)` in
+  defensive `try/catch (\Throwable)`. Original
+  `QuarantineRollbackRequiredException` propagates with `quarantine() === null`
+  if `route()` fails.
+- Q3: `ReliabilityPolicy::quarantineDecisionFor($domain)` is the single source
+  of truth for the domain → (decision, details) map.
+  `QuarantineRemediationJudge` is now a thin wrapper kept for injectability.
+- Q4: `OperationQuarantine::recover($notes, $actorId)` / `dismiss(...)` ops
+  handles. Transactional status flip + audit row insert.
+- Q5: `operation_quarantine_audits.actor_type` extended to
+  `('system','human','judge','scheduler')` in migration
+  `2026_05_14_140000_extend_quarantine_audit_actor_type.php`. Judge-decision
+  audit rows now write `actor_type='judge'`.
+- Q6: `QuarantineRetentionSweepService` /
+  `php artisan reliability:sweep-expired-quarantines` auto-dismisses
+  manual_review/pending_review rows past `expires_at` with audit + event.
+- Q7 backfill: `php artisan reliability:backfill-quarantine-domains` recovers
+  pre-Q1 truncated rows by reading `operation_ledgers.domain` and copying
+  it onto the overlay. Idempotent; supports `--dry-run`. Run only on
+  deployments that ran with the pre-Q1 enum.
+
+**Companion fixes in the same session**
+
+- `App\Models\Planning\Plan::mostPurchasedPlan` was querying nonexistent
+  `users.plan_id`; switched to `users.plan` (`UC::COL_PL`) which is the real
+  column declared in the users migration.
+- `App\Http\Controllers\Individuals\JobApplicationController` had 7 hard-throwing
+  `route()` calls using `ViewsConstants::JB_APL` (view-path constant
+  `'job_applications'`) as if it were a route name. The actual resource route is
+  registered as `'job-application'` (singular/dash); the candidate route is
+  `'jobs.application.candidate'`; the onboard route is `'jobs.on.board'`. Added
+  three class constants `ROUTE_INDEX`/`ROUTE_CANDIDATE`/`ROUTE_ONBOARD` and
+  replaced all hard-throwers. Also updated the 24 `guard()` 3rd-arg passes
+  (soft-degrades to `url()->previous()` when the route name doesn't resolve, so
+  they weren't crashing but were semantically wrong).
+- `resources/views/job_applications/index.blade.php`,
+  `resources/views/leads/index.blade.php`, and
+  `resources/views/partials/admin/menu.blade.php` regressions surfaced during
+  Playwright triage — fixed in the same pass.
+- Playwright flaky `performance.spec.ts::second page load is faster (browser
+  cache)` had too tight a warm/cold ratio under PHP dev-server jitter. Widened
+  to 2.5x (or 4x for sub-200ms loads dominated by setup jitter).
 
 ---
 

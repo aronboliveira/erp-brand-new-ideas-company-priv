@@ -55,6 +55,30 @@ Stale items now closed by later Claude commits:
 9. ~~**Finish Claude's remaining Unit-suite failures**~~ — ✅ RESOLVED 2026-05-09 (RT-007..RT-009 fixed; `tests/Unit` now 0 errors / 0 failures)
 10. **3-way merge of 531 overlapping files** — PHPStan annotations + agent crash-prevention patterns. See `AGENT_BRANCH_MERGE_LOG.md`.
 11. **Review and apply agent's 2,832 file deletions** — Mainly TS rollback from agent branch.
+12. **Schedule the new sweep commands** — `reliability:sweep-orphaned-ledgers` (every 5–10 min) and `reliability:sweep-expired-quarantines` (every 6–12 h). Not pre-wired in `Console\Kernel::schedule()` because cadence is an ops decision.
+13. **Run quarantine domain backfill on production** — `php artisan reliability:backfill-quarantine-domains --dry-run` first to assess. Only needed for deployments that ran with the pre-Q1 quarantine domain enum and have non-empty `operation_quarantines` rows.
+
+## RECENTLY COMPLETED (2026-05-14)
+
+### Reliability + quarantine hardening pass
+
+Full archive entry in `RESOLVED_ISSUES.md`. Summary:
+
+- Retry: actual sleep between attempts (R-1), backoff jitter (R-2), transient
+  allowlist default (R-3), `recoverWith` fallback (R-4), ms granularity (R-5),
+  reflection cached (R-6), precedence docblock (R-7).
+- CircuitBreaker: atomic half-open admission (CB-1), transactional state
+  transition (CB-2), `next_attempt_at` jitter (CB-3), slow-call rate (CB-4),
+  threshold floor 1% (CB-5), early re-open when threshold unreachable (CB-6),
+  `disable()/enable()` ops handles (CB-7).
+- Commit path: atomic ledger lifecycle (F1), deadlock retry (F2),
+  orphaned-ledger sweep + artisan command (F3).
+- Quarantine: domain enum extended (Q1), defensive `route()` (Q2), judge → policy
+  helper (Q3), `recover()/dismiss()` (Q4), `actor_type` enum extended (Q5),
+  expired-quarantine sweep (Q6), backfill command for pre-Q1 truncated rows (Q7).
+- Plus companion fixes: `Plan::mostPurchasedPlan` column reference, 7
+  `JobApplicationController` `route()` hard-throwers, three blade regressions
+  surfaced during Playwright triage, Playwright performance.spec flake.
 
 ## RECENTLY COMPLETED (2026-05-11 / 2026-05-12)
 
