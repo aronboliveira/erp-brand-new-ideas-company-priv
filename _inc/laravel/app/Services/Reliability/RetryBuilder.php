@@ -29,6 +29,8 @@ class RetryBuilder
 
     private mixed $intervalCallback = null;
 
+    private bool $intervalIsMillis = false;
+
     private string $criticality = ReliabilityPolicy::CRITICALITY_MEDIUM;
 
     private string $channel = 'system';
@@ -38,6 +40,10 @@ class RetryBuilder
     private ?OutboxMessage $outboxMessage = null;
 
     private ?OperationalEventService $events = null;
+
+    private bool $sleepBetweenAttempts = true;
+
+    private mixed $recover = null;
 
     public function __construct(private string $name)
     {
@@ -58,6 +64,16 @@ class RetryBuilder
         $this->retryOn = array_values(array_unique(array_merge($this->retryOn, (array) $classes)));
 
         return $this;
+    }
+
+    /**
+     * Retry on any Throwable (subject to abortOn / exceptionHandlers).
+     * Equivalent to the pre-policy default — use sparingly. Prefer explicit retryOn() with a curated list
+     * or rely on the default ReliabilityPolicy::TRANSIENT_EXCEPTIONS allowlist when no retryOn() is set.
+     */
+    public function retryOnAny(): self
+    {
+        return $this->retryOn(Throwable::class);
     }
 
     /**
@@ -82,11 +98,26 @@ class RetryBuilder
     }
 
     /**
-     * @param callable(int, Throwable, array<string, mixed>): int $resolver
+     * @param callable(int, Throwable, array<string, mixed>): int $resolver  Returns seconds.
      */
     public function intervalUsing(callable $resolver): self
     {
         $this->intervalResolver = $resolver;
+        $this->intervalIsMillis = false;
+
+        return $this;
+    }
+
+    /**
+     * Same as intervalUsing() but the resolver returns milliseconds.
+     * Use for sub-second backoffs (DB deadlocks, fast remote APIs) where 1s minimum granularity is too coarse.
+     *
+     * @param callable(int, Throwable, array<string, mixed>): int $resolver  Returns ms.
+     */
+    public function intervalUsingMillis(callable $resolver): self
+    {
+        $this->intervalResolver = $resolver;
+        $this->intervalIsMillis = true;
 
         return $this;
     }
@@ -136,6 +167,33 @@ class RetryBuilder
         return $this;
     }
 
+    /**
+     * Whether Retry::run() should sleep(intervalSeconds) between attempts.
+     * Default true (Spring Retry semantics). Outbox/queue dispatchers should pass false —
+     * their scheduler enforces backoff externally and in-process sleep would block the worker.
+     */
+    public function withSleep(bool $sleep): self
+    {
+        $this->sleepBetweenAttempts = $sleep;
+
+        return $this;
+    }
+
+    /**
+     * Register a fallback to invoke when all attempts are exhausted (Spring's @Recover analogue).
+     * The recover callback receives ($throwable, $finalAttempt, $context) and its return value is
+     * returned from Retry::run() instead of rethrowing. Use for synchronous paths that should
+     * degrade gracefully (cached/stale response, dead-letter, manual-review queue) rather than fail.
+     *
+     * @param callable(Throwable, int, array<string, mixed>): mixed $recover
+     */
+    public function recoverWith(callable $recover): self
+    {
+        $this->recover = $recover;
+
+        return $this;
+    }
+
     public function build(): Retry
     {
         return new Retry(
@@ -151,6 +209,9 @@ class RetryBuilder
             $this->operationLedger,
             $this->outboxMessage,
             $this->events,
+            $this->sleepBetweenAttempts,
+            $this->recover,
+            $this->intervalIsMillis,
         );
     }
 }

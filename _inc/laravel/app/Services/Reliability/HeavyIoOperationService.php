@@ -378,6 +378,8 @@ class HeavyIoOperationService
             ->outboxMessage($outboxMessage)
             ->maxAttempts($assessment->maxAttempts)
             ->intervalUsing(fn(int $attempt): int => ReliabilityPolicy::retryDelaySeconds($attempt))
+            ->withSleep(false)
+            ->retryOnAny()
             ->abortOn(CircuitBreakerOpenException::class)
             ->build()
             ->run(fn(): mixed => $guardedRunner(), $context);

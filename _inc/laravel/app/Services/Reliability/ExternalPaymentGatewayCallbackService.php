@@ -89,6 +89,9 @@ class ExternalPaymentGatewayCallbackService
             ->criticality($criticality)
             ->channel('finance.gateway')
             ->events($this->events)
+            // Synchronous webhook handler — caller holds the connection; default 30s-base backoff would time out the gateway. Preserve immediate retry; tune intervalUsing() if jitter/backoff is needed.
+            ->withSleep(false)
+            ->retryOnAny()
             ->build();
 
         try {

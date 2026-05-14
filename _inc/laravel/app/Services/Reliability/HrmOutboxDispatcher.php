@@ -223,6 +223,8 @@ class HrmOutboxDispatcher
             ->outboxMessage($message)
             ->maxAttempts((int) data_get($message->metadata, 'retry.max_attempts', max(1, (int) $message->max_attempts)))
             ->intervalUsing(fn(int $attempt): int => ReliabilityPolicy::retryDelaySeconds($attempt))
+            ->withSleep(false)
+            ->retryOnAny()
             ->abortOn(CircuitBreakerOpenException::class)
             ->build()
             ->run(fn(): array => $runner(), $context);

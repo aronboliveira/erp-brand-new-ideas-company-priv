@@ -36,13 +36,33 @@ class RetryCircuitBreakerTest extends TestCase
     #[Test]
     public function retry_policy_uses_capped_exponential_backoff(): void
     {
-        $this->assertSame(30, ReliabilityPolicy::retryDelaySeconds(0));
-        $this->assertSame(30, ReliabilityPolicy::retryDelaySeconds(1));
-        $this->assertSame(60, ReliabilityPolicy::retryDelaySeconds(2));
-        $this->assertSame(120, ReliabilityPolicy::retryDelaySeconds(3));
-        $this->assertSame(240, ReliabilityPolicy::retryDelaySeconds(4));
-        $this->assertSame(300, ReliabilityPolicy::retryDelaySeconds(5));
-        $this->assertSame(300, ReliabilityPolicy::retryDelaySeconds(99));
+        // ±15% jitter applied per ReliabilityPolicy::jitter — assert ranges instead of exact values.
+        $this->assertWithinJitter(30, ReliabilityPolicy::retryDelaySeconds(0));
+        $this->assertWithinJitter(30, ReliabilityPolicy::retryDelaySeconds(1));
+        $this->assertWithinJitter(60, ReliabilityPolicy::retryDelaySeconds(2));
+        $this->assertWithinJitter(120, ReliabilityPolicy::retryDelaySeconds(3));
+        $this->assertWithinJitter(240, ReliabilityPolicy::retryDelaySeconds(4));
+        $this->assertWithinJitter(300, ReliabilityPolicy::retryDelaySeconds(5));
+        $this->assertWithinJitter(300, ReliabilityPolicy::retryDelaySeconds(99));
+    }
+
+    private function assertWithinJitter(int $expected, int $actual, float $jitterPct = 0.15): void
+    {
+        $delta = (int) ceil($expected * $jitterPct);
+        $this->assertGreaterThanOrEqual(max(1, $expected - $delta), $actual, "expected ~{$expected} (±{$delta}), got {$actual}");
+        $this->assertLessThanOrEqual($expected + $delta, $actual, "expected ~{$expected} (±{$delta}), got {$actual}");
+    }
+
+    #[Test]
+    public function commit_retry_attempts_scale_with_criticality(): void
+    {
+        $this->assertSame(1, ReliabilityPolicy::commitRetryAttempts(ReliabilityPolicy::CRITICALITY_TRIVIAL));
+        $this->assertSame(1, ReliabilityPolicy::commitRetryAttempts(ReliabilityPolicy::CRITICALITY_LOW));
+        $this->assertSame(3, ReliabilityPolicy::commitRetryAttempts(ReliabilityPolicy::CRITICALITY_MEDIUM));
+        $this->assertSame(4, ReliabilityPolicy::commitRetryAttempts(ReliabilityPolicy::CRITICALITY_HIGH));
+        $this->assertSame(5, ReliabilityPolicy::commitRetryAttempts(ReliabilityPolicy::CRITICALITY_CRITICAL));
+        // Unknown criticality strings normalize to medium → default 3.
+        $this->assertSame(3, ReliabilityPolicy::commitRetryAttempts('unknown-tier'));
     }
 
     #[Test]
@@ -60,6 +80,7 @@ class RetryCircuitBreakerTest extends TestCase
             })
             ->criticality(ReliabilityPolicy::CRITICALITY_HIGH)
             ->channel('finance.retry')
+            ->withSleep(false)
             ->build()
             ->run(function () use (&$attempts): string {
                 $attempts++;
@@ -91,6 +112,7 @@ class RetryCircuitBreakerTest extends TestCase
             })
             ->criticality(ReliabilityPolicy::CRITICALITY_HIGH)
             ->channel('finance.retry.default-backoff')
+            ->withSleep(false)
             ->build()
             ->run(function () use (&$attempts): string {
                 $attempts++;
@@ -102,7 +124,12 @@ class RetryCircuitBreakerTest extends TestCase
             });
 
         $this->assertSame('ok', $result);
-        $this->assertSame([[1, 'temporary-1', 30], [2, 'temporary-2', 60]], $intervals);
+        // Default backoff is jittered (±15%) — assert structure + that values fall in the jitter band.
+        $this->assertCount(2, $intervals);
+        $this->assertSame([1, 'temporary-1'], [$intervals[0][0], $intervals[0][1]]);
+        $this->assertSame([2, 'temporary-2'], [$intervals[1][0], $intervals[1][1]]);
+        $this->assertWithinJitter(30, $intervals[0][2]);
+        $this->assertWithinJitter(60, $intervals[1][2]);
     }
 
     #[Test]
@@ -130,6 +157,36 @@ class RetryCircuitBreakerTest extends TestCase
 
         $this->assertSame(1, $attempts);
         $this->assertSame(1, OperationalEvent::where('event_type', 'reliability.retry.failed')->where('channel', 'finance.retry')->count());
+    }
+
+    #[Test]
+    public function retry_recover_fallback_handles_exhausted_attempts(): void
+    {
+        $attempts = 0;
+        $recovered = [];
+        $channel = 'finance.retry.recover.' . Str::uuid();
+
+        $result = Retry::builder('test.retry.recover.' . Str::uuid())
+            ->maxAttempts(2)
+            ->retryOn(RuntimeException::class)
+            ->criticality(ReliabilityPolicy::CRITICALITY_HIGH)
+            ->channel($channel)
+            ->withSleep(false)
+            ->recoverWith(function (Throwable $throwable, int $finalAttempt, array $context) use (&$recovered): string {
+                $recovered[] = [$throwable->getMessage(), $finalAttempt, $context['flow'] ?? null];
+
+                return 'fallback-result';
+            })
+            ->build()
+            ->run(function () use (&$attempts): never {
+                $attempts++;
+                throw new RuntimeException('persistent-' . $attempts);
+            }, ['flow' => 'recover-case']);
+
+        $this->assertSame('fallback-result', $result);
+        $this->assertSame(2, $attempts);
+        $this->assertSame([['persistent-2', 2, 'recover-case']], $recovered);
+        $this->assertSame(1, OperationalEvent::where('event_type', 'reliability.retry.recovered')->where('channel', $channel)->count());
     }
 
     #[Test]

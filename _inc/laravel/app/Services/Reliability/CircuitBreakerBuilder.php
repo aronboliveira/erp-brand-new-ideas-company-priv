@@ -27,6 +27,10 @@ class CircuitBreakerBuilder
 
     private ?bool $halfOpenConservative = null;
 
+    private ?int $slowCallDurationMs = null;
+
+    private ?float $slowCallRateThreshold = null;
+
     private string $criticality = ReliabilityPolicy::CRITICALITY_MEDIUM;
 
     private string $channel = 'system';
@@ -100,7 +104,7 @@ class CircuitBreakerBuilder
 
     public function halfOpenSuccessThreshold(float $threshold): self
     {
-        $this->halfOpenSuccessThreshold = max(25.0, min(100.0, $threshold));
+        $this->halfOpenSuccessThreshold = max(1.0, min(100.0, $threshold));
 
         return $this;
     }
@@ -108,6 +112,19 @@ class CircuitBreakerBuilder
     public function halfOpenConservative(bool $conservative): self
     {
         $this->halfOpenConservative = $conservative;
+
+        return $this;
+    }
+
+    /**
+     * Calls that take longer than $durationMs are flagged as "slow"; if their rate
+     * in the closed window meets $rateThreshold (0–100), the breaker trips even when
+     * the failure-rate threshold is not yet met. Pass nulls to disable (default).
+     */
+    public function slowCallThreshold(?int $durationMs, ?float $rateThreshold): self
+    {
+        $this->slowCallDurationMs = $durationMs !== null ? max(1, $durationMs) : null;
+        $this->slowCallRateThreshold = $rateThreshold !== null ? max(1.0, min(100.0, $rateThreshold)) : null;
 
         return $this;
     }
@@ -172,6 +189,8 @@ class CircuitBreakerBuilder
             $this->operationLedger,
             $this->outboxMessage,
             $this->events,
+            $this->slowCallDurationMs,
+            $this->slowCallRateThreshold,
         );
     }
 }

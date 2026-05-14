@@ -213,6 +213,8 @@ class FinanceOutboxDispatcher
             ->outboxMessage($message)
             ->maxAttempts((int) data_get($message->metadata, 'retry.max_attempts', 2))
             ->intervalUsing(fn(int $attempt): int => ReliabilityPolicy::retryDelaySeconds($attempt))
+            ->withSleep(false)
+            ->retryOnAny()
             ->abortOn(CircuitBreakerOpenException::class)
             ->build()
             ->run(fn(): array => $circuitBreaker->call(fn(): array => $this->resolveSignals($message), $context), $context);
