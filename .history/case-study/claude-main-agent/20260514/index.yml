@@ -1,0 +1,221 @@
+# Case study index — claude-main-agent — 2026-05-14
+# Companion to case-study.md. Lists issue IDs, stacks, services, and decisions
+# in semi-structured form for easy mechanical extraction.
+
+session:
+  alias: claude-main-agent
+  date: 2026-05-14
+  branch: main
+  base_commit: 8cd7caee5
+  head_commit: 5fdb8b16f
+  commits: 4
+
+stacks:
+  primary:
+    - php: "8.4.5"
+    - laravel: "8.x"  # monolithic, no broker
+    - mysql: "8.4"
+    - phpunit: "10.5.55"
+    - phpstan: "1.x (level 3)"
+  secondary:
+    - playwright: "chromium project only"
+    - python: "3.x with seaborn 0.13.2, matplotlib 3.8.3 (case-study charts)"
+
+architectural_references:
+  - spring-retry  # BackOffPolicy + RetryListener + @Recover
+  - resilience4j  # CircuitBreaker (slowCallRate, half-open semaphore, IntervalFunction)
+  - transactional-outbox  # data + outbox row in one transaction
+  - quarantine-overlay  # canonical signal via separate table, not source-row mutation
+
+modules_touched:
+  - app/Services/Reliability  # Retry, CircuitBreaker, CriticalOperationService, Quarantine*, *OperationService, *OutboxDispatcher
+  - app/Console/Commands  # 3 new artisan commands
+  - app/Models  # CircuitBreakerState (ops handles), OperationQuarantine (ops handles)
+  - app/Exceptions/Reliability  # unchanged but referenced
+  - database/migrations  # 3 new (slow-call, quarantine domain enum, audit actor_type)
+  - resources/views  # 3 blade regressions (job_applications/index, leads/index, partials/admin/menu)
+  - app/Models/Planning/Plan.php  # users.plan_id → users.plan column fix
+  - app/Http/Controllers/Individuals/JobApplicationController.php  # 31 route()/guard() sites
+  - tests/Unit/app/Services/Reliability  # +12 tests, jitter-band helper
+
+issues_closed:
+  retry:
+    - id: R-1
+      severity: HIGH
+      title: Retry::run never actually slept
+      fix: Default sleep(intervalSeconds) inside the loop; existing callers opted out with ->withSleep(false)
+    - id: R-2
+      severity: MEDIUM
+      title: No jitter on retryDelaySeconds
+      fix: ReliabilityPolicy::jitter() applied with ±15% factor
+    - id: R-3
+      severity: MEDIUM
+      title: Empty retryOn meant retry-on-Throwable
+      fix: Falls back to ReliabilityPolicy::TRANSIENT_EXCEPTIONS allowlist; ->retryOnAny() for explicit opt-in
+    - id: R-4
+      severity: LOW
+      title: No recover/fallback hook
+      fix: RetryBuilder::recoverWith() — Spring @Recover analogue
+    - id: R-5
+      severity: LOW
+      title: Seconds-only granularity
+      fix: RetryBuilder::intervalUsingMillis() + internal usleep
+    - id: R-6
+      severity: INFO
+      title: Reflection on every attempt
+      fix: Hoisted to once per run() entry
+    - id: R-7
+      severity: INFO
+      title: shouldRetry precedence undocumented
+      fix: Inline docblock describing abortOn → handlers → retryOn order
+
+  circuit_breaker:
+    - id: CB-1
+      severity: HIGH
+      title: Half-open admission counted only completed calls
+      fix: tryAcquirePermit writes a 'permitted' call row under lockForUpdate
+    - id: CB-2
+      severity: MEDIUM
+      title: open→half_open transition race
+      fix: prepareState wraps the transition in DB::transaction with lockForUpdate + re-check under lock
+    - id: CB-3
+      severity: MEDIUM
+      title: No jitter on next_attempt_at
+      fix: addSeconds(ReliabilityPolicy::jitter($this->openStateSeconds))
+    - id: CB-4
+      severity: MEDIUM
+      title: No slow-call rate detection
+      fix: Optional slow_call_duration_ms + slow_call_rate_threshold columns; builder slowCallThreshold($ms, $rate)
+    - id: CB-5
+      severity: LOW
+      title: halfOpenSuccessThreshold builder floor too high
+      fix: 25% → 1%; tier-defaults preserved
+    - id: CB-6
+      severity: LOW
+      title: Non-conservative mode wasted probes after threshold unreachable
+      fix: Early re-open when math says threshold unreachable
+    - id: CB-7
+      severity: LOW
+      title: CIRCUIT_DISABLED state unreachable
+      fix: CircuitBreakerState::disable($reason) / enable() ops handles
+
+  commit_path:
+    - id: F-1
+      severity: HIGH
+      title: Ledger status flip outside transaction
+      fix: Moved succeedStep + ledger forceFill(committed) + operation.committed event INSIDE DB::transaction as last writes; defensive try/catch on failure-path writes
+    - id: F-2
+      severity: HIGH
+      title: No deadlock retry on commit
+      fix: DB::transaction($callback, ReliabilityPolicy::commitRetryAttempts($criticality))
+    - id: F-3
+      severity: LOW
+      title: Orphaned 'started' ledgers from residual sub-ms crash window
+      fix: ReliabilityLedgerSweepService + reliability:sweep-orphaned-ledgers
+
+  quarantine:
+    - id: Q-1
+      severity: HIGH
+      title: Domain enum missed 3 production domains; silent truncation under strict=false
+      fix: New migration extends enum to 7 values; audit action enum adds 'dismissed'
+    - id: Q-2
+      severity: MEDIUM
+      title: QuarantineService::route failure masked the original exception
+      fix: Defensive try/catch in all 5 domain operation services; original exception propagates with quarantine()=null
+    - id: Q-3
+      severity: LOW
+      title: Judge hardcoded domain decisions
+      fix: ReliabilityPolicy::quarantineDecisionFor as single source of truth; judge reduced to a 13-line wrapper
+    - id: Q-4
+      severity: MEDIUM
+      title: No recover/dismiss workflow
+      fix: OperationQuarantine::recover() / dismiss() + audit row writes
+    - id: Q-5
+      severity: LOW
+      title: actor_type enum too narrow
+      fix: Extended to ('system','human','judge','scheduler'); judge_decision audits now write actor_type='judge'
+    - id: Q-6
+      severity: LOW
+      title: No expired-quarantine GC
+      fix: QuarantineRetentionSweepService + reliability:sweep-expired-quarantines
+    - id: Q-7
+      severity: HIGH  # data recovery for affected deployments
+      title: Pre-Q1 truncated rows have lost domain attribution
+      fix: reliability:backfill-quarantine-domains recovers from operation_ledgers.domain
+
+companion_fixes:
+  - plan_model_column_reference  # users.plan_id (nonexistent) → users.plan (UC::COL_PL)
+  - job_application_controller_route_constants  # 7 hard-throwers + 24 guard 3rd-args
+  - blade_regressions  # job_applications/index, leads/index, partials/admin/menu
+  - playwright_performance_flake  # warm/cold ratio widened with jitter-dominated escape
+
+suite_runs:
+  phpunit:
+    initial_unit: { tests: 10657, assertions: 20778, failures: 1, status: "1 timing flake (unchanged from prior session)" }
+    final_reliability: { tests: 60, assertions: 362, failures: 0, status: green }
+  phpstan: { level: 3, status: clean }
+  playwright_chromium: { passed: 585, failed: 0, flaky: 0, skipped: 0 }
+  pytest: { tests: 439, status: pass, notes: "after pip install openpyxl requests pytest" }
+  jest_cjs: { suites: 32, tests: 693, status: pass }
+  jest_ts: { suites: 11, tests: 949, status: pass }
+  tsc: { status: clean }
+  eslint: { status: "clean at --max-warnings=50" }
+  flake8: { status: "issues only in utils/scripts/py/analysis/ one-offs" }
+  mypy: { status: "issues only in utils/scripts/py/analysis/ one-offs" }
+  mysql_cli: { status: "used for schema verification + Q1 truncation reproduction" }
+  curl: { routes: 16, status: pass }
+
+new_artifacts:
+  artisan_commands:
+    - signature: "reliability:sweep-orphaned-ledgers --limit=200"
+      cadence_recommended: every 5-10 minutes
+    - signature: "reliability:sweep-expired-quarantines --limit=200"
+      cadence_recommended: every 6-12 hours
+    - signature: "reliability:backfill-quarantine-domains --dry-run --limit=1000"
+      cadence_recommended: one-off after Q1 migration on affected deployments
+
+  migrations:
+    - 2026_05_14_120000_add_slow_call_thresholds_to_circuit_breaker_states.php
+    - 2026_05_14_130000_extend_operation_quarantine_enums.php
+    - 2026_05_14_140000_extend_quarantine_audit_actor_type.php
+
+  services:
+    - app/Services/Reliability/ReliabilityLedgerSweepService.php
+    - app/Services/Reliability/QuarantineRetentionSweepService.php
+
+charts:
+  - charts/seaborn/issues-by-module-severity.png
+  - charts/seaborn/test-growth.png
+  - charts/seaborn/quarantine-domain-enum-fix.png
+  - charts/seaborn/f1-commit-path-window.png
+
+evidence:
+  - _inc/laravel/utils/cli/20260514/mysql-enum-truncation-repro.log
+  - _inc/laravel/utils/grep/20260514/retry-circuit-callers.log
+  - _inc/laravel/utils/grep/20260514/quarantine-domain-validators.log
+
+pending_for_ops:
+  - schedule_sweep_commands  # in Console\Kernel::schedule()
+  - run_backfill_on_production  # only if pre-Q1 historical data exists
+
+commits:
+  - hash: e13eaaf51
+    subject: "fix(views,models,e2e): playwright-triage regressions"
+    files: 6
+    insertions: 56
+    deletions: 44
+  - hash: 1e2d0d8c8
+    subject: "refactor(reliability/retry+circuit): Spring/Resilience4j-parity hardening"
+    files: 15
+    insertions: 458
+    deletions: 47
+  - hash: d9c13ec0c
+    subject: "feat(reliability): atomic commit-path + quarantine operability + GC sweeps"
+    files: 18
+    insertions: 1061
+    deletions: 95
+  - hash: 5fdb8b16f
+    subject: "docs(reliability): document the 2026-05-14 hardening pass"
+    files: 3
+    insertions: 264
+    deletions: 8
