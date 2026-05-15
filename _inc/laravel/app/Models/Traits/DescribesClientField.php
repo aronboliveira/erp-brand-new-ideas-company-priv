@@ -110,27 +110,27 @@ trait DescribesClientField
 
 		public static function clientFieldConstraintColumns(): array
 	{
-		    try {
+        try {
     		return array_values(array_unique([
-    			'pattern',
-    			'min',
-    			'max',
-    			'step',
-    			'minlength',
-    			'maxlength',
-    			'required',
-    			'disabled',
-    			'readonly',
+            'pattern',
+            'min',
+            'max',
+            'step',
+            'minlength',
+            'maxlength',
+            'required',
+            'disabled',
+            'readonly',
     		]));
-		    } catch (\Throwable $e) {
-		        Log::error(static::class . '::clientFieldConstraintColumns — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-		        return [];
+        } catch (\Throwable $e) {
+            Log::error(static::class . '::clientFieldConstraintColumns — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
 		    }
 	}
 
 		protected function getClientFieldAttributes(): array
 	{
-		    try {
+        try {
     		$out = [];
     		$table = $this->getTable();
 
@@ -141,15 +141,14 @@ trait DescribesClientField
 
     		return $out;
 		    } catch (\Throwable $e) {
-		        Log::error(static::class . '::getClientFieldAttributes — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-		        return [];
+            Log::error(static::class . '::getClientFieldAttributes — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
 		    }
 	}
 
 		protected static function normalizeClientFieldPayload(array $attr): array
 	{
-		    try {
-
+        try {
     		foreach (self::CLIENT_FIELD_BOOL_COLS as $b) {
     			if (array_key_exists($b, $attr)) $attr[$b] = filter_var($attr[$b], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
     		}
@@ -159,14 +158,14 @@ trait DescribesClientField
 
     		return $attr;
 		    } catch (\Throwable $e) {
-		        Log::error(static::class . '::normalizeClientFieldPayload — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-		        return [];
+            Log::error(static::class . '::normalizeClientFieldPayload — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
 		    }
 	}
 
 		protected static function overlayIfMeaningful(array $base, array $overrides): array
 	{
-		    try {
+        try {
     		foreach ($overrides as $k => $v) {
     			if ($v === null) continue;
     			if (is_string($v) && trim($v) === '') continue;
@@ -174,8 +173,8 @@ trait DescribesClientField
     		}
     		return $base;
 		    } catch (\Throwable $e) {
-		        Log::error(static::class . '::overlayIfMeaningful — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
-		        return [];
+            Log::error(static::class . '::overlayIfMeaningful — ' . get_class($e) . ': ' . $e->getMessage(), ['file' => $e->getFile(), 'line' => $e->getLine()]);
+            return [];
 		    }
 	}
 

@@ -86,7 +86,6 @@ class Plan extends Model
     public static function mostPurchasedPlan(): object|null
     {
         try {
-
             $freePlanIds = Plan::query()
                 ->where(PLC::COL_PC, '<=', 0)
                 ->pluck('id');

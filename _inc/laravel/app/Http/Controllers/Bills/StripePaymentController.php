@@ -78,7 +78,6 @@ class StripePaymentController extends Controller
         $admin_payment_setting = Utility::getAdminPaymentSetting();
 
         if ($plan) {
-
             try {
                 $price = $plan->price;                    $coupons = null;
                 if (!empty($request->coupon)) {
@@ -109,7 +108,6 @@ class StripePaymentController extends Controller
                         "metadata" => ["order_id" => $orderID],
                     ]);
                 } else {
-
                     $data['amount_refunded'] = 0;
                     $data['failure_code']   = '';
                     $data['paid']           = 1;
@@ -119,8 +117,6 @@ class StripePaymentController extends Controller
 
 
                 if ($data['amount_refunded'] == 0 && empty($data['failure_code']) && $data['paid'] == 1 && $data['captured'] == 1) {
-
-
                     Order::create([
                         'order_id' => $orderID,
                         'name' => $request->name,
@@ -169,8 +165,6 @@ class StripePaymentController extends Controller
                     return redirect()->route('plans.index')->with('error', __('Transaction has been failed.'));
                 }
             } catch (\Exception $e) {
-
-
                 return redirect()->route('plans.index')->with('error', __($e->getMessage()));
             }
         } else {
@@ -196,7 +190,6 @@ class StripePaymentController extends Controller
                 return redirect()->back()->with('error', __('Invalid amount.'));
             } else {
                 try {
-
                     $orderID = strtoupper(str_replace('.', '', uniqid('', true)));
                     $price  = $request->amount;
                     Stripe\Stripe::setApiKey($company_payment_setting['stripe_secret']);
