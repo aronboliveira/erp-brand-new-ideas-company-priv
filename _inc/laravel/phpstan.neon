@@ -1,6 +1,9 @@
-includes:
-    - vendor/larastan/larastan/extension.neon
-
+# Note: larastan was previously included here, but the package is not in composer.json
+# and only a stub file existed locally (`# Stub: larastan not installed`). The CI image
+# correctly does not have it, which caused phpstan to error out on missing extension.neon.
+# The project's ignoreErrors list (below) already handles all Laravel-magic rules manually,
+# so we drop the include rather than re-adopting larastan as a dev dep (which would
+# require coordinated upgrades of phpstan + illuminate to satisfy its constraints).
 parameters:
 	level: 5
 	paths:
